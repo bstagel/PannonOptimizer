@@ -38,6 +38,7 @@ private:
     void setGetName();
     void setGetVector();
     void type();
+    //TODO: == operatorra tesztet irni!
 };
 
 

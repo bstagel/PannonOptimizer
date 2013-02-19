@@ -1,4 +1,5 @@
 #include <lp/manualmodelbuilder.h>
+#include <cstdarg>
 
 ManualModelBuilder::ManualModelBuilder()
 {
@@ -31,8 +32,8 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     m_costVector.push_back(costCoefficient);
 
     // creating the new column
-    std::list<IndexValuePair> newColumnList;
-    m_columns.push_back(newColumnList);
+    std::list<IndexValuePair> newList;
+    m_columns.push_back(newList);
     const unsigned int lastIndex = m_columns.size() - 1;
     unsigned int index;
     unsigned int maxIndex = 0;
@@ -44,18 +45,65 @@ void ManualModelBuilder::addVariable(const Variable & variable,
         }
     }
     m_nonZerosInColumns.push_back(nonzeros);
-    
+
     // creating the necessary constraints
-    for (index = m_constraints.size(); index < maxIndex; index++) {
+    for (index = m_constraints.size(); index <= maxIndex; index++) {
         m_constraints.push_back(Constraint::createGreaterTypeConstraint(0, 0.0));
+        m_rows.push_back(newList);
+        m_nonZerosInRows.push_back(0);
     }
 
+    // insert the nonzeros into the constraints
+    unsigned int variableIndex = m_variables.size() - 1;
+    for (index = 0; index < nonzeros; index++) {
+        IndexValuePair pair = {values[index], variableIndex};
+        unsigned int rowIndex = indices[index];
+        m_nonZerosInRows[ rowIndex ]++;
+        m_rows[ rowIndex ].push_back(pair);
+    }
 }
 
 void ManualModelBuilder::addVariable(const Variable & variable,
     Numerical::Double costCoefficient,
     const Vector & vector)
 {
+    m_variables.push_back(variable);
+    m_costVector.push_back(costCoefficient);
+
+    // creating the new column
+    std::list<IndexValuePair> newList;
+    m_columns.push_back(newList);
+    const unsigned int lastIndex = m_columns.size() - 1;
+
+    unsigned int maxIndex = 0;
+    Vector::ConstNonzeroIterator iter = vector.beginNonzero();
+    Vector::ConstNonzeroIterator iterEnd = vector.endNonzero();
+    for (; iter != iterEnd; iter++) {
+        IndexValuePair pair = {*iter, iter.getIndex()};
+        m_columns[lastIndex].push_back(pair);
+        if (maxIndex < iter.getIndex()) {
+            maxIndex = iter.getIndex();
+        }
+    }
+    m_nonZerosInColumns.push_back(vector.nonZeros());
+
+    // creating the necessary constraints
+    unsigned int index;
+    for (index = m_constraints.size(); index <= maxIndex; index++) {
+        m_constraints.push_back(Constraint::createGreaterTypeConstraint(0, 0.0));
+        m_rows.push_back(newList);
+        m_nonZerosInRows.push_back(0);
+    }
+
+    // insert the nonzeros into the constraints
+    unsigned int variableIndex = m_variables.size() - 1;
+    iter = vector.beginNonzero();
+    for (; iter != iterEnd; iter++) {
+        IndexValuePair pair = {*iter, variableIndex};
+        unsigned int rowIndex = iter.getIndex();
+        m_nonZerosInRows[ rowIndex ]++;
+        m_rows[ rowIndex ].push_back(pair);
+    }
 
 }
 
@@ -63,6 +111,78 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     Numerical::Double costCoefficient,
     unsigned int nonzeros,
     ...)
+{
+    va_list arguments;
+    va_start(arguments, nonzeros);
+
+    m_variables.push_back(variable);
+    m_costVector.push_back(costCoefficient);
+
+    // creating the new column
+    std::list<IndexValuePair> newList;
+    m_columns.push_back(newList);
+    const unsigned int lastIndex = m_columns.size() - 1;
+    unsigned int index;
+    unsigned int rowIndex;
+    Numerical::Double value;
+    unsigned int maxIndex = 0;
+    for (index = 0; index < nonzeros; index++) {
+        value = va_arg(arguments, Numerical::Double);
+        rowIndex = va_arg(arguments, unsigned int);
+        IndexValuePair pair = {value, rowIndex};
+        m_columns[lastIndex].push_back(pair);
+        if (maxIndex < rowIndex) {
+            maxIndex = rowIndex;
+        }
+    }
+    m_nonZerosInColumns.push_back(nonzeros);
+
+    // creating the necessary constraints
+    for (index = m_constraints.size(); index <= maxIndex; index++) {
+        m_constraints.push_back(Constraint::createGreaterTypeConstraint(0, 0.0));
+        m_rows.push_back(newList);
+        m_nonZerosInRows.push_back(0);
+    }
+
+    // insert the nonzeros into the constraints
+    va_start(arguments, nonzeros);
+    unsigned int variableIndex = m_variables.size() - 1;
+    for (index = 0; index < nonzeros; index++) {
+        value = va_arg(arguments, Numerical::Double);
+        rowIndex = va_arg(arguments, unsigned int);
+        IndexValuePair pair = {value, variableIndex};
+        m_nonZerosInRows[ rowIndex ]++;
+        m_rows[ rowIndex ].push_back(pair);
+    }
+}
+
+void ManualModelBuilder::setConstraint(unsigned int index, const Constraint & constraint)
+{
+    m_constraints[index] = constraint;
+}
+
+void ManualModelBuilder::addConstraint(const Constraint & constraint,
+    unsigned int nonzeros,
+    const Numerical::Double * values,
+    const unsigned int * indices)
+{
+
+}
+
+void ManualModelBuilder::addConstraint(const Constraint & constraint,
+    const Vector & vector)
+{
+
+}
+
+void ManualModelBuilder::addConstraint(const Constraint & constraint,
+    unsigned int nonzeros,
+    ...)
+{
+
+}
+
+void ManualModelBuilder::setVariable(unsigned int index, const Variable & variable)
 {
 
 }

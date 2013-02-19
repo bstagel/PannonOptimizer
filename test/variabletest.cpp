@@ -21,9 +21,11 @@ void VariableTestSuite::createPlusType()
     /**
      * Testing a named variable
      */
+    
     Variable variable1 = Variable::createPlusTypeVariable(testName,
         testValue,
         testLowerBound);
+    
     TEST_ASSERT(variable1.m_type == variable1.getType());
     TEST_ASSERT(variable1.m_type == Variable::PLUS);
 

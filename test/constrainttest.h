@@ -42,6 +42,7 @@ private:
     void setGetUpperBound();
     void setGetName();
     void setGetVector();
+    // TODO: kell egy teszt az == operatornak
 };
 
 
