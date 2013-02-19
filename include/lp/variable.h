@@ -156,6 +156,13 @@ public:
 
     /**
      * 
+     * @param variable
+     * @return 
+     */
+    inline bool operator==(const Variable & variable) const;
+
+    /**
+     * 
      */
     friend std::ostream & operator<<(std::ostream & os, const Variable & var);
 
@@ -206,12 +213,12 @@ private:
      * 
      */
     inline void adjustType();
-    
+
     /**
      * 
      * @param vector
      */
-    inline void setVector(const Vector & vector);   
+    inline void setVector(const Vector & vector);
 
 };
 
@@ -289,13 +296,37 @@ inline const char * Variable::getName() const
     return "<NO NAME>";
 }
 
-inline void Variable::setVector(const Vector & vector) {
+inline void Variable::setVector(const Vector & vector)
+{
     m_vector = &vector;
 }
 
 inline const Vector * Variable::getVector() const
 {
     return m_vector;
+}
+
+inline bool Variable::operator==(const Variable & variable) const
+{
+    if (m_lowerBound != variable.m_lowerBound) {
+        return false;
+    }
+    if (m_name != variable.m_name) {
+        return false;
+    }
+    if (m_type != variable.m_type) {
+        return false;
+    }
+    if (m_upperBound != variable.m_upperBound) {
+        return false;
+    }
+    if (m_value != variable.m_value) {
+        return false;
+    }
+    if (m_vector != variable.m_vector) {
+        return false;
+    }
+    return true;
 }
 
 inline void Variable::adjustType()

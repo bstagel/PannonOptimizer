@@ -71,7 +71,51 @@ public:
         Numerical::Double costCoefficient,
         unsigned int nonzeros,
         ...);
-    
+
+    /**
+     * 
+     * @param index
+     * @param constraint
+     */
+    void setConstraint(unsigned int index, const Constraint & constraint);
+
+    /**
+     * 
+     * @param constraint
+     * @param nonzeros
+     * @param values
+     * @param indices
+     */
+    void addConstraint(const Constraint & constraint,
+        unsigned int nonzeros,
+        const Numerical::Double * values,
+        const unsigned int * indices);
+
+    /**
+     * 
+     * @param constraint
+     * @param vector
+     */
+    void addConstraint(const Constraint & constraint,
+        const Vector & vector);
+
+    /**
+     * 
+     * @param constraint
+     * @param nonzeros
+     * @param ...
+     */
+    void addConstraint(const Constraint & constraint,
+        unsigned int nonzeros,
+        ...);
+
+    /**
+     * 
+     * @param index
+     * @param variable
+     */
+    void setVariable(unsigned int index, const Variable & variable);
+
     /************************************************
      * 
      * Interface for the Model
@@ -142,7 +186,18 @@ private:
     struct IndexValuePair
     {
         Numerical::Double m_value;
-        unsigned int index;
+        unsigned int m_index;
+
+        bool operator==(const IndexValuePair & pair) const
+        {
+            if (m_value != pair.m_value) {
+                return false;
+            }
+            if (m_index != pair.m_index) {
+                return false;
+            }
+            return true;
+        }
     };
 
     /**
@@ -185,6 +240,20 @@ private:
     /**
      */
     std::vector<unsigned int> m_nonZerosInRows;
+
+    /**
+     * 
+     * @param value
+     * @param index
+     * @return 
+     */
+    static IndexValuePair createPair(Numerical::Double value, unsigned int index)
+    {
+        IndexValuePair pair;
+        pair.m_index = index;
+        pair.m_value = value;
+        return pair;
+    }
 };
 
 #endif	/* MANUALBUILDER_H */

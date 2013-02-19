@@ -131,6 +131,13 @@ public:
 
     /**
      * 
+     * @param constraint
+     * @return 
+     */
+    inline bool operator==(const Constraint & constraint) const;
+
+    /**
+     * 
      */
     friend std::ostream & operator<<(std::ostream & os, const Constraint & constraint);
 
@@ -272,6 +279,26 @@ void Constraint::adjustType()
             m_type = RANGE;
         }
     }
+}
+
+inline bool Constraint::operator==(const Constraint & constraint) const
+{
+    if (this->m_lowerBound != constraint.m_lowerBound) {
+        return false;
+    }
+    if (this->m_name != constraint.m_name) {
+        return false;
+    }
+    if (this->m_type != constraint.m_type) {
+        return false;
+    }
+    if (this->m_upperBound != constraint.m_upperBound) {
+        return false;
+    }
+    if (this->m_vector != constraint.m_vector) {
+        return false;
+    }
+    return true;
 }
 
 #endif	/* CONSTRAINT_H */
