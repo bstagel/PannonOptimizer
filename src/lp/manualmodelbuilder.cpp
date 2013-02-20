@@ -329,17 +329,36 @@ const Constraint & ManualModelBuilder::getConstraint(unsigned int index) const
 
 void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector) const
 {
-
+    unsigned int dimension = m_constraints.size();
+    rowVector->prepareForData(m_rows[index].size(), dimension);
+    std::list< IndexValuePair >::const_iterator iter = m_rows[index].begin();
+    std::list< IndexValuePair >::const_iterator iterEnd = m_rows[index].end();
+    for (; iter != iterEnd; iter++) {
+        rowVector->newNonZero(iter->m_value, iter->m_index);
+    }
 }
 
 void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector) const
 {
-
+    unsigned int dimension = m_variables.size();
+    columnVector->prepareForData(m_columns[index].size(), dimension);
+    std::list< IndexValuePair >::const_iterator iter = m_columns[index].begin();
+    std::list< IndexValuePair >::const_iterator iterEnd = m_columns[index].end();
+    for (; iter != iterEnd; iter++) {
+        columnVector->newNonZero(iter->m_value, iter->m_index);
+    }
 }
 
 void ManualModelBuilder::costVectorBuild(Vector * costVector) const
 {
-
+    unsigned int dimension = m_variables.size();
+    costVector->prepareForData(m_costVector.size(), dimension);
+    std::vector< Numerical::Double >::const_iterator iter = m_costVector.begin();
+    std::vector< Numerical::Double >::const_iterator iterEnd = m_costVector.end();
+    unsigned int index;
+    for (index = 0; iter != iterEnd; iter++, index++) {
+        costVector->newNonZero(*iter, index);
+    }
 }
 
 Numerical::Double ManualModelBuilder::getObjectiveConstant() const
