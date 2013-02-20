@@ -115,6 +115,13 @@ public:
      * @param variable
      */
     void setVariable(unsigned int index, const Variable & variable);
+    
+    /**
+     * 
+     * @param index
+     * @param cost
+     */
+    void setCostCoefficient(unsigned int index, Numerical::Double cost);
 
     /************************************************
      * 
@@ -152,16 +159,15 @@ public:
      * 
      * @param index
      * @param rowVector
-     * TODO: buildRow
      */
-    void rowBuild(unsigned int index, Vector * rowVector) const;
+    void buildRow(unsigned int index, Vector * rowVector) const;
 
     /**
      * 
      * @param index
      * @param columnVector
      */
-    void columnBuild(unsigned int index, Vector * columnVector) const;
+    void buildColumn(unsigned int index, Vector * columnVector) const;
 
     /**
      * 

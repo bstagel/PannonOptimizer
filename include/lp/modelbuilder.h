@@ -50,14 +50,14 @@ public:
      * @param index
      * @param rowVector
      */
-    virtual void rowBuild(unsigned int index, Vector * rowVector) const = 0;
+    virtual void buildRow(unsigned int index, Vector * rowVector) const = 0;
 
     /**
      * 
      * @param index
      * @param columnVector
      */
-    virtual void columnBuild(unsigned int index, Vector * columnVector) const = 0;
+    virtual void buildColumn(unsigned int index, Vector * columnVector) const = 0;
 
     /**
      * 
