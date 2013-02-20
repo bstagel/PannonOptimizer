@@ -24,6 +24,9 @@ public:
         TEST_ADD(ManualModelBuilderTestSuite::addVariable2)
         TEST_ADD(ManualModelBuilderTestSuite::addVariable3)
         TEST_ADD(ManualModelBuilderTestSuite::setGetConstraint)
+        TEST_ADD(ManualModelBuilderTestSuite::addConstraint1)
+        TEST_ADD(ManualModelBuilderTestSuite::addConstraint2)
+        TEST_ADD(ManualModelBuilderTestSuite::addConstraint3)
     }
 private:
     void init();
@@ -33,6 +36,9 @@ private:
     void addVariable2();
     void addVariable3();
     void setGetConstraint();
+    void addConstraint1();
+    void addConstraint2();
+    void addConstraint3();
     
     void printVectors(const std::vector< std::list<ManualModelBuilder::IndexValuePair> > & vector) const;
 };
