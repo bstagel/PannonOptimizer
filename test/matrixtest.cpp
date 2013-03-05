@@ -1,6 +1,57 @@
 #include "matrixtest.h"
 #include "testmacros.h"
 
+void MatrixTestSuite::run()
+{
+    equal();
+    copy();
+    assign();
+    transposed();
+    add();
+    addToThis();
+    subtract();
+    subtractFromThis();
+    multipleByVector();
+    multipleByDouble();
+    multipleByMatrix_1();
+    multipleByMatrix_2();
+    multipleByDiagonalMatrix();
+    inverse();
+    diagonalMatrix();
+    diagonalMatrix_Inverse();
+    diagonalMatrix_Invert();
+    rowVector();
+    columnVector();
+    comprehensive_1();
+    constructor();
+    setGet();
+    columnWise();
+    rowWise();
+    clear();
+    resize();
+    scale();
+    scaleRow();
+    scaleColumn();
+    prepend();
+    prependEmpty();
+    prependEmpty2();
+    append();
+    appendEmpty();
+    appendEmpty2();
+    insertColumn();
+    insertEmptyColumn();
+    insertRow();
+    insertEmptyRow();
+    removeRow();
+    removeColumn();
+    nonZerosAndDensity();
+    newNonzero();
+    addScalarMatrix();
+    sortElements();
+    determinant();
+    reInit();
+}
+
 void MatrixTestSuite::equal()
 {
     Matrix m1(3, 4);
@@ -1222,13 +1273,13 @@ void MatrixTestSuite::rowVector()
     v.set(2, 3);
 
     Matrix rowVector = Matrix::rowVector(v);
-
+    
     ASSERT_EQ(1, rowVector.rowCount());
     ASSERT_EQ(3, rowVector.columnCount());
     ASSERT_EQ(1, rowVector.get(0, 0));
     ASSERT_EQ(2, rowVector.get(0, 1));
     ASSERT_EQ(3, rowVector.get(0, 2));
-    
+
     Vector v1 = rowVector.row(0);
     ASSERT_EQ(3, v1.length());
     ASSERT_EQ(1, v1.at(0));

@@ -10,7 +10,10 @@
 
 #include <iostream>
 #include <utils/numerical.h>
+#include <utils/exception.h>
 #include <linalg/vector.h>
+
+class Variable;
 
 /**
  * Describes a variable
@@ -34,6 +37,103 @@ public:
     };
 
     /**
+     * The class expresses an exception about a variable. It contains
+     * the copy of the wrong variable.
+     */
+    class VariableException : public Exception
+    {
+    public:
+        /**
+         * Constructor of the VariableException. It gets the original wrong
+         * variable, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong variable object.
+         * @param message The human readable message about the error.
+         */
+        VariableException(const Variable & variable,
+            const std::string & message);
+
+        /**
+         * Destructor of the VariableException.
+         */
+        virtual ~VariableException();
+
+        /**
+         * Returns with the address of copy of the wrong variable.
+         * 
+         * @return Address of the wrong variable.
+         */
+        const Variable * getVariable() const;
+    private:
+
+        /**
+         * Address of the wrong variable.
+         */
+        Variable * m_variable;
+    };
+
+    /**
+     * The class expresses an exception about a variable. This
+     * exception indicates that the upper bound of the variable
+     * is invalid. It contains the copy of the wrong variable.
+     */
+    class InvalidUpperBoundException : public VariableException
+    {
+    public:
+        /**
+         * Constructor of the InvalidUpperBoundException. It gets the original wrong
+         * variable, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong variable object.
+         * @param message The human readable message about the error.
+         */
+        InvalidUpperBoundException(const Variable & variable,
+            const std::string & message);
+    };
+
+    /**
+     * The class expresses an exception about a variable. This
+     * exception indicates that the lower bound of the variable
+     * is invalid. It contains the copy of the wrong variable.
+     */
+    class InvalidLowerBoundException : public VariableException
+    {
+    public:
+        /**
+         * Constructor of the InvalidLowerBoundException. It gets the original wrong
+         * variable, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong variable object.
+         * @param message The human readable message about the error.
+         */
+        InvalidLowerBoundException(const Variable & variable,
+            const std::string & message);
+    };
+
+    /**
+     * The class expresses an exception about a variable. This
+     * exception indicates that the bounds of the variable are invalid. 
+     * It contains the copy of the wrong variable.
+     */
+    class InvalidBoundsException : public VariableException
+    {
+    public:
+        /**
+         * Constructor of the InvalidBoundsException. It gets the original wrong
+         * variable, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong variable object.
+         * @param message The human readable message about the error.
+         */
+        InvalidBoundsException(const Variable & variable,
+            const std::string & message);
+    };
+
+    /**
      * Creates a PLUS type variable, with 0 lower and infinity upper
      * bound. The value is 0, and the variable has no name.
      * 
@@ -42,34 +142,56 @@ public:
 
     /**
      * Creates a plus type variable, with a given value and lower bound.
+     * The upper bound will be + infinity. If the lowerBound is - infinity,
+     * then the variable will be free type variable.
+     * 
+     * If the lowerBound is + infinity, the function throws an
+     * Variable::InvalidLowerBoundException.
      * 
      * @param name The name of the variable
-     * @param value
-     * @param lowerBound
-     * @return 
+     * @param value The value of the variable
+     * @param lowerBound The lower bound of the variable
+     * @return The requested variable
      */
     static Variable createPlusTypeVariable(const char * name,
         Numerical::Double value,
-        Numerical::Double lowerBound);
+        Numerical::Double lowerBound) throw (InvalidLowerBoundException);
 
     /**
+     * Creates a minus type variable, with a given value and upper bound.
+     * The lower bound will be -infinity. If the upperBound is +infinity,
+     * then the variable will be free type variable.
      * 
-     * @param name
-     * @param value
-     * @param upperBound
-     * @return 
+     * If the upperBound is -infinity, the function throws an
+     * Variable::InvalidUpperBoundException.
+     * 
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @param upperBound The upper bound of the variable
+     * @return The requested variable 
      */
     static Variable createMinusTypeVariable(const char * name,
         Numerical::Double value,
         Numerical::Double upperBound);
 
     /**
+     * Creates a bounded type variable, with a given value and bounds.
+     * If the bounds are the same, the result will be a fixed type variable,
+     * and if the bounds are not finite, the result can be plus, minus, or 
+     * free type also.
      * 
-     * @param name
-     * @param value
-     * @param lowerBound
-     * @param upperBound
-     * @return 
+     * If the upperBound is -infinity, the function throws a 
+     * Variable::InvalidUpperBoundException.
+     * If the lowerBound is infinity, the function throws a 
+     * Variable::InvalidLowerBoundException.
+     * If the upperBound is less than the lowerBound, the function throws a 
+     * Variable::InvalidBoundsException.
+     * 
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @param lowerBound The lower bound of the variable
+     * @param upperBound The upper bound of the variable
+     * @return The requested variable 
      */
     static Variable createBoundedTypeVariable(const char * name,
         Numerical::Double value,
@@ -77,40 +199,42 @@ public:
         Numerical::Double upperBound);
 
     /**
-     * 
-     * @param name
-     * @param value
-     * @return 
+     * Creates a fixed type variable, with a given value.
+     *
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @return The requested variable  
      */
     static Variable createFixedTypeVariable(const char * name,
         Numerical::Double value);
 
     /**
+     * Creates a free type variable with a given value.
      * 
-     * @param name
-     * @param value
-     * @return 
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @return The requested variable  
      */
     static Variable createFreeTypeVariable(const char * name,
         Numerical::Double value);
 
     /**
-     *
-     * @return
+     * Returns with the lower bound of the variable.
+     * 
+     * @return The lower bound of the variable.
      */
     inline Numerical::Double getLowerBound() const;
 
     /**
-     *
-     * @param lowerBound
+     * Sets the lower bound of the variable.
+     * If the lower bound is invalid, the function throws a
+     * Variable::InvalidLowerBoundException, and if the lower bound is
+     * greater than the upper bound, the function throws a
+     * Variable::InvalidBoundsException.
+     * 
+     * @param lowerBound The lower bound of the variable.
      */
     inline void setLowerBound(Numerical::Double lowerBound);
-
-    /**
-     *
-     * @return
-     */
-    inline TYPE getType() const;
 
     /**
      *
@@ -123,6 +247,12 @@ public:
      * @param upperBound
      */
     inline void setUpperBound(Numerical::Double upperBound);
+
+    /**
+     *
+     * @return
+     */
+    inline TYPE getType() const;
 
     /**
      *
@@ -220,6 +350,11 @@ private:
      */
     inline void setVector(const Vector & vector);
 
+    /**
+     * Checks the properties of the variable, and if the object
+     * violates some conditions, it throws an exception.
+     */
+    void check() const;
 };
 
 inline Variable::Variable()
@@ -243,6 +378,7 @@ inline Variable::Variable(Numerical::Double lowerBound,
         m_name = name;
     }
     m_vector = 0;
+    check();
     adjustType();
 }
 
@@ -254,6 +390,7 @@ inline Numerical::Double Variable::getLowerBound() const
 inline void Variable::setLowerBound(Numerical::Double lowerBound)
 {
     m_lowerBound = lowerBound;
+    check();
     adjustType();
 }
 
@@ -270,6 +407,7 @@ inline Numerical::Double Variable::getUpperBound() const
 inline void Variable::setUpperBound(Numerical::Double upperBound)
 {
     m_upperBound = upperBound;
+    check();
     adjustType();
 }
 

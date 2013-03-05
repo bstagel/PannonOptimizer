@@ -1,29 +1,18 @@
 #ifndef _VARIABLE_TEST_H_
 #define _VARIABLE_TEST_H_
 
-#include <cpptest.h>
+#include "framework/tester.h"
+#include "framework/unittest.h"
 #include <iostream>
 #include <lp/variable.h>
 
-class VariableTestSuite : public Test::Suite
+class VariableTestSuite :  public UnitTest
 {
 public:
 
-    VariableTestSuite()
-    {
-        TEST_ADD(VariableTestSuite::init)
-        TEST_ADD(VariableTestSuite::type)
-        TEST_ADD(VariableTestSuite::createPlusType)
-        TEST_ADD(VariableTestSuite::createMinusType)
-        TEST_ADD(VariableTestSuite::createBoundedType)
-        TEST_ADD(VariableTestSuite::createFixedType)
-        TEST_ADD(VariableTestSuite::createFreeType)
-        TEST_ADD(VariableTestSuite::setGetLowerBound)
-        TEST_ADD(VariableTestSuite::setGetUpperBound)
-        TEST_ADD(VariableTestSuite::setGetValue)
-        TEST_ADD(VariableTestSuite::setGetName)
-        TEST_ADD(VariableTestSuite::setGetVector)
-    }
+    VariableTestSuite(const char * name): UnitTest(name) {}
+    
+    void run();
 
 private:
     void init();

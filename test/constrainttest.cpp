@@ -1,5 +1,20 @@
 #include "constrainttest.h"
 
+void ConstraintTestSuite::run()
+{
+    init();
+    type();
+    createGreaterType();
+    createLessType();
+    createRangeType();
+    createEqualityType();
+    createNonBindingType();
+    setGetLowerBound();
+    setGetUpperBound();
+    setGetName();
+    setGetVector();
+}
+
 void ConstraintTestSuite::init()
 {
     Constraint constraint;
@@ -15,7 +30,7 @@ void ConstraintTestSuite::createGreaterType()
     const char * testName = "x4";
     const Numerical::Double testLowerBound = -3.0;
     const Numerical::Double testUpperBound = infinity;
-    
+
     /**
      * Testing a named constraint
      */
@@ -158,7 +173,7 @@ void ConstraintTestSuite::createEqualityType()
     const char * testName = "x1";
     const Numerical::Double testLowerBound = 12.0;
     const Numerical::Double testUpperBound = 12.0;
-    
+
     /**
      * Testing a named constraint
      */
@@ -301,7 +316,7 @@ void ConstraintTestSuite::setGetVector()
 {
     Constraint constraint;
     const Vector vector1, vector2;
-    
+
     constraint.setVector(vector1);
     TEST_ASSERT(constraint.m_vector == constraint.getVector());
     TEST_ASSERT(constraint.m_vector == &vector1);
@@ -318,13 +333,13 @@ void ConstraintTestSuite::type()
     constraint1.setUpperBound(infinity);
     TEST_ASSERT(constraint1.m_type == constraint1.getType());
     TEST_ASSERT(constraint1.m_type == Constraint::NON_BINDING);
-   
+
     Constraint constraint2;
     constraint2.setLowerBound(0.0);
     constraint2.setUpperBound(0.0);
     TEST_ASSERT(constraint2.m_type == constraint2.getType());
     TEST_ASSERT(constraint2.m_type == Constraint::EQUALITY);
-    
+
     Constraint constraint3;
     constraint3.setLowerBound(-10.0);
     constraint3.setUpperBound(-10.0);
@@ -336,13 +351,13 @@ void ConstraintTestSuite::type()
     constraint4.setUpperBound(10.0);
     TEST_ASSERT(constraint4.m_type == constraint4.getType());
     TEST_ASSERT(constraint4.m_type == Constraint::EQUALITY);
-    
+
     Constraint constraint5;
     constraint5.setLowerBound(-10.0);
     constraint5.setUpperBound(infinity);
     TEST_ASSERT(constraint5.m_type == constraint5.getType());
     TEST_ASSERT(constraint5.m_type == Constraint::GREATER_OR_EQUAL);
-    
+
     Constraint constraint6;
     constraint6.setLowerBound(0.0);
     constraint6.setUpperBound(infinity);
@@ -354,13 +369,13 @@ void ConstraintTestSuite::type()
     constraint7.setUpperBound(infinity);
     TEST_ASSERT(constraint7.m_type == constraint7.getType());
     TEST_ASSERT(constraint7.m_type == Constraint::GREATER_OR_EQUAL);
-    
+
     Constraint constraint8;
     constraint8.setLowerBound(-infinity);
     constraint8.setUpperBound(-10.0);
     TEST_ASSERT(constraint8.m_type == constraint8.getType());
     TEST_ASSERT(constraint8.m_type == Constraint::LESS_OR_EQUAL);
-    
+
     Constraint constraint9;
     constraint9.setLowerBound(-infinity);
     constraint9.setUpperBound(0.0);
@@ -372,7 +387,7 @@ void ConstraintTestSuite::type()
     constraint10.setUpperBound(10.0);
     TEST_ASSERT(constraint10.m_type == constraint10.getType());
     TEST_ASSERT(constraint10.m_type == Constraint::LESS_OR_EQUAL);
-    
+
     Constraint constraint11;
     constraint11.setLowerBound(-20.0);
     constraint11.setUpperBound(-10.0);
@@ -401,6 +416,6 @@ void ConstraintTestSuite::type()
     constraint15.setLowerBound(10.0);
     constraint15.setUpperBound(20.0);
     TEST_ASSERT(constraint15.m_type == constraint15.getType());
-    TEST_ASSERT(constraint15.m_type == Constraint::RANGE);   
+    TEST_ASSERT(constraint15.m_type == Constraint::RANGE);
 }
 
