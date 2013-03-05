@@ -14,6 +14,11 @@ void ManualModelBuilderTestSuite::run()
     addConstraint2();
     addConstraint3();
     setGetVariable();
+    addVariableAndConstraint();
+    setCostCoefficient();
+    buildRow();
+    buildColumn();
+    buildCostVector();
 }
 
 void ManualModelBuilderTestSuite::init()
@@ -2319,8 +2324,522 @@ void ManualModelBuilderTestSuite::setGetVariable()
 
     builder.addConstraint(testConstraint, testNonZeros, testValues, testIndices);
 
+    TEST_ASSERT(builder.getVariableCount() == 11);
 
+    const Variable outputVariableDefault = Variable::createPlusTypeVariable(0, 0, 0.0);
+    unsigned int index;
+    for (index = 0; index < builder.getVariableCount(); index++) {
+        TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
+    }
 
+    const Variable testVariable1 = Variable::createFixedTypeVariable("x1", 4.5);
+    builder.setVariable(0, testVariable1);
+
+    for (index = 0; index < builder.getVariableCount(); index++) {
+        switch (index) {
+            case 0:
+                TEST_ASSERT(builder.getVariable(index) == testVariable1);
+                break;
+            default:
+                TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
+        }
+    }
+
+    std::vector<Variable> outputVariables(11,
+        Variable::createPlusTypeVariable(0, 0, 0.0));
+    outputVariables[0] = testVariable1;
+
+    TEST_ASSERT(builder.m_variables == outputVariables);
+
+    const Variable testVariable2 = Variable::createFreeTypeVariable("x2", 4.2);
+    builder.setVariable(5, testVariable2);
+
+    for (index = 0; index < builder.getVariableCount(); index++) {
+        switch (index) {
+            case 0:
+                TEST_ASSERT(builder.getVariable(index) == testVariable1);
+                break;
+            case 5:
+                TEST_ASSERT(builder.getVariable(index) == testVariable2);
+                break;
+            default:
+                TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
+        }
+    }
+
+    outputVariables[5] = testVariable2;
+    TEST_ASSERT(builder.m_variables == outputVariables);
+
+    const Variable testVariable3 = Variable::createBoundedTypeVariable("x3", 10.0, 4.5, 31.2);
+    builder.setVariable(10, testVariable3);
+
+    for (index = 0; index < builder.getVariableCount(); index++) {
+        switch (index) {
+            case 0:
+                TEST_ASSERT(builder.getVariable(index) == testVariable1);
+                break;
+            case 5:
+                TEST_ASSERT(builder.getVariable(index) == testVariable2);
+                break;
+            case 10:
+                TEST_ASSERT(builder.getVariable(index) == testVariable3);
+                break;
+            default:
+                TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
+        }
+    }
+
+    outputVariables[10] = testVariable3;
+    TEST_ASSERT(builder.m_variables == outputVariables);
+
+    const Variable testVariable4 = Variable::createMinusTypeVariable("x4", -3.4, 43.2);
+    builder.setVariable(5, testVariable4);
+
+    for (index = 0; index < builder.getVariableCount(); index++) {
+        switch (index) {
+            case 0:
+                TEST_ASSERT(builder.getVariable(index) == testVariable1);
+                break;
+            case 5:
+                TEST_ASSERT(builder.getVariable(index) == testVariable4);
+                break;
+            case 10:
+                TEST_ASSERT(builder.getVariable(index) == testVariable3);
+                break;
+            default:
+                TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
+        }
+    }
+
+    outputVariables[5] = testVariable4;
+    TEST_ASSERT(builder.m_variables == outputVariables);
+}
+
+void ManualModelBuilderTestSuite::setCostCoefficient()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    const Numerical::Double testValues[] = {1.0, -2.3, 0.13};
+    const unsigned int testIndices[] = {7, 3, 10};
+    const unsigned int testNonZeros = 3;
+
+    builder.addConstraint(testConstraint, testNonZeros, testValues, testIndices);
+
+    const Numerical::Double outputCostValue1 = 4.5;
+    const unsigned int index1 = 2;
+
+    builder.setCostCoefficient(index1, outputCostValue1);
+
+    std::vector<Numerical::Double> outputCostVector(11);
+    outputCostVector[index1] = outputCostValue1;
+
+    TEST_ASSERT(builder.m_costVector == outputCostVector);
+
+    const Numerical::Double outputCostValue2 = -12.6;
+    const unsigned int index2 = 0;
+
+    builder.setCostCoefficient(index2, outputCostValue2);
+
+    outputCostVector[index2] = outputCostValue2;
+
+    TEST_ASSERT(builder.m_costVector == outputCostVector);
+
+}
+
+void ManualModelBuilderTestSuite::addVariableAndConstraint()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    Vector testRow1(11);
+    testRow1.set(7, 1.0);
+    testRow1.set(3, -2.3);
+    testRow1.set(10, 0.13);
+
+    builder.addConstraint(testConstraint1, testRow1);
+
+    /*
+     * m_objecitveConstant : 0
+     * m_name = ""
+     * m_costVector : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+     * m_constraints = [ constraint1 ]
+     * m_nonZerosInRows : [ 3 ]
+     * m_rows = 
+     * 0.:  [  1.0  ; 7  ] [ -2.3  ; 3  ] [  0.13 ; 10 ]
+     * 
+     * m_variables :         [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+     * m_nonZerosInColumns : [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1  ]
+     * m_columns = 
+     * 0.: 1.: 2.:  3.:        4.: 5.: 6.:  7.:       8.: 9.:   10.:
+     * [ ] [ ] [ ] [ -2.3; 0 ] [ ] [ ] [ ] [ 1.0; 0 ] [ ] [ ] [ 0.13; 0 ]
+     */
+
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Vector testColumn1(14);
+    testColumn1.set(0, 1.2);
+    testColumn1.set(2, 2.3);
+    testColumn1.set(11, 4.13);
+    const Numerical::Double testCostCoefficient1 = 4.2;
+
+    builder.addVariable(testVariable1, testCostCoefficient1,
+        testColumn1);
+
+    /*
+     * m_objecitveConstant : 0
+     * m_name = ""
+     * m_costVector : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.2]
+     * m_constraints =    [ c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]
+     * m_nonZerosInRows : [ 4,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  1 ]
+     * m_rows = 
+     * 0.:  [  1.0  ; 7  ] [ -2.3  ; 3  ] [  0.13 ; 10 ] [  1.2 ; 11  ]
+     * 1.:  [ ]
+     * 2.:  [  2.3 ; 11 ]
+     * 3.:  [ ]
+     * 4.:  [ ]
+     * 5.:  [ ]
+     * 6.:  [ ]
+     * 7.:  [ ]
+     * 8.:  [ ]
+     * 9.:  [ ]
+     * 10.:  [ ]
+     * 11.:  [ 4.13; 11 ]
+     * 
+     * m_variables :         [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]
+     * m_nonZerosInColumns : [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1,  3  ]
+     * m_columns = 
+     * 0.: 1.: 2.:  3.:        4.: 5.: 6.:  7.:       8.: 9.:   10.:      11.:
+     * [ ] [ ] [ ] [ -2.3; 0 ] [ ] [ ] [ ] [ 1.0; 0 ] [ ] [ ] [ 0.13; 0 ] [ 1.2; 0]
+     *                                                                    [ 2.3; 2]                                                                  [ 4.13; 11]
+     */
+
+    TEST_ASSERT(builder.getVariableCount() == 12);
+    TEST_ASSERT(builder.getConstraintCount() == 12);
+
+    std::vector<Numerical::Double> outputCostVector(12);
+    outputCostVector[11] = testCostCoefficient1;
+
+    std::vector<Constraint> outputConstraints(12,
+        Constraint::createGreaterTypeConstraint(0, 0.0));
+    outputConstraints[0] = testConstraint1;
+
+    std::vector<unsigned int> outputNonZerosInRows(12);
+    outputNonZerosInRows[0] = 4;
+    outputNonZerosInRows[2] = 1;
+    outputNonZerosInRows[11] = 1;
+
+    std::vector< std::list< ManualModelBuilder::IndexValuePair > > outputRows(12);
+    outputRows[0].push_back(ManualModelBuilder::createPair(1.0, 7));
+    outputRows[0].push_back(ManualModelBuilder::createPair(-2.3, 3));
+    outputRows[0].push_back(ManualModelBuilder::createPair(0.13, 10));
+    outputRows[0].push_back(ManualModelBuilder::createPair(1.2, 11));
+    outputRows[2].push_back(ManualModelBuilder::createPair(2.3, 11));
+    outputRows[11].push_back(ManualModelBuilder::createPair(4.13, 11));
+
+    std::vector<Variable> outputVariables(12,
+        Variable::createPlusTypeVariable(0, 0, 0.0));
+    outputVariables[11] = testVariable1;
+
+    std::vector<unsigned int> outputNonZerosInColumns(12);
+    outputNonZerosInColumns[3] = 1;
+    outputNonZerosInColumns[7] = 1;
+    outputNonZerosInColumns[10] = 1;
+    outputNonZerosInColumns[11] = 3;
+
+    std::vector< std::list< ManualModelBuilder::IndexValuePair > > outputColumns(12);
+    outputColumns[3].push_back(ManualModelBuilder::createPair(-2.3, 0));
+    outputColumns[7].push_back(ManualModelBuilder::createPair(1.0, 0));
+    outputColumns[10].push_back(ManualModelBuilder::createPair(0.13, 0));
+    outputColumns[11].push_back(ManualModelBuilder::createPair(1.2, 0));
+    outputColumns[11].push_back(ManualModelBuilder::createPair(2.3, 2));
+    outputColumns[11].push_back(ManualModelBuilder::createPair(4.13, 11));
+
+    TEST_ASSERT(builder.m_costVector == outputCostVector);
+    TEST_ASSERT(builder.m_constraints == outputConstraints);
+    TEST_ASSERT(builder.m_nonZerosInRows == outputNonZerosInRows);
+    TEST_ASSERT(builder.m_rows == outputRows);
+    TEST_ASSERT(builder.m_variables == outputVariables);
+    TEST_ASSERT(builder.m_nonZerosInColumns == outputNonZerosInColumns);
+    TEST_ASSERT(builder.m_columns == outputColumns);
+
+}
+
+void ManualModelBuilderTestSuite::buildRow()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    Vector testRow1(11);
+    testRow1.set(7, 1.0);
+    testRow1.set(3, -2.3);
+    testRow1.set(10, 0.13);
+
+    builder.addConstraint(testConstraint1, testRow1);
+
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Vector testColumn1(14);
+    testColumn1.set(0, 1.2);
+    testColumn1.set(2, 2.3);
+    testColumn1.set(11, 4.13);
+    const Numerical::Double testCostCoefficient1 = 4.2;
+
+    builder.addVariable(testVariable1, testCostCoefficient1,
+        testColumn1);
+
+    /*
+     * m_objecitveConstant : 0
+     * m_name = ""
+     * m_costVector : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.2]
+     * m_constraints =    [ c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]
+     * m_nonZerosInRows : [ 4,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  1 ]
+     * m_rows = 
+     * 0.:  [  1.0  ; 7  ] [ -2.3  ; 3  ] [  0.13 ; 10 ] [  1.2 ; 11  ]
+     * 1.:  [ ]
+     * 2.:  [  2.3 ; 11 ]
+     * 3.:  [ ]
+     * 4.:  [ ]
+     * 5.:  [ ]
+     * 6.:  [ ]
+     * 7.:  [ ]
+     * 8.:  [ ]
+     * 9.:  [ ]
+     * 10.:  [ ]
+     * 11.:  [ 4.13; 11 ]
+     * 
+     * m_variables :         [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]
+     * m_nonZerosInColumns : [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1,  3  ]
+     * m_columns = 
+     * 0.: 1.: 2.:  3.:        4.: 5.: 6.:  7.:       8.: 9.:   10.:      11.:
+     * [ ] [ ] [ ] [ -2.3; 0 ] [ ] [ ] [ ] [ 1.0; 0 ] [ ] [ ] [ 0.13; 0 ] [ 1.2; 0]
+     *                                                                    [ 2.3; 2]
+     *                                                                    [ 4.13; 11]
+     */
+    unsigned int index;
+    unsigned int rowIndex;
+    Vector row;
+    for (rowIndex = 0; rowIndex < 12; rowIndex++) {
+        builder.buildRow(rowIndex, &row);
+        TEST_ASSERT(row.length() == 12);
+
+        switch (rowIndex) {
+            case 0:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 3:
+                            TEST_ASSERT(row.at(index) == -2.3);
+                            break;
+                        case 7:
+                            TEST_ASSERT(row.at(index) == 1.0);
+                            break;
+                        case 10:
+                            TEST_ASSERT(row.at(index) == 0.13);
+                            break;
+                        case 11:
+                            TEST_ASSERT(row.at(index) == 1.2);
+                            break;
+                        default:
+                            TEST_ASSERT(row.at(index) == 0.0);
+                    }
+                }
+                break;
+            case 2:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 11:
+                            TEST_ASSERT(row.at(index) == 2.3);
+                            break;
+                        default:
+                            TEST_ASSERT(row.at(index) == 0.0);
+                    }
+                }
+                break;
+            case 11:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 11:
+                            TEST_ASSERT(row.at(index) == 4.13);
+                            break;
+                        default:
+                            TEST_ASSERT(row.at(index) == 0.0);
+                    }
+                }
+                break;
+            default:
+                for (index = 0; index < 12; index++) {
+                    TEST_ASSERT(row.at(index) == 0.0);
+                }
+                break;
+        }
+    }
+}
+
+void ManualModelBuilderTestSuite::buildColumn()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    Vector testRow1(11);
+    testRow1.set(7, 1.0);
+    testRow1.set(3, -2.3);
+    testRow1.set(10, 0.13);
+
+    builder.addConstraint(testConstraint1, testRow1);
+
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Vector testColumn1(14);
+    testColumn1.set(0, 1.2);
+    testColumn1.set(2, 2.3);
+    testColumn1.set(11, 4.13);
+    const Numerical::Double testCostCoefficient1 = 4.2;
+
+    builder.addVariable(testVariable1, testCostCoefficient1,
+        testColumn1);
+
+    /*
+     * m_objecitveConstant : 0
+     * m_name = ""
+     * m_costVector : [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4.2]
+     * m_constraints =    [ c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]
+     * m_nonZerosInRows : [ 4,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  1 ]
+     * m_rows = 
+     * 0.:  [  1.0  ; 7  ] [ -2.3  ; 3  ] [  0.13 ; 10 ] [  1.2 ; 11  ]
+     * 1.:  [ ]
+     * 2.:  [  2.3 ; 11 ]
+     * 3.:  [ ]
+     * 4.:  [ ]
+     * 5.:  [ ]
+     * 6.:  [ ]
+     * 7.:  [ ]
+     * 8.:  [ ]
+     * 9.:  [ ]
+     * 10.:  [ ]
+     * 11.:  [ 4.13; 11 ]
+     * 
+     * m_variables :         [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]
+     * m_nonZerosInColumns : [ 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1,  3  ]
+     * m_columns = 
+     * 0.: 1.: 2.:  3.:        4.: 5.: 6.:  7.:       8.: 9.:   10.:      11.:
+     * [ ] [ ] [ ] [ -2.3; 0 ] [ ] [ ] [ ] [ 1.0; 0 ] [ ] [ ] [ 0.13; 0 ] [ 1.2; 0]
+     *                                                                    [ 2.3; 2]
+     *                                                                    [ 4.13; 11]
+     */
+    unsigned int index;
+    unsigned int columnIndex;
+    Vector column;
+    for (columnIndex = 0; columnIndex < 12; columnIndex++) {
+        builder.buildColumn(columnIndex, &column);
+        TEST_ASSERT(column.length() == 12);
+
+        switch (columnIndex) {
+            case 11:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 0:
+                            TEST_ASSERT(column.at(index) == 1.2);
+                            break;
+                        case 2:
+                            TEST_ASSERT(column.at(index) == 2.3);
+                            break;
+                        case 11:
+                            TEST_ASSERT(column.at(index) == 4.13);
+                            break;
+                        default:
+                            TEST_ASSERT(column.at(index) == 0.0);
+                    }
+                }
+                break;
+            case 3:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 0:
+                            TEST_ASSERT(column.at(index) == -2.3);
+                            break;
+                        default:
+                            TEST_ASSERT(column.at(index) == 0.0);
+                    }
+                }
+                break;
+            case 7:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 0:
+                            TEST_ASSERT(column.at(index) == 1.0);
+                            break;
+                        default:
+                            TEST_ASSERT(column.at(index) == 0.0);
+                    }
+                }
+                break;
+            case 10:
+                for (index = 0; index < 12; index++) {
+                    switch (index) {
+                        case 0:
+                            TEST_ASSERT(column.at(index) == 0.13);
+                            break;
+                        default:
+                            TEST_ASSERT(column.at(index) == 0.0);
+                    }
+                }
+                break;
+            default:
+                for (index = 0; index < 12; index++) {
+                    TEST_ASSERT(column.at(index) == 0.0);
+                }
+                break;
+        }
+    }
+}
+
+void ManualModelBuilderTestSuite::buildCostVector()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    Vector testRow1(11);
+    testRow1.set(7, 1.0);
+    testRow1.set(3, -2.3);
+    testRow1.set(10, 0.13);
+
+    builder.addConstraint(testConstraint1, testRow1);
+
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Vector testColumn1(14);
+    testColumn1.set(0, 1.2);
+    testColumn1.set(2, 2.3);
+    testColumn1.set(11, 4.13);
+    const Numerical::Double testCostCoefficient1 = 4.2;
+    const unsigned int testIndex1 = 11;
+
+    builder.addVariable(testVariable1, testCostCoefficient1,
+        testColumn1);
+
+    const Numerical::Double testCostCoefficient2 = 4.5;
+    const unsigned int testIndex2 = 3;
+    const Numerical::Double testCostCoefficient3 = -1.5;
+    const unsigned int testIndex3 = 6;
+    const Numerical::Double testCostCoefficient4 = 0.45;
+    const unsigned int testIndex4 = 8;
+    builder.setCostCoefficient(testIndex2, testCostCoefficient2);
+    builder.setCostCoefficient(testIndex3, testCostCoefficient3);
+    builder.setCostCoefficient(testIndex4, testCostCoefficient4);
+
+    Vector costVector;
+    builder.buildCostVector(&costVector);
+    unsigned int index;
+    TEST_ASSERT(costVector.length() == 12);
+    for (index = 0; index < 12; index++) {
+        switch (index) {
+            case testIndex1:
+                TEST_ASSERT(costVector.at(index) == testCostCoefficient1);
+                break;
+            case testIndex2:
+                TEST_ASSERT(costVector.at(index) == testCostCoefficient2);
+                break;
+            case testIndex3:
+                TEST_ASSERT(costVector.at(index) == testCostCoefficient3);
+                break;
+            case testIndex4:
+                TEST_ASSERT(costVector.at(index) == testCostCoefficient4);
+                break;
+            default:
+                TEST_ASSERT(costVector.at(index) == 0.0);
+        }
+    }
 }
 
 void ManualModelBuilderTestSuite::printVectors(

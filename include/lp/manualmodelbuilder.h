@@ -173,7 +173,7 @@ public:
      * 
      * @param costVector
      */
-    void costVectorBuild(Vector * costVector) const;
+    void buildCostVector(Vector * costVector) const;
 
     /**
      * 

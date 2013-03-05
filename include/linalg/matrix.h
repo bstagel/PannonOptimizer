@@ -10,6 +10,7 @@
  */
 class Matrix
 {
+    friend class Model;
     friend class MatrixTestSuite;
     friend class ModelIO;
     friend class MpsProblem;
