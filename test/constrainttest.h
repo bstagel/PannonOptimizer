@@ -8,27 +8,17 @@
 #ifndef CONSTRAINTTEST_H
 #define	CONSTRAINTTEST_H
 
-#include <cpptest.h>
+#include "framework/tester.h"
+#include "framework/unittest.h"
 #include <lp/constraint.h>
 
-class ConstraintTestSuite : public Test::Suite
+class ConstraintTestSuite : public UnitTest
 {
 public:
 
-    ConstraintTestSuite()
-    {
-        TEST_ADD(ConstraintTestSuite::init)
-        TEST_ADD(ConstraintTestSuite::type)
-        TEST_ADD(ConstraintTestSuite::createGreaterType)
-        TEST_ADD(ConstraintTestSuite::createLessType)
-        TEST_ADD(ConstraintTestSuite::createRangeType)
-        TEST_ADD(ConstraintTestSuite::createEqualityType)
-        TEST_ADD(ConstraintTestSuite::createNonBindingType)
-        TEST_ADD(ConstraintTestSuite::setGetLowerBound)
-        TEST_ADD(ConstraintTestSuite::setGetUpperBound)
-        TEST_ADD(ConstraintTestSuite::setGetName)
-        TEST_ADD(ConstraintTestSuite::setGetVector)
-    }
+    ConstraintTestSuite(const char * name): UnitTest(name) {}
+    
+    void run();
 
 private:
     void init();

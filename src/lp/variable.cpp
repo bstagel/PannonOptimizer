@@ -1,8 +1,9 @@
 #include <lp/variable.h>
+#include <sstream>
 
 Variable Variable::createPlusTypeVariable(const char * name,
     Numerical::Double value,
-    Numerical::Double lowerBound)
+    Numerical::Double lowerBound) throw (Variable::InvalidLowerBoundException)
 {
     return Variable(lowerBound, infinity, value, name);
 }
@@ -60,4 +61,58 @@ std::ostream & operator<<(std::ostream & os, const Variable & var)
     }
     os << std::endl;
     return os;
+}
+
+void Variable::check() const
+{
+    if (m_lowerBound == infinity) {
+        std::ostringstream message;
+        message << "Variable " << getName() << " has invalid lower bound: " <<
+            m_lowerBound;
+        throw Variable::InvalidLowerBoundException(*this, message.str());
+    }
+    if (m_upperBound == -infinity) {
+        std::ostringstream message;
+        message << "Variable " << getName() << " has invalid upper bound: " <<
+            m_upperBound;
+        throw Variable::InvalidUpperBoundException(*this, message.str());
+    }
+    if (m_upperBound < m_lowerBound) {
+        std::ostringstream message;
+        message << "Variable " << getName() <<
+            " has invalid bounds. The upper bound is less than the lower bound: " <<
+            m_upperBound << " < " << m_lowerBound;
+        throw Variable::InvalidBoundsException(*this, message.str());
+    }
+}
+
+Variable::VariableException::VariableException(const Variable & variable,
+    const std::string & message) : Exception(message)
+{
+    m_variable = new Variable(variable);
+}
+
+Variable::VariableException::~VariableException()
+{
+    delete m_variable;
+}
+
+const Variable * Variable::VariableException::getVariable() const
+{
+    return m_variable;
+}
+
+Variable::InvalidUpperBoundException::InvalidUpperBoundException(const Variable & variable,
+    const std::string & message) : Variable::VariableException(variable, message)
+{
+}
+
+Variable::InvalidLowerBoundException::InvalidLowerBoundException(const Variable & variable,
+    const std::string & message) : Variable::VariableException(variable, message)
+{
+}
+
+Variable::InvalidBoundsException::InvalidBoundsException(const Variable & variable,
+    const std::string & message) : Variable::VariableException(variable, message)
+{
 }

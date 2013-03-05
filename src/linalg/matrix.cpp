@@ -10,7 +10,8 @@
 typedef unsigned int uint;
 #endif
 
-Matrix::Matrix(unsigned int rowCount, unsigned int columnCount) {
+Matrix::Matrix(unsigned int rowCount, unsigned int columnCount)
+{
     if (rowCount == 0 && columnCount == 0) {
         // uninitialised matrix
         m_isDiagonal = false;
@@ -24,15 +25,18 @@ Matrix::Matrix(unsigned int rowCount, unsigned int columnCount) {
     init(rowCount, columnCount == 0 ? rowCount : columnCount);
 }
 
-Matrix::Matrix(const Matrix & original) {
+Matrix::Matrix(const Matrix & original)
+{
     copy(original);
 }
 
-Matrix::~Matrix() {
+Matrix::~Matrix()
+{
     clear();
 }
 
-void Matrix::clear() {
+void Matrix::clear()
+{
     unsigned int index;
     if (m_rowWise) {
         for (index = 0; index < m_rowCount; index++) {
@@ -55,9 +59,10 @@ void Matrix::clear() {
 }
 
 void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
-        unsigned int newCount, unsigned int newLengths) {
+    unsigned int newCount, unsigned int newLengths)
+{
     unsigned int idx;
-    
+
     if (vectorCount == newCount) {
         for (idx = 0; idx < vectorCount; idx++) {
             vectors[idx]->resize(newLengths);
@@ -91,7 +96,8 @@ void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
 
 }
 
-void Matrix::resize(unsigned int rowCount, unsigned int columnCount) {
+void Matrix::resize(unsigned int rowCount, unsigned int columnCount)
+{
 
     resizeVectors(m_rowWise, m_rowCount, rowCount, columnCount);
     resizeVectors(m_columnWise, m_columnCount, columnCount, rowCount);
@@ -101,20 +107,23 @@ void Matrix::resize(unsigned int rowCount, unsigned int columnCount) {
 }
 
 void Matrix::reInit(unsigned int rowCount, unsigned int columnCount, bool
-        initVectors) {
+    initVectors)
+{
     clear();
     init(rowCount, columnCount, initVectors);
 }
 
-Matrix & Matrix::operator=(const Matrix & original) {
+Matrix & Matrix::operator=(const Matrix & original)
+{
     clear();
     copy(original);
     return *this;
 }
 
-bool Matrix::operator==(const Matrix& other) const {
+bool Matrix::operator==(const Matrix& other) const
+{
     if (m_rowCount != other.m_rowCount ||
-            m_columnCount != other.m_columnCount) {
+        m_columnCount != other.m_columnCount) {
         return false;
     }
 
@@ -126,23 +135,28 @@ bool Matrix::operator==(const Matrix& other) const {
     return true;
 }
 
-unsigned int Matrix::rowCount() const {
+unsigned int Matrix::rowCount() const
+{
     return m_rowCount;
 }
 
-unsigned int Matrix::columnCount() const {
+unsigned int Matrix::columnCount() const
+{
     return m_columnCount;
 }
 
-const Vector & Matrix::row(unsigned int index) const {
+const Vector & Matrix::row(unsigned int index) const
+{
     return *(m_rowWise[index]);
 }
 
-const Vector & Matrix::column(unsigned int index) const {
+const Vector & Matrix::column(unsigned int index) const
+{
     return *m_columnWise[index];
 }
 
-Matrix & Matrix::transpose() {
+Matrix & Matrix::transpose()
+{
     m_fastColumnScaling = false;
     unsigned int tempSize = m_columnCount;
     m_columnCount = m_rowCount;
@@ -154,7 +168,8 @@ Matrix & Matrix::transpose() {
     return *this;
 }
 
-Matrix Matrix::transposed() const {
+Matrix Matrix::transposed() const
+{
     Matrix transposed(*this);
     transposed.transpose();
 
@@ -162,7 +177,8 @@ Matrix Matrix::transposed() const {
 }
 
 void Matrix::removeVector(Vector ** & columnWise, unsigned int & columnCount,
-        Vector ** & rowWise, unsigned int & rowCount, unsigned int index) {
+    Vector ** & rowWise, unsigned int & rowCount, unsigned int index)
+{
     m_fastColumnScaling = false;
     // minden oszlop index-edik sorabol el kell tavolitani egy elemet
     register Vector ** vector1 = columnWise;
@@ -195,7 +211,8 @@ void Matrix::removeVector(Vector ** & columnWise, unsigned int & columnCount,
     rowCount--;
 }
 
-void Matrix::removeRow(unsigned int index) {
+void Matrix::removeRow(unsigned int index)
+{
     if (m_rowCount == 1) {
         clear();
     } else {
@@ -203,7 +220,8 @@ void Matrix::removeRow(unsigned int index) {
     }
 }
 
-void Matrix::removeColumn(unsigned int index) {
+void Matrix::removeColumn(unsigned int index)
+{
     if (m_columnCount == 1) {
         clear();
     } else {
@@ -214,7 +232,8 @@ void Matrix::removeColumn(unsigned int index) {
 // TODO: ha a vegere szurunk be, akkor insertElement helyett append-et kell meghivni!
 
 void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
-        unsigned int & rowCount, unsigned int index, const Vector & vector) {
+    unsigned int & rowCount, unsigned int index, const Vector & vector)
+{
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     std::vector<bool> inserted(vector.length(), false);
@@ -249,7 +268,8 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
 }
 
 void Matrix::insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
-        unsigned int & rowCount, unsigned int columnCount, unsigned int index) {
+    unsigned int & rowCount, unsigned int columnCount, unsigned int index)
+{
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     unsigned int insertIndex = 0;
@@ -274,15 +294,18 @@ void Matrix::insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
     rowCount++;
 }
 
-void Matrix::insertEmptyRow(unsigned int index) {
+void Matrix::insertEmptyRow(unsigned int index)
+{
     insertEmptyVector(m_columnWise, m_rowWise, m_rowCount, m_columnCount, index);
 }
 
-void Matrix::insertEmptyColumn(unsigned int index) {
+void Matrix::insertEmptyColumn(unsigned int index)
+{
     insertEmptyVector(m_rowWise, m_columnWise, m_columnCount, m_rowCount, index);
 }
 
-void Matrix::insertRow(unsigned int index, const Vector & vector) {
+void Matrix::insertRow(unsigned int index, const Vector & vector)
+{
     if (m_rowCount == 0) {
         this->init(0, vector.length());
     }
@@ -290,60 +313,69 @@ void Matrix::insertRow(unsigned int index, const Vector & vector) {
 
 }
 
-void Matrix::insertColumn(unsigned int index, const Vector & vector) {
+void Matrix::insertColumn(unsigned int index, const Vector & vector)
+{
     if (m_columnCount == 0) {
         this->init(vector.length(), 0);
     }
     insertVector(m_rowWise, m_columnWise, m_columnCount, index, vector);
 }
 
-void Matrix::appendRow(const Vector & vector) {
+void Matrix::appendRow(const Vector & vector)
+{
     if (m_rowCount == 0) {
-        this->init(0, vector.length());
+        this->reInit(0, vector.length());
     }
     insertVector(m_columnWise, m_rowWise, m_rowCount, m_rowCount, vector);
 }
 
-void Matrix::appendColumn(const Vector & vector) {
+void Matrix::appendColumn(const Vector & vector)
+{
     if (m_columnCount == 0) {
-        this->init(vector.length(), 0);
+        reInit(vector.length(), 0);
     }
     insertVector(m_rowWise, m_columnWise, m_columnCount, m_columnCount, vector);
     //insertColumn(m_columnCount, vector);
 }
 
-void Matrix::prependRow(const Vector & vector) {
+void Matrix::prependRow(const Vector & vector)
+{
     if (m_rowCount == 0) {
         this->init(0, vector.length());
     }
     insertRow(0, vector);
 }
 
-void Matrix::prependColumn(const Vector & vector) {
+void Matrix::prependColumn(const Vector & vector)
+{
     if (m_columnCount == 0) {
         this->init(vector.length(), 0);
     }
     insertColumn(0, vector);
 }
 
-void Matrix::setNewNonzero(unsigned int y, unsigned int x, Numerical::Double value) {
+void Matrix::setNewNonzero(unsigned int y, unsigned int x, Numerical::Double value)
+{
     m_fastColumnScaling = false;
     m_rowWise[y]->setNewNonzero(x, value);
     m_columnWise[x]->setNewNonzero(y, value);
 }
 
-void Matrix::set(unsigned int y, unsigned int x, Numerical::Double value) {
+void Matrix::set(unsigned int y, unsigned int x, Numerical::Double value)
+{
     m_fastColumnScaling = false;
     m_rowWise[y]->set(x, value);
     m_columnWise[x]->set(y, value);
 }
 
-Numerical::Double Matrix::get(unsigned int y, unsigned int x) const {
+Numerical::Double Matrix::get(unsigned int y, unsigned int x) const
+{
     return m_rowWise[y]->at(x);
     // TODO: azt hasznalja, amelyik dense
 }
 
-void Matrix::scale(Numerical::Double lambda) {
+void Matrix::scale(Numerical::Double lambda)
+{
     m_fastColumnScaling = false;
     register Vector ** vector1 = m_columnWise;
     register Vector ** vector2 = m_columnWise + m_columnCount;
@@ -359,17 +391,20 @@ void Matrix::scale(Numerical::Double lambda) {
     }
 }
 
-void Matrix::startColumnScaling() {
+void Matrix::startColumnScaling()
+{
     m_fastRowScaling = true;
     m_multipliers.resize(m_columnCount, 1.0);
 }
 
-void Matrix::startRowScaling() {
+void Matrix::startRowScaling()
+{
     m_fastRowScaling = true;
     m_multipliers.resize(m_rowCount, 1.0);
 }
 
-void Matrix::finishColumnScaling() {
+void Matrix::finishColumnScaling()
+{
     register Vector ** vector1 = m_rowWise;
     register Vector ** vector2 = m_rowWise + m_rowCount;
     while (vector1 < vector2) {
@@ -379,7 +414,8 @@ void Matrix::finishColumnScaling() {
     m_fastColumnScaling = false;
 }
 
-void Matrix::finishRowScaling() {
+void Matrix::finishRowScaling()
+{
     register Vector ** vector1 = m_columnWise;
     register Vector ** vector2 = m_columnWise + m_columnCount;
     while (vector1 < vector2) {
@@ -389,7 +425,8 @@ void Matrix::finishRowScaling() {
     m_fastRowScaling = false;
 }
 
-void Matrix::scaleRow(unsigned int index, Numerical::Double lambda) {
+void Matrix::scaleRow(unsigned int index, Numerical::Double lambda)
+{
     m_rowWise[index]->scaleBy(lambda);
     if (m_fastRowScaling == true) {
         m_multipliers[index] = lambda;
@@ -403,7 +440,8 @@ void Matrix::scaleRow(unsigned int index, Numerical::Double lambda) {
     }
 }
 
-void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda) {
+void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda)
+{
     m_columnWise[index]->scaleBy(lambda);
     if (m_fastColumnScaling == true) {
         if (index >= m_multipliers.size()) {
@@ -420,7 +458,8 @@ void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda) {
     }
 }
 
-void Matrix::invert() {
+void Matrix::invert()
+{
     if (m_isDiagonal == true) {
         unsigned int i;
         for (i = 0; i < m_rowCount; i++) {
@@ -455,7 +494,8 @@ void Matrix::invert() {
     }
 }
 
-Matrix Matrix::inverse() const {
+Matrix Matrix::inverse() const
+{
     if (m_isDiagonal == true) {
         Matrix inverted(m_rowCount, m_columnCount);
         unsigned int i;
@@ -472,7 +512,8 @@ Matrix Matrix::inverse() const {
     }
 }
 
-Numerical::Double Matrix::determinant() const {
+Numerical::Double Matrix::determinant() const
+{
     if (rowCount() != columnCount()) {
         //LPWARNING("Determinant cannot be calculated as Matrix is not squared. "
         //        << "(row count: " << rowCount() << ", column count: " << columnCount());
@@ -482,7 +523,8 @@ Numerical::Double Matrix::determinant() const {
     return determinant(*this);
 }
 
-Numerical::Double Matrix::determinant(const Matrix& matrix) const {
+Numerical::Double Matrix::determinant(const Matrix& matrix) const
+{
     /* Preconditions */
     /* Assert that given matrix is a square matrix */
     assert(matrix.rowCount() == matrix.columnCount());
@@ -526,7 +568,8 @@ Numerical::Double Matrix::determinant(const Matrix& matrix) const {
     //return det;
 }
 
-void Matrix::show() const {
+void Matrix::show() const
+{
     unsigned int i, j;
     std::cout << "row wise: " << std::endl;
     for (i = 0; i < m_rowCount; i++) {
@@ -538,7 +581,8 @@ void Matrix::show() const {
     }
 }
 
-unsigned int Matrix::nonZeros() const {
+unsigned int Matrix::nonZeros() const
+{
     unsigned int nonZeros = 0;
 
     for (unsigned int i = 0; i < m_rowCount; i++) {
@@ -547,11 +591,13 @@ unsigned int Matrix::nonZeros() const {
     return nonZeros;
 }
 
-Numerical::Double Matrix::density() const {
+Numerical::Double Matrix::density() const
+{
     return (Numerical::Double) nonZeros() / (Numerical::Double) (m_rowCount * m_columnCount);
 }
 
-Vector Matrix::operator *(const Vector& rightVector) const {
+Vector Matrix::operator *(const Vector& rightVector) const
+{
     Vector result(this->rowCount());
     Numerical::Double ratio = result.getSparsityRatio();
     result.setSparsityRatio(0.0);
@@ -566,7 +612,8 @@ Vector Matrix::operator *(const Vector& rightVector) const {
     return result;
 }
 
-void Matrix::copy(const Matrix & matrix) {
+void Matrix::copy(const Matrix & matrix)
+{
     unsigned int index;
     m_rowCount = matrix.m_rowCount;
     m_columnCount = matrix.m_columnCount;
@@ -587,7 +634,8 @@ void Matrix::copy(const Matrix & matrix) {
 }
 
 void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
-        initVectors) {
+    initVectors)
+{
     unsigned int index;
     m_isDiagonal = false;
     m_rowCount = rowCount;
@@ -596,7 +644,11 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
     m_columnWise = 0;
     m_fastRowScaling = false;
     m_fastColumnScaling = false;
-    m_rowWise = new Vector*[ rowCount ];
+    if (rowCount > 0) {
+        m_rowWise = new Vector*[ rowCount ];
+    } else {
+        m_rowWise = 0;
+    }
     for (index = 0; index < m_rowCount; index++) {
         if (initVectors) {
             m_rowWise[index] = new Vector(m_columnCount);
@@ -604,7 +656,12 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
             m_rowWise[index] = new Vector(NULL, NULL, NULL);
         }
     }
-    m_columnWise = new Vector*[ m_columnCount ];
+    if (m_columnCount > 0) {
+        m_columnWise = new Vector*[ m_columnCount ];
+    } else {
+        m_columnWise = 0;
+    }
+
     for (index = 0; index < m_columnCount; index++) {
         if (initVectors) {
             m_columnWise[index] = new Vector(m_rowCount);
@@ -615,7 +672,8 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
 
 }
 
-Matrix Matrix::diagonalMatrix(const Vector& diagonal) {
+Matrix Matrix::diagonalMatrix(const Vector& diagonal)
+{
     unsigned int m = diagonal.length();
     Matrix matrix(m, m);
     matrix.m_isDiagonal = true;
@@ -626,13 +684,15 @@ Matrix Matrix::diagonalMatrix(const Vector& diagonal) {
     return matrix;
 }
 
-Matrix Matrix::rowVector(const Vector& row) {
+Matrix Matrix::rowVector(const Vector& row)
+{
     Matrix ret(0, row.length());
     ret.appendRow(row);
     return ret;
 }
 
-Matrix Matrix::columnVector(const Vector& column) {
+Matrix Matrix::columnVector(const Vector& column)
+{
     Matrix ret(column.length(), 1);
     for (uint i = 0; i < column.length(); i++) {
         ret.set(i, 0, column.at(i));
@@ -640,7 +700,8 @@ Matrix Matrix::columnVector(const Vector& column) {
     return ret;
 }
 
-Matrix Matrix::operator*(const Matrix& other) const {
+Matrix Matrix::operator*(const Matrix& other) const
+{
     /* FIXME: check wether dimensions are correct */
     Matrix result(m_rowCount, other.m_columnCount);
     if (m_isDiagonal == true) {
@@ -688,7 +749,8 @@ Matrix Matrix::operator*(const Matrix& other) const {
     return result;
 }
 
-Matrix Matrix::operator-(const Matrix& other) const {
+Matrix Matrix::operator-(const Matrix& other) const
+{
     /* FIXME: check wether dimensions are correct */
     Matrix result(*this);
     unsigned int row, column;
@@ -702,7 +764,8 @@ Matrix Matrix::operator-(const Matrix& other) const {
     return result;
 }
 
-void Matrix::operator-=(const Matrix& other) {
+void Matrix::operator-=(const Matrix& other)
+{
     /* FIXME: check wether dimensions are correct */
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
@@ -713,7 +776,8 @@ void Matrix::operator-=(const Matrix& other) {
     }
 }
 
-Matrix Matrix::operator+(const Matrix& other) const {
+Matrix Matrix::operator+(const Matrix& other) const
+{
     /* FIXME: check wether dimensions are correct */
     Matrix result(*this);
     unsigned int row, column;
@@ -727,7 +791,8 @@ Matrix Matrix::operator+(const Matrix& other) const {
     return result;
 }
 
-void Matrix::operator+=(const Matrix& other) {
+void Matrix::operator+=(const Matrix& other)
+{
     /* FIXME: check wether dimensions are correct */
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
@@ -738,7 +803,8 @@ void Matrix::operator+=(const Matrix& other) {
     }
 }
 
-Matrix operator*(double d, const Matrix& right) {
+Matrix operator*(double d, const Matrix& right)
+{
     Matrix m(0, 0);
     unsigned int index;
     m.m_rowCount = right.m_rowCount;
@@ -758,7 +824,8 @@ Matrix operator*(double d, const Matrix& right) {
     return m;
 }
 
-Matrix operator+(double d, const Matrix& right) {
+Matrix operator+(double d, const Matrix& right)
+{
     Matrix m = right;
     for (uint i = 0; i < right.rowCount(); i++) {
         for (uint j = 0; j < right.columnCount(); j++) {
@@ -768,7 +835,8 @@ Matrix operator+(double d, const Matrix& right) {
     return m;
 }
 
-void Matrix::sortVectors() const {
+void Matrix::sortVectors() const
+{
     ///clock_t cl_start, cl_end;
     //LPINFO("start sorting");
     //cl_start = clock();
@@ -784,7 +852,8 @@ void Matrix::sortVectors() const {
     //LPINFO("sorting time: " << ((Numerical::Double) (cl_end - cl_start) / (Numerical::Double) CLOCKS_PER_SEC) << " sec");
 }
 
-int Matrix::gaussianElimination(bool gaussianJordan) {
+int Matrix::gaussianElimination(bool gaussianJordan)
+{
     unsigned int row;
     int swapCount = 0;
     for (row = 0; row < m_rowCount; row++) {

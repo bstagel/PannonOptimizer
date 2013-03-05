@@ -1,6 +1,21 @@
 #include "manualmodelbuildertest.h"
 #include <algorithm>
 
+void ManualModelBuilderTestSuite::run()
+{
+    init();
+    setGetName();
+    setGetObjectiveFunctionConstant();
+    addVariable1();
+    addVariable2();
+    addVariable3();
+    setGetConstraint();
+    addConstraint1();
+    addConstraint2();
+    addConstraint3();
+    setGetVariable();
+}
+
 void ManualModelBuilderTestSuite::init()
 {
     ManualModelBuilder builder;
@@ -1996,7 +2011,7 @@ void ManualModelBuilderTestSuite::addConstraint3()
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
 
     builder.addConstraint(testConstraint1, 3, 1.0, 7, -2.3, 3, 0.13, 10);
-    
+
     TEST_ASSERT(builder.getVariableCount() == 11);
     TEST_ASSERT(builder.getConstraintCount() == 1);
 
@@ -2292,6 +2307,20 @@ void ManualModelBuilderTestSuite::addConstraint3()
     TEST_ASSERT(builder.m_nonZerosInRows == outputNonZerosInRows4);
     TEST_ASSERT(builder.m_constraints == outputConstraints4);
     TEST_ASSERT(builder.m_rows == outputRows4);
+}
+
+void ManualModelBuilderTestSuite::setGetVariable()
+{
+    ManualModelBuilder builder;
+    Constraint testConstraint = Constraint::createEqualityTypeConstraint("r1", 4.4);
+    const Numerical::Double testValues[] = {1.0, -2.3, 0.13};
+    const unsigned int testIndices[] = {7, 3, 10};
+    const unsigned int testNonZeros = 3;
+
+    builder.addConstraint(testConstraint, testNonZeros, testValues, testIndices);
+
+
+
 }
 
 void ManualModelBuilderTestSuite::printVectors(

@@ -8,26 +8,20 @@
 #ifndef MANUALMODELBUILDERTEST_H
 #define	MANUALMODELBUILDERTEST_H
 
-#include <cpptest.h>
+#include "framework/tester.h"
+#include "framework/unittest.h"
 #include <lp/manualmodelbuilder.h>
 
-class ManualModelBuilderTestSuite : public Test::Suite
+class ManualModelBuilderTestSuite : public UnitTest
 {
 public:
 
-    ManualModelBuilderTestSuite()
+    ManualModelBuilderTestSuite(const char * name) : UnitTest(name)
     {
-        TEST_ADD(ManualModelBuilderTestSuite::init)
-        TEST_ADD(ManualModelBuilderTestSuite::setGetName)
-        TEST_ADD(ManualModelBuilderTestSuite::setGetObjectiveFunctionConstant)
-        TEST_ADD(ManualModelBuilderTestSuite::addVariable1)
-        TEST_ADD(ManualModelBuilderTestSuite::addVariable2)
-        TEST_ADD(ManualModelBuilderTestSuite::addVariable3)
-        TEST_ADD(ManualModelBuilderTestSuite::setGetConstraint)
-        TEST_ADD(ManualModelBuilderTestSuite::addConstraint1)
-        TEST_ADD(ManualModelBuilderTestSuite::addConstraint2)
-        TEST_ADD(ManualModelBuilderTestSuite::addConstraint3)
     }
+    
+    void run();
+
 private:
     void init();
     void setGetName();
@@ -39,7 +33,8 @@ private:
     void addConstraint1();
     void addConstraint2();
     void addConstraint3();
-    
+    void setGetVariable();
+
     void printVectors(const std::vector< std::list<ManualModelBuilder::IndexValuePair> > & vector) const;
 };
 
