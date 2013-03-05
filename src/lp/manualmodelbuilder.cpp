@@ -349,7 +349,7 @@ void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector) 
     }
 }
 
-void ManualModelBuilder::costVectorBuild(Vector * costVector) const
+void ManualModelBuilder::buildCostVector(Vector * costVector) const
 {
     unsigned int dimension = m_variables.size();
     costVector->prepareForData(m_costVector.size(), dimension);

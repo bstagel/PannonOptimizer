@@ -12,6 +12,7 @@
 #include "constrainttest.h"
 #include "matrixtest.h"
 #include "manualmodelbuildertest.h"
+#include "modeltest.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ main(int argc, char* argv[])
     Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
     Tester::addUnitTest(new MatrixTestSuite("Matrix Test"));
     Tester::addUnitTest(new ManualModelBuilderTestSuite("ManualModelBuilder Test"));
+    Tester::addUnitTest(new ModelTestSuite("Model Test"));
     
     Tester::run();
     return EXIT_SUCCESS;

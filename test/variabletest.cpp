@@ -15,6 +15,7 @@ void VariableTestSuite::run()
     setGetValue();
     setGetName();
     setGetVector();
+    equalityOperator();
 }
 
 void VariableTestSuite::init()
@@ -665,7 +666,7 @@ void VariableTestSuite::setGetUpperBound()
     try {
         variable.setUpperBound(infinity);
         variable.setLowerBound(20.0);
-        variable.setUpperBound(10.0);        
+        variable.setUpperBound(10.0);
     } catch (Variable::InvalidBoundsException & exception) {
         invalidBoundsException = true;
     } catch (...) {
@@ -807,4 +808,34 @@ void VariableTestSuite::type()
     variable15.setUpperBound(20.0);
     TEST_ASSERT(variable15.m_type == variable15.getType());
     TEST_ASSERT(variable15.m_type == Variable::BOUNDED);
+}
+
+void VariableTestSuite::equalityOperator()
+{
+    Variable variable1, variable2;
+    TEST_ASSERT(variable1 == variable2);
+    
+    variable1.setName("y1");
+    TEST_ASSERT(!(variable1 == variable2));
+    variable1.setName("");
+    TEST_ASSERT(variable1 == variable2);
+    
+    variable1.setLowerBound(-1.0);
+    TEST_ASSERT(!(variable1 == variable2));
+    variable1.setLowerBound(0.0);
+    TEST_ASSERT(variable1 == variable2);
+
+    variable1.setUpperBound(1.0);
+    TEST_ASSERT(!(variable1 == variable2));
+    variable1.setUpperBound(infinity);
+    TEST_ASSERT(variable1 == variable2);
+    
+    variable1.setValue(4.3);
+    TEST_ASSERT(!(variable1 == variable2));
+    variable1.setValue(0.0);
+    TEST_ASSERT(variable1 == variable2);
+    
+    Vector vector;
+    variable1.setVector(vector);
+    TEST_ASSERT(!(variable1 == variable2));
 }

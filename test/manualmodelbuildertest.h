@@ -34,6 +34,11 @@ private:
     void addConstraint2();
     void addConstraint3();
     void setGetVariable();
+    void setCostCoefficient();
+    void addVariableAndConstraint();
+    void buildRow();
+    void buildColumn();
+    void buildCostVector();
 
     void printVectors(const std::vector< std::list<ManualModelBuilder::IndexValuePair> > & vector) const;
 };
