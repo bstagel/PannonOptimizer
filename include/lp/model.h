@@ -17,6 +17,7 @@
 
 class Model
 {
+    friend class ModelTestSuite;
 public:
     Model();
 
@@ -28,6 +29,7 @@ public:
     inline const Constraint & getConstraint(unsigned int index) const;
     inline const Vector & getCostVector() const;
     inline const std::string & getName() const;
+    inline Numerical::Double getCostConstant() const;
 private:
 
     Matrix m_matrix;
@@ -71,6 +73,11 @@ const Vector & Model::getCostVector() const
 const std::string & Model::getName() const
 {
     return m_name;
+}
+
+Numerical::Double Model::getCostConstant() const
+{
+    return m_costConstant;
 }
 
 #endif	/* MODEL_H */

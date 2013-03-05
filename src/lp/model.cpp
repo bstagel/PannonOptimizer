@@ -2,7 +2,7 @@
 
 Model::Model()
 {
-
+    m_costConstant = 0.0;
 }
 
 void Model::build(const ModelBuilder & builder)
