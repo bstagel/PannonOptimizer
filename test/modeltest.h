@@ -23,6 +23,8 @@ public:
 
 private:
 
+    void init();
+    void build();
 };
 
 #endif	/* MODELTEST_H */
