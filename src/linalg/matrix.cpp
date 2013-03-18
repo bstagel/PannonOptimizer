@@ -58,6 +58,21 @@ void Matrix::clear()
     m_fastColumnScaling = false;
 }
 
+void Matrix::build(const MatrixBuilder & builder)
+{
+    reInit(builder.getRowCount(), builder.getColumnCount(), false);
+    unsigned int rowIndex;
+    for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
+        m_rowWise[rowIndex] = new Vector;
+        builder.buildRow(rowIndex, m_rowWise[rowIndex]);
+    }
+    unsigned int columnIndex;
+    for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
+        m_columnWise[columnIndex] = new Vector;
+        builder.buildColumn(columnIndex, m_columnWise[columnIndex]);
+    }    
+}
+
 void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
     unsigned int newCount, unsigned int newLengths)
 {

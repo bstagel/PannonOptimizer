@@ -15,8 +15,12 @@ void Tester::run()
 {
     std::list<UnitTest*>::iterator iter = sm_tests.begin();
     std::list<UnitTest*>::iterator iterEnd = sm_tests.end();
+    double time;
+    double totalTime = 0;
     for (; iter != iterEnd; iter++) {
-        (*iter)->run();
+        time = (*iter)->run();
+        totalTime += time;
+        std::cout << "\tEllapsed time: " << time << " sec" << std::endl;
         delete *iter;
     }
     if (sm_actualIsGood) {
@@ -28,6 +32,7 @@ void Tester::run()
     std::cout << std::endl;
     std::cout << sm_totalErrorCounter << " errors from " << sm_totalCounter <<
         ", " << (1.0 - (sm_totalErrorCounter / (double) sm_totalCounter))*100 << "%" << std::endl;
+    std::cout << "Ellapsed time: " << totalTime << " sec" << std::endl;
 }
 
 class DemoTestCase : public UnitTest

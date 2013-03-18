@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <linalg/vector.h>
+#include <linalg/matrixbuilder.h>
 #include <utils/numerical.h>
 
 /**
@@ -10,7 +11,6 @@
  */
 class Matrix
 {
-    friend class Model;
     friend class MatrixTestSuite;
     friend class ModelIO;
     friend class MpsProblem;
@@ -45,6 +45,13 @@ public:
     void clear();
 
     /**
+     * Builds the matrix using the builder object.
+     * 
+     * @param builder This object contains the matrix data.
+     */
+    void build(const MatrixBuilder & builder);
+
+    /**
      * Resizes the matrix. When a dimension increases, the old elements
      * remains. The new elements will be zeros. When rowCount is given, and 
      * columnCount not, the matrix will be square matrix.
@@ -65,7 +72,7 @@ public:
      * initialized or not.
      */
     void reInit(unsigned int rowCount = 0, unsigned int columnCount = 0, bool
-            initVectors = true);
+        initVectors = true);
 
     /**
      * Releases the matrix, and copies the original.
@@ -468,11 +475,11 @@ private:
      * @param initVectors When true, the function initializes the vectors.
      */
     void init(unsigned int rowCount, unsigned int columnCount, bool
-            initVectors = true);
+        initVectors = true);
 
 
     static void resizeVectors(Vector ** & vectors, unsigned int vectorCount,
-            unsigned int newCount, unsigned int newLengths);
+        unsigned int newCount, unsigned int newLengths);
 
     /**
      * Helper function of removeRow and removeColumn. Removes a vector
@@ -486,7 +493,7 @@ private:
      * @param index
      */
     void removeVector(Vector ** & columnWise, unsigned int & columnCount,
-            Vector ** & rowWise, unsigned int & rowCount, unsigned int index);
+        Vector ** & rowWise, unsigned int & rowCount, unsigned int index);
 
     /**
      * 
@@ -497,7 +504,7 @@ private:
      * @param vector
      */
     void insertVector(Vector ** columnWise, Vector ** & rowWise,
-            unsigned int & rowCount, unsigned int index, const Vector & vector);
+        unsigned int & rowCount, unsigned int index, const Vector & vector);
 
     /**
      * 
@@ -508,7 +515,7 @@ private:
      * @param index
      */
     void insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
-            unsigned int & rowCount, unsigned int columnCount, unsigned int index);
+        unsigned int & rowCount, unsigned int columnCount, unsigned int index);
 
     /**
      * Returns the result of d times right matrix.

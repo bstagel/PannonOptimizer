@@ -133,13 +133,13 @@ public:
      * 
      * @return 
      */
-    unsigned int getVariableCount() const;
+    unsigned int getColumnCount() const;
 
     /**
      * 
      * @return 
      */
-    unsigned int getConstraintCount() const;
+    unsigned int getRowCount() const;
 
     /**
      * 

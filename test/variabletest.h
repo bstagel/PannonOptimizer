@@ -10,9 +10,7 @@ class VariableTestSuite :  public UnitTest
 {
 public:
 
-    VariableTestSuite(const char * name): UnitTest(name) {}
-    
-    void run();
+    VariableTestSuite(const char * name);
 
 private:
     void init();

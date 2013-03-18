@@ -16,9 +16,7 @@ class MatrixTestSuite : public UnitTest
 {
 public:
 
-    MatrixTestSuite(const char * name): UnitTest(name) {}
-
-    void run();
+    MatrixTestSuite(const char * name);
     
 private:
     void equal();

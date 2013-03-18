@@ -16,11 +16,7 @@ class ManualModelBuilderTestSuite : public UnitTest
 {
 public:
 
-    ManualModelBuilderTestSuite(const char * name) : UnitTest(name)
-    {
-    }
-    
-    void run();
+    ManualModelBuilderTestSuite(const char * name);   
 
 private:
     void init();
