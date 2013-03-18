@@ -17,9 +17,7 @@ class ModelTestSuite :  public UnitTest
 {
 public:
 
-    ModelTestSuite(const char * name): UnitTest(name) {}
-    
-    void run();
+    ModelTestSuite(const char * name);
 
 private:
 

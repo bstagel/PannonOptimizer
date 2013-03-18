@@ -1,21 +1,22 @@
 #include "variabletest.h"
 #include <cstring>
 
-void VariableTestSuite::run()
+VariableTestSuite::VariableTestSuite(const char* name) : UnitTest(name)
 {
-    init();
-    type();
-    createPlusType();
-    createMinusType();
-    createBoundedType();
-    createFixedType();
-    createFreeType();
-    setGetLowerBound();
-    setGetUpperBound();
-    setGetValue();
-    setGetName();
-    setGetVector();
-    equalityOperator();
+    ADD_TEST(VariableTestSuite::init);
+    ADD_TEST(VariableTestSuite::type);
+    ADD_TEST(VariableTestSuite::createPlusType);
+    ADD_TEST(VariableTestSuite::createMinusType);
+    ADD_TEST(VariableTestSuite::createBoundedType);
+    ADD_TEST(VariableTestSuite::createFixedType);
+    ADD_TEST(VariableTestSuite::createFreeType);
+    ADD_TEST(VariableTestSuite::setGetLowerBound);
+    ADD_TEST(VariableTestSuite::setGetUpperBound);
+    ADD_TEST(VariableTestSuite::setGetValue);
+    ADD_TEST(VariableTestSuite::setGetName);
+    ADD_TEST(VariableTestSuite::setGetVector);
+    ADD_TEST(VariableTestSuite::equalityOperator);
+
 }
 
 void VariableTestSuite::init()
@@ -814,12 +815,12 @@ void VariableTestSuite::equalityOperator()
 {
     Variable variable1, variable2;
     TEST_ASSERT(variable1 == variable2);
-    
+
     variable1.setName("y1");
     TEST_ASSERT(!(variable1 == variable2));
     variable1.setName("");
     TEST_ASSERT(variable1 == variable2);
-    
+
     variable1.setLowerBound(-1.0);
     TEST_ASSERT(!(variable1 == variable2));
     variable1.setLowerBound(0.0);
@@ -829,12 +830,12 @@ void VariableTestSuite::equalityOperator()
     TEST_ASSERT(!(variable1 == variable2));
     variable1.setUpperBound(infinity);
     TEST_ASSERT(variable1 == variable2);
-    
+
     variable1.setValue(4.3);
     TEST_ASSERT(!(variable1 == variable2));
     variable1.setValue(0.0);
     TEST_ASSERT(variable1 == variable2);
-    
+
     Vector vector;
     variable1.setVector(vector);
     TEST_ASSERT(!(variable1 == variable2));

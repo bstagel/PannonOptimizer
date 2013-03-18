@@ -16,9 +16,7 @@ class ConstraintTestSuite : public UnitTest
 {
 public:
 
-    ConstraintTestSuite(const char * name): UnitTest(name) {}
-    
-    void run();
+    ConstraintTestSuite(const char * name);
 
 private:
     void init();

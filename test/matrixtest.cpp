@@ -1,55 +1,55 @@
 #include "matrixtest.h"
 #include "testmacros.h"
 
-void MatrixTestSuite::run()
+MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
 {
-    equal();
-    copy();
-    assign();
-    transposed();
-    add();
-    addToThis();
-    subtract();
-    subtractFromThis();
-    multipleByVector();
-    multipleByDouble();
-    multipleByMatrix_1();
-    multipleByMatrix_2();
-    multipleByDiagonalMatrix();
-    inverse();
-    diagonalMatrix();
-    diagonalMatrix_Inverse();
-    diagonalMatrix_Invert();
-    rowVector();
-    columnVector();
-    comprehensive_1();
-    constructor();
-    setGet();
-    columnWise();
-    rowWise();
-    clear();
-    resize();
-    scale();
-    scaleRow();
-    scaleColumn();
-    prepend();
-    prependEmpty();
-    prependEmpty2();
-    append();
-    appendEmpty();
-    appendEmpty2();
-    insertColumn();
-    insertEmptyColumn();
-    insertRow();
-    insertEmptyRow();
-    removeRow();
-    removeColumn();
-    nonZerosAndDensity();
-    newNonzero();
-    addScalarMatrix();
-    sortElements();
-    determinant();
-    reInit();
+    ADD_TEST(MatrixTestSuite::equal);
+    ADD_TEST(MatrixTestSuite::copy);
+    ADD_TEST(MatrixTestSuite::assign);
+    ADD_TEST(MatrixTestSuite::transposed);
+    ADD_TEST(MatrixTestSuite::add);
+    ADD_TEST(MatrixTestSuite::addToThis);
+    ADD_TEST(MatrixTestSuite::subtract);
+    ADD_TEST(MatrixTestSuite::subtractFromThis);
+    ADD_TEST(MatrixTestSuite::multipleByVector);
+    ADD_TEST(MatrixTestSuite::multipleByDouble);
+    ADD_TEST(MatrixTestSuite::multipleByMatrix_1);
+    ADD_TEST(MatrixTestSuite::multipleByMatrix_2);
+    ADD_TEST(MatrixTestSuite::multipleByDiagonalMatrix);
+    ADD_TEST(MatrixTestSuite::inverse);
+    ADD_TEST(MatrixTestSuite::diagonalMatrix);
+    ADD_TEST(MatrixTestSuite::diagonalMatrix_Inverse);
+    ADD_TEST(MatrixTestSuite::diagonalMatrix_Invert);
+    ADD_TEST(MatrixTestSuite::rowVector);
+    ADD_TEST(MatrixTestSuite::columnVector);
+    ADD_TEST(MatrixTestSuite::comprehensive_1);
+    ADD_TEST(MatrixTestSuite::constructor);
+    ADD_TEST(MatrixTestSuite::setGet);
+    ADD_TEST(MatrixTestSuite::columnWise);
+    ADD_TEST(MatrixTestSuite::rowWise);
+    ADD_TEST(MatrixTestSuite::clear);
+    ADD_TEST(MatrixTestSuite::resize);
+    ADD_TEST(MatrixTestSuite::scale);
+    ADD_TEST(MatrixTestSuite::scaleRow);
+    ADD_TEST(MatrixTestSuite::scaleColumn);
+    ADD_TEST(MatrixTestSuite::prepend);
+    ADD_TEST(MatrixTestSuite::prependEmpty);
+    ADD_TEST(MatrixTestSuite::prependEmpty2);
+    ADD_TEST(MatrixTestSuite::append);
+    ADD_TEST(MatrixTestSuite::appendEmpty);
+    ADD_TEST(MatrixTestSuite::appendEmpty2);
+    ADD_TEST(MatrixTestSuite::insertColumn);
+    ADD_TEST(MatrixTestSuite::insertEmptyColumn);
+    ADD_TEST(MatrixTestSuite::insertRow);
+    ADD_TEST(MatrixTestSuite::insertEmptyRow);
+    ADD_TEST(MatrixTestSuite::removeRow);
+    ADD_TEST(MatrixTestSuite::removeColumn);
+    ADD_TEST(MatrixTestSuite::nonZerosAndDensity);
+    ADD_TEST(MatrixTestSuite::newNonzero);
+    ADD_TEST(MatrixTestSuite::addScalarMatrix);
+    ADD_TEST(MatrixTestSuite::sortElements);
+    ADD_TEST(MatrixTestSuite::determinant);
+    ADD_TEST(MatrixTestSuite::reInit);
 }
 
 void MatrixTestSuite::equal()
@@ -1273,7 +1273,7 @@ void MatrixTestSuite::rowVector()
     v.set(2, 3);
 
     Matrix rowVector = Matrix::rowVector(v);
-    
+
     ASSERT_EQ(1, rowVector.rowCount());
     ASSERT_EQ(3, rowVector.columnCount());
     ASSERT_EQ(1, rowVector.get(0, 0));

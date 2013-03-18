@@ -1,11 +1,16 @@
 #include "modeltest.h"
 #include <lp/manualmodelbuilder.h>
 
-void ModelTestSuite::run()
+ModelTestSuite::ModelTestSuite(const char * name): UnitTest(name) {
+    ADD_TEST(ModelTestSuite::init);
+    ADD_TEST(ModelTestSuite::build);
+}
+
+/*void ModelTestSuite::run()
 {
     init();
     build();
-}
+}*/
 
 void ModelTestSuite::init()
 {

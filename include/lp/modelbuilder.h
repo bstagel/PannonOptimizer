@@ -8,6 +8,7 @@
 #ifndef MODELBUILDER_H
 #define	MODELBUILDER_H
 
+#include <linalg/matrixbuilder.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
 #include <utils/numerical.h>
@@ -16,20 +17,9 @@
 
 /**
  */
-class ModelBuilder
+class ModelBuilder: public MatrixBuilder
 {
 public:
-    /**
-     * 
-     * @return 
-     */
-    virtual unsigned int getVariableCount() const = 0;
-
-    /**
-     * 
-     * @return 
-     */
-    virtual unsigned int getConstraintCount() const = 0;
 
     /**
      * 
@@ -44,20 +34,6 @@ public:
      * @return 
      */
     virtual const Constraint & getConstraint(unsigned int index) const = 0;
-
-    /**
-     * 
-     * @param index
-     * @param rowVector
-     */
-    virtual void buildRow(unsigned int index, Vector * rowVector) const = 0;
-
-    /**
-     * 
-     * @param index
-     * @param columnVector
-     */
-    virtual void buildColumn(unsigned int index, Vector * columnVector) const = 0;
 
     /**
      * 

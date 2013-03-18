@@ -11,12 +11,15 @@ void Model::build(const ModelBuilder & builder)
     m_costConstant = builder.getObjectiveConstant();
     builder.buildCostVector(&m_costVector);
 
-    m_constraints.resize(builder.getConstraintCount());
-    m_variables.resize(builder.getVariableCount());
-    m_matrix.reInit(builder.getConstraintCount(), builder.getVariableCount(), false);
+    m_constraints.resize(builder.getRowCount());
+    m_variables.resize(builder.getColumnCount());
+
+    m_matrix.build(builder);
+
+    /*m_matrix.reInit(builder.getRowCount(), builder.getColumnCount(), false);
 
     unsigned int rowIndex;
-    for (rowIndex = 0; rowIndex < builder.getConstraintCount(); rowIndex++) {
+    for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
         Vector * rowVector = new Vector;
         m_matrix.m_rowWise[rowIndex] = rowVector;
         builder.buildRow(rowIndex, rowVector);
@@ -24,10 +27,10 @@ void Model::build(const ModelBuilder & builder)
     }
 
     unsigned int columnIndex;
-    for (columnIndex = 0; columnIndex < builder.getVariableCount(); columnIndex++) {
+    for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
         Vector * columnVector = new Vector;
         m_matrix.m_columnWise[columnIndex] = columnVector;
         builder.buildColumn(columnIndex, columnVector);
         m_constraints[columnIndex].setVector(*columnVector);
-    }
+    }*/
 }

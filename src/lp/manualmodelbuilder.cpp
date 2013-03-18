@@ -307,12 +307,12 @@ void ManualModelBuilder::setCostCoefficient(unsigned int index, Numerical::Doubl
  * 
  * *********************************************/
 
-unsigned int ManualModelBuilder::getVariableCount() const
+unsigned int ManualModelBuilder::getColumnCount() const
 {
     return m_variables.size();
 }
 
-unsigned int ManualModelBuilder::getConstraintCount() const
+unsigned int ManualModelBuilder::getRowCount() const
 {
     return m_constraints.size();
 }

@@ -1,18 +1,18 @@
 #include "constrainttest.h"
 
-void ConstraintTestSuite::run()
+ConstraintTestSuite::ConstraintTestSuite(const char * name) : UnitTest(name)
 {
-    init();
-    type();
-    createGreaterType();
-    createLessType();
-    createRangeType();
-    createEqualityType();
-    createNonBindingType();
-    setGetLowerBound();
-    setGetUpperBound();
-    setGetName();
-    setGetVector();
+    ADD_TEST(ConstraintTestSuite::init);
+    ADD_TEST(ConstraintTestSuite::type);
+    ADD_TEST(ConstraintTestSuite::createGreaterType);
+    ADD_TEST(ConstraintTestSuite::createLessType);
+    ADD_TEST(ConstraintTestSuite::createRangeType);
+    ADD_TEST(ConstraintTestSuite::createEqualityType);
+    ADD_TEST(ConstraintTestSuite::createNonBindingType);
+    ADD_TEST(ConstraintTestSuite::setGetLowerBound);
+    ADD_TEST(ConstraintTestSuite::setGetUpperBound);
+    ADD_TEST(ConstraintTestSuite::setGetName);
+    ADD_TEST(ConstraintTestSuite::setGetVector);
 }
 
 void ConstraintTestSuite::init()

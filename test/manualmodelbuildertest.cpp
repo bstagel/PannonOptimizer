@@ -1,24 +1,25 @@
 #include "manualmodelbuildertest.h"
 #include <algorithm>
 
-void ManualModelBuilderTestSuite::run()
+ManualModelBuilderTestSuite::ManualModelBuilderTestSuite(const char * name) : UnitTest(name)
 {
-    init();
-    setGetName();
-    setGetObjectiveFunctionConstant();
-    addVariable1();
-    addVariable2();
-    addVariable3();
-    setGetConstraint();
-    addConstraint1();
-    addConstraint2();
-    addConstraint3();
-    setGetVariable();
-    addVariableAndConstraint();
-    setCostCoefficient();
-    buildRow();
-    buildColumn();
-    buildCostVector();
+    ADD_TEST(ManualModelBuilderTestSuite::init);
+    ADD_TEST(ManualModelBuilderTestSuite::setGetName);
+    ADD_TEST(ManualModelBuilderTestSuite::setGetObjectiveFunctionConstant);
+    ADD_TEST(ManualModelBuilderTestSuite::addVariable1);
+    ADD_TEST(ManualModelBuilderTestSuite::addVariable2);
+    ADD_TEST(ManualModelBuilderTestSuite::addVariable3);
+    ADD_TEST(ManualModelBuilderTestSuite::setGetConstraint);
+    ADD_TEST(ManualModelBuilderTestSuite::addConstraint1);
+    ADD_TEST(ManualModelBuilderTestSuite::addConstraint2);
+    ADD_TEST(ManualModelBuilderTestSuite::addConstraint3);
+    ADD_TEST(ManualModelBuilderTestSuite::setGetVariable);
+    ADD_TEST(ManualModelBuilderTestSuite::addVariableAndConstraint);
+    ADD_TEST(ManualModelBuilderTestSuite::setCostCoefficient);
+    ADD_TEST(ManualModelBuilderTestSuite::buildRow);
+    ADD_TEST(ManualModelBuilderTestSuite::buildColumn);
+    ADD_TEST(ManualModelBuilderTestSuite::buildCostVector);
+
 }
 
 void ManualModelBuilderTestSuite::init()
@@ -80,8 +81,8 @@ void ManualModelBuilderTestSuite::addVariable1()
     builder.addVariable(testVariable1, testCostCoefficient1,
         testNonZeros1, testValues1, testIndices1);
 
-    TEST_ASSERT(builder.getVariableCount() == 1);
-    TEST_ASSERT(builder.getConstraintCount() == 11);
+    TEST_ASSERT(builder.getColumnCount() == 1);
+    TEST_ASSERT(builder.getRowCount() == 11);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
 
@@ -176,8 +177,8 @@ void ManualModelBuilderTestSuite::addVariable1()
     builder.addVariable(testVariable2, testCostCoefficient2,
         testNonZeros2, testValues2, testIndices2);
 
-    TEST_ASSERT(builder.getVariableCount() == 2);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 2);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -285,8 +286,8 @@ void ManualModelBuilderTestSuite::addVariable1()
     builder.addVariable(testVariable3, testCostCoefficient3,
         testNonZeros3, 0, 0);
 
-    TEST_ASSERT(builder.getVariableCount() == 3);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 3);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -378,8 +379,8 @@ void ManualModelBuilderTestSuite::addVariable1()
     builder.addVariable(testVariable4, testCostCoefficient4,
         testNonZeros4, testValues4, testIndices4);
 
-    TEST_ASSERT(builder.getVariableCount() == 4);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 4);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -482,8 +483,8 @@ void ManualModelBuilderTestSuite::addVariable2()
 
     builder.addVariable(testVariable1, testCostCoefficient1, testVector1);
 
-    TEST_ASSERT(builder.getVariableCount() == 1);
-    TEST_ASSERT(builder.getConstraintCount() == 11);
+    TEST_ASSERT(builder.getColumnCount() == 1);
+    TEST_ASSERT(builder.getRowCount() == 11);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
 
@@ -580,8 +581,8 @@ void ManualModelBuilderTestSuite::addVariable2()
 
     builder.addVariable(testVariable2, testCostCoefficient2, testVector2);
 
-    TEST_ASSERT(builder.getVariableCount() == 2);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 2);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -689,8 +690,8 @@ void ManualModelBuilderTestSuite::addVariable2()
 
     builder.addVariable(testVariable3, testCostCoefficient3, testVector3);
 
-    TEST_ASSERT(builder.getVariableCount() == 3);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 3);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -782,8 +783,8 @@ void ManualModelBuilderTestSuite::addVariable2()
 
     builder.addVariable(testVariable4, testCostCoefficient4, testVector4);
 
-    TEST_ASSERT(builder.getVariableCount() == 4);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 4);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -883,8 +884,8 @@ void ManualModelBuilderTestSuite::addVariable3()
     builder.addVariable(testVariable1, testCostCoefficient1, 3, 1.0, 7,
         -2.3, 3, 0.13, 10);
 
-    TEST_ASSERT(builder.getVariableCount() == 1);
-    TEST_ASSERT(builder.getConstraintCount() == 11);
+    TEST_ASSERT(builder.getColumnCount() == 1);
+    TEST_ASSERT(builder.getRowCount() == 11);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
 
@@ -976,8 +977,8 @@ void ManualModelBuilderTestSuite::addVariable3()
     builder.addVariable(testVariable2, testCostCoefficient2, 4,
         4.2, 1, 1.03, 5, 4.31, 7, 12.1, 12);
 
-    TEST_ASSERT(builder.getVariableCount() == 2);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 2);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -1083,8 +1084,8 @@ void ManualModelBuilderTestSuite::addVariable3()
 
     builder.addVariable(testVariable3, testCostCoefficient3, 0);
 
-    TEST_ASSERT(builder.getVariableCount() == 3);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 3);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -1177,8 +1178,8 @@ void ManualModelBuilderTestSuite::addVariable3()
     builder.addVariable(testVariable4, testCostCoefficient4, 2,
         0.02, 0, 31.02, 11);
 
-    TEST_ASSERT(builder.getVariableCount() == 4);
-    TEST_ASSERT(builder.getConstraintCount() == 13);
+    TEST_ASSERT(builder.getColumnCount() == 4);
+    TEST_ASSERT(builder.getRowCount() == 13);
 
     TEST_ASSERT(builder.getVariable(0) == testVariable1);
     TEST_ASSERT(builder.getVariable(1) == testVariable2);
@@ -1276,18 +1277,18 @@ void ManualModelBuilderTestSuite::setGetConstraint()
     builder.addVariable(testVariable, testCostCoefficient,
         testNonZeros, testValues, testIndices);
 
-    TEST_ASSERT(builder.getConstraintCount() == 11);
+    TEST_ASSERT(builder.getRowCount() == 11);
 
     const Constraint outputConstraintDefault = Constraint::createGreaterTypeConstraint(0, 0.0);
     unsigned int index;
-    for (index = 0; index < builder.getConstraintCount(); index++) {
+    for (index = 0; index < builder.getRowCount(); index++) {
         TEST_ASSERT(builder.getConstraint(index) == outputConstraintDefault);
     }
 
     const Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 1.0);
     builder.setConstraint(0, testConstraint1);
 
-    for (index = 0; index < builder.getConstraintCount(); index++) {
+    for (index = 0; index < builder.getRowCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getConstraint(index) == testConstraint1);
@@ -1306,7 +1307,7 @@ void ManualModelBuilderTestSuite::setGetConstraint()
     const Constraint testConstraint2 = Constraint::createNonBindingTypeConstraint("r4");
     builder.setConstraint(5, testConstraint2);
 
-    for (index = 0; index < builder.getConstraintCount(); index++) {
+    for (index = 0; index < builder.getRowCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getConstraint(index) == testConstraint1);
@@ -1325,7 +1326,7 @@ void ManualModelBuilderTestSuite::setGetConstraint()
     const Constraint testConstraint3 = Constraint::createRangeTypeConstraint("r10", 2, 4);
     builder.setConstraint(10, testConstraint3);
 
-    for (index = 0; index < builder.getConstraintCount(); index++) {
+    for (index = 0; index < builder.getRowCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getConstraint(index) == testConstraint1);
@@ -1347,7 +1348,7 @@ void ManualModelBuilderTestSuite::setGetConstraint()
     const Constraint testConstraint4 = Constraint::createLessTypeConstraint("r4_v2", 42);
     builder.setConstraint(5, testConstraint4);
 
-    for (index = 0; index < builder.getConstraintCount(); index++) {
+    for (index = 0; index < builder.getRowCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getConstraint(index) == testConstraint1);
@@ -1382,8 +1383,8 @@ void ManualModelBuilderTestSuite::addConstraint1()
 
     builder.addConstraint(testConstraint1, testNonZeros1, testValues1, testIndices1);
 
-    TEST_ASSERT(builder.getVariableCount() == 11);
-    TEST_ASSERT(builder.getConstraintCount() == 1);
+    TEST_ASSERT(builder.getColumnCount() == 11);
+    TEST_ASSERT(builder.getRowCount() == 1);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
 
@@ -1448,8 +1449,8 @@ void ManualModelBuilderTestSuite::addConstraint1()
 
     builder.addConstraint(testConstraint2, testNonZeros2, testValues2, testIndices2);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 2);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 2);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -1529,8 +1530,8 @@ void ManualModelBuilderTestSuite::addConstraint1()
 
     builder.addConstraint(testConstraint3, testNonZeros3, 0, 0);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 3);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 3);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -1604,8 +1605,8 @@ void ManualModelBuilderTestSuite::addConstraint1()
 
     builder.addConstraint(testConstraint4, testNonZeros4, testValues4, testIndices4);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 4);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 4);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -1701,8 +1702,8 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     builder.addConstraint(testConstraint1, testVector1);
 
-    TEST_ASSERT(builder.getVariableCount() == 11);
-    TEST_ASSERT(builder.getConstraintCount() == 1);
+    TEST_ASSERT(builder.getColumnCount() == 11);
+    TEST_ASSERT(builder.getRowCount() == 1);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
 
@@ -1769,8 +1770,8 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     builder.addConstraint(testConstraint2, testVector2);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 2);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 2);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -1850,8 +1851,8 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     builder.addConstraint(testConstraint3, testVector3);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 3);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 3);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -1924,8 +1925,8 @@ void ManualModelBuilderTestSuite::addConstraint2()
     testVector4.set(11, 31.02);
     builder.addConstraint(testConstraint4, testVector4);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 4);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 4);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -2017,8 +2018,8 @@ void ManualModelBuilderTestSuite::addConstraint3()
 
     builder.addConstraint(testConstraint1, 3, 1.0, 7, -2.3, 3, 0.13, 10);
 
-    TEST_ASSERT(builder.getVariableCount() == 11);
-    TEST_ASSERT(builder.getConstraintCount() == 1);
+    TEST_ASSERT(builder.getColumnCount() == 11);
+    TEST_ASSERT(builder.getRowCount() == 1);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
 
@@ -2080,8 +2081,8 @@ void ManualModelBuilderTestSuite::addConstraint3()
 
     builder.addConstraint(testConstraint2, 4, 4.2, 1, 1.03, 5, 4.31, 7, 12.1, 12);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 2);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 2);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -2160,8 +2161,8 @@ void ManualModelBuilderTestSuite::addConstraint3()
 
     builder.addConstraint(testConstraint3, 0);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 3);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 3);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -2232,8 +2233,8 @@ void ManualModelBuilderTestSuite::addConstraint3()
 
     builder.addConstraint(testConstraint4, 2, 0.02, 0, 31.02, 11);
 
-    TEST_ASSERT(builder.getVariableCount() == 13);
-    TEST_ASSERT(builder.getConstraintCount() == 4);
+    TEST_ASSERT(builder.getColumnCount() == 13);
+    TEST_ASSERT(builder.getRowCount() == 4);
 
     TEST_ASSERT(builder.getConstraint(0) == testConstraint1);
     TEST_ASSERT(builder.getConstraint(1) == testConstraint2);
@@ -2324,18 +2325,18 @@ void ManualModelBuilderTestSuite::setGetVariable()
 
     builder.addConstraint(testConstraint, testNonZeros, testValues, testIndices);
 
-    TEST_ASSERT(builder.getVariableCount() == 11);
+    TEST_ASSERT(builder.getColumnCount() == 11);
 
     const Variable outputVariableDefault = Variable::createPlusTypeVariable(0, 0, 0.0);
     unsigned int index;
-    for (index = 0; index < builder.getVariableCount(); index++) {
+    for (index = 0; index < builder.getColumnCount(); index++) {
         TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
     }
 
     const Variable testVariable1 = Variable::createFixedTypeVariable("x1", 4.5);
     builder.setVariable(0, testVariable1);
 
-    for (index = 0; index < builder.getVariableCount(); index++) {
+    for (index = 0; index < builder.getColumnCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getVariable(index) == testVariable1);
@@ -2354,7 +2355,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
     const Variable testVariable2 = Variable::createFreeTypeVariable("x2", 4.2);
     builder.setVariable(5, testVariable2);
 
-    for (index = 0; index < builder.getVariableCount(); index++) {
+    for (index = 0; index < builder.getColumnCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getVariable(index) == testVariable1);
@@ -2373,7 +2374,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
     const Variable testVariable3 = Variable::createBoundedTypeVariable("x3", 10.0, 4.5, 31.2);
     builder.setVariable(10, testVariable3);
 
-    for (index = 0; index < builder.getVariableCount(); index++) {
+    for (index = 0; index < builder.getColumnCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getVariable(index) == testVariable1);
@@ -2395,7 +2396,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
     const Variable testVariable4 = Variable::createMinusTypeVariable("x4", -3.4, 43.2);
     builder.setVariable(5, testVariable4);
 
-    for (index = 0; index < builder.getVariableCount(); index++) {
+    for (index = 0; index < builder.getColumnCount(); index++) {
         switch (index) {
             case 0:
                 TEST_ASSERT(builder.getVariable(index) == testVariable1);
@@ -2511,8 +2512,8 @@ void ManualModelBuilderTestSuite::addVariableAndConstraint()
      *                                                                    [ 2.3; 2]                                                                  [ 4.13; 11]
      */
 
-    TEST_ASSERT(builder.getVariableCount() == 12);
-    TEST_ASSERT(builder.getConstraintCount() == 12);
+    TEST_ASSERT(builder.getColumnCount() == 12);
+    TEST_ASSERT(builder.getRowCount() == 12);
 
     std::vector<Numerical::Double> outputCostVector(12);
     outputCostVector[11] = testCostCoefficient1;
