@@ -16,7 +16,8 @@ VariableTestSuite::VariableTestSuite(const char* name) : UnitTest(name)
     ADD_TEST(VariableTestSuite::setGetName);
     ADD_TEST(VariableTestSuite::setGetVector);
     ADD_TEST(VariableTestSuite::equalityOperator);
-
+    ADD_TEST(VariableTestSuite::assign);
+    ADD_TEST(VariableTestSuite::copy);
 }
 
 void VariableTestSuite::init()
@@ -839,4 +840,61 @@ void VariableTestSuite::equalityOperator()
     Vector vector;
     variable1.setVector(vector);
     TEST_ASSERT(!(variable1 == variable2));
+}
+
+void VariableTestSuite::assign()
+{
+    Variable variable1 = Variable::createFreeTypeVariable("x1", 74);
+    Variable variable2 = Variable::createFixedTypeVariable("x4", 6);
+    variable1 = variable2;
+
+    const Numerical::Double outputLowerBound1 = 6.0;
+    const Numerical::Double outputUpperBound1 = 6.0;
+    const Numerical::Double outputValue1 = 6.0;
+    const Variable::TYPE outputType1 = Variable::FIXED;
+    const std::string outputName1 = "x4";
+    Vector * const outputVector1 = 0;
+
+    TEST_ASSERT(variable1.m_lowerBound == outputLowerBound1);
+    TEST_ASSERT(variable1.m_upperBound == outputUpperBound1);
+    TEST_ASSERT(variable1.m_value == outputValue1);
+    TEST_ASSERT(variable1.m_type == outputType1);
+    TEST_ASSERT(variable1.m_name == outputName1);
+    TEST_ASSERT(variable1.m_vector == outputVector1);
+    
+    variable2 = variable2;
+
+    const Numerical::Double outputLowerBound2 = 6.0;
+    const Numerical::Double outputUpperBound2 = 6.0;
+    const Numerical::Double outputValue2 = 6.0;
+    const Variable::TYPE outputType2 = Variable::FIXED;
+    const std::string outputName2 = "x4";
+    Vector * const outputVector2 = 0;
+
+    TEST_ASSERT(variable2.m_lowerBound == outputLowerBound2);
+    TEST_ASSERT(variable2.m_upperBound == outputUpperBound2);
+    TEST_ASSERT(variable2.m_value == outputValue2);
+    TEST_ASSERT(variable2.m_type == outputType2);
+    TEST_ASSERT(variable2.m_name == outputName2);
+    TEST_ASSERT(variable2.m_vector == outputVector2);
+}
+
+void VariableTestSuite::copy()
+{
+    Variable variable1 = Variable::Variable::createFixedTypeVariable("x4", 6);
+    Variable variable2 = variable1;
+
+    const Numerical::Double outputLowerBound1 = 6.0;
+    const Numerical::Double outputUpperBound1 = 6.0;
+    const Numerical::Double outputValue1 = 6.0;
+    const Variable::TYPE outputType1 = Variable::FIXED;
+    const std::string outputName1 = "x4";
+    Vector * const outputVector1 = 0;
+
+    TEST_ASSERT(variable2.m_lowerBound == outputLowerBound1);
+    TEST_ASSERT(variable2.m_upperBound == outputUpperBound1);
+    TEST_ASSERT(variable2.m_value == outputValue1);
+    TEST_ASSERT(variable2.m_type == outputType1);
+    TEST_ASSERT(variable2.m_name == outputName1);
+    TEST_ASSERT(variable2.m_vector == outputVector1);
 }

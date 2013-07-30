@@ -19,8 +19,7 @@ using namespace std;
 // Main test program
 //
 
-int
-main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
     Tester::addUnitTest(new VariableTestSuite("Variable Test"));
     Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));

@@ -10,6 +10,7 @@
 
 #include <utils/numerical.h>
 #include <linalg/vector.h>
+#include <utils/exception.h>
 
 class Constraint
 {
@@ -29,6 +30,99 @@ public:
         NON_BINDING /* The constraint has no bounds */
     };
 
+    class ConstraintException : public Exception
+    {
+    public:
+        /**
+         * Constructor of the ConstraintException. It gets the original wrong
+         * constraint, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param constraint The wrong constraint object.
+         * @param message The human readable message about the error.
+         */
+        ConstraintException(const Constraint & constraint,
+            const std::string & message);
+
+        /**
+         * Destructor of the ConstraintException.
+         */
+        virtual ~ConstraintException();
+
+        /**
+         * Returns with the address of copy of the wrong constraint.
+         * 
+         * @return Address of the wrong constraint.
+         */
+        const Constraint * getConstraint() const;
+    private:
+
+        /**
+         * Address of the wrong constraint.
+         */
+        Constraint * m_constraint;
+    };
+
+    /**
+     * The class expresses an exception about a constraint. This
+     * exception indicates that the upper bound of the constraint
+     * is invalid. It contains the copy of the wrong constraint.
+     */
+    class InvalidUpperBoundException : public ConstraintException
+    {
+    public:
+        /**
+         * Constructor of the InvalidUpperBoundException. It gets the original wrong
+         * constraint, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong constraint object.
+         * @param message The human readable message about the error.
+         */
+        InvalidUpperBoundException(const Constraint & constraint,
+            const std::string & message);
+    };
+
+    /**
+     * The class expresses an exception about a constraint. This
+     * exception indicates that the lower bound of the constraint
+     * is invalid. It contains the copy of the wrong constraint.
+     */
+    class InvalidLowerBoundException : public ConstraintException
+    {
+    public:
+        /**
+         * Constructor of the InvalidLowerBoundException. It gets the original wrong
+         * constraint, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param variable The wrong constraint object.
+         * @param message The human readable message about the error.
+         */
+        InvalidLowerBoundException(const Constraint & constraint,
+            const std::string & message);
+    };
+
+    /**
+     * The class expresses an exception about a constraint. This
+     * exception indicates that the bounds of the constraint are invalid. 
+     * It contains the copy of the wrong constraint.
+     */
+    class InvalidBoundsException : public ConstraintException
+    {
+    public:
+        /**
+         * Constructor of the InvalidBoundsException. It gets the original wrong
+         * constraint, and creates its copy. Moreover, it gets a message about
+         * the error.
+         * 
+         * @param constraint The wrong constraint object.
+         * @param message The human readable message about the error.
+         */
+        InvalidBoundsException(const Constraint & constraint,
+            const std::string & message);
+    };    
+    
     /**
      * 
      * 
@@ -189,6 +283,10 @@ private:
      */
     inline void setVector(const Vector & vector);
 
+    /**
+     * 
+     */
+    void check() const;
 };
 
 inline Constraint::Constraint()
@@ -209,6 +307,7 @@ inline Constraint::Constraint(Numerical::Double lowerBound,
         m_name = name;
     }
     m_vector = 0;
+    check();
     adjustType();
 }
 
@@ -220,6 +319,7 @@ inline Numerical::Double Constraint::getLowerBound() const
 inline void Constraint::setLowerBound(Numerical::Double lowerBound)
 {
     m_lowerBound = lowerBound;
+    check();
     adjustType();
 }
 
@@ -236,6 +336,7 @@ inline Numerical::Double Constraint::getUpperBound() const
 inline void Constraint::setUpperBound(Numerical::Double upperBound)
 {
     m_upperBound = upperBound;
+    check();
     adjustType();
 }
 

@@ -7,6 +7,7 @@ MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
     ADD_TEST(MatrixTestSuite::copy);
     ADD_TEST(MatrixTestSuite::assign);
     ADD_TEST(MatrixTestSuite::transposed);
+    ADD_TEST(MatrixTestSuite::transpose);
     ADD_TEST(MatrixTestSuite::add);
     ADD_TEST(MatrixTestSuite::addToThis);
     ADD_TEST(MatrixTestSuite::subtract);
@@ -17,6 +18,7 @@ MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
     ADD_TEST(MatrixTestSuite::multipleByMatrix_2);
     ADD_TEST(MatrixTestSuite::multipleByDiagonalMatrix);
     ADD_TEST(MatrixTestSuite::inverse);
+    ADD_TEST(MatrixTestSuite::invert);
     ADD_TEST(MatrixTestSuite::diagonalMatrix);
     ADD_TEST(MatrixTestSuite::diagonalMatrix_Inverse);
     ADD_TEST(MatrixTestSuite::diagonalMatrix_Invert);
@@ -50,6 +52,7 @@ MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
     ADD_TEST(MatrixTestSuite::sortElements);
     ADD_TEST(MatrixTestSuite::determinant);
     ADD_TEST(MatrixTestSuite::reInit);
+    ADD_TEST(MatrixTestSuite::gaussian);
 }
 
 void MatrixTestSuite::equal()
@@ -137,45 +140,45 @@ void MatrixTestSuite::copy()
     TEST_ASSERT(11 == copy_m.get(2, 2));
     TEST_ASSERT(12 == copy_m.get(2, 3));
 
-    Vector v1 = m.column(0);
+    Vector v1 = copy_m.column(0);
     TEST_ASSERT(3 == v1.length());
     TEST_ASSERT(1 == v1.at(0));
     TEST_ASSERT(5 == v1.at(1));
     TEST_ASSERT(9 == v1.at(2));
 
-    Vector v2 = m.column(1);
+    Vector v2 = copy_m.column(1);
     TEST_ASSERT(3 == v2.length());
     TEST_ASSERT(2 == v2.at(0));
     TEST_ASSERT(6 == v2.at(1));
     TEST_ASSERT(10 == v2.at(2));
 
-    Vector v3 = m.column(2);
+    Vector v3 = copy_m.column(2);
     TEST_ASSERT(3 == v3.length());
     TEST_ASSERT(3 == v3.at(0));
     TEST_ASSERT(7 == v3.at(1));
     TEST_ASSERT(11 == v3.at(2));
 
-    Vector v4 = m.column(3);
+    Vector v4 = copy_m.column(3);
     TEST_ASSERT(3 == v4.length());
     TEST_ASSERT(4 == v4.at(0));
     TEST_ASSERT(8 == v4.at(1));
     TEST_ASSERT(12 == v4.at(2));
 
-    Vector v5 = m.row(0);
+    Vector v5 = copy_m.row(0);
     TEST_ASSERT(4 == v5.length());
     TEST_ASSERT(1 == v5.at(0));
     TEST_ASSERT(2 == v5.at(1));
     TEST_ASSERT(3 == v5.at(2));
     TEST_ASSERT(4 == v5.at(3));
 
-    Vector v6 = m.row(1);
+    Vector v6 = copy_m.row(1);
     TEST_ASSERT(4 == v6.length());
     TEST_ASSERT(5 == v6.at(0));
     TEST_ASSERT(6 == v6.at(1));
     TEST_ASSERT(7 == v6.at(2));
     TEST_ASSERT(8 == v6.at(3));
 
-    Vector v7 = m.row(2);
+    Vector v7 = copy_m.row(2);
     TEST_ASSERT(4 == v7.length());
     TEST_ASSERT(9 == v7.at(0));
     TEST_ASSERT(10 == v7.at(1));
@@ -216,50 +219,111 @@ void MatrixTestSuite::assign()
     ASSERT_EQ(11, copy_m.get(2, 2));
     ASSERT_EQ(12, copy_m.get(2, 3));
 
-    Vector v1 = m.column(0);
+    Vector v1 = copy_m.column(0);
     ASSERT_EQ(3, v1.length());
     ASSERT_EQ(1, v1.at(0));
     ASSERT_EQ(5, v1.at(1));
     ASSERT_EQ(9, v1.at(2));
 
-    Vector v2 = m.column(1);
+    Vector v2 = copy_m.column(1);
     ASSERT_EQ(3, v2.length());
     ASSERT_EQ(2, v2.at(0));
     ASSERT_EQ(6, v2.at(1));
     ASSERT_EQ(10, v2.at(2));
 
-    Vector v3 = m.column(2);
+    Vector v3 = copy_m.column(2);
     ASSERT_EQ(3, v3.length());
     ASSERT_EQ(3, v3.at(0));
     ASSERT_EQ(7, v3.at(1));
     ASSERT_EQ(11, v3.at(2));
 
-    Vector v4 = m.column(3);
+    Vector v4 = copy_m.column(3);
     ASSERT_EQ(3, v4.length());
     ASSERT_EQ(4, v4.at(0));
     ASSERT_EQ(8, v4.at(1));
     ASSERT_EQ(12, v4.at(2));
 
-    Vector v5 = m.row(0);
+    Vector v5 = copy_m.row(0);
     ASSERT_EQ(4, v5.length());
     ASSERT_EQ(1, v5.at(0));
     ASSERT_EQ(2, v5.at(1));
     ASSERT_EQ(3, v5.at(2));
     ASSERT_EQ(4, v5.at(3));
 
-    Vector v6 = m.row(1);
+    Vector v6 = copy_m.row(1);
     ASSERT_EQ(4, v6.length());
     ASSERT_EQ(5, v6.at(0));
     ASSERT_EQ(6, v6.at(1));
     ASSERT_EQ(7, v6.at(2));
     ASSERT_EQ(8, v6.at(3));
 
-    Vector v7 = m.row(2);
+    Vector v7 = copy_m.row(2);
     ASSERT_EQ(4, v7.length());
     ASSERT_EQ(9, v7.at(0));
     ASSERT_EQ(10, v7.at(1));
     ASSERT_EQ(11, v7.at(2));
     ASSERT_EQ(12, v7.at(3));
+
+    copy_m = copy_m;
+    TEST_ASSERT(3 == copy_m.rowCount());
+    TEST_ASSERT(4 == copy_m.columnCount());
+    TEST_ASSERT(1 == copy_m.get(0, 0));
+    TEST_ASSERT(2 == copy_m.get(0, 1));
+    TEST_ASSERT(3 == copy_m.get(0, 2));
+    TEST_ASSERT(4 == copy_m.get(0, 3));
+    TEST_ASSERT(5 == copy_m.get(1, 0));
+    TEST_ASSERT(6 == copy_m.get(1, 1));
+    TEST_ASSERT(7 == copy_m.get(1, 2));
+    TEST_ASSERT(8 == copy_m.get(1, 3));
+    TEST_ASSERT(9 == copy_m.get(2, 0));
+    TEST_ASSERT(10 == copy_m.get(2, 1));
+    TEST_ASSERT(11 == copy_m.get(2, 2));
+    TEST_ASSERT(12 == copy_m.get(2, 3));
+
+    Vector v8 = copy_m.column(0);
+    TEST_ASSERT(3 == v8.length());
+    TEST_ASSERT(1 == v8.at(0));
+    TEST_ASSERT(5 == v8.at(1));
+    TEST_ASSERT(9 == v8.at(2));
+
+    Vector v9 = copy_m.column(1);
+    TEST_ASSERT(3 == v9.length());
+    TEST_ASSERT(2 == v9.at(0));
+    TEST_ASSERT(6 == v9.at(1));
+    TEST_ASSERT(10 == v9.at(2));
+
+    Vector v10 = copy_m.column(2);
+    TEST_ASSERT(3 == v10.length());
+    TEST_ASSERT(3 == v10.at(0));
+    TEST_ASSERT(7 == v10.at(1));
+    TEST_ASSERT(11 == v10.at(2));
+
+    Vector v11 = copy_m.column(3);
+    TEST_ASSERT(3 == v11.length());
+    TEST_ASSERT(4 == v11.at(0));
+    TEST_ASSERT(8 == v11.at(1));
+    TEST_ASSERT(12 == v11.at(2));
+
+    Vector v12 = copy_m.row(0);
+    TEST_ASSERT(4 == v12.length());
+    TEST_ASSERT(1 == v12.at(0));
+    TEST_ASSERT(2 == v12.at(1));
+    TEST_ASSERT(3 == v12.at(2));
+    TEST_ASSERT(4 == v12.at(3));
+
+    Vector v13 = copy_m.row(1);
+    TEST_ASSERT(4 == v13.length());
+    TEST_ASSERT(5 == v13.at(0));
+    TEST_ASSERT(6 == v13.at(1));
+    TEST_ASSERT(7 == v13.at(2));
+    TEST_ASSERT(8 == v13.at(3));
+
+    Vector v14 = copy_m.row(2);
+    TEST_ASSERT(4 == v14.length());
+    TEST_ASSERT(9 == v14.at(0));
+    TEST_ASSERT(10 == v14.at(1));
+    TEST_ASSERT(11 == v14.at(2));
+    TEST_ASSERT(12 == v14.at(3));
 }
 
 void MatrixTestSuite::transposed()
@@ -333,6 +397,85 @@ void MatrixTestSuite::transposed()
     ASSERT_EQ(8, v6.at(3));
 
     Vector v7 = mT.column(2);
+    ASSERT_EQ(4, v7.length());
+    ASSERT_EQ(9, v7.at(0));
+    ASSERT_EQ(10, v7.at(1));
+    ASSERT_EQ(11, v7.at(2));
+    ASSERT_EQ(12, v7.at(3));
+
+}
+
+void MatrixTestSuite::transpose()
+{
+    Matrix m(3, 4);
+    m.set(0, 0, 1);
+    m.set(0, 1, 2);
+    m.set(0, 2, 3);
+    m.set(0, 3, 4);
+    m.set(1, 0, 5);
+    m.set(1, 1, 6);
+    m.set(1, 2, 7);
+    m.set(1, 3, 8);
+    m.set(2, 0, 9);
+    m.set(2, 1, 10);
+    m.set(2, 2, 11);
+    m.set(2, 3, 12);
+
+    m.transpose();
+    ASSERT_EQ(4, m.rowCount());
+    ASSERT_EQ(3, m.columnCount());
+    ASSERT_EQ(1, m.get(0, 0));
+    ASSERT_EQ(5, m.get(0, 1));
+    ASSERT_EQ(9, m.get(0, 2));
+    ASSERT_EQ(2, m.get(1, 0));
+    ASSERT_EQ(6, m.get(1, 1));
+    ASSERT_EQ(10, m.get(1, 2));
+    ASSERT_EQ(3, m.get(2, 0));
+    ASSERT_EQ(7, m.get(2, 1));
+    ASSERT_EQ(11, m.get(2, 2));
+    ASSERT_EQ(4, m.get(3, 0));
+    ASSERT_EQ(8, m.get(3, 1));
+    ASSERT_EQ(12, m.get(3, 2));
+
+    Vector v1 = m.row(0);
+    ASSERT_EQ(3, v1.length());
+    ASSERT_EQ(1, v1.at(0));
+    ASSERT_EQ(5, v1.at(1));
+    ASSERT_EQ(9, v1.at(2));
+
+    Vector v2 = m.row(1);
+    ASSERT_EQ(3, v2.length());
+    ASSERT_EQ(2, v2.at(0));
+    ASSERT_EQ(6, v2.at(1));
+    ASSERT_EQ(10, v2.at(2));
+
+    Vector v3 = m.row(2);
+    ASSERT_EQ(3, v3.length());
+    ASSERT_EQ(3, v3.at(0));
+    ASSERT_EQ(7, v3.at(1));
+    ASSERT_EQ(11, v3.at(2));
+
+    Vector v4 = m.row(3);
+    ASSERT_EQ(3, v4.length());
+    ASSERT_EQ(4, v4.at(0));
+    ASSERT_EQ(8, v4.at(1));
+    ASSERT_EQ(12, v4.at(2));
+
+    Vector v5 = m.column(0);
+    ASSERT_EQ(4, v5.length());
+    ASSERT_EQ(1, v5.at(0));
+    ASSERT_EQ(2, v5.at(1));
+    ASSERT_EQ(3, v5.at(2));
+    ASSERT_EQ(4, v5.at(3));
+
+    Vector v6 = m.column(1);
+    ASSERT_EQ(4, v6.length());
+    ASSERT_EQ(5, v6.at(0));
+    ASSERT_EQ(6, v6.at(1));
+    ASSERT_EQ(7, v6.at(2));
+    ASSERT_EQ(8, v6.at(3));
+
+    Vector v7 = m.column(2);
     ASSERT_EQ(4, v7.length());
     ASSERT_EQ(9, v7.at(0));
     ASSERT_EQ(10, v7.at(1));
@@ -1088,6 +1231,70 @@ void MatrixTestSuite::inverse()
     ASSERT_EQ(0, v6.at(1));
     ASSERT_EQ(1, v6.at(2));
 
+}
+
+void MatrixTestSuite::invert()
+{
+    Matrix m(3, 3);
+    m.set(0, 0, 1);
+    m.set(0, 1, 3);
+    m.set(0, 2, 3);
+    m.set(1, 0, 1);
+    m.set(1, 1, 4);
+    m.set(1, 2, 3);
+    m.set(2, 0, 1);
+    m.set(2, 1, 3);
+    m.set(2, 2, 4);
+
+    m.invert();
+    ASSERT_EQ(3, 3);
+    ASSERT_EQ(7, m.get(0, 0));
+    ASSERT_EQ(-3, m.get(0, 1));
+    ASSERT_EQ(-3, m.get(0, 2));
+
+    ASSERT_EQ(-1, m.get(1, 0));
+    ASSERT_EQ(1, m.get(1, 1));
+    ASSERT_EQ(0, m.get(1, 2));
+
+    ASSERT_EQ(-1, m.get(2, 0));
+    ASSERT_EQ(0, m.get(2, 1));
+    ASSERT_EQ(1, m.get(2, 2));
+
+    Vector v1 = m.row(0);
+    ASSERT_EQ(3, v1.length());
+    ASSERT_EQ(7, v1.at(0));
+    ASSERT_EQ(-3, v1.at(1));
+    ASSERT_EQ(-3, v1.at(2));
+
+    Vector v2 = m.row(1);
+    ASSERT_EQ(3, v2.length());
+    ASSERT_EQ(-1, v2.at(0));
+    ASSERT_EQ(1, v2.at(1));
+    ASSERT_EQ(0, v2.at(2));
+
+    Vector v3 = m.row(2);
+    ASSERT_EQ(3, v3.length());
+    ASSERT_EQ(-1, v3.at(0));
+    ASSERT_EQ(0, v3.at(1));
+    ASSERT_EQ(1, v3.at(2));
+
+    Vector v4 = m.column(0);
+    ASSERT_EQ(3, v4.length());
+    ASSERT_EQ(7, v4.at(0));
+    ASSERT_EQ(-1, v4.at(1));
+    ASSERT_EQ(-1, v4.at(2));
+
+    Vector v5 = m.column(1);
+    ASSERT_EQ(3, v5.length());
+    ASSERT_EQ(-3, v5.at(0));
+    ASSERT_EQ(1, v5.at(1));
+    ASSERT_EQ(0, v5.at(2));
+
+    Vector v6 = m.column(2);
+    ASSERT_EQ(3, v6.length());
+    ASSERT_EQ(-3, v6.at(0));
+    ASSERT_EQ(0, v6.at(1));
+    ASSERT_EQ(1, v6.at(2));
 }
 
 void MatrixTestSuite::diagonalMatrix()
@@ -4070,8 +4277,6 @@ void MatrixTestSuite::newNonzero()
     ASSERT_EQ(10, v7.at(1));
     ASSERT_EQ(11, v7.at(2));
     ASSERT_EQ(12, v7.at(3));
-
-
 }
 
 void MatrixTestSuite::addScalarMatrix()
@@ -4423,3 +4628,121 @@ void MatrixTestSuite::reInit()
     ASSERT_EQ(0, v10.getData());
 }
 
+void MatrixTestSuite::gaussian()
+{
+    Matrix m(3, 4);
+    m.set(0, 0, 2);
+    m.set(0, 1, 1);
+    m.set(0, 2, -1);
+    m.set(0, 3, 8);
+
+    m.set(1, 0, -3);
+    m.set(1, 1, -1);
+    m.set(1, 2, 2);
+    m.set(1, 3, -11);
+
+    m.set(2, 0, -2);
+    m.set(2, 1, 1);
+    m.set(2, 2, 2);
+    m.set(2, 3, -3);
+
+    m.gaussianElimination(false);
+    //2         1        -1         8
+    //0       0.5       0.5         1
+    //0         0        -1         1
+    ASSERT_EQ(3, m.rowCount());
+    ASSERT_EQ(4, m.columnCount());
+    ASSERT_EQ(2, m.get(0, 0));
+    ASSERT_EQ(1, m.get(0, 1));
+    ASSERT_EQ(-1, m.get(0, 2));
+    ASSERT_EQ(8, m.get(0, 3));
+
+    ASSERT_EQ(0, m.get(1, 0));
+    ASSERT_EQ(0.5, m.get(1, 1));
+    ASSERT_EQ(0.5, m.get(1, 2));
+    ASSERT_EQ(1, m.get(1, 3));
+
+    ASSERT_EQ(0, m.get(2, 0));
+    ASSERT_EQ(0, m.get(2, 1));
+    ASSERT_EQ(-1, m.get(2, 2));
+    ASSERT_EQ(1, m.get(2, 3));
+    
+    Vector v1 = m.row(0);
+    ASSERT_EQ(4, v1.length());
+    ASSERT_EQ(2, v1.at(0));
+    ASSERT_EQ(1, v1.at(1));
+    ASSERT_EQ(-1, v1.at(2));
+    ASSERT_EQ(8, v1.at(3));
+
+    Vector v2 = m.row(1);
+    ASSERT_EQ(4, v2.length());
+    ASSERT_EQ(0, v2.at(0));
+    ASSERT_EQ(0.5, v2.at(1));
+    ASSERT_EQ(0.5, v2.at(2));
+    ASSERT_EQ(1, v2.at(3));
+    
+    Vector v3 = m.row(2);
+    ASSERT_EQ(4, v3.length());
+    ASSERT_EQ(0, v3.at(0));
+    ASSERT_EQ(0, v3.at(1));
+    ASSERT_EQ(-1, v3.at(2));
+    ASSERT_EQ(1, v3.at(3));   
+    
+    //2         1        -1         8
+    //0       0.5       0.5         1
+    //0         0        -1         1        
+   
+    m.set(0, 0, 2);
+    m.set(0, 1, 1);
+    m.set(0, 2, -1);
+    m.set(0, 3, 8);
+
+    m.set(1, 0, -3);
+    m.set(1, 1, -1);
+    m.set(1, 2, 2);
+    m.set(1, 3, -11);
+
+    m.set(2, 0, -2);
+    m.set(2, 1, 1);
+    m.set(2, 2, 2);
+    m.set(2, 3, -3);
+
+    m.gaussianElimination(true);    
+    ASSERT_EQ(3, m.rowCount());
+    ASSERT_EQ(4, m.columnCount());
+    ASSERT_EQ(1, m.get(0, 0));
+    ASSERT_EQ(0, m.get(0, 1));
+    ASSERT_EQ(0, m.get(0, 2));
+    ASSERT_EQ(2, m.get(0, 3));
+
+    ASSERT_EQ(0, m.get(1, 0));
+    ASSERT_EQ(1, m.get(1, 1));
+    ASSERT_EQ(0, m.get(1, 2));
+    ASSERT_EQ(3, m.get(1, 3));
+
+    ASSERT_EQ(0, m.get(2, 0));
+    ASSERT_EQ(0, m.get(2, 1));
+    ASSERT_EQ(1, m.get(2, 2));
+    ASSERT_EQ(-1, m.get(2, 3));
+    
+    Vector v4 = m.row(0);
+    ASSERT_EQ(4, v4.length());
+    ASSERT_EQ(1, v4.at(0));
+    ASSERT_EQ(0, v4.at(1));
+    ASSERT_EQ(0, v4.at(2));
+    ASSERT_EQ(2, v4.at(3));
+
+    Vector v5 = m.row(1);
+    ASSERT_EQ(4, v5.length());
+    ASSERT_EQ(0, v5.at(0));
+    ASSERT_EQ(1, v5.at(1));
+    ASSERT_EQ(0, v5.at(2));
+    ASSERT_EQ(3, v5.at(3));
+    
+    Vector v6 = m.row(2);
+    ASSERT_EQ(4, v6.length());
+    ASSERT_EQ(0, v6.at(0));
+    ASSERT_EQ(0, v6.at(1));
+    ASSERT_EQ(1, v6.at(2));
+    ASSERT_EQ(-1, v6.at(3));   
+}

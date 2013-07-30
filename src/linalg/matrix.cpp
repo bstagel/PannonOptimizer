@@ -70,7 +70,7 @@ void Matrix::build(const MatrixBuilder & builder)
     for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
         m_columnWise[columnIndex] = new Vector;
         builder.buildColumn(columnIndex, m_columnWise[columnIndex]);
-    }    
+    }
 }
 
 void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
@@ -130,6 +130,9 @@ void Matrix::reInit(unsigned int rowCount, unsigned int columnCount, bool
 
 Matrix & Matrix::operator=(const Matrix & original)
 {
+    if (this == &original) {
+        return *this;
+    }
     clear();
     copy(original);
     return *this;
@@ -629,6 +632,9 @@ Vector Matrix::operator *(const Vector& rightVector) const
 
 void Matrix::copy(const Matrix & matrix)
 {
+    if (this == &matrix) {
+        return;
+    }
     unsigned int index;
     m_rowCount = matrix.m_rowCount;
     m_columnCount = matrix.m_columnCount;
