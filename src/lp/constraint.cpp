@@ -57,3 +57,56 @@ std::ostream & operator<<(std::ostream & os, const Constraint & var)
     return os;
 }
 
+void Constraint::check() const
+{
+    if (m_lowerBound == infinity) {
+        std::ostringstream message;
+        message << "Constraint " << getName() << " has invalid lower bound: " <<
+            m_lowerBound;
+        throw Constraint::InvalidLowerBoundException(*this, message.str());
+    }
+    if (m_upperBound == -infinity) {
+        std::ostringstream message;
+        message << "Constraint " << getName() << " has invalid upper bound: " <<
+            m_upperBound;
+        throw Constraint::InvalidUpperBoundException(*this, message.str());
+    }
+    if (m_upperBound < m_lowerBound) {
+        std::ostringstream message;
+        message << "Constraint " << getName() <<
+            " has invalid bounds. The upper bound is less than the lower bound: " <<
+            m_upperBound << " < " << m_lowerBound;
+        throw Constraint::InvalidBoundsException(*this, message.str());
+    }
+}
+
+Constraint::ConstraintException::ConstraintException(const Constraint & constraint,
+    const std::string & message) : Exception(message)
+{
+    m_constraint = new Constraint(constraint);
+}
+
+Constraint::ConstraintException::~ConstraintException()
+{
+    delete m_constraint;
+}
+
+const Constraint * Constraint::ConstraintException::getConstraint() const
+{
+    return m_constraint;
+}
+
+Constraint::InvalidUpperBoundException::InvalidUpperBoundException(const Constraint & constraint,
+    const std::string & message) : Constraint::ConstraintException(constraint, message)
+{
+}
+
+Constraint::InvalidLowerBoundException::InvalidLowerBoundException(const Constraint & constraint,
+    const std::string & message) : Constraint::ConstraintException(constraint, message)
+{
+}
+
+Constraint::InvalidBoundsException::InvalidBoundsException(const Constraint & constraint,
+    const std::string & message) : Constraint::ConstraintException(constraint, message)
+{
+}

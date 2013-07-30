@@ -23,6 +23,7 @@ private:
     void copy();
     void assign();
     void transposed();
+    void transpose();
     void add();
     void addToThis();
     void subtract();
@@ -33,6 +34,7 @@ private:
     void multipleByMatrix_2();
     void multipleByDiagonalMatrix();
     void inverse();
+    void invert();
     void diagonalMatrix();
     void diagonalMatrix_Inverse();
     void diagonalMatrix_Invert();
@@ -66,7 +68,7 @@ private:
     void sortElements();
     void determinant();
     void reInit();
-
+    void gaussian();
 
 };
 

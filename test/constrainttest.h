@@ -30,7 +30,9 @@ private:
     void setGetUpperBound();
     void setGetName();
     void setGetVector();
-    // TODO: kell egy teszt az == operatornak
+    void equalityOperator();
+    void assign();
+    void copy();
 };
 
 
