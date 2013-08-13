@@ -140,7 +140,7 @@ public:
         m_hkp.m_head = 0;
     }
 
-    MpsNameStorer(MpsNameStorer & original) {
+    MpsNameStorer(MpsNameStorer & original): NameStorer(original) {
         copy(&original);
     }
     
@@ -1278,7 +1278,7 @@ private:
      * @param nextWord
      * @return
      */
-    const char * nextRowType(const register char * ptr, ROW_INFO & info, bool nextWord = true);
+    const char * nextRowType(const register char * ptr, ROW_INFO & info, bool nextRow = true);
     /**
      *
      * @param ptr

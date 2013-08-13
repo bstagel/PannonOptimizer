@@ -414,7 +414,8 @@ MpsProblem::MpsProblem()
     MpsError<VALUE_OVERRIDED>::setLimit(10);
 }
 
-MpsProblem::MpsProblem(const MpsProblem & orig)
+MpsProblem::MpsProblem(const MpsProblem & orig) : 
+    ModelBuilder(orig)
 {
 }
 
@@ -898,7 +899,7 @@ void MpsProblem::missingEndataSection()
         "missing ENDATA section", MpsErrorData::ERROR).getData());
 }
 
-const char * MpsProblem::nextRowType(const register char * ptr, ROW_INFO & info, bool nextWord)
+const char * MpsProblem::nextRowType(const register char * ptr, ROW_INFO & info, bool)
 {
     char word[MAX_ROW_WITH];
     MPS_ERROR_TYPE errorCode;
@@ -2991,7 +2992,7 @@ const Constraint & MpsProblem::getConstraint(unsigned int index) const
     return result;
 }
 
-void MpsProblem::buildRow(unsigned int index, Vector * rowVector) const
+void MpsProblem::buildRow(unsigned int, Vector *) const
 {
 }
 
@@ -3019,6 +3020,7 @@ void MpsProblem::buildCostVector(Vector * costVector) const
 
 Numerical::Double MpsProblem::getObjectiveConstant() const
 {
+    return 0;
 }
 
 std::string MpsProblem::getName() const
