@@ -1,3 +1,7 @@
+/**
+ * @file model.cpp
+ */
+
 #include <lp/model.h>
 
 Model::Model()
@@ -46,24 +50,9 @@ void Model::build(const ModelBuilder & builder)
     }*/
 }
 
-Model::Model(const Model & original)
-{
-    copy(original);
-}
-
 Model::~Model()
 {
-    clear();
-}
 
-Model & Model::operator=(const Model & original)
-{
-    if (this == &original) {
-        return *this;
-    }
-    clear();
-    copy(original);
-    return *this;
 }
 
 void Model::clear()
@@ -71,17 +60,5 @@ void Model::clear()
     m_matrix.clear();
     m_variables.clear();
     m_constraints.clear();
-    m_costVector.clear();
-    m_costConstant = 0;
-    m_name = "";
-}
 
-void Model::copy(const Model & original)
-{
-    m_matrix = original.m_matrix;
-    m_variables = original.m_variables;
-    m_constraints = original.m_constraints;
-    m_costVector = original.m_costVector;
-    m_costConstant = original.m_costConstant;
-    m_name = original.m_name;
 }

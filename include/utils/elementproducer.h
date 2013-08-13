@@ -1,12 +1,12 @@
-/* 
- * File:   elementproducer.h
- * Author: smidla
- *
- * Created on 2011. február 22., 14:49
+/**
+ * @file elementproducer.h
  */
+
 
 #ifndef ELEMENTPRODUCER_H
 #define	ELEMENTPRODUCER_H
+
+#include "globals.h"
 
 template <class T, int N>
 class ElementProducer

@@ -1,3 +1,7 @@
+/**
+ * @file manualmodelbuilder.cpp
+ */
+
 #include <lp/manualmodelbuilder.h>
 #include <cstdarg>
 

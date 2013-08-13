@@ -1,12 +1,12 @@
-/* 
- * File:   manualbuilder.h
- * Author: smidla
- *
- * Created on 2013. february 14., 13:13
+/**
+ * @file manualmodelbuilder.h
  */
+
 
 #ifndef MANUALBUILDER_H
 #define	MANUALBUILDER_H
+
+#include "globals.h"
 
 #include <lp/modelbuilder.h>
 #include <list>

@@ -1,3 +1,7 @@
+/**
+ * @file indexlist.cpp
+ */
+
 #include <utils/indexlist.h>
 
 IndexList::IndexList(unsigned int count, unsigned int partitions)

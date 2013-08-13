@@ -1,12 +1,12 @@
-/* 
- * File:   linkedlist.h
- * Author: smidla
- *
- * Created on 2011. november 7., 22:51
+/**
+ * @file linkedlist.h
  */
+
 
 #ifndef LINKEDLIST_H
 #define	LINKEDLIST_H
+
+#include "globals.h"
 
 #include <set>
 #include <iostream>

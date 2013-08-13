@@ -1,12 +1,12 @@
-/* 
- * File:   vector_iterator.h
- * Author: smidla
- *
- * Created on 2011. január 30., 16:00
+/**
+ * @file vector_iterator.h
  */
+
 
 #ifndef VECTOR_ITERATOR_H
 #define	VECTOR_ITERATOR_H
+
+#include "globals.h"
 
 #ifdef IN_VECTOR
 

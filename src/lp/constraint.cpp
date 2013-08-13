@@ -1,15 +1,19 @@
+/**
+ * @file constraint.cpp
+ */
+
 #include <lp/constraint.h>
 
 Constraint Constraint::createGreaterTypeConstraint(const char * name,
     Numerical::Double lowerBound)
 {
-    return Constraint(lowerBound, infinity, name);
+    return Constraint(lowerBound, PInfinity, name);
 }
 
 Constraint Constraint::createLessTypeConstraint(const char * name,
     Numerical::Double upperBound)
 {
-    return Constraint(-infinity, upperBound, name);
+    return Constraint(-PInfinity, upperBound, name);
 }
 
 Constraint Constraint::createRangeTypeConstraint(const char * name,
@@ -27,7 +31,7 @@ Constraint Constraint::createEqualityTypeConstraint(const char * name,
 
 Constraint Constraint::createNonBindingTypeConstraint(const char * name)
 {
-    return Constraint(-infinity, infinity, name);
+    return Constraint(-PInfinity, PInfinity, name);
 }
 
 std::ostream & operator<<(std::ostream & os, const Constraint & var)
@@ -59,13 +63,13 @@ std::ostream & operator<<(std::ostream & os, const Constraint & var)
 
 void Constraint::check() const
 {
-    if (m_lowerBound == infinity) {
+    if (m_lowerBound == PInfinity) {
         std::ostringstream message;
         message << "Constraint " << getName() << " has invalid lower bound: " <<
             m_lowerBound;
         throw Constraint::InvalidLowerBoundException(*this, message.str());
     }
-    if (m_upperBound == -infinity) {
+    if (m_upperBound == -PInfinity) {
         std::ostringstream message;
         message << "Constraint " << getName() << " has invalid upper bound: " <<
             m_upperBound;

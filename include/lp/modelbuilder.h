@@ -1,12 +1,12 @@
-/* 
- * File:   modelbuilder.h
- * Author: smidla
- *
- * Created on 2013. february 14., 12:25
+/**
+ * @file modelbuilder.h
  */
+
 
 #ifndef MODELBUILDER_H
 #define	MODELBUILDER_H
+
+#include "globals.h"
 
 #include <linalg/matrixbuilder.h>
 #include <lp/variable.h>

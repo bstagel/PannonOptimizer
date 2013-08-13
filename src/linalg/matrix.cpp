@@ -1,3 +1,7 @@
+/**
+ * @file matrix.cpp
+ */
+
 #include <debug.h>
 #include <linalg/matrix.h>
 
@@ -6,9 +10,6 @@
 #include <iostream>
 #include <vector>
 
-#ifdef WIN32
-typedef unsigned int uint;
-#endif
 
 Matrix::Matrix(unsigned int rowCount, unsigned int columnCount)
 {
@@ -145,7 +146,7 @@ bool Matrix::operator==(const Matrix& other) const
         return false;
     }
 
-    for (uint index = 0; index < m_rowCount; index++) {
+    for (unsigned int index = 0; index < m_rowCount; index++) {
         if (*(m_rowWise[index]) != *(other.m_rowWise[index])) {
             return false;
         }
@@ -699,7 +700,7 @@ Matrix Matrix::diagonalMatrix(const Vector& diagonal)
     Matrix matrix(m, m);
     matrix.m_isDiagonal = true;
 
-    for (uint i = 0; i < m; i++) {
+    for (unsigned int i = 0; i < m; i++) {
         matrix.set(i, i, diagonal.at(i));
     }
     return matrix;
@@ -715,7 +716,7 @@ Matrix Matrix::rowVector(const Vector& row)
 Matrix Matrix::columnVector(const Vector& column)
 {
     Matrix ret(column.length(), 1);
-    for (uint i = 0; i < column.length(); i++) {
+    for (unsigned int i = 0; i < column.length(); i++) {
         ret.set(i, 0, column.at(i));
     }
     return ret;
@@ -759,8 +760,8 @@ Matrix Matrix::operator*(const Matrix& other) const
             }
         }
     } else {
-        for (uint i = 0; i < m_rowCount; i++) {
-            for (uint j = 0; j < other.m_columnCount; j++) {
+        for (unsigned int i = 0; i < m_rowCount; i++) {
+            for (unsigned int j = 0; j < other.m_columnCount; j++) {
                 Numerical::Double product = m_rowWise[i]->dotProduct(*other.m_columnWise[j]);
                 result.m_rowWise[i]->set(j, product);
                 result.m_columnWise[j]->set(i, product);
@@ -848,8 +849,8 @@ Matrix operator*(double d, const Matrix& right)
 Matrix operator+(double d, const Matrix& right)
 {
     Matrix m = right;
-    for (uint i = 0; i < right.rowCount(); i++) {
-        for (uint j = 0; j < right.columnCount(); j++) {
+    for (unsigned int i = 0; i < right.rowCount(); i++) {
+        for (unsigned int j = 0; j < right.columnCount(); j++) {
             m.set(i, j, d + right.get(i, j));
         }
     }

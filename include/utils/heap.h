@@ -1,12 +1,12 @@
-/* 
- * File:   heap.h
- * Author: smidla
- *
- * Created on 2011. december 25., 22:30
+/**
+ * @file heap.h
  */
+
 
 #ifndef HEAP_H
 #define	HEAP_H
+
+#include "globals.h"
 
 #include <limits>
 #include <iostream>
@@ -18,7 +18,8 @@ class NoMove
 {
 public:
 
-    static void move(T & obj, const unsigned int to, void * ptr)
+    static void move(T & , const unsigned int, void * )
+//    static void move(T & obj, const unsigned int to, void * ptr)
     {
 
     }

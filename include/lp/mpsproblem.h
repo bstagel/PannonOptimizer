@@ -1,15 +1,11 @@
-/* 
- * File:   POMpsProblem.h
- * Author: smidla
- *
- * Created on 2010. oktober 19., 23:13
+/**
+ * @file mpsproblem.h
  */
-
 
 #ifndef MPSPROBLEM_H
 #define	MPSPROBLEM_H
 
-using namespace std;
+#include "globals.h"
 
 #include <vector>
 #include <map>
@@ -937,7 +933,6 @@ public:
     /**
      * Name of the  problem defined in the corresponding MPS file
      * @return the name of the problem
-     * @author Mark Korondi <korondi@dcs.uni-pannon.hu>
      */
     inline std::string name() const
     {
@@ -946,22 +941,16 @@ public:
 
     /**
      * Iteration report support.
-     * @author Peter Tar <tar@dcs.uni-pannon.hu>
      */
     void report(int debugLevel);
 
     /**
      * Total working time report support.
-     * @author Peter Tar <tar@dcs.uni-pannon.hu>
      */
     static clock_t lastReadingTime();
 
     unsigned int getColumnCount() const;
 
-    /**
-     * 
-     * @return 
-     */
     unsigned int getRowCount() const;
 
     /**
@@ -1263,7 +1252,7 @@ private:
      */
     const char * readColumnRecord(const register char * ptr, HashTable<Column, int,
             hash_function<Column> > & columns, ROW_INFO & info, 
-            vector<Column*> * indexTable);
+            std::vector<Column*> * indexTable);
     /**
      *
      * @param ptr

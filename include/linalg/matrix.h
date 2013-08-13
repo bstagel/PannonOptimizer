@@ -1,5 +1,11 @@
+/**
+ * @file matrix.h
+ */
+
 #ifndef MATRIX_H
 #define MATRIX_H
+
+#include "globals.h"
 
 #include <vector>
 #include <linalg/vector.h>
@@ -301,7 +307,6 @@ public:
      * Counts nonzero elements in the matrix
      *
      * @return number of counted nonzeros
-     * @author Mark Korondi <korondi@dcs.uni-pannon.hu>
      */
     unsigned int nonZeros() const;
 
@@ -309,7 +314,6 @@ public:
      * Gives a value between 0 and 1 about the ratio of nonzero elements
      *
      * @return The ratio of nonzeros in the matrix
-     * @author Mark Korondi <korondi@dcs.uni-pannon.hu>
      */
     Numerical::Double density() const;
 

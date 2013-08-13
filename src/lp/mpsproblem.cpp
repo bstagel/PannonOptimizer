@@ -1,8 +1,5 @@
-/*
- * File:   MpsProblem.cpp
- * Author: smidla
- *
- * Created on 2010. oktober 19., 23:13
+/**
+ * @file mpsproblem.cpp
  */
 
 // TODO: 1011-es sorban, oszlopon belul ismetlodo sor bejegyzes hiba
@@ -1147,7 +1144,7 @@ void MpsProblem::clearActualColumnData()
 
 inline const char * MpsProblem::readColumnRecord(const register char * ptr,
     HashTable<Column, int, hash_function<Column> > & columns, ROW_INFO & info,
-    vector<Column*> * indexTable)
+    std::vector<Column*> * indexTable)
 {
     //LPWARNING("readColumnRecord begin");
     initTooLongRecordSensor(ptr);
@@ -1639,7 +1636,7 @@ void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
 
     switch (type) {
         case Bound::MI:
-            bound = -infinity;
+            bound = -PInfinity;
         case Bound::LI:
         case Bound::LO:
             //DEVINFO(D::MPSREADER,"changing lower bound " << readyLower);
@@ -1673,7 +1670,7 @@ void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
             }
             break;
         case Bound::PL:
-            bound = infinity;
+            bound = PInfinity;
         case Bound::UI:
         case Bound::UP:
             newUpper = bound;
@@ -1719,8 +1716,8 @@ void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
             }
             break;
         case Bound::FR:
-            newLower = -infinity;
-            newUpper = infinity;
+            newLower = -PInfinity;
+            newUpper = PInfinity;
             newReadyLower = LOWER_BOUND_READY_MASK;
             newReadyUpper = UPPER_BOUND_READY_MASK;
             if (readyLower || readyUpper) {
@@ -1758,11 +1755,7 @@ void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
         }
     }
     if (newReady) {
-        int a = m_boundReady[columnIndex];
-        //DEVINFO(D::MPSREADER,"old ready: " << a);
         m_boundReady[columnIndex] |= newReadyLower | newReadyUpper;
-        a = m_boundReady[columnIndex];
-        //DEVINFO(D::MPSREADER,"new ready: " << a << endl << endl);
     }
 }
 
@@ -1784,13 +1777,13 @@ void MpsProblem::printVariableStatistics()
         //cin.get();
         if (lower == upper) {
             m_fixTypeCount++;
-        } else if (lower == -infinity && upper == infinity) {
+        } else if (lower == -PInfinity && upper == PInfinity) {
             m_freeTypeCount++;
-        } else if (lower == -infinity && upper < infinity) {
+        } else if (lower == -PInfinity && upper < PInfinity) {
             m_minusTypeCount++;
-        } else if (lower > -infinity && upper == infinity) {
+        } else if (lower > -PInfinity && upper == PInfinity) {
             m_plusTypeCount++;
-        } else if (lower > -infinity && upper < infinity) {
+        } else if (lower > -PInfinity && upper < PInfinity) {
             m_boundedTypeCount++;
         } else {
 
@@ -1938,7 +1931,7 @@ void MpsProblem::loadFromFile(const char * filename)
                     ptr = readColumnRecord(ptr, m_columns, info, &m_columnIndexTable);
                     if (info != NO_INFO && info != COMMENT) {
                         m_columnLower.resize(m_columns.getCount(), 0);
-                        m_columnUpper.resize(m_columns.getCount(), infinity);
+                        m_columnUpper.resize(m_columns.getCount(), PInfinity);
                         m_boundReady.resize(m_columns.getCount(), 0);
                         m_columnLowerNonZeros = 0;
                         m_columnUpperNonZeros = m_columns.getCount();
@@ -2042,7 +2035,7 @@ void MpsProblem::loadFromFile(const char * filename)
         }
         if (rhsOk == false) {
             m_columnLower.resize(m_columns.getCount(), 0);
-            m_columnUpper.resize(m_columns.getCount(), infinity);
+            m_columnUpper.resize(m_columns.getCount(), PInfinity);
             m_boundReady.resize(m_columns.getCount(), 0);
             m_columnLowerNonZeros = 0;
             m_columnUpperNonZeros = m_columns.getCount();
@@ -2296,7 +2289,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
         std::vector<Variable>::const_iterator iterEnd = model.m_variables.end();
         bool first = true;
         for (; iter != iterEnd; iter++) {
-            if (!Numerical::isZero(iter->getLowerBound()) || iter->getUpperBound() != infinity) {
+            if (!Numerical::isZero(iter->getLowerBound()) || iter->getUpperBound() != PInfinity) {
                 if (first) {
                     first = false;
                     strcpy(actual, "BOUNDS");
@@ -2645,10 +2638,10 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
             model->getConstraints().at(rowIndex).setName(rowIter->first.m_name);
             switch (rowIter->first.m_type) {
                 case 'N':
-                    //rowLower.set(rowIndex, -infinity);
-                    //rowUpper.set(rowIndex, infinity);
-                    model->getConstraints().at(rowIndex).setLowerBound(-infinity);
-                    model->getConstraints().at(rowIndex).setUpperBound(infinity);
+                    //rowLower.set(rowIndex, -PInfinity);
+                    //rowUpper.set(rowIndex, PInfinity);
+                    model->getConstraints().at(rowIndex).setLowerBound(-PInfinity);
+                    model->getConstraints().at(rowIndex).setUpperBound(PInfinity);
                     break;
                 case 'G':
                     //                    LPINFO(model->getConstraints().at(rowIndex).getName() << " " << b << ", " << r);
@@ -2656,7 +2649,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                     //rowLower.set(rowIndex, b);
                     model->getConstraints().at(rowIndex).setLowerBound(b);
                     if (!rangesGiven[rowIndex]) {
-                        r = infinity;
+                        r = PInfinity;
                     }
                     //rowUpper.set(rowIndex, b + Numerical::fabs(r));
                     model->getConstraints().at(rowIndex).setUpperBound(b + Numerical::fabs(r));
@@ -2667,7 +2660,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                     //                        std::cin.get();
                     //                    }
                     if (!rangesGiven[rowIndex]) {
-                        r = -infinity;
+                        r = -PInfinity;
                     }
                     //                    if (strcmp(model->getConstraints().at(rowIndex).getName(), "DCBOSORD") == 0) {
                     //                        LPINFO("megvagy: " << rowIndex << "   " << r << " " << b);

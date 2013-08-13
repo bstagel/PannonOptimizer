@@ -1,5 +1,11 @@
+/**
+ * @file vector.h
+ */
+
 #ifndef VECTOR_H
 #define VECTOR_H
+
+#include "globals.h"
 
 #include <iostream>
 #include <cmath>
@@ -11,11 +17,7 @@
 /* Forward declaration */
 class Matrix;
 
-#ifdef USE_MULTIPLE_PRECISION
-#define COPY_DOUBLES(dest, src, count) { for (int i = 0; i < (int)count; i++) { dest[i] = src[i]; } }
-#else
 #define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
-#endif
 
 /**
  *
@@ -31,8 +33,6 @@ extern Numerical::Double SPARSITY_RATIO;
 /**
  * Class for storing dense and sparse vectors. The class can switch between
  * vector representation methods.
- * 
- * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
  */
 
 //#define CHECK check(__FUNCTION__);
@@ -56,23 +56,14 @@ public:
     /**
      * Checks the vector. You can implement arbitrary checking code
      * for debug.
-     *
-     * @param original
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
-    void check(const char * func) const
+    void check(const char *) const
     {
-        if (m_data == 0) {
-            LPERROR("nullpointerexception: " << func);
-            int * a = 0;
-            *a = 66;
-        }
+
     }
 
     /**
      * Indicates the storing method of vector.
-     * 
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     enum VECTOR_TYPE
     {
@@ -96,22 +87,15 @@ public:
      * Complexity: O(1)
      *
      * @param dimension Describes the dimension of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     explicit Vector(unsigned int dimension = 0);
 
-    /**
-     * 
-     * @param
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     explicit Vector(void *, void *, void *);
     /**
      * Releases the vector. Decreases sm_fullLenghtReferenceCounter, and when this
      * variable reaches zero, the descructor releases the sm_fullLengthVector.
      *
      * Complexity: O(1)
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     virtual ~Vector();
     /**
@@ -122,7 +106,6 @@ public:
      *
      * @param original The original vector, the function creates a copy from this
      * object
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Vector(const Vector & original);
 
@@ -141,8 +124,6 @@ public:
 
     /**
      * Sets each nonzero to zero in the vector.
-     * 
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void clear();
     
@@ -163,8 +144,6 @@ public:
 
     /**
      * Returns the maximal absolute value of the elements.
-     *
-     * @author Peter Tar <tar@dcs.uni-pannon.hu>
      */
     Numerical::Double absMaxElement();
 
@@ -256,7 +235,6 @@ public:
      *
      * @param index The function changes the index'th element of vector
      * @param value The new value of the index'th element of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void set(unsigned int index, Numerical::Double value);
 
@@ -266,14 +244,12 @@ public:
      * 
      * @param index The function changes the index'th element of vector
      * @param value The new value of the index'th element of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void change(unsigned int index, Numerical::Double value);
     /**
      * 
      * @param index
      * @param lambda
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void scaleElementBy(unsigned int index, Numerical::Double lambda);
     /**
@@ -296,7 +272,6 @@ public:
      *
      * @param index The index of the element of we need
      * @return The index'th element of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double operator[](unsigned int index) const;
 
@@ -356,7 +331,6 @@ public:
      *
      * @param index The index of the element of we need
      * @return The index'th element of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double at(unsigned int index) const;
     /**
@@ -365,7 +339,6 @@ public:
      * Complexity: O(1)
      *
      * @return Logical lenght of vector, which equals with m_dimension
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int length() const;
     /**
@@ -374,7 +347,6 @@ public:
      * Complexity: O(1)
      *
      * @return Capacity of vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int capacity() const;
     /**
@@ -383,7 +355,6 @@ public:
      * Complexity: O(n)
      *
      * @return The index of last non zero element
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int maxIndex() const;
     /**
@@ -434,7 +405,6 @@ public:
      *
      * @param lambda The value which with the elements of vector are multiplied
      * @return Reference of the vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Vector & scaleBy(Numerical::Double lambda);
     /**
@@ -470,15 +440,9 @@ public:
      *
      * @param vector The vector which with the operation have to be performed
      * @return Value of dot product
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double dotProduct(const Vector & vector) const;
 
-    /**
-     * 
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     Numerical::Double euclidNorm() const;
 
     /**
@@ -489,45 +453,32 @@ public:
      * @param lambda Multiplier of parameter vector
      * @param vector The function adds this vector to the other vector
      * @return The function returns with the reference of modified vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Vector & addVector(Numerical::Double lambda, const Vector & vector);
-    /**
-     *
-     * @param index
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
 
     /**
-     *
      * @param eta
      * @param pivot
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Vector & elementaryFtran(const Vector & eta, unsigned int pivot);
 
     /**
-     *
      * @param eta
      * @param pivot
-     * @return
-     * @author Peter Tar <tar@dcs.uni-pannon.hu>
      */
     Vector & elementaryBtran(const Vector & eta, unsigned int pivot);
 
     void removeElement(unsigned int index);
+
     /**
-     *
      * @param index
      * @param value
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void insertElement(unsigned int index, Numerical::Double value);
+
     /**
      *
      * @param value
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void append(Numerical::Double value);
 
@@ -535,42 +486,32 @@ public:
      *
      * @param dimension
      * @param capacity
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void reInit(unsigned int dimension, unsigned int capacity = 0);
+
     /**
-     *
      * @param ratio
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void setSparsityRatio(Numerical::Double ratio);
+
     /**
-     *
      * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double getSparsityRatio() const;
+
     /**
-     *
      * @param index
      * @param value
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void setNewNonzero(unsigned int index, Numerical::Double value);
 
     /**
-     *
      * @param vector
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Vector & operator=(const Vector & vector);
 
     /**
-     *
      * @param vector
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     bool operator==(const Vector & vector) const;
 
@@ -579,60 +520,33 @@ public:
         return !(*this == vector);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline VECTOR_TYPE getType() const
     {
         return m_vectorType;
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline unsigned int nonZeros() const
     {
         return m_nonZeros;
     }
 
     /**
-     *
      * @param os
      * @param vector
      * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     friend std::ostream & operator<<(std::ostream & os, const Vector & vector);
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline Iterator begin()
     {
         return Iterator(m_data, m_dataEnd, m_data, m_index);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline ConstIterator begin() const
     {
         return ConstIterator(m_data, m_dataEnd, m_data, m_index);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline NonzeroIterator beginNonzero()
     {
         CHECK;
@@ -643,11 +557,6 @@ public:
                 m_data < m_dataEnd);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline ConstNonzeroIterator beginNonzero() const
     {
         if (m_size == 0) {
@@ -657,44 +566,24 @@ public:
                 m_data < m_dataEnd);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline Iterator end()
     {
         return Iterator(m_data, m_dataEnd, m_dataEnd,
                 m_index ? m_index + m_size : 0);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline ConstIterator end() const
     {
         return ConstIterator(m_data, m_dataEnd, m_dataEnd,
                 m_index ? m_index + m_size : 0);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline NonzeroIterator endNonzero()
     {
         return NonzeroIterator(m_data, m_dataEnd, m_dataEnd,
                 m_index ? m_index + m_size : 0, false);
     }
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline ConstNonzeroIterator endNonzero() const
     {
         return ConstNonzeroIterator(m_data, m_dataEnd, m_dataEnd,
@@ -702,10 +591,8 @@ public:
     }
 
     /**
-     *
      * @param nonZeros
      * @param dimension
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     inline void prepareForData(const unsigned int nonZeros, const unsigned int dimension, Numerical::Double ratio = -1, bool setRatio = true)
     {
@@ -745,7 +632,6 @@ public:
     }
 
     /**
-     * 
      * @param value
      * @param index
      */
@@ -760,27 +646,16 @@ public:
         }
     }
 
-    /**
-     * 
-     * @return 
-     */
     inline const Numerical::Double * getData() const
     {
         return m_data;
     }
 
-    /**
-     * 
-     * @return 
-     */
     inline const unsigned int * getIndex() const
     {
         return m_index;
     }
 
-    /**
-     * 
-     */
     void sortElements() const;
     
     void scaleByLambdas(const std::vector<Numerical::Double> & lambdas);
@@ -793,52 +668,44 @@ protected:
      * indices are omitted. When the value of m_vectorType is SPARSE_VECTOR,
      * the vector represents a sparse vector, and m_size describes the size of
      * used part of m_index and m_data arrays.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     VECTOR_TYPE m_vectorType;
 
     /**
      * Describes the size of used part of m_data and m_index arrays.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int m_size; // dense esetben megegyezik az m_dimension-al
 
     /**
      * Describes the dimension of vector. The function length() returns with
      * value this data member.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int m_dimension;
 
     /**
      * This variable decsribes the real size of m_data (and at sparse vector
      * m_index also) array(s).
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int m_capacity;
 
     /**
      * This array stores elements of vector.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double * m_data;
 
     /**
      * This array stores indices of non zeros in sparse vector.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int * m_index;
 
     /**
      * Points to the end of used part of m_data array.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double * m_dataEnd;
 
     /**
      * Describes the number of non zero elements in vector. This variable is
      * updated when the elements of vector are changed.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int m_nonZeros;
 
@@ -848,7 +715,6 @@ protected:
      * switches to dense.
      *
      * @see m_sparsityThreshold
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double m_sparsityRatio;
     /**
@@ -857,21 +723,17 @@ protected:
      * and changed by insert / remove operations.
      *
      * @see m_sparsityRatio
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     unsigned int m_sparsityThreshold;
 
     /**
      * When m_sorted is true, the sparse elemnets are sorted
      * by ascending order.
-     * 
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     mutable bool m_sorted;
 
     /**
      * Temporary vector for linear time dot product and add operations.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static Numerical::Double * sm_fullLengthVector;
     /**
@@ -879,63 +741,40 @@ protected:
      * not released after dot product or add operations, because memory allocation
      * is time consuming. When an operation needs biger array, it allocates
      * a new vector.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static unsigned int sm_fullLengthVectorLenght;
     /**
      * Describes how many Vector type objects exists. It is important for
      * releasing sm_fullLengthVector. When this variable is zero, the program
      * releases sm_fullLengthVector automatically.
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static unsigned int sm_fullLenghtReferenceCounter;
 
-    /**
-     * 
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     static unsigned long * sm_countingSortBitVector;
 
-    /**
-     * 
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     static unsigned int sm_countingSortBitVectorLength;
 
-    /**
-     *
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     inline VECTOR_TYPE getVectorType() const
     {
         return m_vectorType;
     }
 
     /**
-     *
      * @param size
      * @param elbowroom
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void resizeDense(unsigned int size, unsigned int elbowroom);
+
     /**
-     *
      * @param size
      * @param capacity
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void resizeSparse(unsigned int capacity);
-    /**
-     *
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
+
     void denseToSparse();
-    /**
-     *
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
+
     void sparseToDense();
+
     /**
      * Helper function for operator= and copy constructor. The function copies
      * the original vector. It is supposed that the vector is uninitialized or
@@ -945,119 +784,89 @@ protected:
      *
      * @param original The original vector, the function creates a copy from this
      * object
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void copy(const Vector & original);
+
     /**
-     *
      * @param lambda
      * @param vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void addDenseToDense(Numerical::Double lambda, const Vector & vector);
+
     /**
-     *
      * @param lambda
      * @param vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void addDenseToSparse(Numerical::Double lambda, const Vector & vector);
+
     /**
-     *
      * @param lambda
      * @param vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void addSparseToDense(Numerical::Double lambda, const Vector & vector);
+
     /**
-     *
      * @param lambda
      * @param vector
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void addSparseToSparse(Numerical::Double lambda, const Vector & vector);
 
     /**
-     *
      * @param index
      * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double * getElementSparseLinear(unsigned int index) const;
 
     /**
-     *
      * @param index
      * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double * getElementSparseBinary(unsigned int index) const;
 
     /**
-     *
      * @param index
      * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     Numerical::Double * getElementSparse(unsigned int index) const;
 
     /**
-     *
      * @param index
      * @param value
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void addNewElementSparse(unsigned int index, Numerical::Double value);
+
     /**
-     *
      * @param index
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     void removeElementSparse(unsigned int index);
 
-    /**
-     * 
-     */
     void countingSort() const;
 
-    /**
-     * 
-     */
     void heapSort() const;
 
-    /**
-     * 
-     */
     void selectionSort() const;
 
-    /**
-     * 
-     */
     void insertionSort() const;
 
     // dense -> sparse
     /**
-     *
      * @param denseVector
      * @param sparseVector
      * @param indexVector
      * @param denseLength
      * @param setZero
-     * @return
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static unsigned int gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
             unsigned int * index, unsigned int denseLength, bool setZero);
+
     // sparse -> dense
     /**
-     *
      * @param denseVector
      * @param denseLength
      * @param sparseVector
      * @param index
      * @param sparseLength
      * @param sparseMaxIndex
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
             Numerical::Double * sparseVector, unsigned int * index,
@@ -1065,7 +874,6 @@ protected:
 
     // sparse -> dense
     /**
-     *
      * @param denseVector
      * @param denseLength
      * @param sparseVector
@@ -1073,7 +881,6 @@ protected:
      * @param sparseLength
      * @param sparseMaxIndex
      * @param pivot
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static Numerical::Double * scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
             Numerical::Double * sparseVector, unsigned int * index,
@@ -1081,11 +888,9 @@ protected:
 
 
     /**
-     *
      * @param denseVector
      * @param sparseIndex
      * @param sparseLength
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
      */
     static void clearFullLenghtVector(Numerical::Double * denseVector,
             unsigned int * sparseIndex, unsigned int sparseLength);
