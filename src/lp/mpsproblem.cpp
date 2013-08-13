@@ -384,6 +384,7 @@ MpsProblem::MpsProblem()
     m_rhs.init(m_colHashFunc, MPS_HASH_TABLE_SIZE);
     m_bounds.init(m_boundHashFunc, MPS_HASH_TABLE_SIZE);
     m_ranges.init(m_colHashFunc, MPS_HASH_TABLE_SIZE);
+    //    m_costRowPointer = 0;
 
     MpsError<INVALID_ROW_TYPE>::setLimit(10);
     MpsError<INVALID_ROW_NAME>::setLimit(10);
@@ -1107,10 +1108,15 @@ inline const char * MpsProblem::readRowRecord(const register char * ptr, ROW_INF
         if (m_rows.exist(row, hashCode)) {
             rowExistsError(row.m_name);
         } else {
-            m_rows.add(row, m_rows.getCount(), hashCode);
+            // Row * rowPtr = m_rows.add(row, m_rows.getCount(), hashCode);
             if (row.m_type == 'N' && !m_costVectorReady) {
                 m_costVectorReady = true;
-                m_costVectorIndex = m_rows.getCount() - 1;
+                m_costVectorIndex = -1; //m_rows.getCount(); // - 1;
+                m_costRow = row;
+                //m_rows.add(row, -1, hashCode);
+            } else {
+                Row * rowPtr = m_rows.add(row, m_rows.getCount(), hashCode);
+                m_rowIndexTable.push_back(rowPtr);
             }
         }
 
@@ -1139,7 +1145,8 @@ void MpsProblem::clearActualColumnData()
 }
 
 inline const char * MpsProblem::readColumnRecord(const register char * ptr,
-    HashTable<Column, int, hash_function<Column> > & columns, ROW_INFO & info)
+    HashTable<Column, int, hash_function<Column> > & columns, ROW_INFO & info,
+    vector<Column*> * indexTable)
 {
     //LPWARNING("readColumnRecord begin");
     initTooLongRecordSensor(ptr);
@@ -1191,6 +1198,7 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
             }
             //LPINFO("elotte0");
             col_ptr = columns.add(col, columns.getCount(), columnHashCode);
+            indexTable->push_back(col_ptr);
             m_actualColumnData = col_ptr;
             //LPINFO("utana0");
             //std::cin.get();
@@ -1199,9 +1207,6 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
             match = m_actualColumn.m_nameFragments[0] == *((unsigned int*) &col.m_name[0]) &&
                 m_actualColumn.m_nameFragments[1] == *((unsigned int*) &col.m_name[4]);
             if (!match) {
-
-
-
                 col_ptr = columns.getKey(col, columnHashCode);
                 //LPINFO("elozo: " << (col.m_name ));
                 clearActualColumnData();
@@ -1210,6 +1215,7 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
                     //LPINFO("mostani: " << (col_ptr ? col_ptr->m_name : "semmi"));
                     m_actualColumn.m_nameFragments[0] = *((unsigned int*) &col.m_name[0]);
                     m_actualColumn.m_nameFragments[1] = *((unsigned int*) &col.m_name[4]);
+                    indexTable->push_back(col_ptr);
                 } else {
                     columnExistsError(col.m_name);
                 }
@@ -1250,19 +1256,24 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
         int * row_id_ptr = m_rows.getValueAndKey(row, rowPtr, rowHashCode);
         bool newNonzero = true;
         int row_id = -1;
+        bool isCostValue = false;
         if (row_id_ptr) {
             row_id = *row_id_ptr;
             bool & nonZero = m_actualColumnNonzeros[row_id];
             if (nonZero == true) {
-                //                LPERROR("itt balhe van gyerekek " << row_id << " " << m_line);
+                //LPERROR("itt balhe van gyerekek " << row_id << " " << m_line);
                 //                std::cin.get();
                 newNonzero = false;
             } else {
                 nonZero = true;
             }
         } else {
-            invalidRowName(row.m_name);
-            skipNumber = true;
+            if (strcmp(m_costRow.m_name, row.m_name) != 0) {
+                invalidRowName(row.m_name);
+                skipNumber = true;
+            } else {
+                isCostValue = true;
+            }
         }
 
         /*************************-
@@ -1297,13 +1308,24 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
                         col_ptr->getValue(row_id), value);
                 }
 
-                col_ptr->add(row_id, value);
+                /*if (row_id > (int) m_costVectorIndex) {
+                    col_ptr->add(row_id - 1, value);
+                } else if (row_id < (int) m_costVectorIndex) {*/
+                if (isCostValue == false) {
+                    col_ptr->add(row_id, value);
+                }
+                //}
                 m_actualColumnData = col_ptr;
                 if (m_section == SEC_COLUMNS) {
-                    if (row_id == (int) m_costVectorIndex) {
+                    //if (row_id == (int) m_costVectorIndex) {
+                    if (isCostValue == true) {
                         col_ptr->m_inCostVector = true;
+                        Column::Pair pair;
+                        pair.m_index = columns.getCount() - 1;
+                        pair.m_value = value;
+                        m_costVector.pushBack(pair);
                     }
-                    if (newNonzero) {
+                    if (newNonzero && isCostValue == false) {
                         rowPtr->m_nonZeros++;
                         m_nonZeros++;
                     }
@@ -1312,6 +1334,7 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
             } else {
                 m_actualColumnNonzeros[row_id] = false;
             }
+            isCostValue = false;
             index = ptr - m_startPtr + m_rowLength;
             if (index > FIELD_3_END + 1) {
                 invalidEndFieldError(index, FIELD_3_END);
@@ -1356,10 +1379,14 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
             }
 
         } else {
-            invalidRowName(row.m_name);
-            ptr = goToEndLine(ptr);
-            //LPWARNING("readColumnRecord end");
-            MPS_RETURN(ptr);
+            if (strcmp(row.m_name, m_costRow.m_name) != 0) {
+                invalidRowName(row.m_name);
+                ptr = goToEndLine(ptr);
+                //LPWARNING("readColumnRecord end");
+                MPS_RETURN(ptr);
+            } else {
+                isCostValue = true;
+            }
         }
 
         /*************************-
@@ -1384,12 +1411,23 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
                 valueOverridedError(col_ptr->m_name, rowPtr->m_name,
                     col_ptr->getValue(row_id), value);
             }
-            col_ptr->add(row_id, value);
+            /*if (value > (int) m_costVectorIndex) {
+                col_ptr->add(row_id - 1, value);
+            } else if (value > (int) m_costVectorIndex) {*/
+            if (isCostValue == false) {
+                col_ptr->add(row_id, value);
+            }
+            //}
             if (m_section == SEC_COLUMNS) {
-                if (row_id == (int) m_costVectorIndex) {
+                //if (row_id == (int) m_costVectorIndex  ) {
+                if (isCostValue == true) {
                     col_ptr->m_inCostVector = true;
+                    Column::Pair pair;
+                    pair.m_index = columns.getCount() - 1;
+                    pair.m_value = value;
+                    m_costVector.pushBack(pair);
                 }
-                if (newNonzero) {
+                if (newNonzero && isCostValue == false) {
                     rowPtr->m_nonZeros++;
                     m_nonZeros++;
                 }
@@ -1896,7 +1934,7 @@ void MpsProblem::loadFromFile(const char * filename)
                     break;
 
                 case SEC_COLUMNS:
-                    ptr = readColumnRecord(ptr, m_columns, info);
+                    ptr = readColumnRecord(ptr, m_columns, info, &m_columnIndexTable);
                     if (info != NO_INFO && info != COMMENT) {
                         m_columnLower.resize(m_columns.getCount(), 0);
                         m_columnUpper.resize(m_columns.getCount(), infinity);
@@ -1928,7 +1966,7 @@ void MpsProblem::loadFromFile(const char * filename)
                     //cout << "rhs olvasas elott: |" << temp << "|" << endl;
                     //cin.get();
                     //LPWARNING("read RHS");
-                    ptr = readColumnRecord(ptr, m_rhs, info);
+                    ptr = readColumnRecord(ptr, m_rhs, info, &m_rhsIndexTable);
                     //LPWARNING("after read RHS");
                     //LPWARNING("begin");
                     if (info != NO_INFO && info != COMMENT) {
@@ -1954,7 +1992,7 @@ void MpsProblem::loadFromFile(const char * filename)
                 case SEC_RANGES:
                     //cout << "ranges olvasas elott: |" << temp << "|" << endl;
                     //cin.get();
-                    ptr = readColumnRecord(ptr, m_ranges, info);
+                    ptr = readColumnRecord(ptr, m_ranges, info, &m_rangeIndexTable);
                     if (info != NO_INFO && info != COMMENT) {
                         clearActualColumnData();
                         m_actualColumnData = 0;
@@ -2113,25 +2151,25 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
         std::vector<Constraint>::const_iterator iter = model.m_constraints.begin();
         std::vector<Constraint>::const_iterator iterEnd = model.m_constraints.end();
         for (; iter != iterEnd; iter++) {
-     *actual = ' ';
+ *actual = ' ';
             actual++;
             switch (iter->getType()) {
                 case Constraint::GREATER_OR_EQUAL:
-     *actual = 'G';
+ *actual = 'G';
                     break;
                 case Constraint::LESS_OR_EQUAL:
                 case Constraint::RANGE:
-     *actual = 'L'; // majd a ranges-ben also korlatot adunk meg
+ *actual = 'L'; // majd a ranges-ben also korlatot adunk meg
                     break;
                 case Constraint::EQUALITY:
-     *actual = 'E';
+ *actual = 'E';
                     break;
                 case Constraint::NON_BINDING:
-     *actual = 'N';
+ *actual = 'N';
                     break;
             }
             actual++;
-     *actual = ' ';
+ *actual = ' ';
             actual[1] = ' ';
             actual += 2;
             strncpy(actual, iter->getName(), 8);
@@ -2273,7 +2311,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                         actual += 14;
                         strncpy(actual, iter->getName(), 8);
                         actual += 8;
-     *actual = ' ';
+ *actual = ' ';
                         actual[1] = ' ';
                         actual += 2;
                         sprintf(actual, "%12g", (double) iter->getLowerBound());
@@ -2291,7 +2329,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                         actual += 14;
                         strncpy(actual, iter->getName(), 8);
                         actual += 8;
-     *actual = ' ';
+ *actual = ' ';
                         actual[1] = ' ';
                         actual += 2;
                         sprintf(actual, "%12g", (double) iter->getUpperBound());
@@ -2303,7 +2341,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                     actual += 14;
                     strncpy(actual, iter->getName(), 8);
                     actual += 8;
-     *actual = ' ';
+ *actual = ' ';
                     actual[1] = ' ';
                     actual += 2;
                     sprintf(actual, "%12g", (double) iter->getUpperBound());
@@ -2313,7 +2351,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                         actual += 14;
                         strncpy(actual, iter->getName(), 8);
                         actual += 8;
-     *actual = ' ';
+ *actual = ' ';
                         actual[1] = ' ';
                         actual += 2;
                         sprintf(actual, "%12g", (double) iter->getLowerBound());
@@ -2331,7 +2369,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                     strncpy(actual, iter->getName(), 8);
                     actual += 8;
                     if (iter->getType() == Variable::FIXED) {
-     *actual = ' ';
+ *actual = ' ';
                         actual[1] = ' ';
                         actual += 2;
                         sprintf(actual, "%12g", (double) iter->getLowerBound());
@@ -2375,7 +2413,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
             actual += 4;
             strncpy(actual, columnName, 8); // oszlop nevet bemasoljuk
             actual += 8;
-     *actual = ' ';
+ *actual = ' ';
             actual[1] = ' ';
             actual += 2;
             if (isCostValue) {
@@ -2384,7 +2422,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
                 strncpy(actual, constraints[ rowIter.getIndex() ].getName(), 8);
             }
             actual += 8;
-     *actual = ' ';
+ *actual = ' ';
             actual[1] = ' ';
             actual += 2;
             if (isCostValue) {
@@ -2404,13 +2442,13 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
             }
             actual += 12;
             if (rowIter != rowIterEnd) {
-     *actual = ' ';
+ *actual = ' ';
                 actual[1] = ' ';
                 actual[2] = ' ';
                 actual += 3;
                 strncpy(actual, constraints[ rowIter.getIndex() ].getName(), 8);
                 actual += 8;
-     *actual = ' ';
+ *actual = ' ';
                 actual[1] = ' ';
                 actual += 2;
                 sprintf(actual, "%12g", (double) *rowIter);
@@ -2874,7 +2912,7 @@ clock_t MpsProblem::lastReadingTime()
             unsigned int rowIndex = structVariables;
             while (iter < iterEnd) {
                 while (iter < iterEnd && ((variables[ *iter ].getState() != Variable::BASIC) ||
-     *iter >= (int) structVariables)) {
+ *iter >= (int) structVariables)) {
                     iter++;
                 }
                 if (iter < iterEnd) {
@@ -2928,15 +2966,29 @@ unsigned int MpsProblem::getColumnCount() const
 
 unsigned int MpsProblem::getRowCount() const
 {
-    return m_rows.getCount() - (m_costVectorReady ? 1 : 0);
+    return m_rows.getCount(); // - (m_costVectorReady ? 1 : 0);
 }
 
 const Variable & MpsProblem::getVariable(unsigned int index) const
 {
+    static Variable result;
+    //    cout << index << " / " << m_columnIndexTable.size() << " " << m_columnIndexTable[index]->m_name << endl;
+    result.setName(m_columnIndexTable[index]->m_name);
+    result.setLowerBound(0);
+
+    result.setUpperBound(0);
+    result.setValue(0);
+    return result;
 }
 
 const Constraint & MpsProblem::getConstraint(unsigned int index) const
 {
+    static Constraint result;
+    //cout << index << " / " << m_rowIndexTable.size() << " " << m_rowIndexTable[index]->m_name << endl;
+    result.setName(m_rowIndexTable[index]->m_name);
+    result.setLowerBound(0);
+    result.setUpperBound(0);
+    return result;
 }
 
 void MpsProblem::buildRow(unsigned int index, Vector * rowVector) const
@@ -2945,10 +2997,24 @@ void MpsProblem::buildRow(unsigned int index, Vector * rowVector) const
 
 void MpsProblem::buildColumn(unsigned int index, Vector * columnVector) const
 {
+    columnVector->prepareForData(m_columnIndexTable[index]->m_coeffs.size(), getRowCount());
+    List<Column::Pair>::Iterator iter = m_columnIndexTable[index]->m_coeffs.begin();
+    List<Column::Pair>::Iterator iterEnd = m_columnIndexTable[index]->m_coeffs.end();
+//    cout << "++++++++++++++++++++++++++++++++++++++" << endl;
+    for (; iter != iterEnd; iter++) {
+//        cout << iter.getData().m_index << endl;
+        columnVector->newNonZero(iter.getData().m_value, iter.getData().m_index);
+    }
 }
 
 void MpsProblem::buildCostVector(Vector * costVector) const
 {
+    costVector->prepareForData(m_costVector.size(), getColumnCount());
+    List<Column::Pair>::Iterator iter = m_costVector.begin();
+    List<Column::Pair>::Iterator iterEnd = m_costVector.end();
+    for (; iter != iterEnd; iter++) {
+        costVector->newNonZero(iter.getData().m_value, iter.getData().m_index);
+    }
 }
 
 Numerical::Double MpsProblem::getObjectiveConstant() const

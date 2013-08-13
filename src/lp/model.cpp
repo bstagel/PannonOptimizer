@@ -7,6 +7,7 @@ Model::Model()
 
 void Model::build(const ModelBuilder & builder)
 {
+    unsigned int index;
     m_name = builder.getName();
     m_costConstant = builder.getObjectiveConstant();
     builder.buildCostVector(&m_costVector);
@@ -16,6 +17,16 @@ void Model::build(const ModelBuilder & builder)
 
     m_matrix.build(builder);
 
+    for (index = 0; index < m_variables.size(); index++) {
+        m_variables[index] = builder.getVariable(index);
+        m_variables[index].setVector( m_matrix.column(index) );
+    }
+
+    for (index = 0; index < m_constraints.size(); index++) {
+        m_constraints[index] = builder.getConstraint(index);
+        m_constraints[index].setVector( m_matrix.row(index) );
+    }    
+    
     /*m_matrix.reInit(builder.getRowCount(), builder.getColumnCount(), false);
 
     unsigned int rowIndex;
