@@ -93,7 +93,7 @@ private:
         sm_results[unit][test].push_back(result);
     }
 
-    static void generateHtmlOutput(std::ostream & output)
+    static void generateHtmlOutput(std::ostream &)
     {
 
     }
