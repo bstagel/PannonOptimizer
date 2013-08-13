@@ -2143,7 +2143,7 @@ void VectorTestSuite::sortElements() {
 
 	myVect.sortElements();
 
-    for (int index = 0; index < myVect.m_nonZeros - 1; index++) {
+    for (unsigned int index = 0; index < myVect.m_nonZeros - 1; index++) {
         TEST_ASSERT(myVect.m_index[index] < myVect.m_index[index + 1]);
     }
 
@@ -2168,7 +2168,7 @@ void VectorTestSuite::sortElements() {
 
 	mySecondVect.sortElements();
 
-    for (int index = 0; index < mySecondVect.m_nonZeros - 1; index++) {
+    for (unsigned int index = 0; index < mySecondVect.m_nonZeros - 1; index++) {
         TEST_ASSERT(mySecondVect.m_index[index] < mySecondVect.m_index[index + 1]);
     }
 
@@ -2205,7 +2205,7 @@ void VectorTestSuite::sortElements() {
 
 	myThirdVect.sortElements();
 
-    for (int index = 0; index < myThirdVect.m_nonZeros - 1; index++) {
+    for (unsigned int index = 0; index < myThirdVect.m_nonZeros - 1; index++) {
         TEST_ASSERT(myThirdVect.m_index[index] < myThirdVect.m_index[index + 1]);
     }
 
@@ -2242,7 +2242,7 @@ void VectorTestSuite::sortElements() {
 
 	myFourthVect.sortElements();
 
-    for (int index = 0; index < myFourthVect.m_nonZeros - 1; index++) {
+    for (unsigned int index = 0; index < myFourthVect.m_nonZeros - 1; index++) {
         TEST_ASSERT(myFourthVect.m_index[index] < myFourthVect.m_index[index + 1]);
     }
 }
