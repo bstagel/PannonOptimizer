@@ -499,6 +499,7 @@ class MpsProblem : public ModelBuilder
         Row()
         {
             m_nonZeros = 0;
+            m_name = 0;
         }
 
         /**
@@ -827,7 +828,24 @@ class MpsProblem : public ModelBuilder
     /**
      */
     HashTable<Bound, int, hash_function<Bound> > m_bounds;
-
+    /**
+     */
+    std::vector<Row*> m_rowIndexTable;
+    /**
+     */
+    std::vector<Column*> m_columnIndexTable;
+    /**
+     */
+    std::vector<Column*> m_rhsIndexTable;
+    /**
+     */
+    std::vector<Column*> m_rangeIndexTable;
+    /**
+     */
+    std::vector<Column*> m_boundInexTable;
+    /**
+     */
+    Row m_costRow;
 public:
     /**
      *
@@ -1081,6 +1099,10 @@ private:
     /**
      */
     bool m_costVectorReady;
+    
+    /**
+     */
+    List<Column::Pair> m_costVector;
     /**
      */
     int m_rhsIndex;
@@ -1240,7 +1262,8 @@ private:
      * @return
      */
     const char * readColumnRecord(const register char * ptr, HashTable<Column, int,
-            hash_function<Column> > & columns, ROW_INFO & info);
+            hash_function<Column> > & columns, ROW_INFO & info, 
+            vector<Column*> * indexTable);
     /**
      *
      * @param ptr

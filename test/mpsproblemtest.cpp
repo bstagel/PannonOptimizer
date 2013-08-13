@@ -18,7 +18,9 @@ MpsProblemTestSuite::MpsProblemTestSuite(const char * name) : UnitTest(name)
 void MpsProblemTestSuite::init()
 {
     MpsProblem problem;
-    problem.loadFromFile("/home/smidla/NetBeansProjects/PanOpt/input/MPSNETLB/AFIRO.MPS");
+    //problem.loadFromFile("/home/smidla/NetBeansProjects/PanOpt/input/MPSNETLB/AFIRO.MPS");
+    //problem.loadFromFile("/home/smidla/NetBeansProjects/PanOpt/input/mps/osa-60.mps");
+    problem.loadFromFile("/home/smidla/NetBeansProjects/PanOpt/input/mps/OHMIN.MPS");
     Model model;
     model.build(problem);
 
@@ -26,4 +28,17 @@ void MpsProblemTestSuite::init()
     cout << model.getName() << endl;
     cout << model.constraintCount() << " constraints" << endl;
     cout << model.variableCount() << " variables" << endl;
+
+    model.getCostVector().show();
+    unsigned int index;
+    for (index = 0; index < model.variableCount(); index++) {
+        cout << "****************************" << endl;
+        model.getVariable(index).getVector()->show();
+    }
+    cout << "Rows: " << endl;
+    for (index = 0; index < model.constraintCount(); index++) {
+        cout << "****************************" << endl;
+        model.getConstraint(index).getVector()->show();
+    }
+
 }
