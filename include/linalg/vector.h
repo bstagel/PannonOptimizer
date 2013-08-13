@@ -45,7 +45,7 @@ class Vector
     friend class ModelIO;
     friend class MpsProblem;
     friend class Linalg;
-    friend class VectorTester;
+    friend class VectorTestSuite;
 public:
 
     /**

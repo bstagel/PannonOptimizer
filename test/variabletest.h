@@ -26,6 +26,8 @@ private:
     void setGetVector();
     void type();
     void equalityOperator();
+    void assign();
+    void copy();
 };
 
 
