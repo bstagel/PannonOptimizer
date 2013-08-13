@@ -1,0 +1,30 @@
+VECTOR CLASS BUGREPORT
+
+***************************************************
+2013. 08. 12.
+***************************************************
+
+insertElement:
+Should switch vector type if needed.
+
+append:
+Should switch vector type if needed.
+
+removeElement:
+Should switch vector type if needed.
+
+fill:
+Should switch vector type to dense instead of setting the sparsity ratio to zero.
+
+resize:
+Error in case of decreasing length of sparse vectors:
+Line 238: "Numerical::Double * lastData = m_data - 1;" should be "Numerical::Double * lastData = m_data + m_size - 1;"
+
+maxIndex:
+Should return dimension - 1 in case of dense vectors.
+
+scaleByLambdas:
+Should switch vector type to sparse if needed.
+
+elementaryFtran:
+Should switch vector type if needed.

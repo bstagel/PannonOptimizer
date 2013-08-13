@@ -20,7 +20,10 @@ class Model
     friend class ModelTestSuite;
 public:
     Model();
-
+    Model(const Model & original);
+    ~Model();
+    Model & operator=(const Model & original);
+    
     void build(const ModelBuilder & builder);
 
     inline unsigned int variableCount() const;
@@ -43,6 +46,10 @@ private:
     Numerical::Double m_costConstant;
 
     std::string m_name;
+    
+    void clear();
+    
+    void copy(const Model & original);
 };
 
 unsigned int Model::variableCount() const
