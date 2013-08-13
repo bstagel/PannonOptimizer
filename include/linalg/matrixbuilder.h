@@ -1,12 +1,11 @@
-/* 
- * File:   matrixbuilder.h
- * Author: smidla
- *
- * Created on 2013. march 6., 13:22
+/**
+ * @file matrixbuilder.h
  */
 
 #ifndef MATRIXBUILDER_H
 #define	MATRIXBUILDER_H
+
+#include "globals.h"
 
 #include <linalg/vector.h>
 

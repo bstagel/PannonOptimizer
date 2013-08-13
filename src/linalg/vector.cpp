@@ -1,3 +1,7 @@
+/**
+ * @file vector.cpp
+ */
+
 #include <debug.h>
 #include <linalg/matrix.h>
 #include <linalg/vector.h>
@@ -12,7 +16,7 @@
 #include <cmath>
 
 const unsigned int ELBOWROOM = 5;
-Numerical::Double SPARSITY_RATIO = 0.35; //SimplexParameters::getParameterValue("sparsity_ratio");
+Numerical::Double SPARSITY_RATIO = 0.35; //TODO: SimplexParameters::getParameterValue("sparsity_ratio");
 Numerical::Double * Vector::sm_fullLengthVector = 0;
 unsigned int Vector::sm_fullLengthVectorLenght = 0;
 unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
@@ -738,8 +742,8 @@ void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector) {
     register Numerical::Double * ptr1 = m_data;
     register const Numerical::Double * ptr2 = vector.m_data;
     register const Numerical::Double * end = m_dataEnd;
-    int nonZeros1 = 0; // DO NOT DELETE YET!!!
-    int nonZeros2 = 0; // DO NOT DELETE YET!!!
+//    int nonZeros1 = 0; // DO NOT DELETE YET!!!
+//    int nonZeros2 = 0; // DO NOT DELETE YET!!!
     while (ptr1 < end) {
         if (*ptr2 != 0.0) {
             if (*ptr1 == 0.0) {

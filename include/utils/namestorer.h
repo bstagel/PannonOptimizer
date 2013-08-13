@@ -1,12 +1,12 @@
-/* 
- * File:   namestorer.h
- * Author: smidla
- *
- * Created on 2011. marcius 21., 22:22
+/**
+ * @file namestorer.h
  */
+
 
 #ifndef NAMESTORER_H
 #define	NAMESTORER_H
+
+#include "globals.h"
 
 class NameStorer
 {
@@ -14,7 +14,7 @@ protected:
     virtual void increase() = 0;
     virtual void decrease() = 0;
 
-    virtual void copy(NameStorer * original)
+    virtual void copy(NameStorer *)
     {
     }
 public:

@@ -1,5 +1,11 @@
+/**
+ * @file debug.h
+ */
+
 #ifndef DEBUG_H_
 #define DEBUG_H_
+
+#include "globals.h"
 
 #include <iomanip>
 #include <iostream>
@@ -297,7 +303,7 @@ public:
         SBF_SYMBO	            = 1<<12,
         SBF_LTSF	            = 1<<13,
         SBF_ADG		            = 1<<14,
-        SBF_CPLEX	            = 1<<15,
+        SBF_CPLEX	            = 1<<15
     };
 
     inline static std::string getName(RegisteredModuleType mod) {
@@ -348,7 +354,7 @@ private:
 //        am |= D::PRESOLVER;
 //        am |= D::CFMAKER;
 //        am |= D::STARTINGBASISFINDER;
-        am |= D::PFIMAKER;
+//        am |= D::PFIMAKER;
 //        am |= D::SBF1;
 //        am |= D::SIMPLEX;
 //        am |= D::RATIOTEST;
@@ -592,7 +598,6 @@ private:
 #define UNIMPLEMENTED { }
 
 #endif // DEVELOPMENT
-
 
 
 

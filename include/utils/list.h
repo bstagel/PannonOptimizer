@@ -1,12 +1,12 @@
-/* 
- * File:   list.h
- * Author: smidla
- *
- * Created on 2011. február 22., 14:47
+/**
+ * @file list.h
  */
+
 
 #ifndef LIST_H
 #define	LIST_H
+
+#include "globals.h"
 
 #include <utils/elementproducer.h>
 #include <cstring>

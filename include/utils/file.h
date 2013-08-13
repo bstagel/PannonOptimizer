@@ -1,12 +1,12 @@
-/* 
- * File:   file.h
- * Author: smidla
- *
- * Created on 2011. január 26., 18:57
+/**
+ * @file file.h
  */
+
 
 #ifndef FILE_H
 #define	FILE_H
+
+#include "globals.h"
 
 #include <cstdio>
 

@@ -1,16 +1,16 @@
-/* 
- * File:   variable.h
- * Author: smidla
- *
- * Created on 2011. februar 9., 17:45
+/**
+ * @file variable.h
  */
+
 
 #ifndef VARIABLE_H
 #define	VARIABLE_H
 
+#include "globals.h"
+
 #include <iostream>
 #include <utils/numerical.h>
-#include <utils/exception.h>
+#include <utils/exceptions.h>
 #include <linalg/vector.h>
 
 class Variable;
@@ -297,37 +297,19 @@ public:
     friend std::ostream & operator<<(std::ostream & os, const Variable & var);
 
 private:
-    /**
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     Numerical::Double m_lowerBound;
 
-    /**
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     Numerical::Double m_upperBound;
 
-    /**
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     Numerical::Double m_value;
 
-    /**
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     TYPE m_type;
 
-    /**
-     * @author Jozsef Smidla <smidla@dcs.uni-pannon.hu>
-     */
     std::string m_name;
 
-    /**
-     */
     const Vector * m_vector;
 
     /**
-     * 
      * @param lowerBound
      * @param upperBound
      * @param value
@@ -339,13 +321,9 @@ private:
         Numerical::Double value,
         const char * name);
 
-    /**
-     * 
-     */
     inline void adjustType();
 
     /**
-     * 
      * @param vector
      */
     inline void setVector(const Vector & vector);
@@ -360,7 +338,7 @@ private:
 inline Variable::Variable()
 {
     m_lowerBound = 0;
-    m_upperBound = infinity;
+    m_upperBound = PInfinity;
     m_value = 0;
     m_type = PLUS;
     m_vector = 0;
@@ -471,13 +449,13 @@ inline void Variable::adjustType()
 {
     if (m_lowerBound == m_upperBound) {
         m_type = FIXED;
-    } else if (m_lowerBound == -infinity) {
-        if (m_upperBound == infinity) {
+    } else if (m_lowerBound == -PInfinity) {
+        if (m_upperBound == PInfinity) {
             m_type = FREE;
         } else {
             m_type = MINUS;
         }
-    } else if (m_upperBound == infinity) {
+    } else if (m_upperBound == PInfinity) {
         m_type = PLUS;
     } else {
         m_type = BOUNDED;
