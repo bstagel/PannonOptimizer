@@ -2980,6 +2980,82 @@ const Constraint & MpsProblem::getConstraint(unsigned int index) const
     static Constraint result;
     //cout << index << " / " << m_rowIndexTable.size() << " " << m_rowIndexTable[index]->m_name << endl;
     result.setName(m_rowIndexTable[index]->m_name);
+
+/*            Numerical::Double b = rhs.at(rowIndex);
+            Numerical::Double r = ranges.at(rowIndex);
+//            if (m_costVectorReady && rowIndex >= (int) m_costVectorIndex) {
+//                if (rowIndex == (int) m_costVectorIndex) {
+//                    model->setObjConst(-b);
+//                    model->setObjName(rowIter->first.m_name);
+//                    continue;
+//                }
+//                rowIndex--;
+//            }
+            switch (m_rowIndexTable[index].m_type) {
+                case 'N':
+                    model->getConstraints().at(rowIndex).setLowerBound(-infinity);
+                    model->getConstraints().at(rowIndex).setUpperBound(infinity);
+                    break;
+                case 'G':
+                    model->getConstraints().at(rowIndex).setLowerBound(b);
+                    if (!rangesGiven[rowIndex]) {
+                        r = infinity;
+                    }
+                    model->getConstraints().at(rowIndex).setUpperBound(b + Numerical::fabs(r));
+                    break;
+                case 'L':
+                    if (!rangesGiven[rowIndex]) {
+                        r = -infinity;
+                    }
+                    model->getConstraints().at(rowIndex).setLowerBound(b - Numerical::fabs(r));
+                    model->getConstraints().at(rowIndex).setUpperBound(b);
+                    break;
+                case 'E':
+                    if (r >= 0) {
+                        //rowLower.set(rowIndex, b);
+                        //rowUpper.set(rowIndex, b + Numerical::fabs(r));
+
+                        model->getConstraints().at(rowIndex).setLowerBound(b);
+                        model->getConstraints().at(rowIndex).setUpperBound(b + Numerical::fabs(r));
+                    } else if (r < 0) {
+                        //rowLower.set(rowIndex, b - Numerical::fabs(r));
+                        //rowUpper.set(rowIndex, b);
+                        model->getConstraints().at(rowIndex).setLowerBound(b - Numerical::fabs(r));
+                        model->getConstraints().at(rowIndex).setUpperBound(b);
+                    }
+                    break;
+                default:
+                    DEVINFO(D::MPSREADER, "Error,  rowIter->first.m_type = " << rowIter->first.m_type);
+                    break;
+            }
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     result.setLowerBound(0);
     result.setUpperBound(0);
     return result;
