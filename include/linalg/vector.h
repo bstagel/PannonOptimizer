@@ -43,7 +43,7 @@ class Vector
 #define IN_VECTOR
 
     friend class ModelIO;
-    friend class MpsProblem;
+    friend class MpsModelBuilder;
     friend class Linalg;
     friend class VectorTestSuite;
 public:

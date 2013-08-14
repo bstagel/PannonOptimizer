@@ -2616,7 +2616,7 @@ void ManualModelBuilderTestSuite::buildRow()
     unsigned int rowIndex;
     Vector row;
     for (rowIndex = 0; rowIndex < 12; rowIndex++) {
-        builder.buildRow(rowIndex, &row);
+        builder.buildRow(rowIndex, &row, 0);
         TEST_ASSERT(row.length() == 12);
 
         switch (rowIndex) {
@@ -2724,7 +2724,7 @@ void ManualModelBuilderTestSuite::buildColumn()
     unsigned int columnIndex;
     Vector column;
     for (columnIndex = 0; columnIndex < 12; columnIndex++) {
-        builder.buildColumn(columnIndex, &column);
+        builder.buildColumn(columnIndex, &column, 0);
         TEST_ASSERT(column.length() == 12);
 
         switch (columnIndex) {

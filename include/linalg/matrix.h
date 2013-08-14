@@ -19,7 +19,7 @@ class Matrix
 {
     friend class MatrixTestSuite;
     friend class ModelIO;
-    friend class MpsProblem;
+    friend class MpsModelBuilder;
 public:
     /**
      * Constructor of the Matrix class. Creates a matrix filled with
