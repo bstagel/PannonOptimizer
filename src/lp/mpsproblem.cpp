@@ -21,15 +21,15 @@
 
 
 template <int type>
-unsigned int MpsProblem::MpsError<type>::sm_count = 0;
+unsigned int MpsModelBuilder::MpsError<type>::sm_count = 0;
 template <int type>
-unsigned int MpsProblem::MpsError<type>::sm_limit = 0;
+unsigned int MpsModelBuilder::MpsError<type>::sm_limit = 0;
 
-unsigned int MpsProblem::MpsErrorData::sm_warningCount = 0;
-unsigned int MpsProblem::MpsErrorData::sm_errorCount = 0;
-unsigned int MpsProblem::MpsErrorData::sm_fatalErrorCount = 0;
+unsigned int MpsModelBuilder::MpsErrorData::sm_warningCount = 0;
+unsigned int MpsModelBuilder::MpsErrorData::sm_errorCount = 0;
+unsigned int MpsModelBuilder::MpsErrorData::sm_fatalErrorCount = 0;
 
-const char * MpsProblem::sm_expectedSection[] = {
+const char * MpsModelBuilder::sm_expectedSection[] = {
     "ROWS", "COLUMNS", "RHS", "RANGES, BOUNDS or ENDATA",
     "BOUNDS or ENDATA", "ENDATA"
 };
@@ -37,7 +37,7 @@ const char * MpsProblem::sm_expectedSection[] = {
 //#define CHECK_PARSE_DOUBLE
 //TODO: utolso bitben valo elteres javitasa
 
-inline const char * MpsProblem::parseDouble(const register char * ptr, Numerical::Double * val)
+inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Numerical::Double * val)
 {
 
     enum NUMBER_PART
@@ -372,7 +372,7 @@ void ReleaseHashKeyProducer(mps_hash_key_producer & hkp)
     hkp.m_head = 0;
 }
 
-MpsProblem::MpsProblem()
+MpsModelBuilder::MpsModelBuilder()
 {
     m_line = 0;
     InitHashKeyProducer(m_hkp);
@@ -381,7 +381,7 @@ MpsProblem::MpsProblem()
     m_rhs.init(m_colHashFunc, MPS_HASH_TABLE_SIZE);
     m_bounds.init(m_boundHashFunc, MPS_HASH_TABLE_SIZE);
     m_ranges.init(m_colHashFunc, MPS_HASH_TABLE_SIZE);
-    //    m_costRowPointer = 0;
+    m_objectiveConstant = 0;
 
     MpsError<INVALID_ROW_TYPE>::setLimit(10);
     MpsError<INVALID_ROW_NAME>::setLimit(10);
@@ -411,17 +411,17 @@ MpsProblem::MpsProblem()
     MpsError<VALUE_OVERRIDED>::setLimit(10);
 }
 
-MpsProblem::MpsProblem(const MpsProblem & orig) : 
-    ModelBuilder(orig)
+MpsModelBuilder::MpsModelBuilder(const MpsModelBuilder & orig) :
+ModelBuilder(orig)
 {
 }
 
-MpsProblem::~MpsProblem()
+MpsModelBuilder::~MpsModelBuilder()
 {
     ReleaseHashKeyProducer(m_hkp);
 }
 
-const char * MpsProblem::checkEmptyField(const register char * ptr, register int length)
+const char * MpsModelBuilder::checkEmptyField(const register char * ptr, register int length)
 {
     while (*ptr == ' ' && length > 1) {
         ptr++;
@@ -433,7 +433,7 @@ const char * MpsProblem::checkEmptyField(const register char * ptr, register int
     return ptr;
 }
 
-inline const char * MpsProblem::skipWhiteSpace(const register char * ptr)
+inline const char * MpsModelBuilder::skipWhiteSpace(const register char * ptr)
 {
     while (*ptr <= ' ') {
         ptr++;
@@ -443,7 +443,7 @@ inline const char * MpsProblem::skipWhiteSpace(const register char * ptr)
     return ptr;
 }
 
-inline const char * MpsProblem::goToEndLineOrWord(const register char * ptr)
+inline const char * MpsModelBuilder::goToEndLineOrWord(const register char * ptr)
 {
     int offset = 0;
     const unsigned int * intPtr = (const unsigned int*) ptr;
@@ -474,7 +474,7 @@ inline const char * MpsProblem::goToEndLineOrWord(const register char * ptr)
     return ptr;
 }
 
-const char * MpsProblem::goToEndLine(const register char * ptr)
+const char * MpsModelBuilder::goToEndLine(const register char * ptr)
 {
     int offset = 0;
     while (*ptr != '\n' && *ptr != '\0') {
@@ -493,7 +493,7 @@ const char * MpsProblem::goToEndLine(const register char * ptr)
     return ptr;
 }
 
-inline const char * MpsProblem::copyWord(const register char * ptr, register char * dest,
+inline const char * MpsModelBuilder::copyWord(const register char * ptr, register char * dest,
     register int length, MPS_ERROR_TYPE & errorCode)
 {
     errorCode = NO_ERROR;
@@ -539,7 +539,7 @@ inline const char * MpsProblem::copyWord(const register char * ptr, register cha
 // ha a mezo vege elott olvas, akkor a szokozoket is beleveszi, ha utana van
 // akkor az elso szokoz utan vag
 
-const char * MpsProblem::copyId(const register char * ptr, register char * dest,
+const char * MpsModelBuilder::copyId(const register char * ptr, register char * dest,
     int index, int fieldEnd, MPS_ERROR_TYPE & errorCode, register unsigned int * hash)
 {
     errorCode = NO_ERROR;
@@ -615,7 +615,7 @@ const char * MpsProblem::copyId(const register char * ptr, register char * dest,
     return ptr;
 }
 
-const char * MpsProblem::copyName(const register char * ptr, register char * dest,
+const char * MpsModelBuilder::copyName(const register char * ptr, register char * dest,
     register int length, MPS_ERROR_TYPE & errorCode)
 {
     register int len = 0;
@@ -662,7 +662,7 @@ const char * MpsProblem::copyName(const register char * ptr, register char * des
     return ptr;
 }
 
-const char * MpsProblem::getSectionName(SECTION_TYPE type)
+const char * MpsModelBuilder::getSectionName(SECTION_TYPE type)
 {
     switch (type) {
         case SEC_NAME:
@@ -683,12 +683,12 @@ const char * MpsProblem::getSectionName(SECTION_TYPE type)
     return "Invalid section";
 }
 
-const char * MpsProblem::getActualSectionName()
+const char * MpsModelBuilder::getActualSectionName()
 {
     return getSectionName(m_section);
 }
 
-void MpsProblem::invalidStartFieldError(int index, int field_start)
+void MpsModelBuilder::invalidStartFieldError(int index, int field_start)
 {
     std::stringstream str;
     str << " word starts at " << index <<
@@ -697,7 +697,7 @@ void MpsProblem::invalidStartFieldError(int index, int field_start)
         MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidEndFieldError(int index, int field_end)
+void MpsModelBuilder::invalidEndFieldError(int index, int field_end)
 {
     std::stringstream str;
     str << " word ends at " << index <<
@@ -706,28 +706,28 @@ void MpsProblem::invalidEndFieldError(int index, int field_end)
         MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidRowTypeError(const char * type)
+void MpsModelBuilder::invalidRowTypeError(const char * type)
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INVALID_ROW_TYPE > (m_line, m_section,
         "invalid row type: " + std::string(type), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidRowName(const char * row)
+void MpsModelBuilder::invalidRowName(const char * row)
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INVALID_ROW_NAME > (m_line, m_section,
         "invalid row: \"" + std::string(row) + "\"", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidColumnName(const char * column)
+void MpsModelBuilder::invalidColumnName(const char * column)
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INVALID_COLUMN_NAME > (m_line, m_section,
         "invalid column: \"" + std::string(column) + "\"", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::valueOverridedError(const char * column, const char * row, Numerical::Double original,
+void MpsModelBuilder::valueOverridedError(const char * column, const char * row, Numerical::Double original,
     Numerical::Double newValue)
 {
     m_modifyLogicErrors++;
@@ -755,14 +755,14 @@ void MpsProblem::valueOverridedError(const char * column, const char * row, Nume
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidBoundType(const char * bound)
+void MpsModelBuilder::invalidBoundType(const char * bound)
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INVALID_BOUND_TYPE > (m_line, m_section,
         "invalid bound type: " + std::string(bound), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidComment(unsigned int position)
+void MpsModelBuilder::invalidComment(unsigned int position)
 {
     std::stringstream str;
     str << "invalid comment, comment starts at position " << position;
@@ -770,7 +770,7 @@ void MpsProblem::invalidComment(unsigned int position)
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidNumberFormat(const char * number, Numerical::Double parsed)
+void MpsModelBuilder::invalidNumberFormat(const char * number, Numerical::Double parsed)
 {
     m_modifyNumericErrors++;
     std::stringstream str;
@@ -784,7 +784,7 @@ void MpsProblem::invalidNumberFormat(const char * number, Numerical::Double pars
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::invalidSectionName(const char * name, const char * expected)
+void MpsModelBuilder::invalidSectionName(const char * name, const char * expected)
 {
     m_modifyLogicErrors++;
     std::stringstream str;
@@ -793,7 +793,7 @@ void MpsProblem::invalidSectionName(const char * name, const char * expected)
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::unknownSectionName(const char * name, int start, int end)
+void MpsModelBuilder::unknownSectionName(const char * name, int start, int end)
 {
     m_modifyLogicErrors++;
     std::stringstream str;
@@ -803,13 +803,13 @@ void MpsProblem::unknownSectionName(const char * name, int start, int end)
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::unnecessaryContentError()
+void MpsModelBuilder::unnecessaryContentError()
 {
     m_errors.push_back(MpsError<UNNECESSARY_CONTENT > (m_line, m_section,
         "unnecessary content", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::tooLongWordError(const char * word, bool logicModify)
+void MpsModelBuilder::tooLongWordError(const char * word, bool logicModify)
 {
     if (logicModify) {
         m_modifyLogicErrors++;
@@ -818,33 +818,33 @@ void MpsProblem::tooLongWordError(const char * word, bool logicModify)
         "too long word: " + std::string(word), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::missingCommentError(const char * word)
+void MpsModelBuilder::missingCommentError(const char * word)
 {
     m_errors.push_back(MpsError<MISSING_COMMENT > (m_line, m_section,
         "missing comment sign (*) after " + std::string(word), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::rowExistsError(const char * row)
+void MpsModelBuilder::rowExistsError(const char * row)
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<ROW_EXISTS > (m_line, m_section,
         "row exists: " + std::string(row), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::columnExistsError(const char * column)
+void MpsModelBuilder::columnExistsError(const char * column)
 {
     m_errors.push_back(MpsError<COLUMN_EXISTS > (m_line, m_section,
         "column already exists: " + std::string(column), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::incompleteRecordError()
+void MpsModelBuilder::incompleteRecordError()
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INCOMPLETE_RECORD > (m_line, m_section,
         "incomplete record", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::tooLongRecordError(unsigned int length)
+void MpsModelBuilder::tooLongRecordError(unsigned int length)
 {
     std::stringstream str;
     str << "too long record ( " << length << " characters )";
@@ -852,51 +852,51 @@ void MpsProblem::tooLongRecordError(unsigned int length)
         str.str(), MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::missingNameSection()
+void MpsModelBuilder::missingNameSection()
 {
     m_errors.push_back(MpsError<NAME_MISSING > (m_line, m_section,
         "missing NAME section", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::missingRowsSection()
+void MpsModelBuilder::missingRowsSection()
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<ROWS_MISSING > (m_line, m_section,
         "missing ROWS section", MpsErrorData::FATAL_ERROR).getData());
 }
 
-void MpsProblem::missingColumnsSection()
+void MpsModelBuilder::missingColumnsSection()
 {
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<COLUMNS_MISSING > (m_line, m_section,
         "missing COLUMNS section", MpsErrorData::FATAL_ERROR).getData());
 }
 
-void MpsProblem::missingRhsSection()
+void MpsModelBuilder::missingRhsSection()
 {
     m_errors.push_back(MpsError<RHS_MISSING > (m_line, m_section,
         "missing RHS section", MpsErrorData::ERROR).getData());
 }
 
-void MpsProblem::missingRangesSection()
+void MpsModelBuilder::missingRangesSection()
 {
     m_errors.push_back(MpsError<RANGES_MISSING > (m_line, m_section,
         "missing RANGES section", MpsErrorData::WARNING).getData());
 }
 
-void MpsProblem::missingBoundsSection()
+void MpsModelBuilder::missingBoundsSection()
 {
     m_errors.push_back(MpsError<BOUNDS_MISSING > (m_line, m_section,
         "missing BOUNDS section", MpsErrorData::WARNING).getData());
 }
 
-void MpsProblem::missingEndataSection()
+void MpsModelBuilder::missingEndataSection()
 {
     m_errors.push_back(MpsError<ENDATA_MISSING > (m_line, m_section,
         "missing ENDATA section", MpsErrorData::ERROR).getData());
 }
 
-const char * MpsProblem::nextRowType(const register char * ptr, ROW_INFO & info, bool)
+const char * MpsModelBuilder::nextRowType(const register char * ptr, ROW_INFO & info, bool)
 {
     char word[MAX_ROW_WITH];
     MPS_ERROR_TYPE errorCode;
@@ -999,7 +999,7 @@ const char * MpsProblem::nextRowType(const register char * ptr, ROW_INFO & info,
     return ptr;
 }
 
-const char * MpsProblem::readName(const register char * ptr, ROW_INFO & info)
+const char * MpsModelBuilder::readName(const register char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     char name[61];
@@ -1038,7 +1038,7 @@ const char * MpsProblem::readName(const register char * ptr, ROW_INFO & info)
 // egy sor rekordot dolgoz fel, ptr a 0. karakteren all, amirol feltetelezhetjuk hogy szokoz
 // a beolvasas vegen a kovetkezo rekord elejere allitja a ptr-t
 
-inline const char * MpsProblem::readRowRecord(const register char * ptr, ROW_INFO & info)
+inline const char * MpsModelBuilder::readRowRecord(const register char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     /*if (*ptr == '*') {
@@ -1130,7 +1130,7 @@ inline const char * MpsProblem::readRowRecord(const register char * ptr, ROW_INF
     MPS_RETURN(ptr);
 }
 
-void MpsProblem::clearActualColumnData()
+void MpsModelBuilder::clearActualColumnData()
 {
     if (m_actualColumnData) {
         List< Column::Pair >::Iterator iter = m_actualColumnData->m_coeffs.begin();
@@ -1142,7 +1142,7 @@ void MpsProblem::clearActualColumnData()
     }
 }
 
-inline const char * MpsProblem::readColumnRecord(const register char * ptr,
+inline const char * MpsModelBuilder::readColumnRecord(const register char * ptr,
     HashTable<Column, int, hash_function<Column> > & columns, ROW_INFO & info,
     std::vector<Column*> * indexTable)
 {
@@ -1311,7 +1311,10 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
                 } else if (row_id < (int) m_costVectorIndex) {*/
                 if (isCostValue == false) {
                     col_ptr->add(row_id, value);
+                } else if (m_section == SEC_RHS) {
+                    m_objectiveConstant = value;
                 }
+
                 //}
                 m_actualColumnData = col_ptr;
                 if (m_section == SEC_COLUMNS) {
@@ -1414,6 +1417,8 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
             } else if (value > (int) m_costVectorIndex) {*/
             if (isCostValue == false) {
                 col_ptr->add(row_id, value);
+            } else if (m_section == SEC_RHS) {
+                m_objectiveConstant = value;
             }
             //}
             if (m_section == SEC_COLUMNS) {
@@ -1449,7 +1454,7 @@ inline const char * MpsProblem::readColumnRecord(const register char * ptr,
     MPS_RETURN(ptr);
 }
 
-inline const char * MpsProblem::readBoundRecord(const register char * ptr, ROW_INFO & info)
+inline const char * MpsModelBuilder::readBoundRecord(const register char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     if (*ptr == ' ') {
@@ -1609,7 +1614,7 @@ inline const char * MpsProblem::readBoundRecord(const register char * ptr, ROW_I
     MPS_RETURN(ptr);
 }
 
-void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
+void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
     Numerical::Double bound, bool newReady)
 {
     //DEVINFO(D::MPSREADER,"MpsProblem::setBound " << columnIndex << ", " << type << " " << bound);
@@ -1759,7 +1764,7 @@ void MpsProblem::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
     }
 }
 
-void MpsProblem::printVariableStatistics()
+void MpsModelBuilder::printVariableStatistics()
 {
     m_plusTypeCount = 0;
     m_minusTypeCount = 0;
@@ -1796,7 +1801,7 @@ void MpsProblem::printVariableStatistics()
     LPINFO("Number of free type variables: " << m_freeTypeCount);
 }
 
-void MpsProblem::loadFromFile(const char * filename)
+void MpsModelBuilder::loadFromFile(const char * filename)
 {
     const char * shortFileName = filename;
     const char * lastslash = NULL;
@@ -1826,6 +1831,7 @@ void MpsProblem::loadFromFile(const char * filename)
     clock_t cl_start, cl_end;
     cl_start = clock();
 
+    m_objectiveConstant = 0;
     m_rhsIndex = 0;
     m_boundsIndex = 0;
     m_rangesIndex = 0;
@@ -2024,6 +2030,9 @@ void MpsProblem::loadFromFile(const char * filename)
         m_line--;
         m_file.close();
 
+        collectConstraintBounds();
+        collectVariableBounds();
+
         if (nameOk == false) {
             missingNameSection();
         }
@@ -2070,6 +2079,104 @@ void MpsProblem::loadFromFile(const char * filename)
     cl_mps = (Numerical::Double) (cl_end - cl_start);
 }
 
+void MpsModelBuilder::collectConstraintBounds()
+{
+    const unsigned int rhsIndex = 0;
+    const unsigned int rangesIndex = 0;
+    const unsigned int rowCount = getRowCount();
+    m_constraints.resize(getRowCount());
+    Vector ranges(rowCount);
+    Vector rhs(rowCount);
+    ranges.setSparsityRatio(0.0);
+    rhs.setSparsityRatio(0.0);
+    std::vector<bool> rangesGiven(rowCount, false);
+    //std::vector<bool> rhsGiven(rowCount, false);
+    getColumnVector(rhsIndex, &rhs, m_rhs, 0);
+
+    getColumnVector(rangesIndex, &ranges, m_ranges, &rangesGiven);
+
+    // row type       sign of r       h          u
+    //----------------------------------------------
+    //   G            + or -         b        b + |r|
+    //   L            + or -       b - |r|      b
+    //   E              +            b        b + |r|
+    //   E              -          b - |r|      b
+    // rowLower es rowUpper beallitasa
+    std::vector< std::map<Row, int> >::const_iterator rowHashIter =
+        m_rows.m_table.begin();
+    std::vector< std::map<Row, int> >::const_iterator rowHashIterEnd =
+        m_rows.m_table.end();
+    std::map<Row, int>::const_iterator rowIter;
+    std::map<Row, int>::const_iterator rowIterEnd;
+    for (; rowHashIter < rowHashIterEnd; rowHashIter++) {
+        rowIter = rowHashIter->begin();
+        rowIterEnd = rowHashIter->end();
+        for (; rowIter != rowIterEnd; rowIter++) {
+            int rowIndex = rowIter->second;
+            Constraint & constraint = m_constraints[rowIndex];
+            Numerical::Double b = rhs.at(rowIndex);
+            Numerical::Double r = ranges.at(rowIndex);
+            //            if (m_costVectorReady && rowIndex >= (int) m_costVectorIndex) {
+            //                if (rowIndex == (int) m_costVectorIndex) {
+            //                    model->setObjConst(-b);
+            //                    model->setObjName(rowIter->first.m_name);
+            //                    continue;
+            //                }
+            //                rowIndex--;
+            //            }
+            constraint.setName(rowIter->first.m_name);
+            switch (rowIter->first.m_type) {
+                case 'N':
+                    constraint.setLowerBound(-PInfinity);
+                    constraint.setUpperBound(PInfinity);
+                    break;
+                case 'G':
+                    constraint.setLowerBound(b);
+                    if (!rangesGiven[rowIndex]) {
+                        r = PInfinity;
+                    }
+                    constraint.setUpperBound(b + Numerical::fabs(r));
+                    break;
+                case 'L':
+                    if (!rangesGiven[rowIndex]) {
+                        r = -PInfinity;
+                    }
+                    constraint.setLowerBound(b - Numerical::fabs(r));
+                    constraint.setUpperBound(b);
+                    break;
+                case 'E':
+                    if (r >= 0) {
+                        constraint.setLowerBound(b);
+                        constraint.setUpperBound(b + Numerical::fabs(r));
+                    } else if (r < 0) {
+                        constraint.setLowerBound(b - Numerical::fabs(r));
+                        constraint.setUpperBound(b);
+                    }
+                    break;
+                default:
+                    DEVINFO(D::MPSREADER, "Error,  rowIter->first.m_type = " << rowIter->first.m_type);
+                    break;
+            }
+        }
+    }
+
+}
+
+void MpsModelBuilder::collectVariableBounds()
+{
+    m_variables.resize(getColumnCount());
+
+    unsigned int index;
+    std::vector<Numerical::Double>::const_iterator upperIter = m_columnUpper.begin();
+    std::vector<Numerical::Double>::const_iterator lowerIter = m_columnLower.begin();
+    std::vector<Numerical::Double>::const_iterator upperIterEnd = m_columnUpper.end();
+    for (index = 0; upperIter < upperIterEnd; index++, upperIter++, lowerIter++) {
+        m_variables[ index ].setLowerBound(*lowerIter);
+        m_variables[ index ].setUpperBound(*upperIter);
+        m_variables[ index ].setName(m_columnIndexTable[index]->m_name);
+    }
+}
+
 /*void MpsProblem::saveToFile(const char * filename, const Model & model)
 {
     //FILE * fd = fopen(filename, "wb");
@@ -2097,7 +2204,7 @@ void MpsProblem::loadFromFile(const char * filename)
     ofs.close();
 }*/
 
-char * MpsProblem::saveEndLine(std::ofstream & ofs, char * actual, char * const buffer,
+char * MpsModelBuilder::saveEndLine(std::ofstream & ofs, char * actual, char * const buffer,
     const char * const endBuffer)
 {
 #ifndef __unix__
@@ -2735,7 +2842,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
     return;
 }*/
 
-void MpsProblem::getColumnVector(unsigned int columnIndex, Vector * vector,
+void MpsModelBuilder::getColumnVector(unsigned int columnIndex, Vector * vector,
     const HashTable<Column, int, hash_function<Column> > & columnHashTable,
     std::vector<bool> * given)
 {
@@ -2751,22 +2858,11 @@ void MpsProblem::getColumnVector(unsigned int columnIndex, Vector * vector,
         col_end = columnHashIter->end();
         for (; col_iter != col_end; col_iter++) {
             if (col_iter->second == (int) columnIndex) {
-                //                std::map<unsigned int, Numerical::Double>::const_iterator row_iter = col_iter->first.m_coeffs.begin();
-                //                std::map<unsigned int, Numerical::Double>::const_iterator row_end = col_iter->first.m_coeffs.end();
-                //                AvlTree<unsigned int, Numerical::Double>::Iterator row_iter = col_iter->first.m_coeffs.begin();
-                //                AvlTree<unsigned int, Numerical::Double>::Iterator row_end = col_iter->first.m_coeffs.end();
                 List< Column::Pair >::Iterator row_iter = col_iter->first.m_coeffs.begin();
                 List< Column::Pair >::Iterator row_end = col_iter->first.m_coeffs.end();
 
                 for (; row_iter != row_end; row_iter++) {
-                    //                    if (strcmp(  ->first.m_name , "DCBOSORD") == 0) {
-                    //                        LPINFO("megvagy: " << row_iter.getData().m_index << " " << row_iter.getData().m_value);
-                    //                        std::cin.get();
-                    //                    }
                     if (given) {
-                        //                        if (row_iter.getData().m_index == 157 && row_iter.getData().m_value) {
-                        //                            LPINFO("itt van a gond");
-                        //                        }
                         if (row_iter.getData().m_index >= m_costVectorIndex) {
                             (*given)[row_iter.getData().m_index - 1] = true;
                         } else {
@@ -2774,68 +2870,67 @@ void MpsProblem::getColumnVector(unsigned int columnIndex, Vector * vector,
                         }
                     }
                     vector->set(row_iter.getData().m_index, row_iter.getData().m_value);
-                    //problem.getRhs().set(row_iter->first, row_iter->second);
                 }
             }
         }
     }
 }
 
-void MpsProblem::setRhsIndex(int rhsIndex)
+void MpsModelBuilder::setRhsIndex(int rhsIndex)
 {
 
     m_rhsIndex = rhsIndex;
 }
 
-void MpsProblem::setBoundsIndex(int boundsIndex)
+void MpsModelBuilder::setBoundsIndex(int boundsIndex)
 {
 
     m_boundsIndex = boundsIndex;
 }
 
-void MpsProblem::setRangesIndex(int rangesIndex)
+void MpsModelBuilder::setRangesIndex(int rangesIndex)
 {
 
     m_rangesIndex = rangesIndex;
 }
 
-int MpsProblem::getRhsIndex() const
+int MpsModelBuilder::getRhsIndex() const
 {
 
     return m_rhsIndex;
 }
 
-int MpsProblem::getBoundsIndex() const
+int MpsModelBuilder::getBoundsIndex() const
 {
 
     return m_boundsIndex;
 }
 
-int MpsProblem::getRangesIndex() const
+int MpsModelBuilder::getRangesIndex() const
 {
 
     return m_rangesIndex;
 }
 
-int MpsProblem::getRhsCount() const
+int MpsModelBuilder::getRhsCount() const
 {
 
     return m_rows.getCount();
 }
 
-int MpsProblem::getBoundsCount() const
+int MpsModelBuilder::getBoundsCount() const
 {
 
     return m_bounds.getCount();
 }
 
-int MpsProblem::getRangesCount() const
+int MpsModelBuilder::getRangesCount() const
 {
 
     return m_ranges.getCount();
 }
 
-void MpsProblem::report(int debugLevel)
+void MpsModelBuilder::report(int debugLevel)
 {
     if (debugLevel >= 1.) {
         Numerical::Double sparsity;
@@ -2875,9 +2970,9 @@ void MpsProblem::report(int debugLevel)
     //}
 }
 
-clock_t MpsProblem::cl_mps = 0;
+clock_t MpsModelBuilder::cl_mps = 0;
 
-clock_t MpsProblem::lastReadingTime()
+clock_t MpsModelBuilder::lastReadingTime()
 {
     return cl_mps;
 }
@@ -2953,131 +3048,44 @@ clock_t MpsProblem::lastReadingTime()
         }
 }*/
 
-unsigned int MpsProblem::getColumnCount() const
+unsigned int MpsModelBuilder::getColumnCount() const
 {
     return m_columns.getCount();
 }
 
-unsigned int MpsProblem::getRowCount() const
+unsigned int MpsModelBuilder::getRowCount() const
 {
     return m_rows.getCount(); // - (m_costVectorReady ? 1 : 0);
 }
 
-const Variable & MpsProblem::getVariable(unsigned int index) const
+const Variable & MpsModelBuilder::getVariable(unsigned int index) const
 {
-    static Variable result;
-    //    cout << index << " / " << m_columnIndexTable.size() << " " << m_columnIndexTable[index]->m_name << endl;
-    result.setName(m_columnIndexTable[index]->m_name);
-    result.setLowerBound(0);
-
-    result.setUpperBound(0);
-    result.setValue(0);
-    return result;
+    return m_variables[index];
 }
 
-const Constraint & MpsProblem::getConstraint(unsigned int index) const
+const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const
 {
-    static Constraint result;
-    //cout << index << " / " << m_rowIndexTable.size() << " " << m_rowIndexTable[index]->m_name << endl;
-    result.setName(m_rowIndexTable[index]->m_name);
-
-/*            Numerical::Double b = rhs.at(rowIndex);
-            Numerical::Double r = ranges.at(rowIndex);
-//            if (m_costVectorReady && rowIndex >= (int) m_costVectorIndex) {
-//                if (rowIndex == (int) m_costVectorIndex) {
-//                    model->setObjConst(-b);
-//                    model->setObjName(rowIter->first.m_name);
-//                    continue;
-//                }
-//                rowIndex--;
-//            }
-            switch (m_rowIndexTable[index].m_type) {
-                case 'N':
-                    model->getConstraints().at(rowIndex).setLowerBound(-infinity);
-                    model->getConstraints().at(rowIndex).setUpperBound(infinity);
-                    break;
-                case 'G':
-                    model->getConstraints().at(rowIndex).setLowerBound(b);
-                    if (!rangesGiven[rowIndex]) {
-                        r = infinity;
-                    }
-                    model->getConstraints().at(rowIndex).setUpperBound(b + Numerical::fabs(r));
-                    break;
-                case 'L':
-                    if (!rangesGiven[rowIndex]) {
-                        r = -infinity;
-                    }
-                    model->getConstraints().at(rowIndex).setLowerBound(b - Numerical::fabs(r));
-                    model->getConstraints().at(rowIndex).setUpperBound(b);
-                    break;
-                case 'E':
-                    if (r >= 0) {
-                        //rowLower.set(rowIndex, b);
-                        //rowUpper.set(rowIndex, b + Numerical::fabs(r));
-
-                        model->getConstraints().at(rowIndex).setLowerBound(b);
-                        model->getConstraints().at(rowIndex).setUpperBound(b + Numerical::fabs(r));
-                    } else if (r < 0) {
-                        //rowLower.set(rowIndex, b - Numerical::fabs(r));
-                        //rowUpper.set(rowIndex, b);
-                        model->getConstraints().at(rowIndex).setLowerBound(b - Numerical::fabs(r));
-                        model->getConstraints().at(rowIndex).setUpperBound(b);
-                    }
-                    break;
-                default:
-                    DEVINFO(D::MPSREADER, "Error,  rowIter->first.m_type = " << rowIter->first.m_type);
-                    break;
-            }
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    result.setLowerBound(0);
-    result.setUpperBound(0);
-    return result;
+    return m_constraints[index];
 }
 
-void MpsProblem::buildRow(unsigned int, Vector *) const
+void MpsModelBuilder::buildRow(unsigned int, Vector *, std::vector<unsigned int> *) const
 {
 }
 
-void MpsProblem::buildColumn(unsigned int index, Vector * columnVector) const
+void MpsModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
+    std::vector<unsigned int> * nonzeros) const
 {
     columnVector->prepareForData(m_columnIndexTable[index]->m_coeffs.size(), getRowCount());
     List<Column::Pair>::Iterator iter = m_columnIndexTable[index]->m_coeffs.begin();
     List<Column::Pair>::Iterator iterEnd = m_columnIndexTable[index]->m_coeffs.end();
-//    cout << "++++++++++++++++++++++++++++++++++++++" << endl;
+    //    cout << "++++++++++++++++++++++++++++++++++++++" << endl;
     for (; iter != iterEnd; iter++) {
-//        cout << iter.getData().m_index << endl;
         columnVector->newNonZero(iter.getData().m_value, iter.getData().m_index);
+        nonzeros->at(iter.getData().m_index)++;
     }
 }
 
-void MpsProblem::buildCostVector(Vector * costVector) const
+void MpsModelBuilder::buildCostVector(Vector * costVector) const
 {
     costVector->prepareForData(m_costVector.size(), getColumnCount());
     List<Column::Pair>::Iterator iter = m_costVector.begin();
@@ -3087,12 +3095,22 @@ void MpsProblem::buildCostVector(Vector * costVector) const
     }
 }
 
-Numerical::Double MpsProblem::getObjectiveConstant() const
+Numerical::Double MpsModelBuilder::getObjectiveConstant() const
 {
-    return 0;
+    return m_objectiveConstant;
 }
 
-std::string MpsProblem::getName() const
+std::string MpsModelBuilder::getName() const
 {
     return m_name;
+}
+
+bool MpsModelBuilder::hasRowwiseRepresentation() const
+{
+    return false;
+}
+
+bool MpsModelBuilder::hasColumnwiseRepresentation() const
+{
+    return true;
 }

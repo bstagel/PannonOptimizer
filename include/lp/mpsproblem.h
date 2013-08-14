@@ -179,7 +179,7 @@ inline bool key_comp(register const char * k1, register const char * k2)
 template<class KEY, class VALUE, class HASH_FUNC>
 class HashTable
 {
-    friend class MpsProblem;
+    friend class MpsModelBuilder;
 public:
 
     /**
@@ -361,7 +361,7 @@ public:
 
 /**
  */
-class MpsProblem : public ModelBuilder
+class MpsModelBuilder : public ModelBuilder
 {
     // FIXME: CONFLICTING DEFINE AND ENUMERATED CONSTANTS
 #ifdef _WINERROR_H
@@ -478,7 +478,7 @@ class MpsProblem : public ModelBuilder
      */
     class Row
     {
-        friend class MpsProblem;
+        friend class MpsModelBuilder;
         /**
          */
         char m_type;
@@ -523,7 +523,7 @@ class MpsProblem : public ModelBuilder
      */
     class Column
     {
-        friend class MpsProblem;
+        friend class MpsModelBuilder;
 
         struct Pair
         {
@@ -594,7 +594,7 @@ class MpsProblem : public ModelBuilder
      */
     class Bound
     {
-        friend class MpsProblem;
+        friend class MpsModelBuilder;
 
         /**
          */
@@ -731,7 +731,7 @@ class MpsProblem : public ModelBuilder
                     break;
             }
             std::stringstream str;
-            str << "row: [" << row << "], section: " << MpsProblem::getSectionName(section) <<
+            str << "row: [" << row << "], section: " << MpsModelBuilder::getSectionName(section) <<
                     ", error code: " << type << " : " << text;
             if (sm_count < sm_limit) {
                 if (level != MpsErrorData::WARNING) {
@@ -842,20 +842,28 @@ class MpsProblem : public ModelBuilder
     /**
      */
     Row m_costRow;
+    
+    Numerical::Double m_objectiveConstant;
+    /**
+    */
+    std::vector<Constraint> m_constraints;
+    /**
+     */
+    std::vector<Variable> m_variables;
 public:
     /**
      *
      */
-    MpsProblem();
+    MpsModelBuilder();
     /**
      *
      * @param orig
      */
-    MpsProblem(const MpsProblem& orig);
+    MpsModelBuilder(const MpsModelBuilder& orig);
     /**
      *
      */
-    virtual ~MpsProblem();
+    virtual ~MpsModelBuilder();
     /**
      *
      * @param filename
@@ -972,14 +980,16 @@ public:
      * @param index
      * @param rowVector
      */
-    void buildRow(unsigned int index, Vector * rowVector) const;
+    void buildRow(unsigned int index, Vector * rowVector,
+        std::vector<unsigned int> * nonzeros) const;
 
     /**
      * 
      * @param index
      * @param columnVector
      */
-    void buildColumn(unsigned int index, Vector * columnVector) const;
+    void buildColumn(unsigned int index, Vector * columnVector,
+        std::vector<unsigned int> * nonzeros) const;
 
     /**
      * 
@@ -999,6 +1009,17 @@ public:
      */
     std::string getName() const;    
     
+    /**
+     * 
+     * @return 
+     */
+    bool hasRowwiseRepresentation() const;
+    
+    /**
+     * 
+     * @return 
+     */
+    bool hasColumnwiseRepresentation() const;
 private:
 
     /**
@@ -1124,6 +1145,9 @@ private:
 //            const Vector & column, const char * columnName, int colIndex,
 //            Numerical::Double costValue, const Vector & costVector);
 
+    void collectConstraintBounds();
+    void collectVariableBounds();
+    
     void printVariableStatistics();
     /**
      *
