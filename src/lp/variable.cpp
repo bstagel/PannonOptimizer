@@ -5,6 +5,16 @@
 #include <lp/variable.h>
 #include <sstream>
 
+Variable Variable::createVariable(const char * name,
+    Numerical::Double value,
+    Numerical::Double lowerBound,
+    Numerical::Double upperBound)throw (InvalidLowerBoundException,
+    InvalidUpperBoundException,
+    InvalidBoundsException)
+{
+    return Variable(lowerBound, upperBound, value, name);
+}
+
 Variable Variable::createPlusTypeVariable(const char * name,
     Numerical::Double value,
     Numerical::Double lowerBound) throw (Variable::InvalidLowerBoundException)
@@ -22,7 +32,9 @@ Variable Variable::createMinusTypeVariable(const char * name,
 Variable Variable::createBoundedTypeVariable(const char * name,
     Numerical::Double value,
     Numerical::Double lowerBound,
-    Numerical::Double upperBound)
+    Numerical::Double upperBound)throw (InvalidLowerBoundException,
+    InvalidUpperBoundException,
+    InvalidBoundsException)
 {
     return Variable(lowerBound, upperBound, value, name);
 }

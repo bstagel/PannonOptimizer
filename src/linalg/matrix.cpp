@@ -299,8 +299,8 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     std::vector<bool> inserted(vector.length(), false);
-    Vector::ConstNonzeroIterator iterator = vector.beginNonzero();
-    Vector::ConstNonzeroIterator iteratorEnd = vector.endNonzero();
+    Vector::NonzeroIterator iterator = vector.beginNonzero();
+    Vector::NonzeroIterator iteratorEnd = vector.endNonzero();
     for (; iterator < iteratorEnd; iterator++) {
         columnWise[ iterator.getIndex() ]->insertElement(index, *iterator);
         inserted[ iterator.getIndex() ] = true;
@@ -613,21 +613,6 @@ Numerical::Double Matrix::determinant(const Matrix& matrix) const
         result = -result;
     }
     return result;
-
-    /* Allocate new subMatrix */
-    /*Numerical::Double det = 0;
-
-    for (unsigned int i = 0; i < matrix.rowCount(); i++) {
-        Matrix subMatrix(matrix);
-        Numerical::Double pivot = subMatrix.get(i, 0);
-        subMatrix.removeRow(i);
-        subMatrix.removeColumn(0);
-
-        Numerical::Double subDet = determinant(subMatrix);
-        det += (i % 2 == 1 ? -1.0 : 1.0) * pivot * subDet;
-    }*/
-
-    //return det;
 }
 
 void Matrix::show() const
@@ -664,8 +649,8 @@ Vector Matrix::operator *(const Vector& rightVector) const
     Numerical::Double ratio = result.getSparsityRatio();
     result.setSparsityRatio(0.0);
 
-    Vector::ConstNonzeroIterator iter = rightVector.beginNonzero();
-    Vector::ConstNonzeroIterator iterEnd = rightVector.endNonzero();
+    Vector::NonzeroIterator iter = rightVector.beginNonzero();
+    Vector::NonzeroIterator iterEnd = rightVector.endNonzero();
     for (; iter < iterEnd; iter++) {
         result.addVector(*iter, *(m_columnWise[ iter.getIndex() ]));
     }
@@ -737,7 +722,7 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
 
 }
 
-Matrix Matrix::diagonalMatrix(const Vector& diagonal)
+Matrix Matrix::createDiagonalMatrix(const Vector& diagonal)
 {
     unsigned int m = diagonal.length();
     Matrix matrix(m, m);
@@ -749,14 +734,14 @@ Matrix Matrix::diagonalMatrix(const Vector& diagonal)
     return matrix;
 }
 
-Matrix Matrix::rowVector(const Vector& row)
+Matrix Matrix::createRowMatrix(const Vector& row)
 {
     Matrix ret(0, row.length());
     ret.appendRow(row);
     return ret;
 }
 
-Matrix Matrix::columnVector(const Vector& column)
+Matrix Matrix::createColumnMatrix(const Vector& column)
 {
     Matrix ret(column.length(), 1);
     for (unsigned int i = 0; i < column.length(); i++) {
@@ -776,8 +761,8 @@ Matrix Matrix::operator*(const Matrix& other) const
             //  b     | x2 |   | b*x2 |
             //   c    | x3 | = | c*x3 |
             //    d   | x4 |   | d*x4 |
-            Vector::ConstNonzeroIterator iter = other.column(columnIndex).beginNonzero();
-            Vector::ConstNonzeroIterator iterEnd = other.column(columnIndex).endNonzero();
+            Vector::NonzeroIterator iter = other.column(columnIndex).beginNonzero();
+            Vector::NonzeroIterator iterEnd = other.column(columnIndex).endNonzero();
             for (; iter < iterEnd; iter++) {
                 const unsigned int index = iter.getIndex();
                 if (m_rowWise[index]->nonZeros() > 0) {

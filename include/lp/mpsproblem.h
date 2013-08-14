@@ -13,15 +13,12 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-//#include <lp/model.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
 #include <utils/file.h>
 #include <debug.h>
 #include <linalg/vector.h>
-//#include <utils/avltree.h>
 #include <utils/list.h>
-#include <utils/namestorer.h>
 #include <lp/modelbuilder.h>
 
 #define MPS_RECORD_SIZE 80
@@ -108,7 +105,7 @@ struct mps_hash_key_producer
 
 void ReleaseHashKeyProducer(mps_hash_key_producer & hkp);
 
-class MpsNameStorer : public NameStorer
+/*class MpsNameStorer : public NameStorer
 {
 
     void increase()
@@ -160,7 +157,7 @@ public:
         MpsNameStorer * result = new MpsNameStorer(*this);
         return result;
     }
-};
+};*/
 
 /**
  *
@@ -1020,6 +1017,12 @@ public:
      * @return 
      */
     bool hasColumnwiseRepresentation() const;
+    
+    /**
+     * 
+     * @return 
+     */
+    OBJECTIVE_TYPE getObjectiveType() const;
 private:
 
     /**

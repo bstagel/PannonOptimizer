@@ -537,17 +537,12 @@ public:
      */
     friend std::ostream & operator<<(std::ostream & os, const Vector & vector);
 
-    inline Iterator begin()
+    inline Iterator begin() const
     {
         return Iterator(m_data, m_dataEnd, m_data, m_index);
     }
 
-    inline ConstIterator begin() const
-    {
-        return ConstIterator(m_data, m_dataEnd, m_data, m_index);
-    }
-
-    inline NonzeroIterator beginNonzero()
+    inline NonzeroIterator beginNonzero() const
     {
         CHECK;
         if (m_size == 0) {
@@ -557,36 +552,15 @@ public:
                 m_data < m_dataEnd);
     }
 
-    inline ConstNonzeroIterator beginNonzero() const
-    {
-        if (m_size == 0) {
-            return endNonzero();
-        }
-        return ConstNonzeroIterator(m_data, m_dataEnd, m_data, m_index,
-                m_data < m_dataEnd);
-    }
-
-    inline Iterator end()
+    inline Iterator end() const
     {
         return Iterator(m_data, m_dataEnd, m_dataEnd,
                 m_index ? m_index + m_size : 0);
     }
 
-    inline ConstIterator end() const
-    {
-        return ConstIterator(m_data, m_dataEnd, m_dataEnd,
-                m_index ? m_index + m_size : 0);
-    }
-
-    inline NonzeroIterator endNonzero()
+    inline NonzeroIterator endNonzero() const
     {
         return NonzeroIterator(m_data, m_dataEnd, m_dataEnd,
-                m_index ? m_index + m_size : 0, false);
-    }
-
-    inline ConstNonzeroIterator endNonzero() const
-    {
-        return ConstNonzeroIterator(m_data, m_dataEnd, m_dataEnd,
                 m_index ? m_index + m_size : 0, false);
     }
 

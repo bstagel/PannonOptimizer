@@ -4,6 +4,13 @@
 
 #include <lp/constraint.h>
 
+Constraint Constraint::createConstraint(const char * name,
+    Numerical::Double lowerBound,
+    Numerical::Double upperBound)
+{
+    return Constraint(lowerBound, upperBound, name);
+}
+
 Constraint Constraint::createGreaterTypeConstraint(const char * name,
     Numerical::Double lowerBound)
 {

@@ -21,6 +21,7 @@ public:
 private:
     void init();
     void type();
+    void createConstraint();
     void createGreaterType();
     void createLessType();
     void createRangeType();

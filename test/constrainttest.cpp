@@ -4,6 +4,7 @@ ConstraintTestSuite::ConstraintTestSuite(const char * name) : UnitTest(name)
 {
     ADD_TEST(ConstraintTestSuite::init);
     ADD_TEST(ConstraintTestSuite::type);
+    ADD_TEST(ConstraintTestSuite::createConstraint);
     ADD_TEST(ConstraintTestSuite::createGreaterType);
     ADD_TEST(ConstraintTestSuite::createLessType);
     ADD_TEST(ConstraintTestSuite::createRangeType);
@@ -26,6 +27,189 @@ void ConstraintTestSuite::init()
     TEST_ASSERT(constraint.m_type == Constraint::GREATER_OR_EQUAL);
     TEST_ASSERT(constraint.m_name == "");
     TEST_ASSERT(constraint.m_vector == 0);
+}
+
+void ConstraintTestSuite::createConstraint() {
+    const char * testName = "x1";
+    const Numerical::Double testLowerBound = -2.0;
+    const Numerical::Double testUpperBound = 42.0;
+
+    /**
+     * Testing a named constraint
+     */
+    Constraint constraint1 = Constraint::createConstraint(testName,
+        testLowerBound,
+        testUpperBound);
+    TEST_ASSERT(constraint1.m_type == constraint1.getType());
+    TEST_ASSERT(constraint1.m_type == Constraint::RANGE);
+
+    TEST_ASSERT(constraint1.m_lowerBound == testLowerBound);
+    TEST_ASSERT(constraint1.getLowerBound() == testLowerBound);
+
+    TEST_ASSERT(constraint1.m_upperBound == testUpperBound);
+    TEST_ASSERT(constraint1.getUpperBound() == testUpperBound);
+
+    TEST_ASSERT(constraint1.m_vector == 0);
+    TEST_ASSERT(constraint1.getVector() == 0);
+
+    TEST_ASSERT(constraint1.m_name == testName);
+    TEST_ASSERT(strcmp(constraint1.getName(), testName) == 0);
+
+    /**
+     * Testing an unnamed constraint
+     */
+    Constraint constraint2 = Constraint::createConstraint(0,
+        testLowerBound,
+        testUpperBound);
+    TEST_ASSERT(constraint2.m_type == constraint2.getType());
+    TEST_ASSERT(constraint2.m_type == Constraint::RANGE);
+
+    TEST_ASSERT(constraint2.m_lowerBound == testLowerBound);
+    TEST_ASSERT(constraint2.getLowerBound() == testLowerBound);
+
+    TEST_ASSERT(constraint2.m_upperBound == testUpperBound);
+    TEST_ASSERT(constraint2.getUpperBound() == testUpperBound);
+
+    TEST_ASSERT(constraint2.m_vector == 0);
+    TEST_ASSERT(constraint2.getVector() == 0);
+
+    TEST_ASSERT(constraint2.m_name == "");
+    TEST_ASSERT(strcmp(constraint2.getName(), "<NO NAME>") == 0);
+    
+    /**
+     * Testing a greater type constraint
+     */
+
+    const Numerical::Double testUpperBound2 = PInfinity;
+
+    Constraint constraint3 = Constraint::createConstraint(testName,
+        testLowerBound,
+        testUpperBound2);
+    TEST_ASSERT(constraint3.m_type == constraint3.getType());
+    TEST_ASSERT(constraint3.m_type == Constraint::GREATER_OR_EQUAL);
+
+    TEST_ASSERT(constraint3.m_lowerBound == testLowerBound);
+    TEST_ASSERT(constraint3.getLowerBound() == testLowerBound);
+
+    TEST_ASSERT(constraint3.m_upperBound == testUpperBound2);
+    TEST_ASSERT(constraint3.getUpperBound() == testUpperBound2);
+
+    TEST_ASSERT(constraint3.m_vector == 0);
+    TEST_ASSERT(constraint3.getVector() == 0);
+
+    TEST_ASSERT(constraint3.m_name == testName);
+    TEST_ASSERT(strcmp(constraint3.getName(), testName) == 0);
+
+    /**
+     * Testing a less type constraint
+     */
+
+    const Numerical::Double testLowerBound2 = -PInfinity;
+
+    Constraint constraint4 = Constraint::createConstraint(testName,
+        testLowerBound2,
+        testUpperBound);
+    TEST_ASSERT(constraint4.m_type == constraint4.getType());
+    TEST_ASSERT(constraint4.m_type == Constraint::LESS_OR_EQUAL);
+
+    TEST_ASSERT(constraint4.m_lowerBound == testLowerBound2);
+    TEST_ASSERT(constraint4.getLowerBound() == testLowerBound2);
+
+    TEST_ASSERT(constraint4.m_upperBound == testUpperBound);
+    TEST_ASSERT(constraint4.getUpperBound() == testUpperBound);
+
+    TEST_ASSERT(constraint4.m_vector == 0);
+    TEST_ASSERT(constraint4.getVector() == 0);
+
+    TEST_ASSERT(constraint4.m_name == testName);
+    TEST_ASSERT(strcmp(constraint4.getName(), testName) == 0);
+
+    /**
+     * Testing a non-binding type constraint
+     */
+
+    Constraint constraint5 = Constraint::createConstraint(testName,
+        testLowerBound2,
+        testUpperBound2);
+    TEST_ASSERT(constraint5.m_type == constraint5.getType());
+    TEST_ASSERT(constraint5.m_type == Constraint::NON_BINDING);
+
+    TEST_ASSERT(constraint5.m_lowerBound == testLowerBound2);
+    TEST_ASSERT(constraint5.getLowerBound() == testLowerBound2);
+
+    TEST_ASSERT(constraint5.m_upperBound == testUpperBound2);
+    TEST_ASSERT(constraint5.getUpperBound() == testUpperBound2);
+
+    TEST_ASSERT(constraint5.m_vector == 0);
+    TEST_ASSERT(constraint5.getVector() == 0);
+
+    TEST_ASSERT(constraint5.m_name == testName);
+    TEST_ASSERT(strcmp(constraint5.getName(), testName) == 0);
+
+    /**
+     * Testing an equality type constraint
+     */
+    Numerical::Double testValue = 10.0;
+    
+    Constraint constraint6 = Constraint::createConstraint(testName, 
+        testValue, testValue);
+    TEST_ASSERT(constraint6.m_type == constraint6.getType());
+    TEST_ASSERT(constraint6.m_type == Constraint::EQUALITY);
+
+    TEST_ASSERT(constraint6.m_lowerBound == testValue);
+    TEST_ASSERT(constraint6.getLowerBound() == testValue);
+
+    TEST_ASSERT(constraint6.m_upperBound == testValue);
+    TEST_ASSERT(constraint6.getUpperBound() == testValue);
+
+    TEST_ASSERT(constraint6.m_vector == 0);
+    TEST_ASSERT(constraint6.getVector() == 0);
+
+    TEST_ASSERT(constraint6.m_name == testName);
+    TEST_ASSERT(strcmp(constraint6.getName(), testName) == 0);
+
+    bool invalidUpperBoundExceptionCheck = false;
+    try {
+        Numerical::Double testUpperBound3 = -PInfinity;
+        Constraint constraint7 = Constraint::createConstraint(testName,
+            testLowerBound,
+            testUpperBound3);
+    } catch (Constraint::InvalidUpperBoundException & exception) {
+        invalidUpperBoundExceptionCheck = true;
+
+    } catch (...) {
+
+    }
+    TEST_ASSERT(invalidUpperBoundExceptionCheck == true);
+
+    bool invalidLowerBoundExceptionCheck = false;
+    try {
+        Numerical::Double testLowerBound3 = PInfinity;
+        Constraint constraint7 = Constraint::createConstraint(testName,
+            testLowerBound3,
+            testUpperBound);
+    } catch (Constraint::InvalidLowerBoundException & exception) {
+        invalidLowerBoundExceptionCheck = true;
+
+    } catch (...) {
+
+    }
+    TEST_ASSERT(invalidLowerBoundExceptionCheck == true);
+
+    bool invalidBoundsExceptionCheck = false;
+    try {
+        Numerical::Double testLowerBound4 = 10.0;
+        Numerical::Double testUpperBound4 = 0.0;
+        Constraint constraint8 = Constraint::createConstraint(testName,
+            testLowerBound4,
+            testUpperBound4);
+    } catch (Constraint::InvalidBoundsException & exception) {
+        invalidBoundsExceptionCheck = true;
+
+    } catch (...) {
+
+    }
+    TEST_ASSERT(invalidBoundsExceptionCheck == true);        
 }
 
 void ConstraintTestSuite::createGreaterType()

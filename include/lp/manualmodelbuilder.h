@@ -123,6 +123,12 @@ public:
      */
     void setCostCoefficient(unsigned int index, Numerical::Double cost);
 
+    /**
+     * 
+     * @param type
+     */
+    void setObjectiveType(OBJECTIVE_TYPE type);
+    
     /************************************************
      * 
      * Interface for the Model
@@ -201,6 +207,12 @@ public:
      */
     bool hasColumnwiseRepresentation() const;
 
+    /**
+     * 
+     * @return 
+     */
+    OBJECTIVE_TYPE getObjectiveType() const;
+    
 private:
 
     struct IndexValuePair
@@ -220,6 +232,8 @@ private:
         }
     };
 
+    OBJECTIVE_TYPE m_objectiveType;
+    
     /**
      * Model name.
      */

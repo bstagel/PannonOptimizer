@@ -139,39 +139,6 @@ public:
     }
 };
 
-
-class ConstIterator : public CommonIterator
-{
-public:
-    ConstIterator(Numerical::Double * start, Numerical::Double * end, Numerical::Double * data, unsigned int * index) :
-        CommonIterator(start, end, data, index) {}
-
-    inline ConstIterator & operator++()
-    {
-        next();
-        return *this;
-    }
-
-    inline ConstIterator & operator++(int)
-    {
-        next();
-        return *this;
-    }
-
-    inline ConstIterator & operator--()
-    {
-        prev();
-        return *this;
-    }
-
-    inline ConstIterator & operator--(int)
-    {
-        prev();
-        return *this;
-    }
-
-};
-
 class NonzeroIterator : public CommonIterator
 {
 public:
@@ -201,51 +168,6 @@ public:
     }
 
     inline NonzeroIterator & operator--(int)
-    {
-        prevToNonzero();
-        return *this;
-    }
-};
-
-class ConstNonzeroIterator : public CommonIterator
-{
-public:
-    ConstNonzeroIterator(Numerical::Double * start, Numerical::Double * end, Numerical::Double * data, unsigned int * index, bool next) :
-        CommonIterator(start, end, data, index)
-    {
-        if (next && *start == 0.0)
-            nextToNonzero();
-    }
-
-    inline const Numerical::Double & operator*() const
-    {
-        return *m_data;
-    }
-
-    inline const Numerical::Double * operator->() const
-    {
-        return m_data;
-    }
-
-    inline ConstNonzeroIterator & operator++()
-    {
-        nextToNonzero();
-        return *this;
-    }
-
-    inline ConstNonzeroIterator & operator++(int)
-    {
-        nextToNonzero();
-        return *this;
-    }
-
-    inline ConstNonzeroIterator & operator--()
-    {
-        prevToNonzero();
-        return *this;
-    }
-
-    inline ConstNonzeroIterator & operator--(int)
     {
         prevToNonzero();
         return *this;

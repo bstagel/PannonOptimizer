@@ -14,6 +14,7 @@ public:
 
 private:
     void init();
+    void createVariable();    
     void createPlusType();
     void createMinusType();
     void createBoundedType();

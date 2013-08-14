@@ -1697,9 +1697,9 @@ bool Vector::operator==(const Vector & vector) const {
     if (m_nonZeros != vector.m_nonZeros) {
         return false;
     }
-    Vector::ConstNonzeroIterator iterator1 = vector.beginNonzero();
-    Vector::ConstNonzeroIterator iterator2 = beginNonzero();
-    Vector::ConstNonzeroIterator iteratorEnd1 = vector.endNonzero();
+    Vector::NonzeroIterator iterator1 = vector.beginNonzero();
+    Vector::NonzeroIterator iterator2 = beginNonzero();
+    Vector::NonzeroIterator iteratorEnd1 = vector.endNonzero();
     for (; iterator1 < iteratorEnd1; iterator1++, iterator2++) {
         if (iterator1.getIndex() != iterator2.getIndex()) {
             return false;

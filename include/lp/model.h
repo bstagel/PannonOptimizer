@@ -20,11 +20,6 @@ class Model
     friend class ModelTestSuite;
 public:
 
-    enum OBJECTIVE_TYPE
-    {
-        MINIMIZE, MAXIMIZE
-    };
-
     Model();
     virtual ~Model();
 
@@ -44,6 +39,9 @@ public:
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_objectiveType;}
     inline const std::string & getObjectiveRowname() const {return m_objectiveRowName;}
 
+    virtual void addVariable(const Variable & variable, const Vector & column);
+    virtual void addConstraint(const Constraint & constraint, const Vector & row);
+    
     virtual void print(std::ostream out = std::cout) const;
 
 protected:
