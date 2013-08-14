@@ -334,7 +334,7 @@ public:
      *
      * @param diagonal
      */
-    static Matrix diagonalMatrix(const Vector& diagonal);
+    static Matrix createDiagonalMatrix(const Vector& diagonal);
 
     /**
      * Creates a matrix from the row vector.
@@ -344,7 +344,7 @@ public:
      * @param row A row vector.
      * @return A row matrix.
      */
-    static Matrix rowVector(const Vector& row);
+    static Matrix createRowMatrix(const Vector& row);
 
     /**
      * Creates a matrix from the column vector.
@@ -354,7 +354,7 @@ public:
      * @param column A column vector.
      * @return A column matrix.
      */
-    static Matrix columnVector(const Vector& column);
+    static Matrix createColumnMatrix(const Vector& column);
 
     /**
      * Multiplies two matrices.

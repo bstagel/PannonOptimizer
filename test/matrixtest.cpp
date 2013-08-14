@@ -1072,7 +1072,7 @@ void MatrixTestSuite::multipleByDiagonalMatrix()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix d = Matrix::diagonalMatrix(v);
+    Matrix d = Matrix::createDiagonalMatrix(v);
 
     Matrix m(3, 2);
     m.set(0, 0, 1);
@@ -1304,7 +1304,7 @@ void MatrixTestSuite::diagonalMatrix()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix m = Matrix::diagonalMatrix(v);
+    Matrix m = Matrix::createDiagonalMatrix(v);
     ASSERT_EQ(3, m.rowCount());
     ASSERT_EQ(3, m.columnCount());
     ASSERT_EQ(1, m.get(0, 0));
@@ -1362,7 +1362,7 @@ void MatrixTestSuite::diagonalMatrix_Inverse()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix m = Matrix::diagonalMatrix(v);
+    Matrix m = Matrix::createDiagonalMatrix(v);
     Matrix inverted_m = m.inverse();
     ASSERT_EQ(3, inverted_m.rowCount());
     ASSERT_EQ(3, inverted_m.columnCount());
@@ -1420,7 +1420,7 @@ void MatrixTestSuite::diagonalMatrix_Invert()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix m = Matrix::diagonalMatrix(v);
+    Matrix m = Matrix::createDiagonalMatrix(v);
     m.invert();
     ASSERT_EQ(3, m.rowCount());
     ASSERT_EQ(3, m.columnCount());
@@ -1479,7 +1479,7 @@ void MatrixTestSuite::rowVector()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix rowVector = Matrix::rowVector(v);
+    Matrix rowVector = Matrix::createRowMatrix(v);
 
     ASSERT_EQ(1, rowVector.rowCount());
     ASSERT_EQ(3, rowVector.columnCount());
@@ -1514,7 +1514,7 @@ void MatrixTestSuite::columnVector()
     v.set(1, 2);
     v.set(2, 3);
 
-    Matrix columnVector = Matrix::columnVector(v);
+    Matrix columnVector = Matrix::createColumnMatrix(v);
 
     ASSERT_EQ(3, columnVector.rowCount());
     ASSERT_EQ(1, columnVector.columnCount());
@@ -1567,7 +1567,7 @@ void MatrixTestSuite::comprehensive_1()
     M.set(3, 2, 15);
     M.set(3, 3, 16);
 
-    Matrix delta = Matrix::columnVector(vDelta);
+    Matrix delta = Matrix::createColumnMatrix(vDelta);
 
     Matrix result = (delta.transposed() * M * delta);
     ASSERT_EQ(1, result.rowCount());
@@ -4408,7 +4408,7 @@ void MatrixTestSuite::sortElements()
     m.sortVectors();
     ASSERT_EQ(10, m.rowCount());
     ASSERT_EQ(8, m.columnCount());
-    Vector::ConstNonzeroIterator iter = m.column(0).beginNonzero();
+    Vector::NonzeroIterator iter = m.column(0).beginNonzero();
     // 1, 2, 4, 5, 7, 9
     ASSERT_EQ(1, iter.getIndex());
     iter++;

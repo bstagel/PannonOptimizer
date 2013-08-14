@@ -20,7 +20,7 @@
 class ModelBuilder: public MatrixBuilder
 {
 public:
-
+   
     /**
      * 
      * @param index
@@ -53,7 +53,9 @@ public:
      */
     virtual std::string getName() const = 0;
     
-    
+    /**
+     */
+    virtual OBJECTIVE_TYPE getObjectiveType() const = 0;
 };
 
 #endif	/* MODELBUILDER_H */

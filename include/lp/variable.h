@@ -141,6 +141,30 @@ public:
     inline Variable();
 
     /**
+     * Creates a variable, with a given value and bounds.
+     * 
+     * If the upperBound is -infinity, the function throws a 
+     * Variable::InvalidUpperBoundException.
+     * If the lowerBound is infinity, the function throws a 
+     * Variable::InvalidLowerBoundException.
+     * If the upperBound is less than the lowerBound, the function throws a 
+     * Variable::InvalidBoundsException.
+     * 
+     * @param name The name of the variable
+     * @param value The value of the variable
+     * @param lowerBound The lower bound of the variable
+     * @param upperBound The upper bound of the variable
+     * @return The requested variable
+     * @return 
+     */
+    static Variable createVariable(const char * name,
+        Numerical::Double value,
+        Numerical::Double lowerBound,
+        Numerical::Double upperBound) throw (InvalidLowerBoundException, 
+                                             InvalidUpperBoundException,
+                                             InvalidBoundsException);
+
+    /**
      * Creates a plus type variable, with a given value and lower bound.
      * The upper bound will be + infinity. If the lowerBound is - infinity,
      * then the variable will be free type variable.
@@ -196,7 +220,9 @@ public:
     static Variable createBoundedTypeVariable(const char * name,
         Numerical::Double value,
         Numerical::Double lowerBound,
-        Numerical::Double upperBound);
+        Numerical::Double upperBound) throw (InvalidLowerBoundException, 
+                                             InvalidUpperBoundException,
+                                             InvalidBoundsException);
 
     /**
      * Creates a fixed type variable, with a given value.

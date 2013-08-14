@@ -2,10 +2,6 @@
  * @file mpsproblem.cpp
  */
 
-// TODO: 1011-es sorban, oszlopon belul ismetlodo sor bejegyzes hiba
-// pontositasa: szekcionkent torles, ha megis valodi a hiba akkor az uj
-// adatot felulirni
-
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -3113,4 +3109,8 @@ bool MpsModelBuilder::hasRowwiseRepresentation() const
 bool MpsModelBuilder::hasColumnwiseRepresentation() const
 {
     return true;
+}
+
+OBJECTIVE_TYPE MpsModelBuilder::getObjectiveType() const {
+    return MINIMIZE;
 }

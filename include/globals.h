@@ -3,4 +3,10 @@
 
 //using namespace std;
 
+enum OBJECTIVE_TYPE
+{
+    MINIMIZE, MAXIMIZE
+};
+
+
 #endif // GLOBALS_H

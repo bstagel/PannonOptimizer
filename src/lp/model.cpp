@@ -14,6 +14,7 @@ void Model::build(const ModelBuilder & builder)
 {
     unsigned int index;
     m_name = builder.getName();
+    m_objectiveType = builder.getObjectiveType();
     m_costConstant = builder.getObjectiveConstant();
     builder.buildCostVector(&m_costVector);
 
@@ -24,14 +25,14 @@ void Model::build(const ModelBuilder & builder)
 
     for (index = 0; index < m_variables.size(); index++) {
         m_variables[index] = builder.getVariable(index);
-        m_variables[index].setVector( m_matrix.column(index) );
+        m_variables[index].setVector(m_matrix.column(index));
     }
 
     for (index = 0; index < m_constraints.size(); index++) {
         m_constraints[index] = builder.getConstraint(index);
-        m_constraints[index].setVector( m_matrix.row(index) );
-    }    
-    
+        m_constraints[index].setVector(m_matrix.row(index));
+    }
+
     /*m_matrix.reInit(builder.getRowCount(), builder.getColumnCount(), false);
 
     unsigned int rowIndex;
@@ -58,25 +59,25 @@ Model::~Model()
 
 void Model::print(std::ostream out) const
 {
-    out << (m_objectiveType==MINIMIZE?"min":"max");
-    Vector::ConstIterator it = m_costVector.begin();
-    Vector::ConstIterator end = m_costVector.end();
-    for(unsigned int i=0; it<end; i++, it++){
-        out << (i==0?" ":"+ ") << *it << "*x" << i << " \n";
+    out << (m_objectiveType == MINIMIZE ? "min" : "max");
+    Vector::Iterator it = m_costVector.begin();
+    Vector::Iterator end = m_costVector.end();
+    for (unsigned int i = 0; it < end; i++, it++) {
+        out << (i == 0 ? " " : "+ ") << *it << "*x" << i << " \n";
     }
     out << "\n s.t.: \n";
-    for (unsigned int i = 0; i<m_matrix.rowCount();i++){
+    for (unsigned int i = 0; i < m_matrix.rowCount(); i++) {
         out << m_constraints[i].getLowerBound() << " <= ";
-        const Vector & row=m_matrix.row(i);
-        Vector::ConstIterator it = row.begin();
-        Vector::ConstIterator end = row.end();
-        for(unsigned int j=0; it<end; j++, it++){
-            out << (j==0?" ":"+ ") << *it << "*x" << j << " ";
+        const Vector & row = m_matrix.row(i);
+        Vector::Iterator it = row.begin();
+        Vector::Iterator end = row.end();
+        for (unsigned int j = 0; it < end; j++, it++) {
+            out << (j == 0 ? " " : "+ ") << *it << "*x" << j << " ";
         }
-        out << "<= " << m_constraints[i].getUpperBound() <<"\n";
+        out << "<= " << m_constraints[i].getUpperBound() << "\n";
     }
     out << "\n";
-    for(unsigned int i = 0; i<m_variables.size();i++){
+    for (unsigned int i = 0; i < m_variables.size(); i++) {
         const Variable & variable = m_variables[i];
         out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound();
     }
@@ -88,4 +89,16 @@ void Model::clear()
     m_variables.clear();
     m_constraints.clear();
 
+}
+
+void Model::addVariable(const Variable & variable, const Vector & column)
+{
+    m_variables.push_back(variable);
+    m_matrix.appendColumn(column);
+}
+
+void Model::addConstraint(const Constraint & constraint, const Vector & row)
+{
+    m_constraints.push_back(constraint);
+    m_matrix.appendRow(row);
 }

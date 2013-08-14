@@ -123,6 +123,15 @@ public:
     inline Constraint();
 
     /**
+     * @param name
+     * @param lowerBound
+     * @param upperBound
+     */
+    static Constraint createConstraint(const char * name,
+        Numerical::Double lowerBound,
+        Numerical::Double upperBound);    
+    
+    /**
      * @param name The name of the constraint
      * @param lowerBound
      */

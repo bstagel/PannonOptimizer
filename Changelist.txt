@@ -1,0 +1,6 @@
+2013. 08. 14.
+Vector osztaly:
+
+Kikerult a kodbol a ConstIterator es a ConstNonzeroIterator. 
+A megmaradt Iterator es NonzeroIterator * operatora const referenciat ad vissza.
+A begin, end, beginNonzero es endNonzero fuggvenyek const-ok lettek.

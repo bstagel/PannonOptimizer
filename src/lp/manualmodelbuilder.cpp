@@ -8,6 +8,7 @@
 ManualModelBuilder::ManualModelBuilder()
 {
     m_objectiveConstant = 0.0;
+    m_objectiveType = MINIMIZE;
 }
 
 /************************************************
@@ -80,8 +81,8 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     const unsigned int lastIndex = m_columns.size() - 1;
 
     unsigned int maxIndex = 0;
-    Vector::ConstNonzeroIterator iter = vector.beginNonzero();
-    Vector::ConstNonzeroIterator iterEnd = vector.endNonzero();
+    Vector::NonzeroIterator iter = vector.beginNonzero();
+    Vector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; iter++) {
         IndexValuePair pair = {*iter, iter.getIndex()};
         m_columns[lastIndex].push_back(pair);
@@ -218,8 +219,8 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int index;
     unsigned int maxIndex = 0;
     unsigned int nonzeros = vector.nonZeros();
-    Vector::ConstNonzeroIterator iter = vector.beginNonzero();
-    Vector::ConstNonzeroIterator iterEnd = vector.endNonzero();
+    Vector::NonzeroIterator iter = vector.beginNonzero();
+    Vector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; iter++) {
         IndexValuePair pair = {*iter, iter.getIndex()};
         m_rows[lastIndex].push_back(pair);
@@ -305,6 +306,10 @@ void ManualModelBuilder::setCostCoefficient(unsigned int index, Numerical::Doubl
     m_costVector[index] = cost;
 }
 
+void ManualModelBuilder::setObjectiveType(OBJECTIVE_TYPE type) {
+    m_objectiveType = type;
+}
+
 /************************************************
  * 
  * Interface for the Model
@@ -383,4 +388,8 @@ bool ManualModelBuilder::hasRowwiseRepresentation() const {
     
 bool ManualModelBuilder::hasColumnwiseRepresentation() const {
     return true;
+}
+
+OBJECTIVE_TYPE ManualModelBuilder::getObjectiveType() const {
+    return m_objectiveType;
 }
