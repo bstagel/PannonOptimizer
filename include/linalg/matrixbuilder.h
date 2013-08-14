@@ -29,15 +29,28 @@ public:
      * @param index
      * @param rowVector
      */
-    virtual void buildRow(unsigned int index, Vector * rowVector) const = 0;
+    virtual void buildRow(unsigned int index, Vector * rowVector,
+        std::vector<unsigned int> * nonzeros) const = 0;
 
     /**
      * 
      * @param index
      * @param columnVector
      */
-    virtual void buildColumn(unsigned int index, Vector * columnVector) const = 0;
+    virtual void buildColumn(unsigned int index, Vector * columnVector,
+        std::vector<unsigned int> * nonzeros) const = 0;
+
+    /**
+     * 
+     * @return 
+     */
+    virtual bool hasRowwiseRepresentation() const = 0;
     
+    /**
+     * 
+     * @return 
+     */
+    virtual bool hasColumnwiseRepresentation() const = 0;
 };
 
 #endif	/* MATRIXBUILDER_H */
