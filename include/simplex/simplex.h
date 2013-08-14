@@ -8,9 +8,23 @@
 
 #include "globals.h"
 
+#include "utils/numerical.h"
+
 class Simplex
 {
+public:
     Simplex();
+    virtual ~Simplex();
+
+    inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
+    inline const SimplexModel * getModel() const {return m_model;}
+
+
+    inline void setModel(SimplexModel * model) {m_model = model;}
+
+private:
+    Numerical::Double m_objectiveValue;
+    SimplexModel * m_model;
 
 };
 

@@ -10,6 +10,7 @@
 
 class DualSimplex
 {
+public:
     DualSimplex();
 
 };

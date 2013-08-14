@@ -8,3 +8,8 @@ Simplex::Simplex()
 {
 
 }
+
+Simplex::~Simplex()
+{
+
+}

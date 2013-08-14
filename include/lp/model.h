@@ -19,15 +19,15 @@ class Model
 {
     friend class ModelTestSuite;
 public:
+
+    enum OBJECTIVE_TYPE
+    {
+        MINIMIZE, MAXIMIZE
+    };
+
     Model();
     virtual ~Model();
 
-
-//    NOTE: Not necessary now, there's no dynamic member in the class
-//    Model(const Model & original);
-//    Model & operator=(const Model & original);
-//    bool operator==(const Model & other);
-//    bool operator!=(const Model & other);
     
     void build(const ModelBuilder & builder);
 
@@ -40,7 +40,11 @@ public:
     inline const std::vector<Constraint> & getConstraints() const {return m_constraints;}
     inline const Vector & getCostVector() const {return m_costVector;}
     inline const std::string & getName() const {return m_name;}
-    inline Numerical::Double getCostConstant() const {return m_costConstant;}
+    inline const Numerical::Double & getCostConstant() const {return m_costConstant;}
+    inline OBJECTIVE_TYPE getObjectiveType() const {return m_objectiveType;}
+    inline const std::string & getObjectiveRowname() const {return m_objectiveRowName;}
+
+    virtual void print(std::ostream out = std::cout) const;
 
 protected:
     Matrix m_matrix;
@@ -48,13 +52,14 @@ protected:
     std::vector<Constraint> m_constraints;
     Vector m_costVector;
     Numerical::Double m_costConstant;
+    std::string m_objectiveRowName;
     std::string m_name;
+
+    OBJECTIVE_TYPE m_objectiveType;
+    //TODO Build the objective type
 
     void clear();
 
-//NOTE: Not necessary now, there's no dynamic member in the class
-//private:
-//    void copy(const Model & original);
 };
 
 #endif	/* MODEL_H */
