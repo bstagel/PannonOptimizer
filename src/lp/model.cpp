@@ -7,6 +7,7 @@
 Model::Model()
 {
     m_costConstant = 0.0;
+    m_objectiveType = MINIMIZE;
 }
 
 void Model::build(const ModelBuilder & builder)
@@ -53,6 +54,32 @@ void Model::build(const ModelBuilder & builder)
 Model::~Model()
 {
 
+}
+
+void Model::print(std::ostream out) const
+{
+    out << (m_objectiveType==MINIMIZE?"min":"max");
+    Vector::ConstIterator it = m_costVector.begin();
+    Vector::ConstIterator end = m_costVector.end();
+    for(unsigned int i=0; it<end; i++, it++){
+        out << (i==0?" ":"+ ") << *it << "*x" << i << " \n";
+    }
+    out << "\n s.t.: \n";
+    for (unsigned int i = 0; i<m_matrix.rowCount();i++){
+        out << m_constraints[i].getLowerBound() << " <= ";
+        const Vector & row=m_matrix.row(i);
+        Vector::ConstIterator it = row.begin();
+        Vector::ConstIterator end = row.end();
+        for(unsigned int j=0; it<end; j++, it++){
+            out << (j==0?" ":"+ ") << *it << "*x" << j << " ";
+        }
+        out << "<= " << m_constraints[i].getUpperBound() <<"\n";
+    }
+    out << "\n";
+    for(unsigned int i = 0; i<m_variables.size();i++){
+        const Variable & variable = m_variables[i];
+        out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound();
+    }
 }
 
 void Model::clear()
