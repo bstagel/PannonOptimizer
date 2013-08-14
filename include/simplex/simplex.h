@@ -8,6 +8,7 @@
 
 #include "globals.h"
 
+#include "lp/simplexmodel.h"
 #include "utils/numerical.h"
 
 class Simplex
