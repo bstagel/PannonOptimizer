@@ -10,7 +10,6 @@
 #include <iostream>
 #include <vector>
 
-
 Matrix::Matrix(unsigned int rowCount, unsigned int columnCount)
 {
     if (rowCount == 0 && columnCount == 0) {
@@ -63,14 +62,58 @@ void Matrix::build(const MatrixBuilder & builder)
 {
     reInit(builder.getRowCount(), builder.getColumnCount(), false);
     unsigned int rowIndex;
-    for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
-        m_rowWise[rowIndex] = new Vector;
-        builder.buildRow(rowIndex, m_rowWise[rowIndex]);
-    }
     unsigned int columnIndex;
-    for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
-        m_columnWise[columnIndex] = new Vector;
-        builder.buildColumn(columnIndex, m_columnWise[columnIndex]);
+    std::vector<unsigned int> nonzerosInRows;
+    std::vector<unsigned int> nonzerosInColumns;
+    std::vector<unsigned int> * nonzerosInRowsPtr = 0;
+    std::vector<unsigned int> * nonzerosInColumnsPtr = 0;
+    bool rowToColumn = builder.hasRowwiseRepresentation() &&
+        !builder.hasColumnwiseRepresentation();
+    bool columnToRow = !builder.hasRowwiseRepresentation() &&
+        builder.hasColumnwiseRepresentation();
+    if (rowToColumn == true) {
+        nonzerosInColumns.resize(builder.getColumnCount(), 0);
+        nonzerosInColumnsPtr = &nonzerosInColumns;
+    }
+    if (columnToRow == true) {
+        nonzerosInRows.resize(builder.getRowCount(), 0);
+        nonzerosInRowsPtr = &nonzerosInRows;
+    }
+    if (builder.hasRowwiseRepresentation() == true) {
+        for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
+            builder.buildRow(rowIndex, m_rowWise[rowIndex], nonzerosInColumnsPtr);
+        }
+    }
+    if (builder.hasColumnwiseRepresentation() == true) {
+        for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
+            builder.buildColumn(columnIndex, m_columnWise[columnIndex], nonzerosInRowsPtr);
+        }
+    }
+    if (builder.hasRowwiseRepresentation() == false) {
+        for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
+            Vector * row = m_rowWise[rowIndex];
+            row->prepareForData(nonzerosInRows[rowIndex], builder.getColumnCount());
+        }
+        for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
+            Vector::NonzeroIterator iter = m_columnWise[columnIndex]->beginNonzero();
+            Vector::NonzeroIterator iterEnd = m_columnWise[columnIndex]->endNonzero();
+            for (; iter < iterEnd; iter++) {
+                m_rowWise[ iter.getIndex() ]->newNonZero(*iter, columnIndex);
+            }
+        }
+    }
+    if (builder.hasColumnwiseRepresentation() == false) {
+        for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
+            Vector * column = m_columnWise[columnIndex];
+            column->prepareForData(nonzerosInRows[columnIndex], builder.getRowCount());
+        }
+        for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
+            Vector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
+            Vector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
+            for (; iter < iterEnd; iter++) {
+                m_columnWise[ iter.getIndex() ]->newNonZero(*iter, rowIndex);
+            }
+        }
     }
 }
 

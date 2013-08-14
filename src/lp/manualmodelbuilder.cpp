@@ -331,7 +331,8 @@ const Constraint & ManualModelBuilder::getConstraint(unsigned int index) const
     return m_constraints[index];
 }
 
-void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector) const
+void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector,
+    std::vector<unsigned int> *) const
 {
     unsigned int dimension = m_constraints.size();
     rowVector->prepareForData(m_rows[index].size(), dimension);
@@ -342,7 +343,8 @@ void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector) const
     }
 }
 
-void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector) const
+void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
+    std::vector<unsigned int> *) const
 {
     unsigned int dimension = m_variables.size();
     columnVector->prepareForData(m_columns[index].size(), dimension);
@@ -373,4 +375,12 @@ Numerical::Double ManualModelBuilder::getObjectiveConstant() const
 std::string ManualModelBuilder::getName() const
 {
     return m_name;
+}
+
+bool ManualModelBuilder::hasRowwiseRepresentation() const {
+    return true;
+}
+    
+bool ManualModelBuilder::hasColumnwiseRepresentation() const {
+    return true;
 }

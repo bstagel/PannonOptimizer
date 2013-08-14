@@ -19,6 +19,11 @@
 #include <cstring>
 #include <cstdlib>
 
+/*static char * mygetenv(const char * name) {
+    return getenv(name);
+}*/
+
+#define mygetenv(name) (getenv(name) == 0 ? false : true)
 
 /*
  * Use COLORFLAGS macro to define the colors of the output.
@@ -126,65 +131,89 @@
 
 #if COLORFLAGS == WINDOWSCOLOR
 #include <windows.h>
-static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
+static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
 #endif
 
 
 
- /***********************************************************************************************/
- /**************************************** END USER MESSAGES ************************************/
- /***********************************************************************************************/
+/***********************************************************************************************/
+/**************************************** END USER MESSAGES ************************************/
+/***********************************************************************************************/
 
- /*
-  *
-  * This messages are always shown for the users.
-  * You can use LPINFO, LPWARNING or LPERROR.
-  * !!!LPDEBUG has been turned off!!!
-  * If there are any debug messages use LPDEBUG for them. This function is only called if
-  *  the NDEBUG macro was not defined. This feature can be used if you have something more detailed
-  *  information which does not fit to LPINFO/LPWARNING/LPERROR, but can be useful some cases.
-  *  (Like something went wrong and the user would like to send bug reports, and so on.)
-  *
-  * Usage:
-  *  LPINFO("Some " << var1 << " = " << var2);
-  *  LPWARNING("Some " << var1 << " = " << var2);
-  *  LPERROR("Some " << var1 << " = " << var2);
-  *  LPDEBUG("Some " << var1 << " = " << var2);
-  *
-  * Output:
-  *  [LPINFO   ] Some 7 = 8
-  *  [LPWARNING] Some 7 = 8
-  *  [LPERROR  ] Some 7 = 8
-  *  [file.cpp : 12345 ] Some 7 = 8
-  *
-  *  Default behaviour is to use different colors different log levels,
-  *   but you can disable color flags defining ECLIPSE environment variable.
-  *
-  *
-  */
+/*
+ *
+ * This messages are always shown for the users.
+ * You can use LPINFO, LPWARNING or LPERROR.
+ * !!!LPDEBUG has been turned off!!!
+ * If there are any debug messages use LPDEBUG for them. This function is only called if
+ *  the NDEBUG macro was not defined. This feature can be used if you have something more detailed
+ *  information which does not fit to LPINFO/LPWARNING/LPERROR, but can be useful some cases.
+ *  (Like something went wrong and the user would like to send bug reports, and so on.)
+ *
+ * Usage:
+ *  LPINFO("Some " << var1 << " = " << var2);
+ *  LPWARNING("Some " << var1 << " = " << var2);
+ *  LPERROR("Some " << var1 << " = " << var2);
+ *  LPDEBUG("Some " << var1 << " = " << var2);
+ *
+ * Output:
+ *  [LPINFO   ] Some 7 = 8
+ *  [LPWARNING] Some 7 = 8
+ *  [LPERROR  ] Some 7 = 8
+ *  [file.cpp : 12345 ] Some 7 = 8
+ *
+ *  Default behaviour is to use different colors different log levels,
+ *   but you can disable color flags defining ECLIPSE environment variable.
+ *
+ *
+ */
 
 
- #if COLORFLAGS != WINDOWSCOLOR
+#if COLORFLAGS != WINDOWSCOLOR
 
- #define LPTEST(msg)
- #define LPINFO(msg)    { std::cerr << ( getenv("ECLIPSE") ? "[INFO   ]" : (DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D ) ) << " " << msg << std::endl; }
- #define LPWARNING(msg) { std::cerr << ( getenv("ECLIPSE") ? "[WARNING]" : (DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D ) ) << " " << msg << std::endl; }
- #define LPERROR(msg)   { std::cerr << ( getenv("ECLIPSE") ? "[ERROR  ]" : (DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D ) ) << " " << msg << std::endl; }
+#define LPTEST(msg)
+#define LPINFO(msg)    { \
+    if (getenv("ECLIPSE")) { \
+        std::cerr<<"[INFO   ]"; \
+    } else { \
+        std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D ); \
+    } \
+    std::cerr<<msg << std::endl; \
+}
+#define LPWARNING(msg)    { \
+    if (getenv("ECLIPSE")) { \
+        std::cerr<<"[WARNING   ]"; \
+    } else { \
+        std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D); \
+    } \
+    std::cerr<<msg << std::endl; \
+}
+#define LPERROR(msg)   { \
+    if (getenv("ECLIPSE")) { \
+        std::cerr<<"[ERROR   ]"; \
+    } else { \
+        std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D ); \
+    } \
+    std::cerr<<msg << std::endl; \
+}
 
+//#define LPINFO(msg)    { std::cerr << ( mygetenv("ECLIPSE") ? "[INFO   ]" : (DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D ) ) << " " << msg << std::endl; }
+//#define LPWARNING(msg) { std::cerr << ( mygetenv("ECLIPSE") ? "[WARNING]" : (DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D ) ) << " " << msg << std::endl; }
+//#define LPERROR(msg)   { std::cerr << ( mygetenv("ECLIPSE") ? "[ERROR  ]" : (DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D ) ) << " " << msg << std::endl; }
 
 /*
  #ifdef NDEBUG
      #define LPDEBUG(msg)
  #else
-     #define LPDEBUG(msg) { std::cerr    << ( getenv("ECLIPSE") ? ("[" __FILE__  " : " ) :  ( DC_EMM DC_BGM "[" DC_EMW  __FILE__  DC_EMM ":" DC_EMW ) ) \
-                                         << std::setw(5) << __LINE__  << ( getenv("ECLIPSE") ? "]" : (DC_EMM "]" DC_D ) ) << " " << msg << std::endl; }
+     #define LPDEBUG(msg) { std::cerr    << ( mygetenv("ECLIPSE") ? ("[" __FILE__  " : " ) :  ( DC_EMM DC_BGM "[" DC_EMW  __FILE__  DC_EMM ":" DC_EMW ) ) \
+                                         << std::setw(5) << __LINE__  << ( mygetenv("ECLIPSE") ? "]" : (DC_EMM "]" DC_D ) ) << " " << msg << std::endl; }
  #endif
-*/
+ */
 
- #else  // WINDOWSCOLOR
+#else  // WINDOWSCOLOR
 
- #define LPINFO(msg) { \
-     if ( getenv("ECLIPSE") ) { std::cerr << "[INFO   ] " << msg << std::endl; } \
+#define LPINFO(msg) { \
+     if ( mygetenv("ECLIPSE") ) { std::cerr << "[INFO   ] " << msg << std::endl; } \
      else { SetConsoleTextAttribute(hConsole, 25); \
      std::cerr << "["; \
      SetConsoleTextAttribute(hConsole, 31); \
@@ -194,8 +223,8 @@ static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
      SetConsoleTextAttribute(hConsole, 7); \
      std::cerr << " " << msg << std::endl; } }
 
- #define LPWARNING(msg) { \
-     if ( getenv("ECLIPSE") ) { std::cerr << "[WARNING] " << msg << std::endl; } \
+#define LPWARNING(msg) { \
+     if ( mygetenv("ECLIPSE") ) { std::cerr << "[WARNING] " << msg << std::endl; } \
      else { SetConsoleTextAttribute(hConsole, 110); \
      std::cerr << "["; \
      SetConsoleTextAttribute(hConsole, 111); \
@@ -205,8 +234,8 @@ static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
      SetConsoleTextAttribute(hConsole, 7); \
      std::cerr << " " << msg << std::endl; } }
 
- #define LPERROR(msg) { \
-     if ( getenv("ECLIPSE") ) { std::cerr << "[ERROR  ] " << msg << std::endl; } \
+#define LPERROR(msg) { \
+     if ( mygetenv("ECLIPSE") ) { std::cerr << "[ERROR  ] " << msg << std::endl; } \
      else { SetConsoleTextAttribute(hConsole, 76); \
      std::cerr << "["; \
      SetConsoleTextAttribute(hConsole, 79); \
@@ -221,7 +250,7 @@ static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
      #define LPDEBUG(msg)
  #else
      #define LPDEBUG(msg) { \
-         if ( getenv("ECLIPSE") ) { std::cerr << "[" __FILE__ ":"  << std::setw(5) << __FILE__ "] " << msg << std::endl; } \
+         if ( mygetenv("ECLIPSE") ) { std::cerr << "[" __FILE__ ":"  << std::setw(5) << __FILE__ "] " << msg << std::endl; } \
          else { SetConsoleTextAttribute(hConsole, 93); \
          std::cerr << "["; \
          SetConsoleTextAttribute(hConsole, 95); \
@@ -235,13 +264,13 @@ static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
          SetConsoleTextAttribute(hConsole, 7); \
          std::cerr << " " << msg << std::endl; }  }
  #endif
-*/
- #endif //
+ */
+#endif //
 
 
- /***********************************************************************************************/
- /************************************* DEVELOPMENT MESSAGES ************************************/
- /***********************************************************************************************/
+/***********************************************************************************************/
+/************************************* DEVELOPMENT MESSAGES ************************************/
+/***********************************************************************************************/
 
 /*
  *
@@ -270,9 +299,6 @@ static HANDLE  hConsole = GetStdHandle(STD_ERROR_HANDLE);
  *
  */
 
-
-
-
 /*
  * Class for enumerating modules.
  * RegisteredModuleType enumeration contains all known modules in the program.
@@ -287,47 +313,53 @@ class D
 {
 public:
 
-    enum RegisteredModuleType {
-        MPSREADER               = 1<<0,
-        PRESOLVER               = 1<<1,
-        CFMAKER                 = 1<<2,
-        STARTINGBASISFINDER     = 1<<3,
-        PFIMAKER                = 1<<4,
-        SIMPLEX                 = 1<<5,
-        RATIOTEST				= 1<<6,
-        FEASIBILITYCHECK		= 1<<7,
-        MODEL					= 1<<8,
-        PRICING					= 1<<9,
-        SBF_SUPER				= 1<<10,
-        SBF_LOGICAL             = 1<<11,
-        SBF_SYMBO	            = 1<<12,
-        SBF_LTSF	            = 1<<13,
-        SBF_ADG		            = 1<<14,
-        SBF_CPLEX	            = 1<<15
+    enum RegisteredModuleType
+    {
+        MPSREADER = 1 << 0,
+        PRESOLVER = 1 << 1,
+        CFMAKER = 1 << 2,
+        STARTINGBASISFINDER = 1 << 3,
+        PFIMAKER = 1 << 4,
+        SIMPLEX = 1 << 5,
+        RATIOTEST = 1 << 6,
+        FEASIBILITYCHECK = 1 << 7,
+        MODEL = 1 << 8,
+        PRICING = 1 << 9,
+        SBF_SUPER = 1 << 10,
+        SBF_LOGICAL = 1 << 11,
+        SBF_SYMBO = 1 << 12,
+        SBF_LTSF = 1 << 13,
+        SBF_ADG = 1 << 14,
+        SBF_CPLEX = 1 << 15
     };
 
-    inline static std::string getName(RegisteredModuleType mod) {
+    inline static std::string getName(RegisteredModuleType mod)
+    {
         std::ostringstream dstr;
         dstr << std::setw(15) << std::left << D::m_registeredModules[mod];
-        std::string str = dstr.str().substr(0,10);
+        std::string str = dstr.str().substr(0, 10);
         return str;
     }
 
-    inline static int getActiveModules() {
+    inline static int getActiveModules()
+    {
         return D::m_activeModules;
     }
 
-    inline static void disableModule(RegisteredModuleType mod) {
+    inline static void disableModule(RegisteredModuleType mod)
+    {
         D::m_activeModules &= ~mod;
     }
 
-    inline static void enableModule(RegisteredModuleType mod) {
+    inline static void enableModule(RegisteredModuleType mod)
+    {
         D::m_activeModules |= mod;
     }
 
 private:
 
-    static std::map<RegisteredModuleType, std::string> fillInModuleTypes() {
+    static std::map<RegisteredModuleType, std::string> fillInModuleTypes()
+    {
         std::map<RegisteredModuleType, std::string> map;
         map.insert(std::make_pair(D::MPSREADER, "MpsReader"));
         map.insert(std::make_pair(D::PRESOLVER, "Presolver"));
@@ -348,24 +380,25 @@ private:
         return map;
     }
 
-    static int fillInActiveModules() {
+    static int fillInActiveModules()
+    {
         int am = 0;
-//        am |= D::MPSREADER;
-//        am |= D::PRESOLVER;
-//        am |= D::CFMAKER;
-//        am |= D::STARTINGBASISFINDER;
-//        am |= D::PFIMAKER;
-//        am |= D::SBF1;
-//        am |= D::SIMPLEX;
-//        am |= D::RATIOTEST;
-//        am |= D::FEASIBILITYCHECK;
-//        am |= D::MODEL;
-//        am |= D::PRICING;
+        //        am |= D::MPSREADER;
+        //        am |= D::PRESOLVER;
+        //        am |= D::CFMAKER;
+        //        am |= D::STARTINGBASISFINDER;
+        //        am |= D::PFIMAKER;
+        //        am |= D::SBF1;
+        //        am |= D::SIMPLEX;
+        //        am |= D::RATIOTEST;
+        //        am |= D::FEASIBILITYCHECK;
+        //        am |= D::MODEL;
+        //        am |= D::PRICING;
         return am;
     }
 
     static std::map<RegisteredModuleType, std::string> m_registeredModules;
-    static int  m_activeModules;
+    static int m_activeModules;
 };
 
 #ifdef DEVELOPMENT
@@ -378,7 +411,7 @@ private:
 /*
  * Amount of whitespace necessary to properly justify from length n, as string
  */
-std::string _debug_justify_ (int);
+std::string _debug_justify_(int);
 
 /*
  * Strlen of a string ignoring color codes
@@ -453,15 +486,14 @@ public:
      * indents in between
      */
     class Block;
-    static Block block( const std::string level, const std::string file, int line,
-                        const std::string func, const std::string text);
+    static Block block(const std::string level, const std::string file, int line,
+        const std::string func, const std::string text);
 
 private:
     class Private;
     static clock_t cl_start;
     static clock_t cl_end;
 };
-
 
 /*
  * Helper class to handle one block for formatter output.
@@ -478,7 +510,7 @@ private:
     int m_line;
 
     friend Block Debug::block(const std::string level, const std::string file, int line,
-                              const std::string func, const std::string text);
+        const std::string func, const std::string text);
 };
 
 
@@ -550,7 +582,7 @@ private:
 #else
 #define DEVINFO(mod, msg)                               \
     if (D::getActiveModules()&mod) {                    \
-        if (getenv("ECLIPSE")) {                        \
+        if (mygetenv("ECLIPSE")) {                        \
             DEBUG_NCINFO(D::getName(mod), msg);         \
         } else {                                        \
             DEBUG_INFO(D::getName(mod), msg);           \
@@ -559,7 +591,7 @@ private:
 
 #define DEVWARNING(mod, msg)                            \
     if (D::getActiveModules()&mod) {                    \
-        if (getenv("ECLIPSE")) {                        \
+        if (mygetenv("ECLIPSE")) {                        \
             DEBUG_NCWARNING(D::getName(mod), msg);      \
         } else {                                        \
             DEBUG_WARNING(D::getName(mod), msg);        \
@@ -568,7 +600,7 @@ private:
 
 #define DEVERROR(mod, msg)                              \
     if (D::getActiveModules()&mod) {                    \
-        if (getenv("ECLIPSE")) {                        \
+        if (mygetenv("ECLIPSE")) {                        \
             DEBUG_NCERROR(D::getName(mod), msg);        \
         } else {                                        \
             DEBUG_ERROR(D::getName(mod), msg);          \
@@ -577,7 +609,7 @@ private:
 
 #define DEVDEBUG(mod, msg)                              \
     if (D::getActiveModules()&mod) {                    \
-        if (getenv("ECLIPSE")) {                        \
+        if (mygetenv("ECLIPSE")) {                        \
             DEBUG_NCDEBUG(D::getName(mod), msg);        \
         } else {                                        \
             DEBUG_DEBUG(D::getName(mod), msg);          \

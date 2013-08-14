@@ -115,7 +115,7 @@ public:
      * @param variable
      */
     void setVariable(unsigned int index, const Variable & variable);
-    
+
     /**
      * 
      * @param index
@@ -160,14 +160,16 @@ public:
      * @param index
      * @param rowVector
      */
-    void buildRow(unsigned int index, Vector * rowVector) const;
+    void buildRow(unsigned int index, Vector * rowVector, 
+        std::vector<unsigned int> * nonzeros) const;
 
     /**
      * 
      * @param index
      * @param columnVector
      */
-    void buildColumn(unsigned int index, Vector * columnVector) const;
+    void buildColumn(unsigned int index, Vector * columnVector,
+        std::vector<unsigned int> * nonzeros) const;
 
     /**
      * 
@@ -186,6 +188,18 @@ public:
      * @return 
      */
     std::string getName() const;
+
+    /**
+     * 
+     * @return 
+     */
+    bool hasRowwiseRepresentation() const;
+
+    /**
+     * 
+     * @return 
+     */
+    bool hasColumnwiseRepresentation() const;
 
 private:
 
