@@ -11,18 +11,18 @@
 #include <vector>
 #include <lp/variable.h>
 #include <lp/constraint.h>
+#include <lp/modelbuilder.h>
+#include <lp/abstractmodel.h>
 #include <linalg/vector.h>
 #include <linalg/matrix.h>
-#include <lp/modelbuilder.h>
 
-class Model
+class Model : public AbstractModel
 {
     friend class ModelTestSuite;
 public:
 
     Model();
     virtual ~Model();
-
     
     void build(const ModelBuilder & builder);
 
@@ -54,7 +54,6 @@ protected:
     std::string m_name;
 
     OBJECTIVE_TYPE m_objectiveType;
-    //TODO Build the objective type
 
     void clear();
 

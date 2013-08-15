@@ -32,13 +32,15 @@ HEADERS += include/debug.h \
            include/linalg/vector.h \
            include/linalg/vector_iterator.h \
            include/linalg/matrixbuilder.h \
+           include/lp/abstractmodel.h \
+           include/lp/method.h \
            include/lp/model.h \
-           include/lp/simplexmodel.h \
            include/lp/modelbuilder.h \
            include/lp/manualmodelbuilder.h \
            include/lp/variable.h \
            include/lp/constraint.h \
            include/lp/mpsproblem.h \
+           include/simplex/simplexmodel.h \
            include/simplex/simplex.h \
            include/simplex/primalsimplex.h \
            include/simplex/dualsimplex.h \
@@ -48,7 +50,6 @@ HEADERS += include/debug.h \
            include/utils/heap.h \
            include/utils/indexlist.h \
            include/utils/list.h \
-           include/utils/namestorer.h \
            include/utils/exceptions.h \
            include/globals.h
 
@@ -56,11 +57,11 @@ HEADERS += include/debug.h \
 SOURCES += src/linalg/matrix.cpp \
            src/linalg/vector.cpp \
            src/lp/model.cpp \
-           src/lp/simplexmodel.cpp \
            src/lp/manualmodelbuilder.cpp \
            src/lp/variable.cpp \
            src/lp/constraint.cpp \
            src/lp/mpsproblem.cpp \
+           src/simplex/simplexmodel.cpp \
            src/simplex/simplex.cpp \
            src/simplex/primalsimplex.cpp \
            src/simplex/dualsimplex.cpp \
