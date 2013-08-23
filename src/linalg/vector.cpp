@@ -15,7 +15,7 @@
 #include <cstring>
 #include <cmath>
 
-const unsigned int ELBOWROOM = 5;
+unsigned int ELBOWROOM = 5;
 Numerical::Double SPARSITY_RATIO = 0.35; //TODO: SimplexParameters::getParameterValue("sparsity_ratio");
 Numerical::Double * Vector::sm_fullLengthVector = 0;
 unsigned int Vector::sm_fullLengthVectorLenght = 0;
@@ -23,8 +23,66 @@ unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
 unsigned long * Vector::sm_countingSortBitVector = 0;
 unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
-Vector::Vector(unsigned int dimension) {
+Vector::Vector(unsigned int dimension)
+{
     sm_fullLenghtReferenceCounter++;
+    init(dimension);
+    CHECK;
+}
+
+Vector::Vector(void *, void *, void *)
+{
+    sm_fullLenghtReferenceCounter++;
+    m_data = 0;
+    m_index = 0;
+    m_size = 0;
+    m_nonZeros = 0;
+    m_capacity = 0;
+    m_dimension = 0;
+    m_sorted = true;
+    //CHECK;
+}
+
+void Vector::reInit(unsigned int dimension)
+{
+    freeData(m_data);
+    if (m_vectorType == SPARSE_VECTOR) {
+        freeIndex(m_index);
+    }
+    init(dimension);
+    CHECK;
+}
+
+Numerical::Double * Vector::allocateData(unsigned int capacity)
+{
+    if (capacity == 0) {
+        return 0;
+    }
+    return new Numerical::Double[capacity];
+}
+
+unsigned int * Vector::allocateIndex(unsigned int capacity)
+{
+    if (capacity == 0) {
+        return 0;
+    }
+    return new unsigned int[capacity];
+}
+
+void Vector::freeData(Numerical::Double * & data)
+{
+    delete [] data;
+    data = 0;
+}
+
+void Vector::freeIndex(unsigned int * & index)
+{
+    delete [] index;
+    index = 0;
+}
+
+void Vector::init(unsigned int dimension)
+{
     m_size = 0;
     m_data = 0;
     m_dataEnd = 0;
@@ -33,15 +91,16 @@ Vector::Vector(unsigned int dimension) {
     m_capacity = ELBOWROOM; //capacity;
     m_sparsityRatio = SPARSITY_RATIO;
     m_dimension = dimension;
-    m_sorted = false;
+    m_sorted = true;
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
     if (m_sparsityThreshold == 0) {
         m_vectorType = DENSE_VECTOR;
+        m_sorted = true;
         if (m_dimension > 0) {
             resizeDense(m_dimension, ELBOWROOM);
         } else {
             if (m_capacity > 0) {
-                m_data = new Numerical::Double[m_capacity];
+                m_data = allocateData(m_capacity);
                 m_dataEnd = m_data;
             }
         }
@@ -51,41 +110,12 @@ Vector::Vector(unsigned int dimension) {
             resizeSparse(m_capacity);
         }
     }
-    CHECK;
 }
 
-Vector::Vector(void *, void *, void *) {
-    sm_fullLenghtReferenceCounter++;
-    m_data = 0;
-    m_index = 0;
-    m_size = 0;
-    m_nonZeros = 0;
-    m_capacity = 0;
-    m_dimension = 0;
-    m_sorted = false;
-    //CHECK;
-}
-
-void Vector::reInit(unsigned int dimension, unsigned int capacity) {
-    delete [] m_data;
-    delete [] m_index;
-    m_data = 0;
-    m_index = 0;
-    m_vectorType = SPARSE_VECTOR;
-    m_size = 0;
-    m_nonZeros = 0;
-    m_dimension = dimension;
-    m_sorted = false;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
-    resizeSparse(capacity);
-    CHECK;
-}
-
-Vector::~Vector() {
-    delete [] m_data;
-    delete [] m_index;
-    m_data = 0;
-    m_index = 0;
+Vector::~Vector()
+{
+    freeData(m_data);
+    freeIndex(m_index);
     sm_fullLenghtReferenceCounter--;
     if (sm_fullLenghtReferenceCounter == 0) {
         delete [] sm_fullLengthVector;
@@ -93,18 +123,21 @@ Vector::~Vector() {
         sm_fullLengthVectorLenght = 0;
 
         delete [] sm_countingSortBitVector;
+        sm_countingSortBitVector = 0;
         sm_countingSortBitVectorLength = 0;
     }
 }
 
-Vector::Vector(const Vector & original) {
+Vector::Vector(const Vector & original)
+{
     m_data = 0;
     copy(original);
     sm_fullLenghtReferenceCounter++;
     CHECK;
 }
 
-Vector::Vector(const Vector& original, Numerical::Double lambda) {
+Vector::Vector(const Vector& original, Numerical::Double lambda)
+{
     m_vectorType = original.m_vectorType;
     m_size = original.m_size;
     m_dimension = original.m_dimension;
@@ -118,11 +151,11 @@ Vector::Vector(const Vector& original, Numerical::Double lambda) {
         m_index = 0;
     } else {
         if (m_vectorType == DENSE_VECTOR) {
-            m_data = new Numerical::Double[m_capacity];
+            m_data = allocateData(m_capacity);
             m_index = 0;
         } else {
-            m_data = new Numerical::Double[m_capacity];
-            m_index = new unsigned int[m_capacity];
+            m_data = allocateData(m_capacity);
+            m_index = allocateIndex(m_capacity);
             memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
     }
@@ -138,47 +171,67 @@ Vector::Vector(const Vector& original, Numerical::Double lambda) {
     CHECK;
 }
 
-void Vector::show() const {
+void Vector::show() const
+{
+    LPINFO("");
     for (unsigned int i = 0; i < length(); i++) {
-        LPINFO(at(i));
+        LPINFO(i << ".:" << at(i));
     }
 }
 
-void Vector::clear() {
-    if (m_vectorType == DENSE_VECTOR) {
-
-        m_nonZeros = 0;
-        m_index = new unsigned int[m_capacity];
-        m_size = 0;
-        m_dataEnd = m_data;
-        m_vectorType = SPARSE_VECTOR;
-
+void Vector::clear()
+{
+    m_nonZeros = 0;
+    if (m_sparsityThreshold == 0) {
+        Numerical::Double * ptr = m_data;
+        for (; ptr < m_dataEnd; ptr++) {
+            *ptr = 0.0;
+        }
     } else {
-        m_size = 0;
-        m_nonZeros = 0;
-        m_dataEnd = m_data;
+        if (m_vectorType == DENSE_VECTOR) {
+
+            m_index = allocateIndex(m_capacity);
+            m_size = 0;
+            m_dataEnd = m_data;
+            m_vectorType = SPARSE_VECTOR;
+
+        } else {
+            m_size = 0;
+            m_dataEnd = m_data;
+        }
     }
-    m_sorted = false;
+    m_sorted = true;
 }
 
-void Vector::fill(Numerical::Double value) {
+void Vector::fill(Numerical::Double value)
+{
+    m_sorted = true;
     if (value == 0.0) {
         clear();
         return;
     }
 
-    if (m_vectorType == SPARSE_VECTOR) {
-        setSparsityRatio(0.0);
+    if (this->m_sparsityThreshold == 0.0) {
+        Numerical::Double * ptr = m_data;
+        for (; ptr < m_dataEnd; ptr++) {
+            *ptr = value;
+        }
+        m_nonZeros = m_size;
+    } else {
+
+        if (m_vectorType == SPARSE_VECTOR) {
+            sparseToDense();
+        }
+        Numerical::Double * ptr = m_data;
+        for (; ptr < m_dataEnd; ptr++) {
+            *ptr = value;
+        }
+        m_nonZeros = m_size;
     }
-    Numerical::Double * ptr = m_data;
-    for (; ptr < m_dataEnd; ptr++) {
-        *ptr = value;
-    }
-    m_nonZeros = m_size;
-    m_sorted = true;
 }
 
-void Vector::copy(const Vector & original) {
+void Vector::copy(const Vector & original)
+{
     m_vectorType = original.m_vectorType;
     m_size = original.m_size;
     m_dimension = original.m_dimension;
@@ -192,12 +245,12 @@ void Vector::copy(const Vector & original) {
         m_index = 0;
     } else {
         if (m_vectorType == DENSE_VECTOR) {
-            m_data = new Numerical::Double[m_capacity];
+            m_data = allocateData(m_capacity);
             COPY_DOUBLES(m_data, original.m_data, m_size);
             m_index = 0;
         } else {
-            m_data = new Numerical::Double[m_capacity];
-            m_index = new unsigned int[m_capacity];
+            m_data = allocateData(m_capacity);
+            m_index = allocateIndex(m_capacity);
             COPY_DOUBLES(m_data, original.m_data, m_size);
             memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
@@ -206,56 +259,73 @@ void Vector::copy(const Vector & original) {
     //    CHECK;
 }
 
-void Vector::resize(unsigned int length) {
+void Vector::resize(unsigned int length)
+{
     if (length == m_dimension) {
         return;
     }
     if (m_vectorType == DENSE_VECTOR) {
-        m_capacity = length + ELBOWROOM;
-        Numerical::Double * newData = new Numerical::Double[m_capacity];
-        m_dataEnd = newData + length;
-        Numerical::Double * actual;
-        if (length > m_size) {
+
+        if (m_capacity >= length) {
+
+            Numerical::Double * ptr = m_dataEnd;
+            m_size = length;
+
+            m_dataEnd = m_data + m_size;
+            if (length > m_dimension) {
+                while (ptr < m_dataEnd) {
+                    *ptr = 0.0;
+                    ptr++;
+                }
+            } else {
+                ptr--;
+                while (ptr >= m_dataEnd) {
+                    if (*ptr != 0.0) {
+                        m_nonZeros--;
+                    }
+                    ptr--;
+                }
+            }
+
+        } else {
+
+            m_capacity = length + ELBOWROOM;
+            Numerical::Double * newData = allocateData(m_capacity);
+            m_dataEnd = newData + length;
+            Numerical::Double * actual;
+            //            if (length > m_size) {
             memcpy(newData, m_data, sizeof (Numerical::Double) * m_size);
             actual = newData + m_size;
             for (; actual < m_dataEnd; actual++) {
                 *actual = 0.0;
             }
-        } else {
-            memcpy(newData, m_data, sizeof (Numerical::Double) * length);
-            actual = newData;
-            m_nonZeros = 0.0;
-            for (; actual < m_dataEnd; actual++) {
-                if (*actual != 0.0) {
-                    m_nonZeros++;
-                }
-            }
+
+            freeData(m_data);
+            m_data = newData;
+            m_size = length;
         }
-        delete [] m_data;
-        m_data = newData;
-        m_size = length;
     } else {
-        if (length < m_dimension && m_size > 0) {
-            m_sorted = false;
+        if (length < m_dimension && m_nonZeros > 0) {
+
             Numerical::Double * actualData = m_data;
             unsigned int * actualIndex = m_index;
-            Numerical::Double * lastData = m_data - 1;
+            Numerical::Double * lastData = m_dataEnd - 1;
             unsigned int * lastIndex = m_index + m_size - 1;
-            for (; actualData < lastData; actualData++, actualIndex++) {
+            while (actualData <= lastData) {
                 if (*actualIndex >= length) {
                     *actualIndex = *lastIndex;
                     *actualData = *lastData;
                     lastData--;
                     lastIndex--;
+                } else {
+                    actualData++;
+                    actualIndex++;
                 }
-            }
-            if (*actualIndex >= length) {
-                lastData--;
             }
             m_dataEnd = lastData + 1;
             m_size = m_dataEnd - m_data;
             m_nonZeros = m_size;
-        } // case lenght > m_dimension can be handled with m_dimension = length
+        }
     }
     m_dimension = length;
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
@@ -271,7 +341,8 @@ void Vector::resize(unsigned int length) {
 
 }
 
-void Vector::set(unsigned int index, Numerical::Double value) {
+void Vector::set(unsigned int index, Numerical::Double value)
+{
     if (m_vectorType == DENSE_VECTOR) {
         Numerical::Double & original = m_data[index];
         if (original == 0.0 && value != 0.0) {
@@ -290,8 +361,14 @@ void Vector::set(unsigned int index, Numerical::Double value) {
             if (ptr) {
                 *ptr = value;
             } else {
-                addNewElementSparse(index, value);
-                m_nonZeros++;
+                if (m_capacity <= m_size) {
+                    resizeSparse(m_size + 1 + ELBOWROOM);
+                }
+                m_data[m_size] = value;
+                m_index[m_size] = index;
+                m_size++;
+                m_dataEnd++;
+                m_nonZeros += value != 0.0;
             }
         } else {
             if (ptr) {
@@ -309,7 +386,8 @@ void Vector::set(unsigned int index, Numerical::Double value) {
     CHECK;
 }
 
-void Vector::change(unsigned int index, Numerical::Double value) {
+void Vector::change(unsigned int index, Numerical::Double value)
+{
     if (m_vectorType == DENSE_VECTOR) {
         m_data[index] = value;
         if (value == 0.0) {
@@ -334,26 +412,55 @@ void Vector::change(unsigned int index, Numerical::Double value) {
     CHECK;
 }
 
-void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas) {
+void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
+{
     if (m_vectorType == DENSE_VECTOR) {
         register unsigned int index = 0;
         register Numerical::Double * dataPtr = m_data;
         for (; index < m_size; index++, dataPtr++) {
             if (*dataPtr != 0.0) {
                 *dataPtr *= lambdas[index];
+                if (*dataPtr == 0.0) {
+                    m_nonZeros--;
+                }
             }
         }
     } else {
+        // TODO: lekezelni azt, mikor 0-val szorzunk be
         register Numerical::Double * dataPtr = m_data;
         register unsigned int * indexPtr = m_index;
-        for (; dataPtr < m_dataEnd; dataPtr++, indexPtr++) {
+        Numerical::Double * lastData = m_dataEnd - 1;
+        unsigned int * lastIndex = m_index + m_size - 1;
+
+        while (dataPtr <= lastData) {
             *dataPtr *= lambdas[*indexPtr];
+            if (*dataPtr == 0.0) {
+                m_nonZeros--;
+                *dataPtr = *lastData;
+                *indexPtr = *lastIndex;
+                lastData--;
+                lastIndex--;
+            } else {
+                dataPtr++;
+                indexPtr++;
+            }
         }
+        m_dataEnd = lastData + 1;
+        m_size = m_dataEnd - m_data;
+        m_nonZeros = m_size;
+
+        m_sorted = false;
     }
-    m_sorted = false;
+
+    if (m_nonZeros >= m_sparsityThreshold && m_vectorType == SPARSE_VECTOR) {
+        sparseToDense();
+    } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
+        denseToSparse();
+    }
 }
 
-void Vector::scaleElementBy(unsigned int index, Numerical::Double lambda) {
+void Vector::scaleElementBy(unsigned int index, Numerical::Double lambda)
+{
     if (m_vectorType == DENSE_VECTOR) {
         Numerical::Double & original = m_data[index];
         if (original != 0.0 && lambda == 0.0) {
@@ -370,7 +477,7 @@ void Vector::scaleElementBy(unsigned int index, Numerical::Double lambda) {
             if (ptr) {
                 *ptr *= lambda;
             }
-        } else { // 0-val szorzunk
+        } else {
             if (ptr) {
                 *ptr = m_data[ m_size - 1 ];
                 m_index[ ptr - m_data ] = m_index[ m_size - 1 ];
@@ -386,16 +493,23 @@ void Vector::scaleElementBy(unsigned int index, Numerical::Double lambda) {
     CHECK;
 }
 
-void Vector::setNewNonzero(unsigned int index, Numerical::Double value) {
+void Vector::setNewNonzero(unsigned int index, Numerical::Double value)
+{
     m_nonZeros++;
     if (m_vectorType == DENSE_VECTOR) {
         m_data[index] = value;
-        if (m_nonZeros < m_sparsityThreshold) {
-            denseToSparse();
-        }
+        //        if (m_nonZeros < m_sparsityThreshold) {
+        //            denseToSparse();
+        //        }
     } else {
         m_sorted = false;
-        addNewElementSparse(index, value);
+        if (m_capacity <= m_size) {
+            resizeSparse(m_size + 1 + ELBOWROOM);
+        }
+        m_data[m_size] = value;
+        m_index[m_size] = index;
+        m_size++;
+        m_dataEnd++;
         if (m_nonZeros >= m_sparsityThreshold) {
             sparseToDense();
         }
@@ -408,9 +522,10 @@ Numerical::Double Vector::operator[](unsigned int index) const {
     return at(index);
 }
 
-Vector Vector::operator*(const Matrix& matrix) const {
+Vector Vector::operator*(const Matrix& matrix) const
+{
     Vector result(matrix.columnCount());
-    Vector* justifiedLeftVector;
+    Vector* justifiedLeftVector = 0;
 
     if (matrix.rowCount() != this->length()) {
         justifiedLeftVector = new Vector(matrix.rowCount());
@@ -432,29 +547,33 @@ Vector Vector::operator*(const Matrix& matrix) const {
         }
         result.set(j, columnResult);
     }
-
+    delete justifiedLeftVector;
     return result;
 }
 
-Vector Vector::operator*(Numerical::Double m) const {
+Vector Vector::operator*(Numerical::Double m) const
+{
     Vector ret(*this);
     ret.scaleBy(m);
     return ret;
 }
 
-Vector Vector::operator-(const Vector& vector) const {
+Vector Vector::operator-(const Vector& vector) const
+{
     Vector ret(*this);
     ret.addVector(-1, vector);
     return ret;
 }
 
-Vector Vector::operator+(const Vector& vector) const {
+Vector Vector::operator+(const Vector& vector) const
+{
     Vector ret(*this);
     ret.addVector(1, vector);
     return ret;
 }
 
-Numerical::Double Vector::at(unsigned int index) const {
+Numerical::Double Vector::at(unsigned int index) const
+{
 
     if (m_vectorType == DENSE_VECTOR) {
         CHECK;
@@ -473,20 +592,32 @@ Numerical::Double Vector::at(unsigned int index) const {
     return 0;
 }
 
-unsigned int Vector::length() const {
+unsigned int Vector::length() const
+{
     //    CHECK;
     return m_dimension;
 }
 
-unsigned int Vector::capacity() const {
+unsigned int Vector::capacity() const
+{
     CHECK;
     return m_capacity;
 }
 
-unsigned int Vector::maxIndex() const {
+unsigned int Vector::maxIndex() const
+{
+    if (m_nonZeros == 0) {
+        return 0;
+    }
     if (m_vectorType == DENSE_VECTOR) {
         CHECK;
-        return m_dimension;
+        register Numerical::Double * ptr = m_dataEnd - 1;
+        register unsigned int index = m_dimension - 1;
+        while (*ptr == 0.0) {
+            ptr--;
+            index--;
+        }
+        return index;
     } else {
         register const unsigned int * indexPtr = m_index;
         register const unsigned int * const indexPtrEnd = m_index + m_size;
@@ -505,19 +636,33 @@ unsigned int Vector::maxIndex() const {
     return 0;
 }
 
-Vector & Vector::scaleBy(Numerical::Double lambda) {
+Vector & Vector::scaleBy(Numerical::Double lambda)
+{
     if (lambda == 0.0) {
+        m_nonZeros = 0;
         if (m_vectorType == DENSE_VECTOR) {
-            m_vectorType = SPARSE_VECTOR;
-            m_size = 0;
-            m_nonZeros = 0;
-            m_capacity = 0;
-            resizeSparse(ELBOWROOM);
+            if (m_nonZeros < m_sparsityThreshold) {
+                m_size = 0;
+                m_capacity = ELBOWROOM;
+                m_vectorType = SPARSE_VECTOR;
+                m_dataEnd = m_data;
+                m_sorted = true;
+                m_index = allocateIndex(m_capacity);
+                if (m_capacity == 0) {
+                    freeData(m_data);
+                    m_dataEnd = 0;
+                }
+            } else {
+                register Numerical::Double * ptr = m_data;
+                while (ptr < m_dataEnd) {
+                    *ptr = 0;
+                    ptr++;
+                }
+            }
         } else {
-            m_sorted = false;
+            m_sorted = true;
             m_size = 0;
             m_dataEnd = m_data;
-            m_nonZeros = 0;
         }
     } else {
         register Numerical::Double * ptr = m_data;
@@ -530,7 +675,8 @@ Vector & Vector::scaleBy(Numerical::Double lambda) {
     return *this;
 }
 
-Numerical::Double Vector::euclidNorm() const {
+Numerical::Double Vector::euclidNorm() const
+{
     register Numerical::Double result = 0.0;
     register Numerical::Double * dataPtr = m_data;
     for (; dataPtr < m_dataEnd; dataPtr++) {
@@ -540,7 +686,8 @@ Numerical::Double Vector::euclidNorm() const {
     return Numerical::sqrt(result);
 }
 
-Numerical::Double Vector::dotProduct(const Vector & vector) const {
+Numerical::Double Vector::dotProduct(const Vector & vector) const
+{
     if (m_size == 0 || vector.m_size == 0) {
         CHECK;
         return 0.0;
@@ -548,7 +695,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const {
 
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
-            m_sorted && vector.m_sorted) {
+        m_sorted && vector.m_sorted) {
         //        static unsigned int _counter = 0;
         //        _counter++;
         //        if (_counter % 10000 == 0) {
@@ -574,7 +721,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const {
                 index1++;
             } else {
                 Numerical::Double value = m_data[ index1 - m_index ] *
-                        vector.m_data[ index2 - vector.m_index ];
+                    vector.m_data[ index2 - vector.m_index ];
                 if (value > 0.0) {
                     positive += value;
                 } else {
@@ -655,7 +802,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const {
         needScatter = true;
         if (m_nonZeros >= vector.m_nonZeros) {
             scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-                    m_data, m_index, m_size, m_dimension);
+                m_data, m_index, m_size, m_dimension);
             denseVector = sm_fullLengthVector;
             data = vector.m_data;
             index = vector.m_index;
@@ -664,7 +811,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const {
             origSize = m_size;
         } else {
             scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-                    vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
+                vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
             denseVector = sm_fullLengthVector;
             data = m_data;
             index = m_index;
@@ -714,7 +861,8 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const {
     return result;
 }
 
-Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector) {
+Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)
+{
     if (vector.m_size == 0 || lambda == 0.0) {
         CHECK;
         return *this;
@@ -726,7 +874,7 @@ Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector) {
             addSparseToDense(lambda, vector);
         }
     } else {
-        if (vector.getVectorType() == Vector::SPARSE_VECTOR) {
+        if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
             addSparseToSparse(lambda, vector);
         } else {
             addDenseToSparse(lambda, vector);
@@ -737,13 +885,14 @@ Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector) {
     return *this;
 }
 
-void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector) {
+void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector)
+{
 
     register Numerical::Double * ptr1 = m_data;
     register const Numerical::Double * ptr2 = vector.m_data;
     register const Numerical::Double * end = m_dataEnd;
-//    int nonZeros1 = 0; // DO NOT DELETE YET!!!
-//    int nonZeros2 = 0; // DO NOT DELETE YET!!!
+    //    int nonZeros1 = 0; // DO NOT DELETE YET!!!
+    //    int nonZeros2 = 0; // DO NOT DELETE YET!!!
     while (ptr1 < end) {
         if (*ptr2 != 0.0) {
             if (*ptr1 == 0.0) {
@@ -766,14 +915,16 @@ void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector) {
     CHECK;
 }
 
-void Vector::addDenseToSparse(Numerical::Double lambda, const Vector & vector) {
+void Vector::addDenseToSparse(Numerical::Double lambda, const Vector & vector)
+{
     m_sorted = false;
     sparseToDense();
     addDenseToDense(lambda, vector);
     CHECK;
 }
 
-void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector) {
+void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector)
+{
     register const Numerical::Double * ptrData = vector.m_data;
     register const Numerical::Double * const ptrDataEnd = vector.m_dataEnd;
     register const unsigned int * ptrIndex = vector.m_index;
@@ -797,9 +948,11 @@ void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector) {
     CHECK;
 }
 
-void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector) {
+void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector)
+{
+    m_sorted = false;
     scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-            vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
+        vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
 
     register Numerical::Double * denseVector = sm_fullLengthVector;
     register Numerical::Double * ptrActualVector = m_data;
@@ -808,7 +961,6 @@ void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector) 
         if (denseVector[ *ptrIndex ] != 0.0) {
 
             Numerical::Double result = Numerical::stableAdd(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
-
             denseVector[ *ptrIndex ] = 0.0;
             if (result != 0.0) {
                 *ptrActualVector = result;
@@ -832,8 +984,15 @@ void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector) 
     ptrActualVector = vector.m_data;
     while (ptrActualVector < vector.m_dataEnd) {
         if (sm_fullLengthVector[ *ptrIndex ] != 0.0) {
-            if (lambda * *ptrActualVector != 0.0) {
-                addNewElementSparse(*ptrIndex, lambda * *ptrActualVector);
+            Numerical::Double value = lambda * *ptrActualVector;
+            if (value != 0.0) {
+                if (m_capacity <= m_size) {
+                    resizeSparse(m_size + 1 + ELBOWROOM);
+                }
+                m_data[m_nonZeros] = value;
+                m_index[m_nonZeros] = *ptrIndex;
+                m_size++;
+                m_dataEnd++;
                 m_nonZeros++;
             }
             sm_fullLengthVector[ *ptrIndex ] = 0.0;
@@ -847,167 +1006,129 @@ void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector) 
     CHECK;
 }
 
-Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot) {
+Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
+{
     //OLD IMPLEMENTATION
-    m_sorted = false;
-    if (&eta == 0)
-        return *this;
     Numerical::Double pivotValue = at(pivot);
     if (pivotValue == 0.0) {
         CHECK;
         return *this;
     }
-
+    m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
     addVector(pivotValue, eta);
-
-    //pivotValue + atPivot * pivotValue
-    //ha atPivot = -1, akkor pivotValue + atPivot * pivotValue = 0
-    //pivotValue = 0: nincs valtozas
-    //atPivot = -1: akkor egyel kevesebb nemnulla
-    //a pivotValue nem lehet nulla, ha igen akkor balhe van
-
-    if (m_vectorType == DENSE_VECTOR) {
-        const Numerical::Double result = atPivot * pivotValue;
-        if (m_data[pivot] == 0.0 && result != 0.0) {
-            m_nonZeros++;
-        }
-        m_data[ pivot ] = result;
-    } else {
-        // egyelore marad igy, mert lehet hogy dense->sparse konvertalas volt
-        Numerical::Double * ptr = getElementSparse(pivot);
-        if (ptr) {
-            *ptr = atPivot * pivotValue;
-            // DO NOT DELETE YET!
-            ////////////            if (Numerical::isZero(atPivot*pivotValue)) {
-            ////////////                *ptr = m_data[ m_size - 1 ];
-            ////////////                m_index[ ptr - m_data ] = m_index[ m_size - 1 ];
-            ////////////                m_size--;
-            ////////////                m_dataEnd--;
-            ////////////                m_nonZeros--;
-            ////////////            }
-            //                *ptr -= pivotValue;
-            //            }
-        } else {
-            if (atPivot * pivotValue != 0.0 || 1) {
-
-                addNewElementSparse(pivot, atPivot * pivotValue);
-                m_nonZeros++;
-                if (m_nonZeros >= m_sparsityThreshold) {
-                    sparseToDense();
-                }
-            }
-        }
-    }
-    CHECK;
+    set(pivot, atPivot * pivotValue);
     return *this;
-    //	//NEW IMPLEMENTATION
+
+    //NEW IMPLEMENTATION
     //    Numerical::Double * denseVector;
     //
     //    // 1. lepes: ha kell akkor atvaltjuk dense-re
     //
     //    if (m_vectorType == Vector::DENSE_VECTOR) {
-    //    	denseVector = m_data;
+    //        denseVector = m_data;
     //    } else {
     //        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght,
-    //                m_data, m_index, m_size, m_dimension);
+    //            m_data, m_index, m_size, m_dimension);
     //        denseVector = Vector::sm_fullLengthVector;
     //    }
     //
     //    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
-    //            const Numerical::Double pivotValue = denseVector[ pivot ];
+    //    const Numerical::Double pivotValue = denseVector[ pivot ];
     //
-    //            if (eta.m_vectorType == Vector::DENSE_VECTOR) {
-    //                register Numerical::Double * ptrValue2 = eta.m_data;
-    //                register Numerical::Double * ptrValue1 = denseVector;
-    //                register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
-    //                while (ptrValue1 < ptrValueEnd) {
-    //                    register const Numerical::Double value = *ptrValue2;
-    //                    if (value != 0.0) {
-    //                        const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
-    //                        if (*ptrValue1 == 0.0 && val != 0.0) {
-    //                            m_nonZeros++;
-    //                        } else if (*ptrValue1 != 0.0 && val == 0.0) {
-    //                            m_nonZeros--;
-    //                        }
-    //                        *ptrValue1 = val;
-    //                    }
-    //                    ptrValue1++;
-    //                    ptrValue2++;
-    //                }
-    //                //A vegen lerendezzuk a pivot poziciot is:
-    //                const Numerical::Double val = pivotValue * eta.m_data[pivot];
-    //                if (denseVector[pivot] == 0.0 && val != 0.0) {
+    //    if (eta.m_vectorType == Vector::DENSE_VECTOR) {
+    //        register Numerical::Double * ptrValue2 = eta.m_data;
+    //        register Numerical::Double * ptrValue1 = denseVector;
+    //        register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
+    //        while (ptrValue1 < ptrValueEnd) {
+    //            register const Numerical::Double value = *ptrValue2;
+    //            if (value != 0.0) {
+    //                const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
+    //                if (*ptrValue1 == 0.0 && val != 0.0) {
     //                    m_nonZeros++;
-    //                } else if (denseVector[pivot] != 0.0 && val == 0.0) {
+    //                } else if (*ptrValue1 != 0.0 && val == 0.0) {
     //                    m_nonZeros--;
     //                }
-    //                denseVector[pivot] = val;
+    //                *ptrValue1 = val;
+    //            }
+    //            ptrValue1++;
+    //            ptrValue2++;
+    //        }
+    //        //A vegen lerendezzuk a pivot poziciot is:
+    //        const Numerical::Double val = pivotValue * eta.m_data[pivot];
+    //        if (denseVector[pivot] == 0.0 && val != 0.0) {
+    //            m_nonZeros++;
+    //        } else if (denseVector[pivot] != 0.0 && val == 0.0) {
+    //            m_nonZeros--;
+    //        }
+    //        denseVector[pivot] = val;
     //
-    //            } else {
-    //                register Numerical::Double * ptrEta = eta.m_data;
-    //                register unsigned int * ptrIndex = eta.m_index;
-    //                register const unsigned int * ptrIndexEnd = ptrIndex + eta.m_size;
-    //                register const unsigned int pivotPosition = pivot;
-    //                while (ptrIndex < ptrIndexEnd) {
-    //                    Numerical::Double & originalValue = denseVector[*ptrIndex];
-    //                    if (*ptrEta != 0.0) {
-    //                        Numerical::Double val;
-    //                        if (*ptrIndex != pivotPosition) {
-    //                            val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
-    //                            if (originalValue == 0.0 && val != 0.0) {
-    //                                m_nonZeros++;
-    //                            } else if (originalValue != 0.0 && val == 0.0) {
-    //                                m_nonZeros--;
-    //                            }
-    //                        } else {
-    //                            val = pivotValue * *ptrEta;
-    //                        }
-    //                        originalValue = val;
+    //    } else {
+    //        register Numerical::Double * ptrEta = eta.m_data;
+    //        register unsigned int * ptrIndex = eta.m_index;
+    //        register const unsigned int * ptrIndexEnd = ptrIndex + eta.m_size;
+    //        register const unsigned int pivotPosition = pivot;
+    //        while (ptrIndex < ptrIndexEnd) {
+    //            Numerical::Double & originalValue = denseVector[*ptrIndex];
+    //            if (*ptrEta != 0.0) {
+    //                Numerical::Double val;
+    //                if (*ptrIndex != pivotPosition) {
+    //                    val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
+    //                    if (originalValue == 0.0 && val != 0.0) {
+    //                        m_nonZeros++;
+    //                    } else if (originalValue != 0.0 && val == 0.0) {
+    //                        m_nonZeros--;
     //                    }
-    //                    ptrIndex++;
-    //                    ptrEta++;
+    //                } else {
+    //                    val = pivotValue * *ptrEta;
     //                }
+    //                originalValue = val;
     //            }
-    //
-    //        // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni
-    //        Vector::VECTOR_TYPE newType;
-    //
-    //        if (m_nonZeros < m_sparsityThreshold) {
-    //            newType = Vector::SPARSE_VECTOR;
-    //        } else {
-    //            newType = Vector::DENSE_VECTOR;
+    //            ptrIndex++;
+    //            ptrEta++;
     //        }
+    //    }
     //
-    //        if (m_vectorType == Vector::DENSE_VECTOR) {
-    //            if (newType == Vector::DENSE_VECTOR) {
-    //                ;
-    //            } else {
-    //                denseToSparse();
-    //            }
+    //    // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni
+    //    Vector::VECTOR_TYPE newType;
+    //
+    //    if (m_nonZeros < m_sparsityThreshold) {
+    //        newType = Vector::SPARSE_VECTOR;
+    //    } else {
+    //        newType = Vector::DENSE_VECTOR;
+    //    }
+    //
+    //    if (m_vectorType == Vector::DENSE_VECTOR) {
+    //        if (newType == Vector::DENSE_VECTOR) {
+    //
     //        } else {
-    //            prepareForData(m_nonZeros, m_dimension, false);
-    //            register Numerical::Double * ptrValue = denseVector;
-    //            register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
-    //            register unsigned int index = 0;
-    //            while (ptrValue < ptrValueEnd) {
-    //                if (*ptrValue != 0.0) {
-    //                    newNonZero(*ptrValue, index);
-    //                    *ptrValue = 0.0;
-    //                }
-    //                ptrValue++;
-    //                index++;
-    //            }
+    //            denseToSparse();
     //        }
+    //    } else {
+    //        prepareForData(m_nonZeros, m_dimension, false);
+    //        register Numerical::Double * ptrValue = denseVector;
+    //        register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
+    //        register unsigned int index = 0;
+    //        while (ptrValue < ptrValueEnd) {
+    //            if (*ptrValue != 0.0) {
+    //                newNonZero(*ptrValue, index);
+    //                *ptrValue = 0.0;
+    //            }
+    //            ptrValue++;
+    //            index++;
+    //        }
+    //    }
 
 }
 
-Vector & Vector::elementaryBtran(const Vector & eta, unsigned int pivot) {
+Vector & Vector::elementaryBtran(const Vector & eta, unsigned int pivot)
+{
     set(pivot, dotProduct(eta));
     return *this;
 }
 
-void Vector::removeElement(unsigned int index) {
+void Vector::removeElement(unsigned int index)
+{
     bool minus = false;
     if (m_vectorType == DENSE_VECTOR) {
         minus = m_data[index] != 0.0;
@@ -1045,22 +1166,23 @@ void Vector::removeElement(unsigned int index) {
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
     if (minus) {
         m_nonZeros--;
-        if (m_vectorType == DENSE_VECTOR) {
-            if (m_nonZeros < m_sparsityThreshold) {
-                denseToSparse();
-            }
-        } else {
-            if (m_nonZeros >= m_sparsityThreshold) {
-                sparseToDense();
-            }
-        }
     }
+    if (m_vectorType == DENSE_VECTOR) {
+        if (m_nonZeros < m_sparsityThreshold) {
+            denseToSparse();
+        }
+    } else if (m_nonZeros >= m_sparsityThreshold) {
+        sparseToDense();
+    }
+
+
     CHECK;
 }
 
 // TODO: az index-edik ele szur be, ha ez az N. elem, akkor a vegere
 
-void Vector::insertElement(unsigned int index, Numerical::Double value) {
+void Vector::insertElement(unsigned int index, Numerical::Double value)
+{
     if (index == m_dimension) {
         append(value);
         CHECK;
@@ -1082,11 +1204,15 @@ void Vector::insertElement(unsigned int index, Numerical::Double value) {
             ptrData2--;
         }
         m_data[index] = value;
+        if (value != 0.0) {
+            m_nonZeros++;
+        }
         if (sub == 0) {
             m_size++;
             m_dimension++;
             m_dataEnd++;
         }
+        m_sorted = true;
     } else {
         m_sorted = false;
         register unsigned int * indexPtr = m_index;
@@ -1099,23 +1225,29 @@ void Vector::insertElement(unsigned int index, Numerical::Double value) {
         }
         if (value != 0.0) {
             m_nonZeros++;
+            if (m_capacity <= m_size) {
+                resizeSparse(m_size + 1 + ELBOWROOM);
+            }
+            m_data[m_size] = value;
+            m_index[m_size] = index;
+            m_size++;
+            m_dataEnd++;
         }
-        addNewElementSparse(index, value);
         m_dimension++;
     }
 
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    if (m_nonZeros >= m_sparsityThreshold && m_vectorType == SPARSE_VECTOR) {
+        sparseToDense();
+    } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
+        denseToSparse();
+    }
+
     CHECK;
 }
 
-void Vector::append(Numerical::Double value) {
-//    LPINFO(*this);
-//    if (m_size == 0) {
-//        LPINFO("nulla meretu vektor");
-//        cin.get();
-//    }
-    //cin.get();
-    //TODO: ha dense-bol sparse lesz vagy forditva akkor kezelni kell
+void Vector::append(Numerical::Double value)
+{
     if (value != 0.0) {
         m_nonZeros++;
     }
@@ -1133,25 +1265,37 @@ void Vector::append(Numerical::Double value) {
     } else {
         m_sorted = false;
         if (value != 0.0) {
-            addNewElementSparse(m_dimension, value); // TODO: ezt megirni ide kulon
+            if (m_capacity <= m_size) {
+                resizeSparse(m_size + 1 + ELBOWROOM);
+            }
+            m_data[m_size] = value;
+            m_index[m_size] = m_dimension;
+            m_size++;
+            m_dataEnd++;
         }
         m_dimension++;
     }
 
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    if (m_nonZeros >= m_sparsityThreshold && m_vectorType == SPARSE_VECTOR) {
+        sparseToDense();
+    } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
+        denseToSparse();
+    }
     CHECK;
 }
 
-Vector & Vector::operator=(const Vector & vector) {
-    delete [] m_data;
-    delete [] m_index;
-    m_data = 0;
+Vector & Vector::operator=(const Vector & vector)
+{
+    freeData(m_data);
+    freeIndex(m_index);
     copy(vector);
     CHECK;
     return *this;
 }
 
-void Vector::sortElements() const {
+void Vector::sortElements() const
+{
     if (m_vectorType == DENSE_VECTOR || m_nonZeros < 2) {
         return;
     }
@@ -1162,26 +1306,18 @@ void Vector::sortElements() const {
     }
     // calculating number of steps in different sorting algoirthms
 
-
     //bool sorted = true;
     register unsigned int *minPtr = m_index;
     register unsigned int *maxPtr = m_index;
     register unsigned int * actual = m_index;
     const register unsigned int * end = m_index + m_nonZeros;
     for (; actual < end; actual++) {
-        //    if (actual < end - 1 && *actual > actual[1]) {
-        //        sorted = false;
-        //    }
         if (*actual < *minPtr) {
             minPtr = actual;
         } else if (*actual > *maxPtr) {
             maxPtr = actual;
         }
     }
-
-    //if (m_nonZeros >= 1224) {
-    //    return;
-    //}    
 
     unsigned int selectionCount = m_nonZeros * m_nonZeros / 2;
     unsigned int countingCount = m_nonZeros * 2 + (*maxPtr - *minPtr);
@@ -1192,15 +1328,6 @@ void Vector::sortElements() const {
     heapsortCount *= m_nonZeros;
     heapsortCount <<= 1;
 
-    /*static unsigned int maxCount = 0;
-    if (m_nonZeros > 1000) {
-        maxCount = m_nonZeros;
-        LPINFO("selection: " << selectionCount);
-        LPINFO("counting: " << countingCount);
-        LPINFO("quicksort: " << quicksortCount);
-        LPINFO("nonzeros: " << m_nonZeros);
-        std::cin.get();
-    }*/
     unsigned int sortingAlgorithm = 0;
     unsigned int min = selectionCount;
     if (countingCount < min) {
@@ -1211,27 +1338,6 @@ void Vector::sortElements() const {
         min = heapsortCount;
         sortingAlgorithm = 2;
     }
-    /*if (sortingAlgorithm == 2) {
-        LPINFO("selection: " << selectionCount);
-        LPINFO("counting: " << countingCount);
-        LPINFO("quicksort: " << quicksortCount);
-        LPINFO("nonzeros: " << m_nonZeros);
-        std::cin.get();
-
-    }*/
-    //    if (m_nonZeros > maxCount) {
-    //        maxCount = m_nonZeros;
-    //        LPINFO("sorted: " << sorted);
-    //        LPINFO("nonzeros: " << m_nonZeros);
-    //        LPINFO("min: " << *minPtr);
-    //        LPINFO("max: " << *maxPtr);
-    //        LPINFO("density: " << ((double) m_nonZeros / (*maxPtr - *minPtr)));
-    //
-    //        LPINFO(maxCount);
-    //        LPINFO("count: " << selectionCount);
-    //        //std::cin.get();
-    //    }
-    //LPINFO("count: " << selectionCount);
 
     switch (sortingAlgorithm) {
         case 0:
@@ -1245,19 +1351,10 @@ void Vector::sortElements() const {
             heapSort();
             break;
     }
-
-    //    for (int index = 0; index < m_nonZeros - 1; index++) {
-    //        if (m_index[index] >= m_index[index + 1]) {
-    //            LPERROR("hibas rendezes! ");
-    //            LPERROR(*this);
-    //            exit(1);
-    //        }
-    //    }
-    //LPINFO(*this);
-    //std::cin.get();
 }
 
-void Vector::countingSort() const {
+void Vector::countingSort() const
+{
     const unsigned int bitCount = sizeof (unsigned long) * CHAR_BIT;
     const unsigned int shift = bitCount == 16 ? 4 : (bitCount == 32 ? 5 : 6);
     const unsigned int arraySize = m_dimension / bitCount + 1;
@@ -1279,7 +1376,7 @@ void Vector::countingSort() const {
 
 
     scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-            m_data, m_index, m_size, m_dimension);
+        m_data, m_index, m_size, m_dimension);
     static int count = 0;
     count++;
 
@@ -1330,7 +1427,8 @@ void Vector::countingSort() const {
 
 }
 
-void Vector::heapSort() const {
+void Vector::heapSort() const
+{
     Heap<unsigned int, Numerical::Double> heap(m_nonZeros);
     register unsigned int * actualIndex = m_index;
     register Numerical::Double * actualData = m_data;
@@ -1350,7 +1448,8 @@ void Vector::heapSort() const {
     }
 }
 
-void Vector::selectionSort() const {
+void Vector::selectionSort() const
+{
     register unsigned int * actual = m_index;
     const unsigned int * end1 = m_index + m_nonZeros - 1;
     const unsigned int * end2 = end1 + 1;
@@ -1375,7 +1474,8 @@ void Vector::selectionSort() const {
     }
 }
 
-void Vector::insertionSort() const {
+void Vector::insertionSort() const
+{
     if (m_nonZeros < 2) {
         return;
     }
@@ -1412,11 +1512,12 @@ void Vector::insertionSort() const {
     }
 }
 
-void Vector::resizeDense(unsigned int size, unsigned int elbowroom) {
+void Vector::resizeDense(unsigned int size, unsigned int elbowroom)
+{
     m_capacity = size + elbowroom;
-    Numerical::Double * temp = new Numerical::Double[ m_capacity ];
+    Numerical::Double * temp = allocateData(m_capacity);
     COPY_DOUBLES(temp, m_data, (size > m_size ? m_size : size));
-    delete [] m_data;
+    freeData(m_data);
     m_data = temp;
     m_dataEnd = m_data + size;
     // a maradekot le kell nullazni
@@ -1431,12 +1532,11 @@ void Vector::resizeDense(unsigned int size, unsigned int elbowroom) {
     CHECK;
 }
 
-void Vector::resizeSparse(unsigned int capacity) {
+void Vector::resizeSparse(unsigned int capacity)
+{
     if (capacity == 0) {
-        delete [] m_data;
-        delete [] m_index;
-        m_index = 0;
-        m_data = 0;
+        freeData(m_data);
+        freeIndex(m_index);
         m_dataEnd = 0;
         m_nonZeros = 0;
         m_size = 0;
@@ -1448,13 +1548,13 @@ void Vector::resizeSparse(unsigned int capacity) {
         capacity = m_size;
     }
 
-    Numerical::Double * tempData = new Numerical::Double[capacity];
-    unsigned int * tempIndex = new unsigned[capacity];
+    Numerical::Double * tempData = allocateData(capacity);
+    unsigned int * tempIndex = allocateIndex(capacity);
     COPY_DOUBLES(tempData, m_data, m_size);
     memcpy(tempIndex, m_index, m_size * sizeof (unsigned int));
-    delete [] m_data;
+    freeData(m_data);
     m_data = tempData;
-    delete [] m_index;
+    freeIndex(m_index);
     m_index = tempIndex;
     m_dataEnd = m_data + m_size;
     m_capacity = capacity;
@@ -1463,7 +1563,8 @@ void Vector::resizeSparse(unsigned int capacity) {
     CHECK;
 }
 
-Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const {
+Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const
+{
     register unsigned int * indexPtr = m_index;
     register const unsigned int * const indexPtrEnd = m_index + m_size;
     while (indexPtr < indexPtrEnd && *indexPtr != index) {
@@ -1477,7 +1578,8 @@ Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const {
     return 0;
 }
 
-Numerical::Double * Vector::getElementSparseBinary(unsigned int index) const {
+Numerical::Double * Vector::getElementSparseBinary(unsigned int index) const
+{
     if (m_nonZeros == 0) {
         return 0;
     }
@@ -1500,14 +1602,16 @@ Numerical::Double * Vector::getElementSparseBinary(unsigned int index) const {
     return 0;
 }
 
-Numerical::Double * Vector::getElementSparse(unsigned int index) const {
+Numerical::Double * Vector::getElementSparse(unsigned int index) const
+{
     if (m_sorted == false) {
         return getElementSparseLinear(index);
     }
     return getElementSparseBinary(index);
 }
 
-void Vector::addNewElementSparse(unsigned int index, Numerical::Double value) {
+void Vector::addNewElementSparse(unsigned int index, Numerical::Double value)
+{
     if (value == 0.0) {
         return;
     }
@@ -1521,15 +1625,13 @@ void Vector::addNewElementSparse(unsigned int index, Numerical::Double value) {
     }
     m_data[m_size] = value;
     m_index[m_size] = index;
-    if (m_index[m_size] > m_dimension) {
-        LPERROR("Invalid index: " << index << ", but greater index = " << m_dimension - 1);
-    }
     m_size++;
     m_dataEnd++;
     //CHECK;
 }
 
-void Vector::removeElementSparse(unsigned int index) {
+void Vector::removeElementSparse(unsigned int index)
+{
     m_data[index] = m_data[m_size - 1];
     m_index[index] = m_index[m_size - 1];
     if (m_index[index] >= m_dimension) {
@@ -1541,8 +1643,9 @@ void Vector::removeElementSparse(unsigned int index) {
 }
 
 unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-        unsigned int * indexVector, unsigned int denseLength,
-        bool setZero) {
+    unsigned int * indexVector, unsigned int denseLength,
+    bool setZero)
+{
     // a denseVector-bol kigyujti a nem nulla elemeket a sparseVector-ba
     // es az indexeket az indexVector-ba
     register unsigned int index = 0;
@@ -1566,13 +1669,14 @@ unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double *
 }
 
 Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
-        Numerical::Double * sparseVector, unsigned int * index,
-        unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot) {
+    Numerical::Double * sparseVector, unsigned int * index,
+    unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot)
+{
     // sparse -> dense
     Numerical::Double * res = 0;
     if (denseLength < sparseMaxIndex) {
         delete [] denseVector;
-        denseVector = new Numerical::Double[ sparseMaxIndex + 1];
+        denseVector = allocateData(sparseMaxIndex + 1);
         register Numerical::Double * ptrDense = denseVector;
         register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
         while (ptrDense < ptrDenseEnd) {
@@ -1601,12 +1705,13 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
 }
 
 void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-        Numerical::Double * sparseVector, unsigned int * index,
-        unsigned int sparseLength, unsigned int sparseMaxIndex) {
+    Numerical::Double * sparseVector, unsigned int * index,
+    unsigned int sparseLength, unsigned int sparseMaxIndex)
+{
     // sparse -> dense
     if (denseLength < sparseMaxIndex) {
         delete [] denseVector;
-        denseVector = new Numerical::Double[ sparseMaxIndex + 1];
+        denseVector = allocateData(sparseMaxIndex + 1);
         register Numerical::Double * ptrDense = denseVector;
         register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
         while (ptrDense < ptrDenseEnd) {
@@ -1632,7 +1737,8 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 }
 
 void Vector::clearFullLenghtVector(Numerical::Double * denseVector,
-        unsigned int * sparseIndex, unsigned int sparseLength) {
+    unsigned int * sparseIndex, unsigned int sparseLength)
+{
     register const unsigned int * ptrIndex = sparseIndex;
     register const unsigned int * const ptrIndexEnd = sparseIndex + sparseLength;
     while (ptrIndex < ptrIndexEnd) {
@@ -1641,24 +1747,26 @@ void Vector::clearFullLenghtVector(Numerical::Double * denseVector,
     }
 }
 
-void Vector::denseToSparse() {
+void Vector::denseToSparse()
+{
     m_capacity = m_nonZeros + ELBOWROOM;
-    m_index = new unsigned int[m_capacity];
-    Numerical::Double * temp = new Numerical::Double[m_capacity];
+    m_index = allocateIndex(m_capacity);
+    Numerical::Double * temp = allocateData(m_capacity);
     gather(m_data, temp, m_index, m_size, false);
     m_sorted = true;
     m_size = m_nonZeros;
-    delete [] m_data;
+    freeData(m_data);
     m_data = temp;
     m_dataEnd = m_data + m_size;
     m_vectorType = SPARSE_VECTOR;
     CHECK;
 }
 
-void Vector::sparseToDense() {
-    m_sorted = false;
+void Vector::sparseToDense()
+{
+    m_sorted = true;
     m_capacity = m_dimension + ELBOWROOM;
-    Numerical::Double * temp = new Numerical::Double[m_capacity];
+    Numerical::Double * temp = allocateData(m_capacity);
     register Numerical::Double * ptr = temp;
     register const Numerical::Double * const end = temp + m_dimension;
     while (ptr < end) {
@@ -1667,17 +1775,17 @@ void Vector::sparseToDense() {
     }
     scatter(temp, m_dimension, m_data, m_index, m_size, m_dimension);
 
-    delete [] m_data;
+    freeData(m_data);
     m_data = temp;
-    delete [] m_index;
-    m_index = 0;
+    freeIndex(m_index);
     m_size = m_dimension;
     m_dataEnd = m_data + m_size;
     m_vectorType = DENSE_VECTOR;
     CHECK;
 }
 
-void Vector::setSparsityRatio(Numerical::Double ratio) {
+void Vector::setSparsityRatio(Numerical::Double ratio)
+{
     m_sparsityRatio = ratio;
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
     if (m_vectorType == DENSE_VECTOR && m_nonZeros < m_sparsityThreshold) {
@@ -1688,12 +1796,14 @@ void Vector::setSparsityRatio(Numerical::Double ratio) {
     CHECK;
 }
 
-Numerical::Double Vector::getSparsityRatio() const {
+Numerical::Double Vector::getSparsityRatio() const
+{
     CHECK;
     return m_sparsityRatio;
 }
 
-bool Vector::operator==(const Vector & vector) const {
+bool Vector::operator==(const Vector & vector) const
+{
     if (m_nonZeros != vector.m_nonZeros) {
         return false;
     }
@@ -1711,12 +1821,13 @@ bool Vector::operator==(const Vector & vector) const {
     return true;
 }
 
-std::ostream & operator<<(std::ostream & os, const Vector & vector) {
+std::ostream & operator<<(std::ostream & os, const Vector & vector)
+{
     unsigned int index;
 #ifndef NODEBUG
     os << "data members:" << std::endl;
     os << "\tm_vectorType: " << (vector.m_vectorType == Vector::DENSE_VECTOR ?
-            "DENSE_VECTOR" : "SPARSE_VECTOR") << std::endl;
+        "DENSE_VECTOR" : "SPARSE_VECTOR") << std::endl;
     os << "\tm_size: " << vector.m_size << std::endl;
     os << "\tm_dimension: " << vector.m_dimension << std::endl;
     os << "\tm_capacity: " << vector.m_capacity << std::endl;
@@ -1726,6 +1837,7 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector) {
     os << "\tm_nonZeros: " << vector.m_nonZeros << std::endl;
     os << "\tm_sparsityRatio: " << vector.m_sparsityRatio << std::endl;
     os << "\tm_sparsityThreshold: " << vector.m_sparsityThreshold << std::endl;
+    os << "\tm_sorted: " << vector.m_sorted << std::endl;
     os << "m_data: " << std::endl;
     for (index = 0; index < vector.m_size; index++) {
         os << vector.m_data[index] << " ";
@@ -1753,7 +1865,8 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector) {
     return os;
 }
 
-Numerical::Double Vector::absMaxElement() {
+Numerical::Double Vector::absMaxElement()
+{
     Numerical::Double result = 0;
     if (nonZeros() > 0) {
         result = *beginNonzero();
@@ -1770,7 +1883,8 @@ Numerical::Double Vector::absMaxElement() {
     return result;
 }
 
-Vector operator*(Numerical::Double m, const Vector& v) {
+Vector operator*(Numerical::Double m, const Vector& v)
+{
     Vector ret(v);
     ret.scaleBy(m);
     return ret;

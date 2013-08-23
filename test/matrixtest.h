@@ -8,6 +8,7 @@
 #ifndef MATRIXTEST_H
 #define	MATRIXTEST_H
 
+#include <sstream>
 #include "framework/tester.h"
 #include "framework/unittest.h"
 #include <linalg/matrix.h>
@@ -17,8 +18,38 @@ class MatrixTestSuite : public UnitTest
 public:
 
     MatrixTestSuite(const char * name);
-    
+
 private:
+
+    class MatrixTester : public UnitTest::DefaultTester
+    {
+    public:
+
+        void test()
+        {
+            const unsigned int elbowRooms[] = {0, 1, 2, 3, 4, 5, 10, 20, 100};
+            const unsigned int count = sizeof (elbowRooms) / sizeof (unsigned int);
+            double originalSparsityRatio = SPARSITY_RATIO;
+            unsigned int originalElbowRoom = ELBOWROOM;
+            unsigned int ratioIndex;
+            unsigned int elbowRoomIndex;
+            const unsigned int N = 20;
+            for (elbowRoomIndex = 0; elbowRoomIndex < count; elbowRoomIndex++) {
+                ELBOWROOM = elbowRooms[elbowRoomIndex];
+                for (ratioIndex = 0; ratioIndex <= N; ratioIndex++) {
+                    SPARSITY_RATIO = (double) ratioIndex / N;
+                    std::ostringstream str;
+                    str << "SPARSITY RATIO: " << SPARSITY_RATIO <<
+                        " ELBOWROOM: " << ELBOWROOM;
+                    setExtraInfo(str.str());
+                    runTest();
+                    setExtraInfo("");
+                }
+            }
+            ELBOWROOM = originalElbowRoom;
+            SPARSITY_RATIO = originalSparsityRatio;
+        }
+    };
     void equal();
     void copy();
     void assign();
