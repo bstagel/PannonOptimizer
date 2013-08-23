@@ -42,6 +42,7 @@ private:
     static bool sm_firstTest;
     static bool sm_actualIsGood;
     static unsigned int sm_totalErrorCounter;
+    static std::string sm_extraInfo;
 
     // key: name of the test unit
     static std::map<std::string, std::map< std::string, std::list<TestResult> > > sm_results;
@@ -87,7 +88,11 @@ private:
             std::cout << std::endl << std::endl << "\tFile: " << result.m_file << std::endl;
             std::cout << "\tFunction: " << test << std::endl;
             std::cout << "\tLine: " << result.m_line << std::endl;
-            std::cout << "\tSource:" << result.m_source << std::endl << std::endl;
+            std::cout << "\tSource:" << result.m_source << std::endl;
+            if (sm_extraInfo.length() > 0) {
+                std::cout << "\t Extra info: " << sm_extraInfo << std::endl;
+            }
+            std::cout << std::endl;
             sm_actualIsGood = false;
         }
         sm_results[unit][test].push_back(result);
@@ -96,6 +101,11 @@ private:
     static void generateHtmlOutput(std::ostream &)
     {
 
+    }
+
+    static void setExtraInfo(const std::string & info)
+    {
+        sm_extraInfo = info;
     }
 };
 

@@ -10,6 +10,7 @@ unsigned int Tester::sm_subCounter = 0;
 bool Tester::sm_firstTest = true;
 bool Tester::sm_actualIsGood = true;
 unsigned int Tester::sm_totalErrorCounter = 0;
+std::string Tester::sm_extraInfo;
 
 void Tester::run()
 {
@@ -43,10 +44,11 @@ public:
     {
     }
 
-    void run()
+    double run()
     {
         test1();
         test2();
+        return 1;
     }
 
     void test1()
@@ -71,10 +73,11 @@ public:
     {
     }
 
-    void run()
+    double run()
     {
         foo();
         bar();
+        return 1.0;
     }
 
     void foo()

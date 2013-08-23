@@ -22,7 +22,7 @@ class Matrix;
 /**
  *
  */
-extern const unsigned int ELBOWROOM;
+extern unsigned int ELBOWROOM;
 
 /**
  *
@@ -80,7 +80,8 @@ public:
 
     /**
      * This constructor initializes a vector, with dimension given by parameter.
-     * The vector will be sparse vector, and m_data array is initialized for size
+     * When the sparsity threshold is higher than the number of nonzeros, the 
+     * vector will be sparse vector, and m_data array is initialized for size
      * ELBOWROOM. Logically, the vector contains dimension piece of zeros.
      * Increases sm_fullLenghtReferenceCounter for garbage collector mechanism.
      *
@@ -126,7 +127,7 @@ public:
      * Sets each nonzero to zero in the vector.
      */
     void clear();
-    
+
     /**
      * Fills the vector with the value.
      * 
@@ -487,7 +488,7 @@ public:
      * @param dimension
      * @param capacity
      */
-    void reInit(unsigned int dimension, unsigned int capacity = 0);
+    void reInit(unsigned int dimension);
 
     /**
      * @param ratio
@@ -549,54 +550,55 @@ public:
             return endNonzero();
         }
         return NonzeroIterator(m_data, m_dataEnd, m_data, m_index,
-                m_data < m_dataEnd);
+            m_data < m_dataEnd);
     }
 
     inline Iterator end() const
     {
         return Iterator(m_data, m_dataEnd, m_dataEnd,
-                m_index ? m_index + m_size : 0);
+            m_index ? m_index + m_size : 0);
     }
 
     inline NonzeroIterator endNonzero() const
     {
         return NonzeroIterator(m_data, m_dataEnd, m_dataEnd,
-                m_index ? m_index + m_size : 0, false);
+            m_index ? m_index + m_size : 0, false);
     }
 
     /**
      * @param nonZeros
      * @param dimension
      */
-    inline void prepareForData(const unsigned int nonZeros, const unsigned int dimension, Numerical::Double ratio = -1, bool setRatio = true)
+    inline void prepareForData(const unsigned int nonZeros, const unsigned int dimension, Numerical::Double ratio = -1)
     {
         delete [] m_data;
         delete [] m_index;
-        if (setRatio) {
-            if (ratio == -1) {
-                m_sparsityRatio = SPARSITY_RATIO;
-            } else {
-                m_sparsityRatio = ratio;
-            }
+        if (ratio == -1) {
+            m_sparsityRatio = SPARSITY_RATIO;
+        } else {
+            m_sparsityRatio = ratio;
         }
+
         m_dimension = dimension;
-        m_sparsityThreshold = (unsigned int) Numerical::round(Numerical::Double(m_dimension) * m_sparsityRatio);
+        m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
         if (nonZeros < m_sparsityThreshold) {
             m_vectorType = SPARSE_VECTOR;
-            m_index = new unsigned int[ nonZeros + ELBOWROOM ];
-            m_data = new Numerical::Double[ nonZeros + ELBOWROOM ];
+            m_index = allocateIndex(nonZeros + ELBOWROOM);
+            m_data = allocateData(nonZeros + ELBOWROOM);
             m_dataEnd = m_data;
             m_capacity = nonZeros + ELBOWROOM;
             m_nonZeros = nonZeros;
             m_size = nonZeros;
+            m_sorted = false;
         } else {
             m_vectorType = DENSE_VECTOR;
             m_index = 0;
-            m_data = new Numerical::Double[ dimension + ELBOWROOM ];
+            m_data = allocateData(dimension + ELBOWROOM);
             m_dataEnd = m_data + dimension;
             m_capacity = dimension + ELBOWROOM;
             m_nonZeros = nonZeros;
             m_size = dimension;
+            m_sorted = true;
             register Numerical::Double * ptr = m_data;
             while (ptr < m_dataEnd) {
                 *ptr = 0;
@@ -631,7 +633,7 @@ public:
     }
 
     void sortElements() const;
-    
+
     void scaleByLambdas(const std::vector<Numerical::Double> & lambdas);
 
 protected:
@@ -728,10 +730,15 @@ protected:
 
     static unsigned int sm_countingSortBitVectorLength;
 
-    inline VECTOR_TYPE getVectorType() const
-    {
-        return m_vectorType;
-    }
+    void init(unsigned int dimension);
+
+    static Numerical::Double * allocateData(unsigned int capacity);
+
+    static unsigned int * allocateIndex(unsigned int capacity);
+
+    static void freeData(Numerical::Double * & data);
+
+    static void freeIndex(unsigned int * & index);
 
     /**
      * @param size
@@ -831,7 +838,7 @@ protected:
      * @param setZero
      */
     static unsigned int gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-            unsigned int * index, unsigned int denseLength, bool setZero);
+        unsigned int * index, unsigned int denseLength, bool setZero);
 
     // sparse -> dense
     /**
@@ -843,8 +850,8 @@ protected:
      * @param sparseMaxIndex
      */
     static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-            Numerical::Double * sparseVector, unsigned int * index,
-            unsigned int sparseLength, unsigned int sparseMaxIndex);
+        Numerical::Double * sparseVector, unsigned int * index,
+        unsigned int sparseLength, unsigned int sparseMaxIndex);
 
     // sparse -> dense
     /**
@@ -857,8 +864,8 @@ protected:
      * @param pivot
      */
     static Numerical::Double * scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
-            Numerical::Double * sparseVector, unsigned int * index,
-            unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot);
+        Numerical::Double * sparseVector, unsigned int * index,
+        unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot);
 
 
     /**
@@ -867,7 +874,7 @@ protected:
      * @param sparseLength
      */
     static void clearFullLenghtVector(Numerical::Double * denseVector,
-            unsigned int * sparseIndex, unsigned int sparseLength);
+        unsigned int * sparseIndex, unsigned int sparseLength);
 
 #undef IN_VECTOR
 };

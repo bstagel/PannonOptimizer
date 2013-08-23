@@ -3,56 +3,56 @@
 
 MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
 {
-    ADD_TEST(MatrixTestSuite::equal);
-    ADD_TEST(MatrixTestSuite::copy);
-    ADD_TEST(MatrixTestSuite::assign);
-    ADD_TEST(MatrixTestSuite::transposed);
-    ADD_TEST(MatrixTestSuite::transpose);
-    ADD_TEST(MatrixTestSuite::add);
-    ADD_TEST(MatrixTestSuite::addToThis);
-    ADD_TEST(MatrixTestSuite::subtract);
-    ADD_TEST(MatrixTestSuite::subtractFromThis);
-    ADD_TEST(MatrixTestSuite::multipleByVector);
-    ADD_TEST(MatrixTestSuite::multipleByDouble);
-    ADD_TEST(MatrixTestSuite::multipleByMatrix_1);
-    ADD_TEST(MatrixTestSuite::multipleByMatrix_2);
-    ADD_TEST(MatrixTestSuite::multipleByDiagonalMatrix);
-    ADD_TEST(MatrixTestSuite::inverse);
-    ADD_TEST(MatrixTestSuite::invert);
-    ADD_TEST(MatrixTestSuite::diagonalMatrix);
-    ADD_TEST(MatrixTestSuite::diagonalMatrix_Inverse);
-    ADD_TEST(MatrixTestSuite::diagonalMatrix_Invert);
-    ADD_TEST(MatrixTestSuite::rowVector);
-    ADD_TEST(MatrixTestSuite::columnVector);
-    ADD_TEST(MatrixTestSuite::comprehensive_1);
-    ADD_TEST(MatrixTestSuite::constructor);
-    ADD_TEST(MatrixTestSuite::setGet);
-    ADD_TEST(MatrixTestSuite::columnWise);
-    ADD_TEST(MatrixTestSuite::rowWise);
-    ADD_TEST(MatrixTestSuite::clear);
-    ADD_TEST(MatrixTestSuite::resize);
-    ADD_TEST(MatrixTestSuite::scale);
-    ADD_TEST(MatrixTestSuite::scaleRow);
-    ADD_TEST(MatrixTestSuite::scaleColumn);
-    ADD_TEST(MatrixTestSuite::prepend);
-    ADD_TEST(MatrixTestSuite::prependEmpty);
-    ADD_TEST(MatrixTestSuite::prependEmpty2);
-    ADD_TEST(MatrixTestSuite::append);
-    ADD_TEST(MatrixTestSuite::appendEmpty);
-    ADD_TEST(MatrixTestSuite::appendEmpty2);
-    ADD_TEST(MatrixTestSuite::insertColumn);
-    ADD_TEST(MatrixTestSuite::insertEmptyColumn);
-    ADD_TEST(MatrixTestSuite::insertRow);
-    ADD_TEST(MatrixTestSuite::insertEmptyRow);
-    ADD_TEST(MatrixTestSuite::removeRow);
-    ADD_TEST(MatrixTestSuite::removeColumn);
-    ADD_TEST(MatrixTestSuite::nonZerosAndDensity);
-    ADD_TEST(MatrixTestSuite::newNonzero);
-    ADD_TEST(MatrixTestSuite::addScalarMatrix);
-    ADD_TEST(MatrixTestSuite::sortElements);
-    ADD_TEST(MatrixTestSuite::determinant);
-    ADD_TEST(MatrixTestSuite::reInit);
-    ADD_TEST(MatrixTestSuite::gaussian);
+    ADD_TEST_EXTRA(MatrixTestSuite::equal, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::copy, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::assign, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::transposed, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::transpose, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::add, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::addToThis, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::subtract, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::subtractFromThis, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::multipleByVector, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::multipleByDouble, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::multipleByMatrix_1, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::multipleByMatrix_2, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::multipleByDiagonalMatrix, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::inverse, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::invert, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::diagonalMatrix, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::diagonalMatrix_Inverse, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::diagonalMatrix_Invert, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::rowVector, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::columnVector, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::comprehensive_1, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::constructor, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::setGet, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::columnWise, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::rowWise, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::clear, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::resize, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::scale, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::scaleRow, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::scaleColumn, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::prepend, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::prependEmpty, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::prependEmpty2, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::append, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::appendEmpty, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::appendEmpty2, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::insertColumn, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::insertEmptyColumn, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::insertRow, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::insertEmptyRow, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::removeRow, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::removeColumn, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::nonZerosAndDensity, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::newNonzero, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::addScalarMatrix, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::sortElements, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::determinant, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::reInit, MatrixTester);
+    ADD_TEST_EXTRA(MatrixTestSuite::gaussian, MatrixTester);
 }
 
 void MatrixTestSuite::equal()
@@ -1246,6 +1246,7 @@ void MatrixTestSuite::invert()
     m.set(2, 1, 3);
     m.set(2, 2, 4);
 
+    Matrix m0 = m;
     m.invert();
     ASSERT_EQ(3, 3);
     ASSERT_EQ(7, m.get(0, 0));
@@ -2406,11 +2407,7 @@ void MatrixTestSuite::prepend()
     vi1.set(1, 2);
 
     //m.show();
-    //LPINFO("\tPREPEND");
     m.prependColumn(vi1);
-
-    //m.show();
-    //std::cin.get();
 
     ASSERT_EQ(2, m.rowCount());
     ASSERT_EQ(3, m.columnCount());

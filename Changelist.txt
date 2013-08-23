@@ -1,6 +1,43 @@
-2013. 08. 14.
+2013. 08. 23.
 Vector osztaly:
 
 Kikerult a kodbol a ConstIterator es a ConstNonzeroIterator. 
 A megmaradt Iterator es NonzeroIterator * operatora const referenciat ad vissza.
 A begin, end, beginNonzero es endNonzero fuggvenyek const-ok lettek.
+
+Javitasok:
+
+A Vector fill fuggvenye valtozott: ha SPARSE a tipus, akkor sparseToDense() 
+fuggvenyt kell meghivni, ahelyett, hogy a sparseRatio-t allitanank.
+
+Vector maxIndex függvénye javítva arra az esetre, mikor DENSE típusú vektorról
+van szó.
+
+A Vector objektumban az m_sorted akkor is igaz, ha DENSE tipusu a vektor,
+mivel a nonzero iteratorrol ekkor tudni lehet, hogy megfelelo sorrendben
+adja vissza a nem nullakat.
+
+Javitva a Vector Vector::operator*(const Matrix& matrix) const fuggvenyben
+levo memoriaszivargas.
+
+A destruktorban a sm_countingSortBitVector nullazva lett a felszabaditas utan,
+ez a tobbszoros felszabaditas kivedeset szolgalja.
+
+A removeElement fuggveny nem mindig valtott sparse-rol dense-re es vissza, ez
+javitva lett.
+
+A maxIndex-nek a legnagyobb indexu nem nulla elem ertekevel kell visszaternie.
+Ha nincsen nem nulla, akkor 0-val ter vissza.
+
+A scaleBy rosszul kezelte azt az esetet, mikor 0-val szoroztunk, javitva lett.
+
+Az addVector nem mindig jol allitotta be az m_sorted-et, emiatt megbolondult
+az at fuggveny.
+
+Az elementaryFtran rosszul kezelte az m_sorted-et es az m_nonZero-t, javitva.
+
+A reInit-nek mostantol nem lehet megadni a kapacitast.
+
+A prepareForData nem kezelte le az m_sorted valtozot, javitva.
+
+Ha a vektor kapacitasa 0, akkor az m_data es m_index pointerek 0 pointerek.
