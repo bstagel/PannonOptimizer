@@ -24,11 +24,15 @@ private:
     }
 public:
 
+    virtual ~UnitTest() {}
+
     class DefaultTester
     {
         UnitTest * m_unitTest;
         TestFunction m_function;
     public:
+
+        virtual ~DefaultTester() {}
 
         void init(UnitTest * unitTest, TestFunction function)
         {

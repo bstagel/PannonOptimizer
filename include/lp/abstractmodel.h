@@ -17,10 +17,10 @@ class AbstractModel
 friend class Method;
 
 public:
-    virtual ~AbstractModel();
+    virtual ~AbstractModel() {}
 
 protected:
-
+    // TODO: ezt a ketto muveletet lehet mutex-el vedette kellene tenni
     void registerMethod(Method * method){
         m_registeredMethods.push_back(method);
     }

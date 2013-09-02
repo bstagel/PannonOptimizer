@@ -23,7 +23,7 @@ void SimplexModel::makeComputationalForm()
 
 //    variables.resize(variablesSize);
 
-    m_rhs.reInit(rowCount, 10);
+    m_rhs.reInit(rowCount);
 
     for (i=0, j=0; i < rowCount; i++, j++) {
 

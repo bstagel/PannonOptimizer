@@ -8,7 +8,7 @@
 Variable Variable::createVariable(const char * name,
     Numerical::Double value,
     Numerical::Double lowerBound,
-    Numerical::Double upperBound)throw (InvalidLowerBoundException,
+    Numerical::Double upperBound) throw (InvalidLowerBoundException,
     InvalidUpperBoundException,
     InvalidBoundsException)
 {
@@ -24,7 +24,7 @@ Variable Variable::createPlusTypeVariable(const char * name,
 
 Variable Variable::createMinusTypeVariable(const char * name,
     Numerical::Double value,
-    Numerical::Double upperBound)
+    Numerical::Double upperBound) throw (InvalidUpperBoundException)
 {
     return Variable(-PInfinity, upperBound, value, name);
 }
@@ -32,9 +32,9 @@ Variable Variable::createMinusTypeVariable(const char * name,
 Variable Variable::createBoundedTypeVariable(const char * name,
     Numerical::Double value,
     Numerical::Double lowerBound,
-    Numerical::Double upperBound)throw (InvalidLowerBoundException,
-    InvalidUpperBoundException,
-    InvalidBoundsException)
+    Numerical::Double upperBound) throw (InvalidLowerBoundException,
+        InvalidUpperBoundException,
+        InvalidBoundsException)
 {
     return Variable(lowerBound, upperBound, value, name);
 }
@@ -79,7 +79,9 @@ std::ostream & operator<<(std::ostream & os, const Variable & var)
     return os;
 }
 
-void Variable::check() const
+void Variable::check() const throw (InvalidLowerBoundException,
+                                    InvalidUpperBoundException,
+                                    InvalidBoundsException)
 {
     if (m_lowerBound == PInfinity) {
         std::ostringstream message;
