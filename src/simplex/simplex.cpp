@@ -5,10 +5,10 @@
 #include "simplex/simplex.h"
 
 Simplex::Simplex():
+    m_simplexModel(NULL),
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
-    m_reducedCostFeasibilities(0,0),
-    m_simplexModel(NULL)
+    m_reducedCostFeasibilities(0,0)
 {
 
 }

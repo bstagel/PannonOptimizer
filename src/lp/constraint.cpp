@@ -6,26 +6,30 @@
 
 Constraint Constraint::createConstraint(const char * name,
     Numerical::Double lowerBound,
-    Numerical::Double upperBound)
+    Numerical::Double upperBound) throw (InvalidLowerBoundException,
+                                         InvalidUpperBoundException,
+                                         InvalidBoundsException)
 {
     return Constraint(lowerBound, upperBound, name);
 }
 
 Constraint Constraint::createGreaterTypeConstraint(const char * name,
-    Numerical::Double lowerBound)
+    Numerical::Double lowerBound) throw (Constraint::InvalidLowerBoundException)
 {
     return Constraint(lowerBound, PInfinity, name);
 }
 
 Constraint Constraint::createLessTypeConstraint(const char * name,
-    Numerical::Double upperBound)
+    Numerical::Double upperBound) throw (Constraint::InvalidUpperBoundException)
 {
     return Constraint(-PInfinity, upperBound, name);
 }
 
 Constraint Constraint::createRangeTypeConstraint(const char * name,
     Numerical::Double lowerBound,
-    Numerical::Double upperBound)
+    Numerical::Double upperBound) throw (Constraint::InvalidLowerBoundException,
+                                         Constraint::InvalidUpperBoundException,
+                                         Constraint::InvalidBoundsException)
 {
     return Constraint(lowerBound, upperBound, name);
 }
@@ -68,7 +72,9 @@ std::ostream & operator<<(std::ostream & os, const Constraint & var)
     return os;
 }
 
-void Constraint::check() const
+void Constraint::check() const throw (Constraint::InvalidLowerBoundException,
+                                      Constraint::InvalidUpperBoundException,
+                                      Constraint::InvalidBoundsException)
 {
     if (m_lowerBound == PInfinity) {
         std::ostringstream message;

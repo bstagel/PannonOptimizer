@@ -196,7 +196,7 @@ public:
      */
     static Variable createMinusTypeVariable(const char * name,
         Numerical::Double value,
-        Numerical::Double upperBound);
+        Numerical::Double upperBound) throw (InvalidUpperBoundException);
 
     /**
      * Creates a bounded type variable, with a given value and bounds.
@@ -260,105 +260,164 @@ public:
      * 
      * @param lowerBound The lower bound of the variable.
      */
-    inline void setLowerBound(Numerical::Double lowerBound);
+    inline void setLowerBound(Numerical::Double lowerBound) throw (InvalidLowerBoundException,
+                                                                   InvalidBoundsException);
 
     /**
+     * Returns with the upper bound of the variable.
      *
-     * @return
+     * @return The upper bound of the variable.
      */
     inline Numerical::Double getUpperBound() const;
 
     /**
+     * Sets the upper bound of the variable.
+     * If the upper bound is invalid, the function throws a
+     * Variable::InvalidUpperBoundException, and if the lower bound is
+     * greater than the upper bound, the function throws a
+     * Variable::InvalidBoundsException.
      *
-     * @param upperBound
+     * @param upperBound The upper bound of the variable.
      */
-    inline void setUpperBound(Numerical::Double upperBound);
+    inline void setUpperBound(Numerical::Double upperBound) throw (InvalidUpperBoundException,
+                                                                   InvalidBoundsException);
 
     /**
+     * Returns with the type of the variable.
      *
-     * @return
+     * @return The type of the variable.
      */
     inline TYPE getType() const;
 
     /**
+     * Returns with the value of the variable.
      *
-     * @return
+     * @return The value of the variable.
      */
     inline Numerical::Double getValue() const;
 
     /**
+     * Sets the value of the variable.
      *
-     * @param value
+     * @param value The variable's new value.
      */
     inline void setValue(Numerical::Double value);
 
     /**
+     * Sets the variable's name.
      *
-     * @return
+     * @param name The variable's new name.
      */
     inline void setName(const char * name);
 
     /**
+     * Returns with the name of the variable.
      *
-     * @return
+     * @return The variable's name.
      */
     inline const char * getName() const;
 
     /**
-     * 
-     * @return 
+     * Returns with the pointer of the corresponding vector.
+     *
+     * @return The pointer of the corresponding vector.
      */
     inline const Vector * getVector() const;
 
     /**
-     * 
-     * @param variable
-     * @return 
+     * Returns with true when each data members are equal,
+     * otherwise false.
+     *
+     * @return The equality of the two variables.
      */
     inline bool operator==(const Variable & variable) const;
 
     /**
-     * 
+     * Writes the properties of the variable to the ostream
+     * object.
+     *
+     * @return The reference of the ostream object.
      */
     friend std::ostream & operator<<(std::ostream & os, const Variable & var);
 
 private:
+    /**
+     * Represents the lower bound of the variable. It can be - infinity also.
+     * When a function sets this variable to + infinity, the function throws
+     * and InvalidLowerBoundException.
+     */
     Numerical::Double m_lowerBound;
 
+    /**
+     * Represents the upper bound of the variable. It can be + infinity also.
+     * When a function sets this variable to - infinity, the function throws
+     * and InvalidUpperBoundException.
+     */
     Numerical::Double m_upperBound;
 
+    /**
+     * The value of the variable. It can be lower then the lower bound or
+     * greater than the upper bound.
+     */
     Numerical::Double m_value;
 
+    /**
+     * Represents the type of the variable. It is modified by the adjustType()
+     * function.
+     */
     TYPE m_type;
 
+    /**
+     * Represents the name of the variable. The default name is <NO NAME>.
+     */
     std::string m_name;
 
+    /**
+     * Represents the coefficient vector of the variable. The class Model fills
+     * this value.
+     */
     const Vector * m_vector;
 
     /**
-     * @param lowerBound
-     * @param upperBound
-     * @param value
-     * @param name
-     * @param vector
+     * General constructor of the class. It creates a variable with the given
+     * properties, and throws exception when the bounds are invalid. This is the
+     * helper function of the public variable creator functions.
+     *
+     * @param lowerBound The lower bound of the variable.
+     * @param upperBound The upper bound of the variable.
+     * @param name The name of the variable.
      */
     inline Variable(Numerical::Double lowerBound,
         Numerical::Double upperBound,
         Numerical::Double value,
-        const char * name);
+        const char * name) throw (InvalidLowerBoundException,
+                                  InvalidUpperBoundException,
+                                  InvalidBoundsException);
 
+    /**
+     * This function adjustes the m_type variable considering the m_lowerBound
+     * and m_upperBound. It supposes that the bounds are correct.
+     */
     inline void adjustType();
 
     /**
-     * @param vector
+     * Sets the pointer of the corresponding coefficient vector. This is a private
+     * function, because only the friend classes can call it: The class Model
+     * uses this function when builds the model.
+     *
+     * @param vector The vector of the coefficient values.
      */
     inline void setVector(const Vector & vector);
 
     /**
-     * Checks the properties of the variable, and if the object
-     * violates some conditions, it throws an exception.
+     * Checks the validity of the bounds. If the lower bound is + infinity, it
+     * thorws an InvalidLowerBoundException, if the upper bound is - infinity, it
+     * throws an InvalidUpperBoundException, and if the lower bound is greater than
+     * the upper bound, it throws an InvalidBoundsException.
      */
-    void check() const;
+    void check() const throw (InvalidLowerBoundException,
+                              InvalidUpperBoundException,
+                              InvalidBoundsException);
 };
 
 inline Variable::Variable()
@@ -373,7 +432,9 @@ inline Variable::Variable()
 inline Variable::Variable(Numerical::Double lowerBound,
     Numerical::Double upperBound,
     Numerical::Double value,
-    const char * name)
+    const char * name) throw (InvalidLowerBoundException,
+                              InvalidUpperBoundException,
+                              InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -391,7 +452,8 @@ inline Numerical::Double Variable::getLowerBound() const
     return m_lowerBound;
 }
 
-inline void Variable::setLowerBound(Numerical::Double lowerBound)
+inline void Variable::setLowerBound(Numerical::Double lowerBound) throw (InvalidLowerBoundException,
+                                                                         InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     check();
@@ -408,7 +470,8 @@ inline Numerical::Double Variable::getUpperBound() const
     return m_upperBound;
 }
 
-inline void Variable::setUpperBound(Numerical::Double upperBound)
+inline void Variable::setUpperBound(Numerical::Double upperBound) throw (InvalidUpperBoundException,
+                                                                         InvalidBoundsException)
 {
     m_upperBound = upperBound;
     check();

@@ -12,21 +12,34 @@
 #include <linalg/vector.h>
 #include <utils/exceptions.h>
 
+/**
+ * Represents a general constraint of an LP problem. The constraint has a name, an L lower bound
+ * and an U upper bound (\f$L \in \{-\infty\} \cup \mathbb{R} \f$ and \f$U \in \{+\infty\} \cup \mathbb{R} \f$).
+ * The general formula of a constraint is the following:
+ * \f$ L \leq a_1 x_1 + a_2 x_2 + \ldots + a_n + x_n \leq U \f$
+ */
 class Constraint
 {
     friend class ConstraintTestSuite;
     friend class Model;
 public:
 
+    /**
+     * This enum type describes the type of the constraint.
+     */
     enum TYPE
     {
-        GREATER_OR_EQUAL, /* The constraint has a finite lower bound */
-        LESS_OR_EQUAL, /* The constraint has a finite upper bound */
-        RANGE, /* The constraint has finite bounds */
-        EQUALITY, /* The finite bounds are the same */
-        NON_BINDING /* The constraint has no bounds */
+        GREATER_OR_EQUAL, /*!< The constraint has a finite lower bound */
+        LESS_OR_EQUAL, /*!< The constraint has a finite upper bound */
+        RANGE, /*!< The constraint has finite bounds */
+        EQUALITY, /*!< The finite bounds are the same */
+        NON_BINDING /*!< The constraint has no finite bounds */
     };
 
+    /**
+     * A general exception class that represents constraint exception. Contains
+     * a copy of the wrong constraint.
+     */
     class ConstraintException : public Exception
     {
     public:
@@ -41,9 +54,6 @@ public:
         ConstraintException(const Constraint & constraint,
             const std::string & message);
 
-        /**
-         * Destructor of the ConstraintException.
-         */
         virtual ~ConstraintException();
 
         /**
@@ -120,112 +130,260 @@ public:
             const std::string & message);
     };    
 
+    /**
+     * Creates a GREATER_OR_EQUAL type constraint, with 0 lower and infinity upper
+     * bound, and the constraint has no name.
+     */
     inline Constraint();
 
     /**
-     * @param name
-     * @param lowerBound
-     * @param upperBound
+     * Creates a constraint, with the given bounds.
+     *
+     * If the upperBound is -infinity, the function throws a
+     * Constraint::InvalidUpperBoundException.
+     * If the lowerBound is infinity, the function throws a
+     * Constraint::InvalidLowerBoundException.
+     * If the upperBound is less than the lowerBound, the function throws a
+     * Constraint::InvalidBoundsException.
+     *
+     * @param name The name of the constraint
+     * @param lowerBound The lower bound of the constraint
+     * @param upperBound The upper bound of the constraint
+     * @return The requested constraint
      */
     static Constraint createConstraint(const char * name,
         Numerical::Double lowerBound,
-        Numerical::Double upperBound);    
+        Numerical::Double upperBound) throw (InvalidLowerBoundException,
+                                            InvalidUpperBoundException,
+                                            InvalidBoundsException);
     
     /**
+     * Creates a GREATER_OR_EQUAL type constraint, with the given lower bound.
+     * The upper boudn will be + infinity. If the lower bound is - infinity, then
+     * the constraint's type will be NON_BINDING.
+     *
+     * If the lowerBound is + infinity, the functon throws a
+     * Constraint::InvalidLowerBoundException.
+     *
      * @param name The name of the constraint
-     * @param lowerBound
+     * @param lowerBound The lower bound of the constraint
+     * @return The requiested constraint
      */
     static Constraint createGreaterTypeConstraint(const char * name,
-        Numerical::Double lowerBound);
+        Numerical::Double lowerBound) throw (InvalidLowerBoundException);
 
     /**
-     * @param name
-     * @param upperBound
+     * Creates a LESS_OR_EQUAL type constraint with the given upper bound.
+     * The lower bound will be - infinity. If the upperBound is + infinity,
+     * then the constraint' type will be NON_BINDING.
+     *
+     * If the upperBound is - infinity, the function throws a
+     * Constraint::InvalidUpperBoundException.
+     *
+     * @param name The name of the constraint
+     * @param upperBound The upper bound of the constraint
+     * @return The requested constraint
      */
     static Constraint createLessTypeConstraint(const char * name,
-        Numerical::Double upperBound);
+        Numerical::Double upperBound) throw (InvalidUpperBoundException);
 
     /**
-     * @param name
-     * @param lowerBound
-     * @param upperBound
+     * Creates a RANGE type constraint, with the given bounds.
+     * If the bounds are the same, the result will be an EQUALITY,
+     * and if the bounds are not finite, the result can be GREATER_OR_EQUAL,
+     * LESS_OR_EQUAL or NON_BINDING also.
+     *
+     * If the upperBound is -infinity, the function throws a
+     * Constraint::InvalidUpperBoundException.
+     * If the lowerBound is infinity, the function throws a
+     * Constraint::InvalidLowerBoundException.
+     * If the upperBound is less than the lowerBound, the function throws a
+     * Constraint::InvalidBoundsException.
+     *
+     * @param name The name of the constraint
+     * @param lowerBound The lower bound of the constraint
+     * @param upperBound The upper bound of the constraint
+     * @return The requested constraint
      */
     static Constraint createRangeTypeConstraint(const char * name,
         Numerical::Double lowerBound,
-        Numerical::Double upperBound);
+        Numerical::Double upperBound) throw (InvalidLowerBoundException,
+                                             InvalidUpperBoundException,
+                                             InvalidBoundsException);
 
     /**
-     * @param name
+     * Creates an EQUALITY type constraint, with the given value.
+     *
+     * @param name The name of the constraint
+     * @param value The value of the bounds
+     * @return The requiested constraint
      */
     static Constraint createEqualityTypeConstraint(const char * name,
         Numerical::Double value);
 
     /**
-     * @param name
+     * Creates a NON_BINDING type constraint.
+     *
+     * @param name The name of the constraint
+     * @return The requiested constraint
      */
     static Constraint createNonBindingTypeConstraint(const char * name);
 
+    /**
+     * Returns with the lower bound of the constraint.
+     *
+     * @return The constraint's lower bound
+     */
     inline Numerical::Double getLowerBound() const;
 
     /**
-     * @param lowerBound
+     * Sets the lower bound of the constraint.
+     * If the lower bound is invalid, the function throws a
+     * Constraint::InvalidLowerBoundException, and if the lower bound is
+     * greater than the upper bound, the function throws a
+     * Constraint::InvalidBoundsException.
+     *
+     * @param lowerBound The lower bound of the constarint.
      */
-    inline void setLowerBound(Numerical::Double lowerBound);
+    inline void setLowerBound(Numerical::Double lowerBound)
+        throw (InvalidLowerBoundException,
+               InvalidBoundsException);
 
+    /**
+     * Returns with the type of the constraint.
+     *
+     * @return The type of the constraint.
+     */
     inline TYPE getType() const;
 
+    /**
+     * Returns with the upper bound of the constraint.
+     *
+     * @return upperBound The constraint's upper bound.
+     */
     inline Numerical::Double getUpperBound() const;
 
     /**
+     * Sets the upper bound of the constraint.
+     * If the upper bound is invalid, the function throws a
+     * Constraint::InvalidUpperBoundException, and if the upper bound is
+     * lower than the lower bound, the function throws a
+     * Constraint::InvalidBoundsException.
      *
-     * @param upperBound
+     * @param upperBound The upper bound of the constarint.
      */
-    inline void setUpperBound(Numerical::Double upperBound);
+    inline void setUpperBound(Numerical::Double upperBound)
+        throw (InvalidUpperBoundException,
+               InvalidBoundsException);
 
+    /**
+     * Sets the constraint's name.
+     *
+     * @param name The constraint's new name.
+     */
     inline void setName(const char * name);
 
+    /**
+     * Returns with the name of the constraint.
+     *
+     * @return The constraint's name.
+     */
     inline const char * getName() const;
 
+    /**
+     * Returns with the pointer of the corresponding vector.
+     *
+     * @return The pointer of the corresponding vector.
+     */
     inline const Vector * getVector() const;
 
     /**
-     * @param constraint
-     * @return 
+     * Returns with true when each data members are equal,
+     * otherwise false.
+     *
+     * @return The equality of the two constraints.
      */
     inline bool operator==(const Constraint & constraint) const;
 
+    /**
+     * Writes the properties of the constraint to the ostream
+     * object.
+     *
+     * @return The reference of the ostream object.
+     */
     friend std::ostream & operator<<(std::ostream & os, const Constraint & constraint);
 
 private:
+    /**
+     * Represents the lower bound of the constraint. It can be - infinity also.
+     * When a function sets this variable to + infinity, the function throws
+     * and InvalidLowerBoundException.
+     */
     Numerical::Double m_lowerBound;
 
+    /**
+     * Represents the upper bound of the constraint. It can be + infinity also.
+     * When a function sets this variable to - infinity, the function throws
+     * and InvalidUpperBoundException.
+     */
     Numerical::Double m_upperBound;
 
+    /**
+     * Represents the type of the constraint. It is modified by the adjustType()
+     * function.
+     */
     TYPE m_type;
 
+    /**
+     * Represents the name of the constraint. The default name is <NO NAME>.
+     */
     std::string m_name;
 
+    /**
+     * Represents the coefficient vector of the constraint. The class Model fills
+     * this value.
+     */
     const Vector * m_vector;
 
     /**
-     * @param lowerBound
-     * @param upperBound
-     * @param value
-     * @param name
-     * @param vector
+     * General constructor of the class. It creates a constraint with the given
+     * properties, and throws exception when the bounds are invalid. This is the
+     * helper function of the public constraint creator functions.
+     *
+     * @param lowerBound The lower bound of the constraint.
+     * @param upperBound The upper bound of the constraint.
+     * @param name The name of the constraint.
      */
     inline Constraint(Numerical::Double lowerBound,
         Numerical::Double upperBound,
-        const char * name);
+        const char * name) throw (InvalidLowerBoundException,
+                                  InvalidUpperBoundException,
+                                  InvalidBoundsException);
 
+    /**
+     * This function adjustes the m_type variable considering the m_lowerBound
+     * and m_upperBound. It supposes that the bounds are correct.
+     */
     inline void adjustType();
 
     /**
-     * @param vector
+     * Sets the pointer of the corresponding coefficient vector. This is a private
+     * function, because only the friend classes can call it: The class Model
+     * uses this function when builds the model.
+     *
+     * @param vector The vector of the coefficient values.
      */
     inline void setVector(const Vector & vector);
 
-    void check() const;
+    /**
+     * Checks the validity of the bounds. If the lower bound is + infinity, it
+     * thorws an InvalidLowerBoundException, if the upper bound is - infinity, it
+     * throws an InvalidUpperBoundException, and if the lower bound is greater than
+     * the upper bound, it throws an InvalidBoundsException.
+     */
+    void check() const throw (InvalidLowerBoundException,
+                              InvalidUpperBoundException,
+                              InvalidBoundsException);
 };
 
 inline Constraint::Constraint()
@@ -238,7 +396,9 @@ inline Constraint::Constraint()
 
 inline Constraint::Constraint(Numerical::Double lowerBound,
     Numerical::Double upperBound,
-    const char * name)
+    const char * name) throw (InvalidLowerBoundException,
+                              InvalidUpperBoundException,
+                              InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -256,6 +416,8 @@ inline Numerical::Double Constraint::getLowerBound() const
 }
 
 inline void Constraint::setLowerBound(Numerical::Double lowerBound)
+    throw (InvalidLowerBoundException,
+           InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     check();
@@ -273,6 +435,8 @@ inline Numerical::Double Constraint::getUpperBound() const
 }
 
 inline void Constraint::setUpperBound(Numerical::Double upperBound)
+    throw (InvalidUpperBoundException,
+           InvalidBoundsException)
 {
     m_upperBound = upperBound;
     check();
