@@ -12,6 +12,8 @@ SimplexModel::SimplexModel(const Model & model):
 
 void SimplexModel::makeComputationalForm()
 {
+
+
     register unsigned int i, j;
 
     const Matrix & matrix = getMatrix();
