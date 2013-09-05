@@ -40,6 +40,20 @@ HEADERS += include/debug.h \
            include/lp/variable.h \
            include/lp/constraint.h \
            include/lp/mpsproblem.h \
+           include/simplex/pricing/dualdantzigpricing.h \
+           include/simplex/pricing/dualdantzigpricingfactory.h \
+           include/simplex/pricing/dualdantzigreducedcostupdater.h \
+           include/simplex/pricing/primaldantzigpricing.h \
+           include/simplex/pricing/primaldantzigpricingfactory.h \
+           include/simplex/pricing/primaldantzigreducedcostupdater.h \
+           include/simplex/dualpricing.h \
+           include/simplex/dualpricingfactory.h \
+           include/simplex/dualreducedcostupdater.h \
+           include/simplex/dualupdater.h \
+           include/simplex/primalpricing.h \
+           include/simplex/primalpricingfactory.h \
+           include/simplex/primalreducedcostupdater.h \
+           include/simplex/primalupdater.h \
            include/simplex/simplexmodel.h \
            include/simplex/simplex.h \
            include/simplex/primalsimplex.h \
@@ -61,6 +75,12 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/variable.cpp \
            src/lp/constraint.cpp \
            src/lp/mpsproblem.cpp \
+           src/simplex/pricing/dualdantzigpricing.cpp \
+           src/simplex/pricing/dualdantzigpricingfactory.cpp \
+           src/simplex/pricing/dualdantzigreducedcostupdater.cpp \
+           src/simplex/pricing/primaldantzigpricing.cpp \
+           src/simplex/pricing/primaldantzigpricingfactory.cpp \
+           src/simplex/pricing/primaldantzigreducedcostupdater.cpp \
            src/simplex/simplexmodel.cpp \
            src/simplex/simplex.cpp \
            src/simplex/primalsimplex.cpp \
@@ -68,7 +88,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/file.cpp \
            src/utils/indexlist.cpp \
            src/utils/numerical.cpp \
-           src/debug.cpp \
+           src/debug.cpp
 
 
 OBJECTS_DIR = .o
