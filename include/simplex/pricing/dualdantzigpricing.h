@@ -8,7 +8,9 @@
 #ifndef DUALDANTZIGPRICING_H
 #define	DUALDANTZIGPRICING_H
 
-class DualDantzigPricing
+#include <simplex/dualpricing.h>
+
+class DualDantzigPricing: public DualPricing
 {
 public:
     DualDantzigPricing();

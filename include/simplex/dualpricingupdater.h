@@ -8,7 +8,7 @@
 #ifndef DUALREDUCEDCOSTUPDATER_H
 #define	DUALREDUCEDCOSTUPDATER_H
 
-class DualReducedCostUpdater {
+class DualPricingUpdater {
     
 };
 

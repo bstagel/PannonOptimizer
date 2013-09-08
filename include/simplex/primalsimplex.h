@@ -6,9 +6,11 @@
 #ifndef PRIMALSIMPLEX_H
 #define	PRIMALSIMPLEX_H
 
-#include "globals.h"
+#include <globals.h>
 
-class PrimalSimplex
+#include <simplex/simplex.h>
+
+class PrimalSimplex: public Simplex
 {
 public:
     PrimalSimplex();
