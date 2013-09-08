@@ -52,3 +52,16 @@ void Simplex::variableAdded()
 {
 
 }
+
+void Simplex::solve() {
+    initModules();
+
+    unsigned int iterationIndex;
+    try {
+
+    } catch (...) {
+
+    }
+
+    releaseModules();
+}

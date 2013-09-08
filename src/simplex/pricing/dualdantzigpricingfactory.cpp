@@ -7,7 +7,7 @@
 
 #include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pricing/dualdantzigpricing.h>
-#include <simplex/pricing/dualdantzigreducedcostupdater.h>
+#include <simplex/pricing/dualdantzigpricingupdater.h>
 
 DualDantzigPricingFactory::DualDantzigPricingFactory()
 {
@@ -21,12 +21,12 @@ DualDantzigPricingFactory::~DualDantzigPricingFactory()
 {
 }
 
-DualReducedCostUpdater * DualDantzigPricingFactory::createDualReducedCostUpdater() const
+DualPricingUpdater * DualDantzigPricingFactory::createDualPricingUpdater() const
 {
-
+    return new DualDantzigPricingUpdater;
 }
 
 DualPricing * DualDantzigPricingFactory::createDualPricing() const
 {
-
+    return new DualDantzigPricing;
 }

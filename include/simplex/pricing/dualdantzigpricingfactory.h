@@ -17,7 +17,7 @@ public:
     DualDantzigPricingFactory(const DualDantzigPricingFactory& orig);
     virtual ~DualDantzigPricingFactory();
     
-    DualReducedCostUpdater * createDualReducedCostUpdater() const;
+    DualPricingUpdater * createDualPricingUpdater() const;
     DualPricing * createDualPricing() const;    
 private:
 

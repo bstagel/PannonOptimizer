@@ -6,12 +6,12 @@
 #ifndef SIMPLEX_H
 #define	SIMPLEX_H
 
-#include "globals.h"
+#include <globals.h>
 
-#include "lp/method.h"
-#include "simplex/simplexmodel.h"
-#include "utils/numerical.h"
-#include "utils/indexlist.h"
+#include <lp/method.h>
+#include <simplex/simplexmodel.h>
+#include <utils/numerical.h>
+#include <utils/indexlist.h>
 
 class Simplex : public Method
 {
@@ -42,6 +42,8 @@ public:
 
     void setModel(const Model & model);
 
+    void solve();
+
 private:
     Numerical::Double m_objectiveValue;
     SimplexModel * m_simplexModel;
@@ -53,6 +55,10 @@ private:
 
     void constraintAdded();
     void variableAdded();
+
+    virtual void initModules() = 0;
+    virtual void releaseModules() = 0;
+    virtual void iterate() = 0;
 };
 
 #endif /* SIMPLEX_H */

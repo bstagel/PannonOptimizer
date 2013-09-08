@@ -8,12 +8,14 @@
 #ifndef DUALDANTZIGREDUCEDCOSTUPDATER_H
 #define	DUALDANTZIGREDUCEDCOSTUPDATER_H
 
-class DualDantzigReducedCostUpdater
+#include <simplex/dualpricingupdater.h>
+
+class DualDantzigPricingUpdater: public DualPricingUpdater
 {
 public:
-    DualDantzigReducedCostUpdater();
-    DualDantzigReducedCostUpdater(const DualDantzigReducedCostUpdater& orig);
-    virtual ~DualDantzigReducedCostUpdater();
+    DualDantzigPricingUpdater();
+    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
+    virtual ~DualDantzigPricingUpdater();
 private:
 
 };

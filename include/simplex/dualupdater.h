@@ -8,7 +8,19 @@
 #ifndef DUALUPDATER_H
 #define	DUALUPDATER_H
 
+#include <simplex/dualpricingupdater.h>
 
+class DualUpdater {
+public:
+    DualUpdater();
+
+    void setPricingUpdater(DualPricingUpdater * pricingUpdater);
+
+    void update();
+
+protected:
+    DualPricingUpdater * m_pricingUpdater;
+};
 
 #endif	/* DUALUPDATER_H */
 

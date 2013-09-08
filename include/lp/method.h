@@ -6,10 +6,9 @@
 #ifndef METHOD_H
 #define	METHOD_H
 
-#include "globals.h"
+#include <globals.h>
 
-#include "lp/method.h"
-#include "lp/abstractmodel.h"
+#include <lp/abstractmodel.h>
 
 class Method
 {

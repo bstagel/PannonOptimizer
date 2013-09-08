@@ -9,11 +9,11 @@
 #define	DUALPRICINGFACTORY_H
 
 #include <simplex/dualpricing.h>
-#include <simplex/dualreducedcostupdater.h>
+#include <simplex/dualpricingupdater.h>
 
 class DualPricingFactory {
 public:
-    virtual DualReducedCostUpdater * createDualReducedCostUpdater() const = 0; 
+    virtual DualPricingUpdater * createDualPricingUpdater() const = 0;
     virtual DualPricing * createDualPricing() const = 0;
 };
 
