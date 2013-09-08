@@ -89,7 +89,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/numerical.cpp \
            src/debug.cpp \
     src/simplex/pricing/dualdantzigpricingupdater.cpp \
-    src/simplex/dualupdater.cpp
+    src/simplex/dualupdater.cpp \
+    src/simplex/primalupdater.cpp
 
 
 OBJECTS_DIR = .o
