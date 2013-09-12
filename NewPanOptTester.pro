@@ -29,7 +29,8 @@ HEADERS += test/framework/tester.h \
            test/mpsproblemtest.h \
            test/testmacros.h \
            test/variabletest.h \
-           test/vectortest.h
+           test/vectortest.h \
+    test/timertest.h
 
 #Sources
 SOURCES += test/framework/tester.cpp \
@@ -41,7 +42,8 @@ SOURCES += test/framework/tester.cpp \
            test/mpsproblemtest.cpp \
            test/variabletest.cpp \
            test/vectortest.cpp \
-           test/test.cpp
+           test/test.cpp \
+    test/timertest.cpp
 
 POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
 LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt

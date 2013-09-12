@@ -2,7 +2,8 @@
  * @file simplex.cpp
  */
 
-#include "simplex/simplex.h"
+#include <simplex/simplex.h>
+#include <utils/parameterhandler.h>
 
 Simplex::Simplex():
     m_simplexModel(NULL),
