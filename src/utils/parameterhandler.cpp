@@ -3,6 +3,7 @@
  */
 
 #include "utils/parameterhandler.h"
+#include <defaultparameters.h>
 
 #include <fstream>
 #include <iostream>

@@ -46,7 +46,6 @@ HEADERS += include/debug.h \
            include/simplex/pricing/dualdantzigreducedcostupdater.h \
            include/simplex/pricing/primaldantzigpricing.h \
            include/simplex/pricing/primaldantzigpricingfactory.h \
-           include/simplex/pricing/primaldantzigpricingupdater.h \
            include/simplex/pricing/dualdantzigpricingupdater.h \
            include/simplex/dualpricing.h \
            include/simplex/dualpricingfactory.h \
@@ -72,7 +71,8 @@ HEADERS += include/debug.h \
            include/utils/timer.h \
            include/utils/parameterhandler.h \
            include/globals.h \
-           include/defaultparameters.h
+           include/defaultparameters.h \
+    include/simplex/pricing/primaldantzigreducedcostupdater.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -85,12 +85,11 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/mpsproblem.cpp \
            src/simplex/pricing/dualdantzigpricing.cpp \
            src/simplex/pricing/dualdantzigpricingfactory.cpp \
-           src/simplex/pricing/dualdantzigreducedcostupdater.cpp \
            src/simplex/pricing/primaldantzigpricing.cpp \
            src/simplex/pricing/primaldantzigpricingfactory.cpp \
            src/simplex/pricing/dualdantzigpricingupdater.cpp \
            src/simplex/dualupdater.cpp \
-           src/simplex/primalupdater.cpp
+           src/simplex/primalupdater.cpp \
            src/simplex/simplexmodel.cpp \
            src/simplex/simplex.cpp \
            src/simplex/primalsimplex.cpp \
