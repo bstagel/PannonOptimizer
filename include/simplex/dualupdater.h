@@ -8,6 +8,8 @@
 #ifndef DUALUPDATER_H
 #define	DUALUPDATER_H
 
+#include <globals.h>
+
 #include <simplex/dualpricingupdater.h>
 
 class DualUpdater {

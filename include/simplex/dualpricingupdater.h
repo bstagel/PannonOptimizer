@@ -8,6 +8,8 @@
 #ifndef DUALREDUCEDCOSTUPDATER_H
 #define	DUALREDUCEDCOSTUPDATER_H
 
+#include <globals.h>
+
 class DualPricingUpdater {
     
 };

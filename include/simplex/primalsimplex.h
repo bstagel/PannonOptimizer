@@ -2,7 +2,6 @@
  * @file primalsimplex.h
  */
 
-
 #ifndef PRIMALSIMPLEX_H
 #define	PRIMALSIMPLEX_H
 

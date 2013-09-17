@@ -15,6 +15,7 @@ DualDantzigPricingFactory::DualDantzigPricingFactory()
 
 DualDantzigPricingFactory::DualDantzigPricingFactory(const DualDantzigPricingFactory& orig)
 {
+    __UNUSED(orig);
 }
 
 DualDantzigPricingFactory::~DualDantzigPricingFactory()

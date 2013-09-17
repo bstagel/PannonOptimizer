@@ -13,6 +13,7 @@ PrimalDantzigPricing::PrimalDantzigPricing()
 
 PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig)
 {
+    __UNUSED(orig);
 }
 
 PrimalDantzigPricing::~PrimalDantzigPricing()
