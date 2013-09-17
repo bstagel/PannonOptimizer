@@ -5,12 +5,15 @@
 
 class LinalgParameterHandler : public ParameterHandler
 {
+    friend class LinalgParameterHandlerTestSuite;
+
 public:
-    ParameterHandler* getInstance();
+    static ParameterHandler & getInstance();
     void writeParameterFile();
 
 private:
     LinalgParameterHandler();
+    LinalgParameterHandler(const LinalgParameterHandler &){}
     void initParameters();
 };
 
