@@ -11,36 +11,29 @@
 
 #include "debug.h"
 
-/*static const char* groupNames[] = {"Tolerances",
-  "Preprocessing",
-  "Starting procedures",
-  "Basis factorization",
-  "Pricing",
-  "Ratio test",
-  "Global"};
-*/
-
-ParameterHandler* ParameterHandler::m_instance = 0;
-
-//ParameterHandler::ParameterHandler(const std::string &fileName){
-//    initParameters();
-
-//    try {
-//        std::ifstream in(fileName.c_str());
-//        if (!in.is_open()){
-//            throw -1;
-//        }
-//        loadValuesFromFile(in);
-//        in.close();
-//    }
-//    catch(int) {
-//        std::cerr << "Parameter file not found : " << fileName << std::endl;
-//    }
-//}
-
 ParameterHandler::~ParameterHandler()
 {
-    m_instance = 0;
+
+}
+
+void ParameterHandler::readParameterFile(const std::string filename)
+{
+    try {
+        std::ifstream in;
+        in.open(filename.data());
+        if (!in.is_open()){
+            writeParameterFile();
+            in.open(filename.data());
+            if (!in.is_open()){
+                throw -1;
+            }
+        }
+        loadValuesFromFile(in);
+        in.close();
+    }
+    catch(int) {
+        std::cerr << "Parameter file error : " << filename << std::endl;
+    }
 }
 
 void ParameterHandler::loadValuesFromFile(std::ifstream &in)
@@ -54,10 +47,15 @@ void ParameterHandler::loadValuesFromFile(std::ifstream &in)
             if(in.eof()) {
                 break;
             }
+
             tokens = tokenizer(line);
+            if (tokens.size()==0){
+                //Handling comment lines
+                continue;
+            }
 
             if (tokens.size()!=3 && tokens[1] != "=") {
-                throw std::string("Parameter error ... ");
+                throw std::string("Parameter error ... ").append(tokens[0]);
             }
 
             double val = strtod(tokens[2].c_str(), NULL);
@@ -97,7 +95,7 @@ std::vector<std::string> ParameterHandler::tokenizer(std::string& line) {
 std::string ParameterHandler::ignoreEmptyRows(std::ifstream& in) {
     std::string line;
     getline(in, line);
-    while (!in.eof() && (line.size()==0 || line[0]=='!')) {
+    while (!in.eof() && line.size()==0) {
         getline(in, line);
     }
     return line;

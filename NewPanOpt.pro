@@ -72,7 +72,8 @@ HEADERS += include/debug.h \
            include/utils/parameterhandler.h \
            include/globals.h \
            include/defaultparameters.h \
-    include/simplex/pricing/primaldantzigreducedcostupdater.h
+    include/simplex/pricing/primaldantzigreducedcostupdater.h \
+    include/simplex/simplexparameterhandler.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -100,6 +101,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/timer.cpp \
            src/utils/parameterhandler.cpp \
            src/debug.cpp \
+    src/simplex/simplexparameterhandler.cpp
 
 
 OBJECTS_DIR = .o
