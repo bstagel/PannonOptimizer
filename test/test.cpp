@@ -17,6 +17,7 @@
 #include "modeltest.h"
 #include "mpsproblemtest.h"
 #include "timertest.h"
+#include "outputhandlertest.h"
 #include "linalgparameterhandlertest.h"
 #include "simplexparameterhandlertest.h"
 
@@ -37,6 +38,7 @@ int main(int, char** )
     //Tester::addUnitTest(new ModelTestSuite("Model Test"));
 
     //Tester::addUnitTest(new MpsProblemTestSuite("MpsProblem Test"));
+    Tester::addUnitTest(new OutputHandlerTestSuite("Output Handler Test"));
     Tester::addUnitTest(new TimerTestSuite("Timer Test"));
 
     Tester::addUnitTest(new LinalgParameterHandlerTestSuite("Linalg Parameter Handler Test"));

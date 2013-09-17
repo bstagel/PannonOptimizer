@@ -9,6 +9,15 @@
 #include "globals.h"
 
 #include <iostream>
+#include <typeinfo>
+#include <functional>
+#include <exception>
+#include <typeinfo>
+#include <iostream>
+#include <stdexcept>
+#if __cplusplus > 199711L
+    #include <system_error>
+#endif
 
 /**
  * Base class of all customized exception classes
