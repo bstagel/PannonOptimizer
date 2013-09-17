@@ -13,6 +13,7 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater()
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig)
 {
+    __UNUSED(orig);
 }
 
 DualDantzigPricingUpdater::~DualDantzigPricingUpdater()

@@ -8,6 +8,8 @@
 #ifndef PRIMALDANTZIGPRICING_H
 #define	PRIMALDANTZIGPRICING_H
 
+#include <globals.h>
+
 #include <simplex/primalpricing.h>
 
 class PrimalDantzigPricing: public PrimalPricing

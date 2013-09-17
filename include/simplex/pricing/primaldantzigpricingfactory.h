@@ -8,6 +8,8 @@
 #ifndef PRIMALDANTZIGPRICINGFACTORY_H
 #define	PRIMALDANTZIGPRICINGFACTORY_H
 
+#include <globals.h>
+
 #include <simplex/primalpricingfactory.h>
 
 class PrimalDantzigPricingFactory : public PrimalPricingFactory

@@ -8,6 +8,8 @@
 #ifndef PRIMALREDUCEDCOSTUPDATER_H
 #define	PRIMALREDUCEDCOSTUPDATER_H
 
+#include <globals.h>
+
 class PrimalReducedCostUpdater {
     
 };

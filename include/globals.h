@@ -5,9 +5,12 @@
 
 #define STATIC_ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
+#define __UNUSED(x) (void)x;
+
 enum OBJECTIVE_TYPE
 {
     MINIMIZE, MAXIMIZE
+
 };
 
 #endif // GLOBALS_H

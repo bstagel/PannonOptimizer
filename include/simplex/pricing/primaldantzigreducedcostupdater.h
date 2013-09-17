@@ -8,6 +8,8 @@
 #ifndef PRIMALDANTZIGREDUCEDCOSTUPDATER_H
 #define	PRIMALDANTZIGREDUCEDCOSTUPDATER_H
 
+#include <globals.h>
+
 #include <simplex/primalreducedcostupdater.h>
 
 class PrimalDantzigReducedCostUpdater: public PrimalReducedCostUpdater

@@ -15,6 +15,7 @@ PrimalDantzigPricingFactory::PrimalDantzigPricingFactory()
 
 PrimalDantzigPricingFactory::PrimalDantzigPricingFactory(const PrimalDantzigPricingFactory& orig)
 {
+    __UNUSED(orig);
 }
 
 PrimalDantzigPricingFactory::~PrimalDantzigPricingFactory()

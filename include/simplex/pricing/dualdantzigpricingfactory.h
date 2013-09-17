@@ -8,6 +8,8 @@
 #ifndef DUALDANTZIGPRICINGFACTORY_H
 #define	DUALDANTZIGPRICINGFACTORY_H
 
+#include <globals.h>
+
 #include <simplex/dualpricingfactory.h>
 
 class DualDantzigPricingFactory: public DualPricingFactory

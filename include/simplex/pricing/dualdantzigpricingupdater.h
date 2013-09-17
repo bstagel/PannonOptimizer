@@ -8,6 +8,8 @@
 #ifndef DUALDANTZIGREDUCEDCOSTUPDATER_H
 #define	DUALDANTZIGREDUCEDCOSTUPDATER_H
 
+#include <globals.h>
+
 #include <simplex/dualpricingupdater.h>
 
 class DualDantzigPricingUpdater: public DualPricingUpdater
