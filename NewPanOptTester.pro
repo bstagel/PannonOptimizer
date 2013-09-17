@@ -32,7 +32,8 @@ HEADERS += test/framework/tester.h \
            test/vectortest.h \
     test/timertest.h \
     test/linalgparameterhandlertest.h \
-    test/simplexparameterhandlertest.h
+    test/simplexparameterhandlertest.h \
+    test/outputhandlertest.h
 
 #Sources
 SOURCES += test/framework/tester.cpp \
@@ -47,7 +48,8 @@ SOURCES += test/framework/tester.cpp \
            test/test.cpp \
     test/timertest.cpp \
     test/linalgparameterhandlertest.cpp \
-    test/simplexparameterhandlertest.cpp
+    test/simplexparameterhandlertest.cpp \
+    test/outputhandlertest.cpp
 
 POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
 LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt
