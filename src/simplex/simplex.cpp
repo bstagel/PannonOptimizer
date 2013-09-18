@@ -4,9 +4,9 @@
 
 #include <simplex/simplex.h>
 #include <utils/parameterhandler.h>
-#include <utils/parameterhandler.h>
 #include <utils/timer.h>
 #include <utils/exceptions.h>
+#include <simplex/simplexparameterhandler.h>
 
 Simplex::Simplex():
     m_simplexModel(NULL),
@@ -59,10 +59,10 @@ void Simplex::variableAdded()
 
 void Simplex::solve() {
     initModules();
-
+    ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
     unsigned int iterationIndex;
-    const unsigned int iterationLimit = 10000;
-    const double timeLimit = 1000;
+    const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
+    const double timeLimit = simplexParameters.getParameterValue("time_limit");
     Timer timer;
 
     try {
