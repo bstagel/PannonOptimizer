@@ -72,7 +72,7 @@ void ManualModelBuilderTestSuite::addVariable1()
      ******************************************************/
 
     ManualModelBuilder builder;
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     const Numerical::Double testValues1[] = {1.0, -2.3, 0.13};
     const unsigned int testIndices1[] = {7, 3, 10};
     const unsigned int testNonZeros1 = 3;
@@ -168,7 +168,7 @@ void ManualModelBuilderTestSuite::addVariable1()
      * Second variable
      ******************************************************/
 
-    Variable testVariable2 = Variable::createPlusTypeVariable("x2", 1.3, -22.4);
+    Variable testVariable2 = Variable::createPlusTypeVariable("x2", -22.4);
     const Numerical::Double testValues2[] = {4.2, 1.03, 4.31, 12.1};
     const unsigned int testIndices2[] = {1, 5, 7, 12};
     const unsigned int testNonZeros2 = 4;
@@ -279,7 +279,7 @@ void ManualModelBuilderTestSuite::addVariable1()
      * Third variable, empty column
      ******************************************************/
 
-    Variable testVariable3 = Variable::createFreeTypeVariable("x3", 4.0);
+    Variable testVariable3 = Variable::createFreeTypeVariable("x3");
     const unsigned int testNonZeros3 = 0;
     const Numerical::Double testCostCoefficient3 = 3.0;
 
@@ -370,7 +370,7 @@ void ManualModelBuilderTestSuite::addVariable1()
      * Fourth variable
      ******************************************************/
 
-    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", 1.1, -0.3, 4.3);
+    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", -0.3, 4.3);
     const Numerical::Double testValues4[] = {0.02, 31.02};
     const unsigned int testIndices4[] = {0, 11};
     const unsigned int testNonZeros4 = 2;
@@ -474,7 +474,7 @@ void ManualModelBuilderTestSuite::addVariable2()
      ******************************************************/
 
     ManualModelBuilder builder;
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     const Numerical::Double testCostCoefficient1 = 4.2;
     Vector testVector1(11);
     testVector1.set(7, 1.0);
@@ -570,7 +570,7 @@ void ManualModelBuilderTestSuite::addVariable2()
      * Second variable
      ******************************************************/
 
-    Variable testVariable2 = Variable::createPlusTypeVariable("x2", 1.3, -22.4);
+    Variable testVariable2 = Variable::createPlusTypeVariable("x2", -22.4);
     const Numerical::Double testCostCoefficient2 = -0.2;
 
     Vector testVector2(13);
@@ -683,7 +683,7 @@ void ManualModelBuilderTestSuite::addVariable2()
      * Third variable, empty column
      ******************************************************/
 
-    Variable testVariable3 = Variable::createFreeTypeVariable("x3", 4.0);
+    Variable testVariable3 = Variable::createFreeTypeVariable("x3");
     const Numerical::Double testCostCoefficient3 = 3.0;
 
     Vector testVector3(13);
@@ -774,7 +774,7 @@ void ManualModelBuilderTestSuite::addVariable2()
      * Fourth variable
      ******************************************************/
 
-    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", 1.1, -0.3, 4.3);
+    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", -0.3, 4.3);
     const Numerical::Double testCostCoefficient4 = 0.0;
 
     Vector testVector4(13);
@@ -878,7 +878,7 @@ void ManualModelBuilderTestSuite::addVariable3()
      ******************************************************/
 
     ManualModelBuilder builder;
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     const Numerical::Double testCostCoefficient1 = 4.2;
 
     builder.addVariable(testVariable1, testCostCoefficient1, 3, 1.0, 7,
@@ -971,7 +971,7 @@ void ManualModelBuilderTestSuite::addVariable3()
      * Second variable
      ******************************************************/
 
-    Variable testVariable2 = Variable::createPlusTypeVariable("x2", 1.3, -22.4);
+    Variable testVariable2 = Variable::createPlusTypeVariable("x2", -22.4);
     const Numerical::Double testCostCoefficient2 = -0.2;
 
     builder.addVariable(testVariable2, testCostCoefficient2, 4,
@@ -1079,7 +1079,7 @@ void ManualModelBuilderTestSuite::addVariable3()
      * Third variable, empty column
      ******************************************************/
 
-    Variable testVariable3 = Variable::createFreeTypeVariable("x3", 4.0);
+    Variable testVariable3 = Variable::createFreeTypeVariable("x3");
     const Numerical::Double testCostCoefficient3 = 3.0;
 
     builder.addVariable(testVariable3, testCostCoefficient3, 0);
@@ -1168,7 +1168,7 @@ void ManualModelBuilderTestSuite::addVariable3()
      * Fourth variable
      ******************************************************/
 
-    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", 1.1, -0.3, 4.3);
+    Variable testVariable4 = Variable::createBoundedTypeVariable("x4", -0.3, 4.3);
     const Numerical::Double testCostCoefficient4 = 0.0;
 
     Vector testVector4(13);
@@ -1268,7 +1268,7 @@ void ManualModelBuilderTestSuite::addVariable3()
 void ManualModelBuilderTestSuite::setGetConstraint()
 {
     ManualModelBuilder builder;
-    Variable testVariable = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable = Variable::createMinusTypeVariable("x1", 10.0);
     const Numerical::Double testValues[] = {1.0, -2.3, 0.13};
     const unsigned int testIndices[] = {7, 3, 10};
     const unsigned int testNonZeros = 3;
@@ -1407,7 +1407,7 @@ void ManualModelBuilderTestSuite::addConstraint1()
     const Numerical::Double outputObjectiveConstant1 = 0;
     const std::string outputName1 = "";
     const std::vector<Numerical::Double> outputCostVector1(11, 0.0);
-    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0, 0.0));
+    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns1(11);
     outputNonZerosInColumns1[3] = 1;
     outputNonZerosInColumns1[7] = 1;
@@ -1477,7 +1477,7 @@ void ManualModelBuilderTestSuite::addConstraint1()
     const std::string outputName2 = "";
     const std::vector<Numerical::Double> outputCostVector2(13, 0.0);
     const std::vector<Variable> outputVariables2(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns2(13, 0);
     outputNonZerosInColumns2[1] = 1;
     outputNonZerosInColumns2[3] = 1;
@@ -1560,7 +1560,7 @@ void ManualModelBuilderTestSuite::addConstraint1()
     const std::string outputName3 = "";
     const std::vector<Numerical::Double> outputCostVector3(13, 0.0);
     const std::vector<Variable> outputVariables3(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     const std::vector<unsigned int> outputNonZerosInColumns3 = outputNonZerosInColumns2;
 
     std::vector< std::list<ManualModelBuilder::IndexValuePair> >
@@ -1638,7 +1638,7 @@ void ManualModelBuilderTestSuite::addConstraint1()
     const std::string outputName4 = "";
     const std::vector<Numerical::Double> outputCostVector4(13, 0.0);
     const std::vector<Variable> outputVariables4(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns4(13);
     outputNonZerosInColumns4[0] = 1;
     outputNonZerosInColumns4[1] = 1;
@@ -1726,7 +1726,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
     const Numerical::Double outputObjectiveConstant1 = 0;
     const std::string outputName1 = "";
     const std::vector<Numerical::Double> outputCostVector1(11, 0.0);
-    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0, 0.0));
+    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns1(11);
     outputNonZerosInColumns1[3] = 1;
     outputNonZerosInColumns1[7] = 1;
@@ -1798,7 +1798,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
     const std::string outputName2 = "";
     const std::vector<Numerical::Double> outputCostVector2(13, 0.0);
     const std::vector<Variable> outputVariables2(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns2(13, 0);
     outputNonZerosInColumns2[1] = 1;
     outputNonZerosInColumns2[3] = 1;
@@ -1881,7 +1881,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
     const std::string outputName3 = "";
     const std::vector<Numerical::Double> outputCostVector3(13, 0.0);
     const std::vector<Variable> outputVariables3(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     const std::vector<unsigned int> outputNonZerosInColumns3 = outputNonZerosInColumns2;
 
     std::vector< std::list<ManualModelBuilder::IndexValuePair> >
@@ -1958,7 +1958,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
     const std::string outputName4 = "";
     const std::vector<Numerical::Double> outputCostVector4(13, 0.0);
     const std::vector<Variable> outputVariables4(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns4(13);
     outputNonZerosInColumns4[0] = 1;
     outputNonZerosInColumns4[1] = 1;
@@ -2042,7 +2042,7 @@ void ManualModelBuilderTestSuite::addConstraint3()
     const Numerical::Double outputObjectiveConstant1 = 0;
     const std::string outputName1 = "";
     const std::vector<Numerical::Double> outputCostVector1(11, 0.0);
-    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0, 0.0));
+    const std::vector<Variable> outputVariables1(11, Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns1(11);
     outputNonZerosInColumns1[3] = 1;
     outputNonZerosInColumns1[7] = 1;
@@ -2109,7 +2109,7 @@ void ManualModelBuilderTestSuite::addConstraint3()
     const std::string outputName2 = "";
     const std::vector<Numerical::Double> outputCostVector2(13, 0.0);
     const std::vector<Variable> outputVariables2(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns2(13, 0);
     outputNonZerosInColumns2[1] = 1;
     outputNonZerosInColumns2[3] = 1;
@@ -2191,7 +2191,7 @@ void ManualModelBuilderTestSuite::addConstraint3()
     const std::string outputName3 = "";
     const std::vector<Numerical::Double> outputCostVector3(13, 0.0);
     const std::vector<Variable> outputVariables3(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     const std::vector<unsigned int> outputNonZerosInColumns3 = outputNonZerosInColumns2;
 
     std::vector< std::list<ManualModelBuilder::IndexValuePair> >
@@ -2266,7 +2266,7 @@ void ManualModelBuilderTestSuite::addConstraint3()
     const std::string outputName4 = "";
     const std::vector<Numerical::Double> outputCostVector4(13, 0.0);
     const std::vector<Variable> outputVariables4(13,
-        Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     std::vector<unsigned int> outputNonZerosInColumns4(13);
     outputNonZerosInColumns4[0] = 1;
     outputNonZerosInColumns4[1] = 1;
@@ -2327,7 +2327,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
 
     TEST_ASSERT(builder.getColumnCount() == 11);
 
-    const Variable outputVariableDefault = Variable::createPlusTypeVariable(0, 0, 0.0);
+    const Variable outputVariableDefault = Variable::createPlusTypeVariable(0, 0.0);
     unsigned int index;
     for (index = 0; index < builder.getColumnCount(); index++) {
         TEST_ASSERT(builder.getVariable(index) == outputVariableDefault);
@@ -2347,12 +2347,12 @@ void ManualModelBuilderTestSuite::setGetVariable()
     }
 
     std::vector<Variable> outputVariables(11,
-        Variable::createPlusTypeVariable(0, 0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     outputVariables[0] = testVariable1;
 
     TEST_ASSERT(builder.m_variables == outputVariables);
 
-    const Variable testVariable2 = Variable::createFreeTypeVariable("x2", 4.2);
+    const Variable testVariable2 = Variable::createFreeTypeVariable("x2");
     builder.setVariable(5, testVariable2);
 
     for (index = 0; index < builder.getColumnCount(); index++) {
@@ -2371,7 +2371,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
     outputVariables[5] = testVariable2;
     TEST_ASSERT(builder.m_variables == outputVariables);
 
-    const Variable testVariable3 = Variable::createBoundedTypeVariable("x3", 10.0, 4.5, 31.2);
+    const Variable testVariable3 = Variable::createBoundedTypeVariable("x3", 4.5, 31.2);
     builder.setVariable(10, testVariable3);
 
     for (index = 0; index < builder.getColumnCount(); index++) {
@@ -2393,7 +2393,7 @@ void ManualModelBuilderTestSuite::setGetVariable()
     outputVariables[10] = testVariable3;
     TEST_ASSERT(builder.m_variables == outputVariables);
 
-    const Variable testVariable4 = Variable::createMinusTypeVariable("x4", -3.4, 43.2);
+    const Variable testVariable4 = Variable::createMinusTypeVariable("x4", 43.2);
     builder.setVariable(5, testVariable4);
 
     for (index = 0; index < builder.getColumnCount(); index++) {
@@ -2474,7 +2474,7 @@ void ManualModelBuilderTestSuite::addVariableAndConstraint()
      * [ ] [ ] [ ] [ -2.3; 0 ] [ ] [ ] [ ] [ 1.0; 0 ] [ ] [ ] [ 0.13; 0 ]
      */
 
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
@@ -2536,7 +2536,7 @@ void ManualModelBuilderTestSuite::addVariableAndConstraint()
     outputRows[11].push_back(ManualModelBuilder::createPair(4.13, 11));
 
     std::vector<Variable> outputVariables(12,
-        Variable::createPlusTypeVariable(0, 0, 0.0));
+        Variable::createPlusTypeVariable(0, 0.0));
     outputVariables[11] = testVariable1;
 
     std::vector<unsigned int> outputNonZerosInColumns(12);
@@ -2574,7 +2574,7 @@ void ManualModelBuilderTestSuite::buildRow()
 
     builder.addConstraint(testConstraint1, testRow1);
 
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
@@ -2682,7 +2682,7 @@ void ManualModelBuilderTestSuite::buildColumn()
 
     builder.addConstraint(testConstraint1, testRow1);
 
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
@@ -2798,7 +2798,7 @@ void ManualModelBuilderTestSuite::buildCostVector()
 
     builder.addConstraint(testConstraint1, testRow1);
 
-    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 0.0, 10.0);
+    Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);

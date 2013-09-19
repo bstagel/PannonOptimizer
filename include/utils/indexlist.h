@@ -44,10 +44,22 @@ class IndexList
          */
         Element * m_previous;
 
-        /*
+        /**
          * When the element represnts a header, it is true.
          */
         bool m_isHeader;
+
+        /**
+         * The current element belongs to the m_partitionIndex'th partition.
+         * When an index does not belongs to a partition, m_partitionIndex is
+         * greater or equal than the number of partitions.
+         */
+        unsigned int m_partitionIndex;
+
+        /**
+         * A pointer to an optional object.
+         */
+        const void * m_pointer;
     };
 
 public:
@@ -265,13 +277,34 @@ public:
      * @param partitionIndex The index will be inserted to this linked list.
      * @param index This index will be inserted.
      */
-    inline void insert(unsigned int partitionIndex, unsigned int index)
+    inline void insert(unsigned int partitionIndex, unsigned int value, const void * pointer = 0)
     {
         Element * forward = m_heads[partitionIndex].m_next;
-        m_heads[partitionIndex].m_next = m_data + index;
-        m_data[index].m_next = forward;
-        forward->m_previous = m_data + index;
-        m_data[index].m_previous = m_heads + partitionIndex;
+        m_heads[partitionIndex].m_next = m_dataArray + value;
+        m_dataArray[value].m_next = forward;
+        m_dataArray[value].m_partitionIndex = partitionIndex;
+        m_dataArray[value].m_pointer = pointer;
+        forward->m_previous = m_dataArray + value;
+        m_dataArray[value].m_previous = m_heads + partitionIndex;
+    }
+
+    /**
+     * Sets the pointer of the value'th element.
+     *
+     * @param value
+     * @param pointer
+     */
+    inline void setPointer(unsigned int value, const void * pointer) {
+        m_dataArray[value].m_pointer = pointer;
+    }
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    inline const void * getPointer(unsigned int value) const {
+        return m_dataArray[value].m_pointer;
     }
 
     /**
@@ -283,9 +316,37 @@ public:
      */
     inline void remove(unsigned int value)
     {
-        Element & element = m_data[value];
+        Element & element = m_dataArray[value];
+        element.m_partitionIndex = m_partitionCount;
         element.m_previous->m_next = element.m_next;
         element.m_next->m_previous = element.m_previous;
+    }
+
+    /**
+     *
+     * @param value
+     * @param targetPartition
+     */
+    inline void move(unsigned int value, unsigned int targetPartition) {
+        Element & element = m_dataArray[value];
+        element.m_partitionIndex = targetPartition;
+
+        Element * forward = m_heads[targetPartition].m_next;
+        m_heads[targetPartition].m_next = &element;
+        element.m_next = forward;
+        forward->m_previous = &element;
+        element.m_previous = m_heads + targetPartition;
+    }
+
+    /**
+     * Returns the number of partition, where the index can
+     * be found.
+     *
+     * @param index The function returns with the partition index of this value.
+     * @return The partition index.
+     */
+    inline unsigned int where(unsigned int value) const {
+        return m_dataArray[value].m_partitionIndex;
     }
 
     /**
@@ -337,6 +398,24 @@ public:
         inline unsigned int getData() const
         {
             return m_actual->m_data;
+        }
+
+        /**
+         * Returns with the stored pointer of the current element.
+         *
+         * @return The stored pointer.
+         */
+        inline const void * getPointer() const {
+            return m_actual->m_pointer;
+        }
+
+        /**
+         * Returns with the partition index of the current element.
+         *
+         * @return Partition index of the current element.
+         */
+        inline unsigned int getPartitionIndex() const {
+            return m_actual->m_partitionIndex;
         }
 
         /**
@@ -554,7 +633,7 @@ private:
      * Pointer to the array of indices. The size of array is
      * m_count.
      */
-    Element * m_data;
+    Element * m_dataArray;
 
     /**
      * Releases the arrays, and sets to zero each variable.
@@ -588,5 +667,7 @@ private:
     void copy(const IndexList & list);
 
 };
+
+std::ostream & operator << (std::ostream & os, const IndexList & list);
 
 #endif	/* LINKEDLIST_H */
