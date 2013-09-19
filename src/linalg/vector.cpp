@@ -8,15 +8,15 @@
 //#include <linalg/arch/archlinalg.h>
 #include <utils/numerical.h>
 #include <utils/heap.h>
-//#include <simplex/simplexparameters.h>
+#include <linalg/linalgparameterhandler.h>
 //#include <simplex/linalg.h>
 
 #include <climits>
 #include <cstring>
 #include <cmath>
 
-unsigned int ELBOWROOM = 5;
-Numerical::Double SPARSITY_RATIO = 0.35; //TODO: SimplexParameters::getParameterValue("sparsity_ratio");
+unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getParameterValue("elbowroom");
+Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getParameterValue("sparsity_ratio");
 Numerical::Double * Vector::sm_fullLengthVector = 0;
 unsigned int Vector::sm_fullLengthVectorLenght = 0;
 unsigned int Vector::sm_fullLenghtReferenceCounter = 0;

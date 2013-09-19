@@ -6,55 +6,49 @@
 #include <sstream>
 
 Variable Variable::createVariable(const char * name,
-    Numerical::Double value,
     Numerical::Double lowerBound,
     Numerical::Double upperBound) throw (InvalidLowerBoundException,
     InvalidUpperBoundException,
     InvalidBoundsException)
 {
-    return Variable(lowerBound, upperBound, value, name);
+    return Variable(lowerBound, upperBound, name);
 }
 
 Variable Variable::createPlusTypeVariable(const char * name,
-    Numerical::Double value,
     Numerical::Double lowerBound) throw (Variable::InvalidLowerBoundException)
 {
-    return Variable(lowerBound, PInfinity, value, name);
+    return Variable(lowerBound, PInfinity, name);
 }
 
 Variable Variable::createMinusTypeVariable(const char * name,
-    Numerical::Double value,
     Numerical::Double upperBound) throw (InvalidUpperBoundException)
 {
-    return Variable(-PInfinity, upperBound, value, name);
+    return Variable(-PInfinity, upperBound, name);
 }
 
 Variable Variable::createBoundedTypeVariable(const char * name,
-    Numerical::Double value,
     Numerical::Double lowerBound,
     Numerical::Double upperBound) throw (InvalidLowerBoundException,
         InvalidUpperBoundException,
         InvalidBoundsException)
 {
-    return Variable(lowerBound, upperBound, value, name);
+    return Variable(lowerBound, upperBound, name);
 }
 
 Variable Variable::createFixedTypeVariable(const char * name,
     Numerical::Double value)
 {
-    return Variable(value, value, value, name);
+    return Variable(value, value, name);
 }
 
-Variable Variable::createFreeTypeVariable(const char * name,
-    Numerical::Double value)
+Variable Variable::createFreeTypeVariable(const char * name)
 {
-    return Variable(-PInfinity, PInfinity, value, name);
+    return Variable(-PInfinity, PInfinity, name);
 }
 
 std::ostream & operator<<(std::ostream & os, const Variable & var)
 {
     os << "Name: " << var.getName() << std::endl;
-    os << "\tvalue : " << var.m_value << std::endl;
     os << "\tupper bound: " << var.m_upperBound << std::endl;
     os << "\tlower bound: " << var.m_lowerBound << std::endl;
     os << "\ttype: ";

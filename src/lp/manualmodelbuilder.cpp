@@ -190,7 +190,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
 
     // creating the necessary variables
     for (index = m_variables.size(); index <= maxIndex; index++) {
-        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0));
         m_columns.push_back(newList);
         m_nonZerosInColumns.push_back(0);
         m_costVector.push_back(0.0);
@@ -232,7 +232,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
 
     // creating the necessary variables
     for (index = m_variables.size(); index <= maxIndex; index++) {
-        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0));
         m_columns.push_back(newList);
         m_nonZerosInColumns.push_back(0);
         m_costVector.push_back(0.0);
@@ -278,7 +278,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
 
     // creating the necessary variables
     for (index = m_variables.size(); index <= maxIndex; index++) {
-        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0, 0.0));
+        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0));
         m_columns.push_back(newList);
         m_nonZerosInColumns.push_back(0);
         m_costVector.push_back(0.0);

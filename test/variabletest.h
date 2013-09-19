@@ -22,7 +22,6 @@ private:
     void createFreeType();
     void setGetLowerBound();
     void setGetUpperBound();
-    void setGetValue();
     void setGetName();
     void setGetVector();
     void type();

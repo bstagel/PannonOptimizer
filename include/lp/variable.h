@@ -135,7 +135,7 @@ public:
 
     /**
      * Creates a PLUS type variable, with 0 lower and infinity upper
-     * bound. The value is 0, and the variable has no name.
+     * bound. The variable has no name.
      * 
      */
     inline Variable();
@@ -151,21 +151,19 @@ public:
      * Variable::InvalidBoundsException.
      * 
      * @param name The name of the variable
-     * @param value The value of the variable
      * @param lowerBound The lower bound of the variable
      * @param upperBound The upper bound of the variable
      * @return The requested variable
      * @return 
      */
     static Variable createVariable(const char * name,
-        Numerical::Double value,
         Numerical::Double lowerBound,
         Numerical::Double upperBound) throw (InvalidLowerBoundException, 
                                              InvalidUpperBoundException,
                                              InvalidBoundsException);
 
     /**
-     * Creates a plus type variable, with a given value and lower bound.
+     * Creates a plus type variable, with a given lower bound.
      * The upper bound will be + infinity. If the lowerBound is - infinity,
      * then the variable will be free type variable.
      * 
@@ -173,16 +171,14 @@ public:
      * Variable::InvalidLowerBoundException.
      * 
      * @param name The name of the variable
-     * @param value The value of the variable
      * @param lowerBound The lower bound of the variable
      * @return The requested variable
      */
     static Variable createPlusTypeVariable(const char * name,
-        Numerical::Double value,
         Numerical::Double lowerBound) throw (InvalidLowerBoundException);
 
     /**
-     * Creates a minus type variable, with a given value and upper bound.
+     * Creates a minus type variable, with a given upper bound.
      * The lower bound will be -infinity. If the upperBound is +infinity,
      * then the variable will be free type variable.
      * 
@@ -190,16 +186,14 @@ public:
      * Variable::InvalidUpperBoundException.
      * 
      * @param name The name of the variable
-     * @param value The value of the variable
      * @param upperBound The upper bound of the variable
      * @return The requested variable 
      */
     static Variable createMinusTypeVariable(const char * name,
-        Numerical::Double value,
         Numerical::Double upperBound) throw (InvalidUpperBoundException);
 
     /**
-     * Creates a bounded type variable, with a given value and bounds.
+     * Creates a bounded type variable, with the given bounds.
      * If the bounds are the same, the result will be a fixed type variable,
      * and if the bounds are not finite, the result can be plus, minus, or 
      * free type also.
@@ -212,13 +206,11 @@ public:
      * Variable::InvalidBoundsException.
      * 
      * @param name The name of the variable
-     * @param value The value of the variable
      * @param lowerBound The lower bound of the variable
      * @param upperBound The upper bound of the variable
      * @return The requested variable 
      */
     static Variable createBoundedTypeVariable(const char * name,
-        Numerical::Double value,
         Numerical::Double lowerBound,
         Numerical::Double upperBound) throw (InvalidLowerBoundException, 
                                              InvalidUpperBoundException,
@@ -235,14 +227,12 @@ public:
         Numerical::Double value);
 
     /**
-     * Creates a free type variable with a given value.
+     * Creates a free type variable.
      * 
      * @param name The name of the variable
-     * @param value The value of the variable
      * @return The requested variable  
      */
-    static Variable createFreeTypeVariable(const char * name,
-        Numerical::Double value);
+    static Variable createFreeTypeVariable(const char * name);
 
     /**
      * Returns with the lower bound of the variable.
@@ -288,20 +278,6 @@ public:
      * @return The type of the variable.
      */
     inline TYPE getType() const;
-
-    /**
-     * Returns with the value of the variable.
-     *
-     * @return The value of the variable.
-     */
-    inline Numerical::Double getValue() const;
-
-    /**
-     * Sets the value of the variable.
-     *
-     * @param value The variable's new value.
-     */
-    inline void setValue(Numerical::Double value);
 
     /**
      * Sets the variable's name.
@@ -356,12 +332,6 @@ private:
     Numerical::Double m_upperBound;
 
     /**
-     * The value of the variable. It can be lower then the lower bound or
-     * greater than the upper bound.
-     */
-    Numerical::Double m_value;
-
-    /**
      * Represents the type of the variable. It is modified by the adjustType()
      * function.
      */
@@ -389,7 +359,6 @@ private:
      */
     inline Variable(Numerical::Double lowerBound,
         Numerical::Double upperBound,
-        Numerical::Double value,
         const char * name) throw (InvalidLowerBoundException,
                                   InvalidUpperBoundException,
                                   InvalidBoundsException);
@@ -424,21 +393,18 @@ inline Variable::Variable()
 {
     m_lowerBound = 0;
     m_upperBound = PInfinity;
-    m_value = 0;
     m_type = PLUS;
     m_vector = 0;
 }
 
 inline Variable::Variable(Numerical::Double lowerBound,
     Numerical::Double upperBound,
-    Numerical::Double value,
     const char * name) throw (InvalidLowerBoundException,
                               InvalidUpperBoundException,
                               InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
-    m_value = value;
     if (name != 0) {
         m_name = name;
     }
@@ -478,16 +444,6 @@ inline void Variable::setUpperBound(Numerical::Double upperBound) throw (Invalid
     adjustType();
 }
 
-inline Numerical::Double Variable::getValue() const
-{
-    return m_value;
-}
-
-inline void Variable::setValue(Numerical::Double value)
-{
-    m_value = value;
-}
-
 inline void Variable::setName(const char * name)
 {
     m_name = name;
@@ -523,9 +479,6 @@ inline bool Variable::operator==(const Variable & variable) const
         return false;
     }
     if (m_upperBound != variable.m_upperBound) {
-        return false;
-    }
-    if (m_value != variable.m_value) {
         return false;
     }
     if (m_vector != variable.m_vector) {
