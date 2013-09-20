@@ -40,6 +40,8 @@ Vector::Vector(void *, void *, void *)
     m_capacity = 0;
     m_dimension = 0;
     m_sorted = true;
+    m_sparsityRatio = SPARSITY_RATIO;
+    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
     //CHECK;
 }
 
