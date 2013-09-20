@@ -18,8 +18,7 @@ public:
     virtual ~ParameterHandler();
 
     inline double getParameterValue(const std::string& name){return m_values.at(name).getValue();}
-    inline void setParameterValue(const std::string name, const double value)
-        {m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,value)));}
+    inline void setParameterValue(const std::string name, const double value){m_values[name] = Parameter(name,value);}
 
     virtual void readParameterFile(const std::string filename);
     virtual void writeParameterFile() = 0;
