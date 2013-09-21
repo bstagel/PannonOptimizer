@@ -25,7 +25,7 @@ void VariableTestSuite::init()
 {
     Variable variable;
     TEST_ASSERT(variable.m_lowerBound == 0.0);
-    TEST_ASSERT(variable.m_upperBound == PInfinity);
+    TEST_ASSERT(variable.m_upperBound == Numerical::Infinity);
     TEST_ASSERT(variable.m_type == Variable::PLUS);
     TEST_ASSERT(variable.m_name == "");
     TEST_ASSERT(variable.m_vector == 0);
@@ -85,7 +85,7 @@ void VariableTestSuite::createVariable()
      * Testing a plus type variable
      */
 
-    const Numerical::Double testUpperBound2 = PInfinity;
+    const Numerical::Double testUpperBound2 = Numerical::Infinity;
 
     Variable variable3 = Variable::createVariable(testName,
         testLowerBound,
@@ -109,7 +109,7 @@ void VariableTestSuite::createVariable()
      * Testing a minus type variable
      */
 
-    const Numerical::Double testLowerBound2 = -PInfinity;
+    const Numerical::Double testLowerBound2 = -Numerical::Infinity;
 
     Variable variable4 = Variable::createVariable(testName,
         testLowerBound2,
@@ -175,7 +175,7 @@ void VariableTestSuite::createVariable()
 
     bool invalidUpperBoundExceptionCheck = false;
     try {
-        Numerical::Double testUpperBound3 = -PInfinity;
+        Numerical::Double testUpperBound3 = -Numerical::Infinity;
         Variable variable7 = Variable::createVariable(testName,
             testLowerBound,
             testUpperBound3);
@@ -189,7 +189,7 @@ void VariableTestSuite::createVariable()
 
     bool invalidLowerBoundExceptionCheck = false;
     try {
-        Numerical::Double testLowerBound3 = PInfinity;
+        Numerical::Double testLowerBound3 = Numerical::Infinity;
         Variable variable7 = Variable::createVariable(testName,
             testLowerBound3,
             testUpperBound);
@@ -221,7 +221,7 @@ void VariableTestSuite::createPlusType()
 {
     const char * testName = "x4";
     const Numerical::Double testLowerBound = -3.0;
-    const Numerical::Double testUpperBound = PInfinity;
+    const Numerical::Double testUpperBound = Numerical::Infinity;
     /**
      * Testing a named variable
      */
@@ -265,7 +265,7 @@ void VariableTestSuite::createPlusType()
     TEST_ASSERT(strcmp(variable2.getName(), "<NO NAME>") == 0);
 
 
-    const Numerical::Double testLowerBound2 = -PInfinity;
+    const Numerical::Double testLowerBound2 = -Numerical::Infinity;
 
     /**
      * Testing a named variable, without lower bound
@@ -311,7 +311,7 @@ void VariableTestSuite::createPlusType()
 
     bool invalidLowerBoundExceptionCheck = false;
     try {
-        Numerical::Double testLowerBound3 = PInfinity;
+        Numerical::Double testLowerBound3 = Numerical::Infinity;
         Variable variable5 = Variable::createPlusTypeVariable(0,
             testLowerBound3);
         __UNUSED(variable5);
@@ -327,7 +327,7 @@ void VariableTestSuite::createPlusType()
 void VariableTestSuite::createMinusType()
 {
     const char * testName = "x6";
-    const Numerical::Double testLowerBound = -PInfinity;
+    const Numerical::Double testLowerBound = -Numerical::Infinity;
     const Numerical::Double testUpperBound = 102.0;
     /**
      * Testing a named variable
@@ -369,7 +369,7 @@ void VariableTestSuite::createMinusType()
     TEST_ASSERT(variable2.m_name == "");
     TEST_ASSERT(strcmp(variable2.getName(), "<NO NAME>") == 0);
 
-    const Numerical::Double testUpperBound2 = PInfinity;
+    const Numerical::Double testUpperBound2 = Numerical::Infinity;
     /**
      * Testing a named variable, without upper bound
      */
@@ -412,7 +412,7 @@ void VariableTestSuite::createMinusType()
 
     bool invalidUpperBoundExceptionCheck = false;
     try {
-        Numerical::Double testUpperBound3 = -PInfinity;
+        Numerical::Double testUpperBound3 = -Numerical::Infinity;
         Variable variable5 = Variable::createMinusTypeVariable(0,
             testUpperBound3);
         __UNUSED(variable5);
@@ -478,7 +478,7 @@ void VariableTestSuite::createBoundedType()
      * Testing a plus type variable
      */
 
-    const Numerical::Double testUpperBound2 = PInfinity;
+    const Numerical::Double testUpperBound2 = Numerical::Infinity;
 
     Variable variable3 = Variable::createBoundedTypeVariable(testName,
         testLowerBound,
@@ -502,7 +502,7 @@ void VariableTestSuite::createBoundedType()
      * Testing a minus type variable
      */
 
-    const Numerical::Double testLowerBound2 = -PInfinity;
+    const Numerical::Double testLowerBound2 = -Numerical::Infinity;
 
     Variable variable4 = Variable::createBoundedTypeVariable(testName,
         testLowerBound2,
@@ -568,7 +568,7 @@ void VariableTestSuite::createBoundedType()
 
     bool invalidUpperBoundExceptionCheck = false;
     try {
-        Numerical::Double testUpperBound3 = -PInfinity;
+        Numerical::Double testUpperBound3 = -Numerical::Infinity;
         Variable variable7 = Variable::createBoundedTypeVariable(testName,
             testLowerBound,
             testUpperBound3);
@@ -582,7 +582,7 @@ void VariableTestSuite::createBoundedType()
 
     bool invalidLowerBoundExceptionCheck = false;
     try {
-        Numerical::Double testLowerBound3 = PInfinity;
+        Numerical::Double testLowerBound3 = Numerical::Infinity;
         Variable variable7 = Variable::createBoundedTypeVariable(testName,
             testLowerBound3,
             testUpperBound);
@@ -661,8 +661,8 @@ void VariableTestSuite::createFixedType()
 void VariableTestSuite::createFreeType()
 {
     const char * testName = "x1";
-    const Numerical::Double testLowerBound = -PInfinity;
-    const Numerical::Double testUpperBound = PInfinity;
+    const Numerical::Double testLowerBound = -Numerical::Infinity;
+    const Numerical::Double testUpperBound = Numerical::Infinity;
 
     /**
      * Testing a named variable
@@ -719,13 +719,13 @@ void VariableTestSuite::setGetLowerBound()
     TEST_ASSERT(variable.m_lowerBound == 0);
     TEST_ASSERT(variable.getLowerBound() == 0);
 
-    variable.setLowerBound(-PInfinity);
-    TEST_ASSERT(variable.m_lowerBound == -PInfinity);
-    TEST_ASSERT(variable.getLowerBound() == -PInfinity);
+    variable.setLowerBound(-Numerical::Infinity);
+    TEST_ASSERT(variable.m_lowerBound == -Numerical::Infinity);
+    TEST_ASSERT(variable.getLowerBound() == -Numerical::Infinity);
 
     bool invalidLowerBoundException = false;
     try {
-        variable.setLowerBound(PInfinity);
+        variable.setLowerBound(Numerical::Infinity);
     } catch (Variable::InvalidLowerBoundException & exception) {
         invalidLowerBoundException = true;
     } catch (...) {
@@ -735,7 +735,7 @@ void VariableTestSuite::setGetLowerBound()
 
     bool invalidBoundsException = false;
     try {
-        variable.setLowerBound(-PInfinity);
+        variable.setLowerBound(-Numerical::Infinity);
         variable.setUpperBound(10.0);
         variable.setLowerBound(20.0);
     } catch (Variable::InvalidBoundsException & exception) {
@@ -762,13 +762,13 @@ void VariableTestSuite::setGetUpperBound()
     TEST_ASSERT(variable.m_upperBound == 0);
     TEST_ASSERT(variable.getUpperBound() == 0);
 
-    variable.setUpperBound(PInfinity);
-    TEST_ASSERT(variable.m_upperBound == PInfinity);
-    TEST_ASSERT(variable.getUpperBound() == PInfinity);
+    variable.setUpperBound(Numerical::Infinity);
+    TEST_ASSERT(variable.m_upperBound == Numerical::Infinity);
+    TEST_ASSERT(variable.getUpperBound() == Numerical::Infinity);
 
     bool invalidUpperBoundException = false;
     try {
-        variable.setUpperBound(-PInfinity);
+        variable.setUpperBound(-Numerical::Infinity);
     } catch (Variable::InvalidUpperBoundException & exception) {
         invalidUpperBoundException = true;
     } catch (...) {
@@ -778,7 +778,7 @@ void VariableTestSuite::setGetUpperBound()
 
     bool invalidBoundsException = false;
     try {
-        variable.setUpperBound(PInfinity);
+        variable.setUpperBound(Numerical::Infinity);
         variable.setLowerBound(20.0);
         variable.setUpperBound(10.0);
     } catch (Variable::InvalidBoundsException & exception) {
@@ -818,8 +818,8 @@ void VariableTestSuite::setGetVector()
 void VariableTestSuite::type()
 {
     Variable variable1;
-    variable1.setLowerBound(-PInfinity);
-    variable1.setUpperBound(PInfinity);
+    variable1.setLowerBound(-Numerical::Infinity);
+    variable1.setUpperBound(Numerical::Infinity);
     TEST_ASSERT(variable1.m_type == variable1.getType());
     TEST_ASSERT(variable1.m_type == Variable::FREE);
 
@@ -843,36 +843,36 @@ void VariableTestSuite::type()
 
     Variable variable5;
     variable5.setLowerBound(-10.0);
-    variable5.setUpperBound(PInfinity);
+    variable5.setUpperBound(Numerical::Infinity);
     TEST_ASSERT(variable5.m_type == variable5.getType());
     TEST_ASSERT(variable5.m_type == Variable::PLUS);
 
     Variable variable6;
     variable6.setLowerBound(0.0);
-    variable6.setUpperBound(PInfinity);
+    variable6.setUpperBound(Numerical::Infinity);
     TEST_ASSERT(variable6.m_type == variable6.getType());
     TEST_ASSERT(variable6.m_type == Variable::PLUS);
 
     Variable variable7;
     variable7.setLowerBound(10.0);
-    variable7.setUpperBound(PInfinity);
+    variable7.setUpperBound(Numerical::Infinity);
     TEST_ASSERT(variable7.m_type == variable7.getType());
     TEST_ASSERT(variable7.m_type == Variable::PLUS);
 
     Variable variable8;
-    variable8.setLowerBound(-PInfinity);
+    variable8.setLowerBound(-Numerical::Infinity);
     variable8.setUpperBound(-10.0);
     TEST_ASSERT(variable8.m_type == variable8.getType());
     TEST_ASSERT(variable8.m_type == Variable::MINUS);
 
     Variable variable9;
-    variable9.setLowerBound(-PInfinity);
+    variable9.setLowerBound(-Numerical::Infinity);
     variable9.setUpperBound(0.0);
     TEST_ASSERT(variable9.m_type == variable9.getType());
     TEST_ASSERT(variable9.m_type == Variable::MINUS);
 
     Variable variable10;
-    variable10.setLowerBound(-PInfinity);
+    variable10.setLowerBound(-Numerical::Infinity);
     variable10.setUpperBound(10.0);
     TEST_ASSERT(variable10.m_type == variable10.getType());
     TEST_ASSERT(variable10.m_type == Variable::MINUS);
@@ -925,7 +925,7 @@ void VariableTestSuite::equalityOperator()
 
     variable1.setUpperBound(1.0);
     TEST_ASSERT(!(variable1 == variable2));
-    variable1.setUpperBound(PInfinity);
+    variable1.setUpperBound(Numerical::Infinity);
     TEST_ASSERT(variable1 == variable2);
 
     Vector vector;

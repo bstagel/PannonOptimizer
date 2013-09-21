@@ -13,6 +13,8 @@
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
 
+class StartingBasisFinder;
+
 class Simplex : public Method
 {
 public:
@@ -35,7 +37,7 @@ public:
     virtual ~Simplex();
 
     inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
-    inline const std::vector<unsigned int> & getBasisHead() const {return m_basisHead;}
+    inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
     void getVariablesByState(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
     void getVariablesByFeasibility(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
     void getReducedCostsByFeasibility(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
@@ -43,21 +45,28 @@ public:
     void setModel(const Model & model);
 
     void solve();
+    void findStartingBasis();
 
-private:
-    Numerical::Double m_objectiveValue;
+protected:
     SimplexModel * m_simplexModel;
 
-    std::vector<unsigned int> m_basisHead;
+    std::vector<int> m_basisHead;
     IndexList m_variableStates;
     IndexList m_variableFeasibilities;
     IndexList m_reducedCostFeasibilities;
+    Vector m_basicVariableValues;
+    Vector m_reducedCosts;
+    Numerical::Double m_objectiveValue;
+    Numerical::Double m_phaseIObjectiveValue;
+
+    //Modules
+    StartingBasisFinder* m_startingBasisFinder;
 
     void constraintAdded();
     void variableAdded();
 
-    virtual void initModules() = 0;
-    virtual void releaseModules() = 0;
+    virtual void initModules();
+    virtual void releaseModules();
     virtual void iterate() = 0;
 };
 

@@ -8,18 +8,18 @@
 #ifndef PRIMALUPDATER_H
 #define	PRIMALUPDATER_H
 
-#include <simplex/primalreducedcostupdater.h>
+#include <simplex/primalpricingupdater.h>
 
 class PrimalUpdater {
 public:
     PrimalUpdater();
 
-    void setReducedCostUpdater(PrimalReducedCostUpdater * reducedCostUpdater);
+    void setPricingUpdater(PrimalPricingUpdater * pricingUpdater);
 
     void update();
 
 protected:
-    PrimalReducedCostUpdater * m_reducedCostUpdater;
+    PrimalPricingUpdater * m_pricingUpdater;
 };
 
 #endif	/* PRIMALUPDATER_H */

@@ -1,5 +1,5 @@
 /* 
- * File:   dualdantzigreducedcostupdater.cpp
+ * File:   dualdantzigpricingupdater.cpp
  * Author: smidla
  * 
  * Created on 2013. augusztus 26., 1:00

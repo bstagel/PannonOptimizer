@@ -392,7 +392,7 @@ private:
 inline Variable::Variable()
 {
     m_lowerBound = 0;
-    m_upperBound = PInfinity;
+    m_upperBound = Numerical::Infinity;
     m_type = PLUS;
     m_vector = 0;
 }
@@ -491,13 +491,13 @@ inline void Variable::adjustType()
 {
     if (m_lowerBound == m_upperBound) {
         m_type = FIXED;
-    } else if (m_lowerBound == -PInfinity) {
-        if (m_upperBound == PInfinity) {
+    } else if (m_lowerBound == -Numerical::Infinity) {
+        if (m_upperBound == Numerical::Infinity) {
             m_type = FREE;
         } else {
             m_type = MINUS;
         }
-    } else if (m_upperBound == PInfinity) {
+    } else if (m_upperBound == Numerical::Infinity) {
         m_type = PLUS;
     } else {
         m_type = BOUNDED;

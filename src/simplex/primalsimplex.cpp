@@ -14,6 +14,8 @@ PrimalSimplex::PrimalSimplex():
 }
 
 void PrimalSimplex::initModules() {
+    Simplex::initModules();
+
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
     PrimalPricingFactory * pricingFactory = new PrimalDantzigPricingFactory;
@@ -21,7 +23,7 @@ void PrimalSimplex::initModules() {
     m_pricing = pricingFactory->createPrimalPricing();
 
     m_updater = new PrimalUpdater;
-    m_updater->setReducedCostUpdater( pricingFactory->createPrimalReducedCostUpdater() );
+    m_updater->setPricingUpdater( pricingFactory->createPrimalPricingUpdater() );
 
     delete pricingFactory;
     pricingFactory = 0;

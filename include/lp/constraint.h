@@ -389,7 +389,7 @@ private:
 inline Constraint::Constraint()
 {
     m_lowerBound = 0;
-    m_upperBound = PInfinity;
+    m_upperBound = Numerical::Infinity;
     m_type = GREATER_OR_EQUAL;
     m_vector = 0;
 }
@@ -470,16 +470,16 @@ void Constraint::adjustType()
 {
     if (m_lowerBound == m_upperBound) {
         m_type = EQUALITY;
-    } else if (m_lowerBound == -PInfinity) {
-        if (m_upperBound == PInfinity) {
+    } else if (m_lowerBound == -Numerical::Infinity) {
+        if (m_upperBound == Numerical::Infinity) {
             m_type = NON_BINDING;
-        } else if (m_upperBound < PInfinity) {
+        } else if (m_upperBound < Numerical::Infinity) {
             m_type = LESS_OR_EQUAL;
         }
-    } else if (m_lowerBound > -PInfinity) {
-        if (m_upperBound == PInfinity) {
+    } else if (m_lowerBound > -Numerical::Infinity) {
+        if (m_upperBound == Numerical::Infinity) {
             m_type = GREATER_OR_EQUAL;
-        } else if (m_upperBound < PInfinity) {
+        } else if (m_upperBound < Numerical::Infinity) {
             m_type = RANGE;
         }
     }

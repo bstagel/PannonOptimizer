@@ -19,7 +19,7 @@ public:
     PrimalDantzigPricingFactory(const PrimalDantzigPricingFactory& orig);
     virtual ~PrimalDantzigPricingFactory();
 
-    PrimalReducedCostUpdater * createPrimalReducedCostUpdater() const;
+    PrimalPricingUpdater * createPrimalPricingUpdater() const;
     PrimalPricing * createPrimalPricing() const;
 private:
 

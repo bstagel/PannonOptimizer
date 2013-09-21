@@ -17,13 +17,13 @@ Variable Variable::createVariable(const char * name,
 Variable Variable::createPlusTypeVariable(const char * name,
     Numerical::Double lowerBound) throw (Variable::InvalidLowerBoundException)
 {
-    return Variable(lowerBound, PInfinity, name);
+    return Variable(lowerBound, Numerical::Infinity, name);
 }
 
 Variable Variable::createMinusTypeVariable(const char * name,
     Numerical::Double upperBound) throw (InvalidUpperBoundException)
 {
-    return Variable(-PInfinity, upperBound, name);
+    return Variable(-Numerical::Infinity, upperBound, name);
 }
 
 Variable Variable::createBoundedTypeVariable(const char * name,
@@ -43,7 +43,7 @@ Variable Variable::createFixedTypeVariable(const char * name,
 
 Variable Variable::createFreeTypeVariable(const char * name)
 {
-    return Variable(-PInfinity, PInfinity, name);
+    return Variable(-Numerical::Infinity, Numerical::Infinity, name);
 }
 
 std::ostream & operator<<(std::ostream & os, const Variable & var)
@@ -77,13 +77,13 @@ void Variable::check() const throw (InvalidLowerBoundException,
                                     InvalidUpperBoundException,
                                     InvalidBoundsException)
 {
-    if (m_lowerBound == PInfinity) {
+    if (m_lowerBound == Numerical::Infinity) {
         std::ostringstream message;
         message << "Variable " << getName() << " has invalid lower bound: " <<
             m_lowerBound;
         throw Variable::InvalidLowerBoundException(*this, message.str());
     }
-    if (m_upperBound == -PInfinity) {
+    if (m_upperBound == -Numerical::Infinity) {
         std::ostringstream message;
         message << "Variable " << getName() << " has invalid upper bound: " <<
             m_upperBound;

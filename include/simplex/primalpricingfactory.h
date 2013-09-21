@@ -10,14 +10,14 @@
 
 #include <globals.h>
 
-#include <simplex/primalreducedcostupdater.h>
+#include <simplex/primalpricingupdater.h>
 #include <simplex/primalpricing.h>
 
 class PrimalPricingFactory {
 public:
     virtual ~PrimalPricingFactory(){}
 
-    virtual PrimalReducedCostUpdater * createPrimalReducedCostUpdater() const = 0; 
+    virtual PrimalPricingUpdater * createPrimalPricingUpdater() const = 0;
     virtual PrimalPricing * createPrimalPricing() const = 0;
 };
 

@@ -1,11 +1,12 @@
 
 #include <simplex/basis.h>
 
+#include <simplex/simplex.h>
 #include <simplex/simplexmodel.h>
 
 #include <fstream>
 
-Basis::Basis(const SimplexModel& model, IndexList& variableStates, std::vector<int>& basisHead) :
+Basis::Basis(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates) :
     m_model(model),
     m_variableStates(variableStates),
     m_basisHead(basisHead)
@@ -37,8 +38,8 @@ Basis::~Basis()
 
 void Basis::copyBasis(bool buildIndexLists) {
     DEVINFO(D::PFIMAKER, "Copy the basis");
-    int columnCount = m_model.getMatrix().columnCount();
-    int rowCount = m_model.getMatrix().rowCount();
+    int columnCount = m_model.getColumnCount();
+    int rowCount = m_model.getRowCount();
 
 #define USE_LOGICALS
 #ifndef USE_LOGICALS
@@ -157,7 +158,7 @@ void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
 
 void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
-    std::vector<bool> nonbasic(m_model.getMatrix().columnCount() + m_model.getMatrix().rowCount(), false);
+    std::vector<bool> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
     //First mark the positions of the given basis head
     for (std::vector<int>::iterator it = m_basisHead.begin(); it < m_basisHead.end(); it++) {
         nonbasic.at(*it) = true;
@@ -167,8 +168,10 @@ void Basis::setNewHead() {
     //Set the basic variables state and remove their traces from the pattern vector
     for (std::vector<int>::iterator it = m_basisHead.begin(); it < m_basisHead.end(); it++) {
         nonbasic.at(*it) = false;
-        //TODO
-//        m_model.getVariable(*it).setState(Variable::BASIC);
+        //TODO mit ad vissza ha egyikbe sincs benne?????
+//        if (m_variableStates.where(*it) != Simplex::BASIC){
+//            if()
+//        }.m_model.getVariable(*it).setState(Variable::BASIC);
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
     //are aout of the basis, these must be marked as nonbasic and their states must be updated too.
@@ -187,7 +190,7 @@ void Basis::checkSingularity() {
     for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); it++) {
         if (*it == -1) {
             DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
-            *it = it - m_basisNewHead.begin() + m_model.getMatrix().columnCount();
+            *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
             singularity++;
         }
     }

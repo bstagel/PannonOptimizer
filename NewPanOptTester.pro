@@ -8,10 +8,13 @@ CONFIG += console
 
 TARGET = NewPanOptTester
 
-CONFIG(release) {
-    message("Release mode!")
+CONFIG(release, debug|release) {
+    message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2
+}
+CONFIG(debug, debug|release) {
+    message("NewPanOpt: Debug mode!")
 }
 
 #Includes
