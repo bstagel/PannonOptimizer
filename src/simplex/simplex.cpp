@@ -7,12 +7,19 @@
 #include <utils/timer.h>
 #include <utils/exceptions.h>
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/startingbasisfinder.h>
+
 
 Simplex::Simplex():
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
-    m_reducedCostFeasibilities(0,0)
+    m_reducedCostFeasibilities(0,0),
+    m_basicVariableValues(m_simplexModel->getRowCount()),
+    m_reducedCosts(m_simplexModel->getRowCount() + m_simplexModel->getColumnCount()),
+    m_objectiveValue(0),
+    m_phaseIObjectiveValue(0),
+    m_startingBasisFinder(NULL)
 {
 
 }
@@ -63,9 +70,12 @@ void Simplex::solve() {
     unsigned int iterationIndex;
     const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
     const double timeLimit = simplexParameters.getParameterValue("time_limit");
+    StartingBasisFinder::StartingBasisStrategy startingBasisStratgy =
+            (StartingBasisFinder::StartingBasisStrategy)simplexParameters.getParameterValue("starting_basis");
     Timer timer;
 
     try {
+        m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
         for (iterationIndex = 0;
              iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit;
@@ -128,4 +138,17 @@ void Simplex::solve() {
     }
 
     releaseModules();
+}
+
+void Simplex::initModules()
+{
+    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, m_basisHead, m_variableStates);
+}
+
+void Simplex::releaseModules()
+{
+    if(m_startingBasisFinder){
+        delete m_startingBasisFinder;
+        m_startingBasisFinder = 0;
+    }
 }

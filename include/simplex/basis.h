@@ -29,7 +29,7 @@ public:
         DEFAULT_BTRAN
     };
 
-    Basis(const SimplexModel& model, IndexList& variableStates, std::vector<int>& basisHead);
+    Basis(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates);
     virtual ~Basis();
 
     /**

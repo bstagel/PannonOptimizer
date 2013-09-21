@@ -7,7 +7,7 @@
 
 #include <simplex/pricing/primaldantzigpricingfactory.h>
 #include <simplex/pricing/primaldantzigpricing.h>
-#include <simplex/pricing/primaldantzigreducedcostupdater.h>
+#include <simplex/pricing/primaldantzigpricingupdater.h>
 
 PrimalDantzigPricingFactory::PrimalDantzigPricingFactory()
 {
@@ -22,9 +22,9 @@ PrimalDantzigPricingFactory::~PrimalDantzigPricingFactory()
 {
 }
 
-PrimalReducedCostUpdater * PrimalDantzigPricingFactory::createPrimalReducedCostUpdater() const
+PrimalPricingUpdater * PrimalDantzigPricingFactory::createPrimalPricingUpdater() const
 {
-    return new PrimalDantzigReducedCostUpdater;
+    return new PrimalPricingUpdater;
 }
 
 PrimalPricing * PrimalDantzigPricingFactory::createPrimalPricing() const

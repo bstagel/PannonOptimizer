@@ -24,6 +24,8 @@ public:
     void print(std::ostream out = std::cout) const;
 
     inline const Matrix & getMatrix() const {return m_model.getMatrix();}
+    inline unsigned int getRowCount() const {return m_model.getMatrix().rowCount();}
+    inline unsigned int getColumnCount() const {return m_model.getMatrix().columnCount();}
     //TODO
     inline const Variable & getVariable(unsigned int index) const {
         unsigned int rowCount = m_model.getMatrix().rowCount();

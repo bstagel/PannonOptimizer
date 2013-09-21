@@ -1,12 +1,12 @@
 /* 
- * File:   dualdantzigreducedcostupdater.h
+ * File:   dualdantzigpricingupdater.h
  * Author: smidla
  *
  * Created on 2013. augusztus 26., 1:00
  */
 
-#ifndef DUALDANTZIGREDUCEDCOSTUPDATER_H
-#define	DUALDANTZIGREDUCEDCOSTUPDATER_H
+#ifndef DUALDANTZIGREPRICINGUPDATER_H
+#define	DUALDANTZIGREPRICINGUPDATER_H
 
 #include <globals.h>
 
@@ -22,5 +22,5 @@ private:
 
 };
 
-#endif	/* DUALDANTZIGREDUCEDCOSTUPDATER_H */
+#endif	/* DUALDANTZIGREPRICINGUPDATER_H */
 

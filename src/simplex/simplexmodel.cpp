@@ -33,13 +33,13 @@ void SimplexModel::makeComputationalForm()
         {
         case Constraint::LESS_OR_EQUAL: {
             m_logicalVariables[j].setLowerBound(0.);
-            m_logicalVariables[j].setUpperBound(PInfinity);
+            m_logicalVariables[j].setUpperBound(Numerical::Infinity);
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
 
         case Constraint::GREATER_OR_EQUAL: {
-            m_logicalVariables[j].setLowerBound(-PInfinity);
+            m_logicalVariables[j].setLowerBound(-Numerical::Infinity);
             m_logicalVariables[j].setUpperBound(0.);
             m_rhs.set(i, constraints.at(i).getLowerBound());
             break;
@@ -53,15 +53,15 @@ void SimplexModel::makeComputationalForm()
         }
 
         case Constraint::NON_BINDING: {
-            m_logicalVariables[j].setLowerBound(-PInfinity);
-            m_logicalVariables[j].setUpperBound(PInfinity);
+            m_logicalVariables[j].setLowerBound(-Numerical::Infinity);
+            m_logicalVariables[j].setUpperBound(Numerical::Infinity);
             // TODO Nonbinding constraint value
             m_rhs.set(i, 0.);
             Numerical::Double temp = constraints.at(i).getUpperBound();
             Numerical::Double temp2 = constraints.at(i).getLowerBound();
-            if ( temp != -PInfinity) {
+            if ( temp != -Numerical::Infinity) {
                 m_rhs.set(i, temp);
-            } else if ( temp2 != PInfinity) {
+            } else if ( temp2 != Numerical::Infinity) {
                 m_rhs.set(i, temp2);
             } else {
                 m_rhs.set(i, 0.);

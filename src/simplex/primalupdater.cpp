@@ -1,13 +1,13 @@
 #include <simplex/primalupdater.h>
 
 PrimalUpdater::PrimalUpdater():
-    m_reducedCostUpdater(0)
+    m_pricingUpdater(0)
 {
 
 }
 
-void PrimalUpdater::setReducedCostUpdater(PrimalReducedCostUpdater * reducedCostUpdater) {
-    m_reducedCostUpdater = reducedCostUpdater;
+void PrimalUpdater::setPricingUpdater(PrimalPricingUpdater * pricingUpdater) {
+    m_pricingUpdater = pricingUpdater;
 }
 
 void PrimalUpdater::update() {
