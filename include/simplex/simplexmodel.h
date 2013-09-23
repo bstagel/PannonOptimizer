@@ -21,12 +21,11 @@ public:
      * Prints the output of the createComputationalForm (CF3) algorithm.
      * (The generated model with RHS and logical variables.)
      */
-    void print(std::ostream out = std::cout) const;
+    void print(std::ostream outs) const;
 
-    inline const Matrix & getMatrix() const {return m_model.getMatrix();}
+    inline const Matrix & getMatrix()const {return m_model.getMatrix();}
     inline unsigned int getRowCount() const {return m_model.getMatrix().rowCount();}
     inline unsigned int getColumnCount() const {return m_model.getMatrix().columnCount();}
-    //TODO
     inline const Variable & getVariable(unsigned int index) const {
         unsigned int rowCount = m_model.getMatrix().rowCount();
         return index<rowCount?m_model.getVariable(index):m_logicalVariables[index-rowCount];

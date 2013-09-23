@@ -27,11 +27,11 @@
  * @see UnboundedException
  * @class Exception
  */
-class Exception
+class PanOptException
 {
 public:
-    Exception(const std::string & message): m_message(message) {}
-    virtual ~Exception() {}
+    PanOptException(const std::string & message): m_message(message) {}
+    virtual ~PanOptException() {}
 
     inline std::string getMessage() const {return m_message;}
 
@@ -40,11 +40,20 @@ protected:
 };
 
 /**
+ * @class OptimizationResultException
+ */
+class OptimizationResultException: public PanOptException {
+public:
+    OptimizationResultException(const std::string& message): PanOptException(message) {}
+};
+
+
+/**
  * @class OptimalException
  */
-class OptimalException: public Exception {
+class OptimalException: public OptimizationResultException {
 public:
-    OptimalException(const std::string& message): Exception(message) {}
+    OptimalException(const std::string& message): OptimizationResultException(message) {}
 };
 
 /**
@@ -52,9 +61,9 @@ public:
  * (for example during presolving)
  * @class UnboundedException
  */
-class UnboundedException: public Exception {
+class UnboundedException: public OptimizationResultException {
 public:
-    UnboundedException(const std::string& message): Exception(message) {}
+    UnboundedException(const std::string& message): OptimizationResultException(message) {}
 };
 
 /**
@@ -62,17 +71,17 @@ public:
  * (for example during presolving)
  * @class InfeasibleException
  */
-class InfeasibleException: public Exception {
+class InfeasibleException: public OptimizationResultException {
 public:
-    InfeasibleException(const std::string& message): Exception(message) {}
+    InfeasibleException(const std::string& message): OptimizationResultException(message) {}
 };
 
 /**
  * @class NumericalException
  */
-class NumericalException: public Exception {
+class NumericalException: public PanOptException {
 public:
-    NumericalException(const std::string& message): Exception(message) {}
+    NumericalException(const std::string& message): PanOptException(message) {}
 };
 
 

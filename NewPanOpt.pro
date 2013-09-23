@@ -11,9 +11,10 @@ TARGET = NewPanOpt
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
 }
 CONFIG(debug, debug|release) {
+    QMAKE_CXXFLAGS_DEBUG += -std=c++11
     message("NewPanOpt: Debug mode!")
 }
 
@@ -72,7 +73,9 @@ HEADERS += include/debug.h \
            include/utils/parameterhandler.h \
            include/utils/outputhandler.h \
            include/globals.h \
-           include/defaultparameters.h
+           include/defaultparameters.h \
+    include/prettyprint.h \
+    include/prettyprint98.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -107,6 +110,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/timer.cpp \
            src/utils/parameterhandler.cpp \
            src/utils/outputhandler.cpp \
-           src/debug.cpp
+           src/debug.cpp \
+    src/defaultparameters.cpp
 
 OBJECTS_DIR = .o

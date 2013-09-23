@@ -118,9 +118,13 @@ OutputHandler::OutputHandler():
 
 OutputHandler::~OutputHandler() {
     delete m_messageHandler;
+    m_messageHandler = 0;
     delete m_warningHandler;
+    m_warningHandler = 0;
     delete m_errorHandler;
+    m_errorHandler = 0;
     delete m_debugHandler;
+    m_debugHandler = 0;
 }
 
 void OutputHandler::setMessageHandler(GeneralMessageHandler * handler) {

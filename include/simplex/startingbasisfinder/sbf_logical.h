@@ -16,19 +16,23 @@ class SbfLogical : public SbfSuper
 {
 
 public:
-    enum LogicalStrategy {
+    enum LOGICAL_BASIS_STRATEGY {
         LOWER_LOGICAL,
         UPPER_LOGICAL,
         MIXED_LOGICAL
     };
 
-    SbfLogical(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates, LogicalStrategy strategy);
+    SbfLogical(const SimplexModel& model,
+               std::vector<int>& basisHead,
+               IndexList& variableStates,
+               const Vector& basicVaraibleValues,
+               LOGICAL_BASIS_STRATEGY strategy);
 	virtual ~SbfLogical();
 
 	virtual void run();
 
 private:
-    LogicalStrategy m_strategy;
+    LOGICAL_BASIS_STRATEGY m_strategy;
 };
 
 #endif /* SBF_LOGICAL_H_ */

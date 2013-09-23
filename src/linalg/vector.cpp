@@ -550,6 +550,7 @@ Vector Vector::operator*(const Matrix& matrix) const
         result.set(j, columnResult);
     }
     delete justifiedLeftVector;
+    justifiedLeftVector = 0;
     return result;
 }
 

@@ -28,10 +28,11 @@ using namespace std;
 
 typedef pair<int,int> intpair;
 
-StartingBasisFinder::StartingBasisFinder(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates) :
+StartingBasisFinder::StartingBasisFinder(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates, const Vector& basicVariableValues) :
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
+    m_basicVariableValues(basicVariableValues),
     m_algorithm(NULL)
 {
 
@@ -76,26 +77,26 @@ void StartingBasisFinder::print (int printLevel)
     }
 }
 
-void StartingBasisFinder::findStartingBasis(StartingBasisStrategy strategy)
+void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
 {
     DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << m_strategy);
 
     switch(strategy) {
         case LOWER_LOGICAL:
             /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,SbfLogical::LOWER_LOGICAL);
+            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::LOWER_LOGICAL);
             m_algorithm->run();
             break;
 
         case UPPER_LOGICAL:
             /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,SbfLogical::UPPER_LOGICAL);
+            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::UPPER_LOGICAL);
             m_algorithm->run();
             break;
 
         case MIXED_LOGICAL:
             /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,SbfLogical::MIXED_LOGICAL);
+            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::MIXED_LOGICAL);
             break;
 
 //        case SYMBOLIC_CRASH:

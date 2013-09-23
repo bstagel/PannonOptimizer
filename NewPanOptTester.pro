@@ -9,12 +9,17 @@ CONFIG += console
 TARGET = NewPanOptTester
 
 CONFIG(release, debug|release) {
-    message("NewPanOpt: Release mode!")
+    message("NewPanOptTester: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
+    LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt
 }
 CONFIG(debug, debug|release) {
-    message("NewPanOpt: Debug mode!")
+    message("NewPanOptTester: Debug mode!")
+    QMAKE_CXXFLAGS_DEBUG += -std=c++11
+    POST_TARGETDEPS += ../build-NewPanOpt-Debug/debug/libNewPanOpt.a
+    LIBS += -L../build-NewPanOpt-Debug/debug/ -lNewPanOpt
 }
 
 #Includes
@@ -33,10 +38,10 @@ HEADERS += test/framework/tester.h \
            test/testmacros.h \
            test/variabletest.h \
            test/vectortest.h \
-    test/timertest.h \
-    test/linalgparameterhandlertest.h \
-    test/simplexparameterhandlertest.h \
-    test/outputhandlertest.h
+           test/timertest.h \
+           test/linalgparameterhandlertest.h \
+           test/simplexparameterhandlertest.h
+#           test/outputhandlertest.h
 
 #Sources
 SOURCES += test/framework/tester.cpp \
@@ -49,12 +54,9 @@ SOURCES += test/framework/tester.cpp \
            test/variabletest.cpp \
            test/vectortest.cpp \
            test/test.cpp \
-    test/timertest.cpp \
-    test/linalgparameterhandlertest.cpp \
-    test/simplexparameterhandlertest.cpp \
-    test/outputhandlertest.cpp
-
-POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
-LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt
+           test/timertest.cpp \
+           test/linalgparameterhandlertest.cpp \
+           test/simplexparameterhandlertest.cpp
+#           test/outputhandlertest.cpp
 
 OBJECTS_DIR = .o

@@ -21,26 +21,32 @@ public:
 
     enum FEASIBILITY
     {
-        FEASIBLE,
+        FEASIBLE = 0,
         MINUS,
-        PLUS
+        PLUS,
+        FEASIBILITY_ENUM_LENGTH
     };
 
     enum VARIABLE_STATE
     {
-        BASIC,
+        BASIC = 0,
         NONBASIC_AT_LB,
-        NONBASIC_AT_UB
+        NONBASIC_AT_UB,
+        NONBASIC_FREE,
+        VARIABLE_STATE_ENUM_LENGTH
     };
 
     Simplex();
     virtual ~Simplex();
 
     inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
+    inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
-    void getVariablesByState(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
-    void getVariablesByFeasibility(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
-    void getReducedCostsByFeasibility(VARIABLE_STATE state, IndexList::Iterator * begin, IndexList::Iterator * end) const;
+
+    //TODO Ezt hogyan implementáljuk?
+    const std::vector<double> getPrimalSolution() const;
+    const std::vector<double> getDualSolution() const;
+
 
     void setModel(const Model & model);
 
@@ -67,7 +73,8 @@ protected:
 
     virtual void initModules();
     virtual void releaseModules();
-    virtual void iterate() = 0;
+    virtual void reinvert() throw (NumericalException) = 0;
+    virtual void iterate() throw (OptimizationResultException, NumericalException) = 0;
 };
 
 #endif /* SIMPLEX_H */

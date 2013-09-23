@@ -15,34 +15,23 @@ Simplex::Simplex():
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
     m_reducedCostFeasibilities(0,0),
-    m_basicVariableValues(m_simplexModel->getRowCount()),
-    m_reducedCosts(m_simplexModel->getRowCount() + m_simplexModel->getColumnCount()),
+    m_basicVariableValues(0),
+    m_reducedCosts(0),
     m_objectiveValue(0),
     m_phaseIObjectiveValue(0),
     m_startingBasisFinder(NULL)
 {
-
+    m_basicVariableValues.setSparsityRatio(1);
+    m_reducedCosts.setSparsityRatio(1);
 }
 
 Simplex::~Simplex()
 {
-
+    if(m_simplexModel){
+        delete m_simplexModel;
+        m_simplexModel = 0;
+    }
 }
-
-//void Simplex::getVariablesByState(VARIABLE_STATE state, IndexList::Iterator *begin, IndexList::Iterator *end) const
-//{
-
-//}
-
-//void Simplex::getVariablesByFeasibility(VARIABLE_STATE state, IndexList::Iterator *begin, IndexList::Iterator *end) const
-//{
-
-//}
-
-//void Simplex::getReducedCostsByFeasibility(VARIABLE_STATE state, IndexList::Iterator *begin, IndexList::Iterator *end) const
-//{
-
-//}
 
 void Simplex::setModel(const Model &model)
 {
@@ -52,6 +41,16 @@ void Simplex::setModel(const Model &model)
     unregisterMethodWithModel(this, model);
     m_simplexModel = new SimplexModel(model);
     registerMethodWithModel(this, model);
+
+    //Init the data structures
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+    m_basisHead.resize(rowCount, INVALID_POSITION);
+    m_variableStates.init(rowCount + columnCount, VARIABLE_STATE_ENUM_LENGTH);
+    m_variableFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
+    m_reducedCostFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
+    m_basicVariableValues.reInit(rowCount);
+    m_reducedCosts.reInit(rowCount + columnCount);
 }
 
 void Simplex::constraintAdded()
@@ -70,24 +69,42 @@ void Simplex::solve() {
     unsigned int iterationIndex;
     const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
     const double timeLimit = simplexParameters.getParameterValue("time_limit");
-    StartingBasisFinder::StartingBasisStrategy startingBasisStratgy =
-            (StartingBasisFinder::StartingBasisStrategy)simplexParameters.getParameterValue("starting_basis");
+    StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
+            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getParameterValue("starting_basis");
+    unsigned int reinversionFrequency = simplexParameters.getParameterValue("reinversion_frequency");
+    unsigned int reinversionCounter = 0;
     Timer timer;
 
     try {
+        timer.start();
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
         for (iterationIndex = 0;
              iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit;
              iterationIndex++) {
-            timer.start();
-            iterate();
-            timer.stop();
+            if(reinversionCounter == reinversionFrequency){
+                reinvert();
+                reinversionCounter = 0;
+            }
+            try{
+                iterate();
+            }
+            catch ( const OptimizationResultException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            reinversionCounter++;
         }
+        timer.stop();
 
     } catch ( const OptimalException & exception ) {
         LPINFO("Optimal solution found!");
         // TODO: postsovle, post scaling
+        // TODO: Save optimal basis if necessary
     } catch ( const InfeasibleException & exception ) {
         LPERROR("The problem is infeasible.");
     } catch ( const UnboundedException & exception ) {
@@ -116,20 +133,21 @@ void Simplex::solve() {
         LPERROR("STL runtime error: " << exception.what() );
     }
 #if __cplusplus > 199711L
-    catch ( const std::bad_weak_ptr & exception ) {
-        LPERROR("STL bad weak pointer exception: " << exception.what() );
-    }
+//    catch ( const std::bad_weak_ptr & exception ) {
+//        LPERROR("STL bad weak pointer exception: " << exception.what() );
+//    }
     catch ( const std::bad_function_call & exception ) {
         LPERROR("STL bad function call exception: " << exception.what() );
     }
-    catch ( const std::system_error & exception ) {
-        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
-        LPERROR("STL system error: " << std::endl);
-        LPERROR("\tError: " << exception.what() << std::endl);
-        LPERROR("\tCode: " << exception.code().value() << std::endl);
-        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
-        LPERROR("\tMessage: " << exception.code().message() << std::endl);
-    }
+//WARNING: Already cached before
+//    catch ( const std::system_error & exception ) {
+//        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
+//        LPERROR("STL system error: " << std::endl);
+//        LPERROR("\tError: " << exception.what() << std::endl);
+//        LPERROR("\tCode: " << exception.code().value() << std::endl);
+//        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
+//        LPERROR("\tMessage: " << exception.code().message() << std::endl);
+//    }
 #endif
     catch (const std::exception & exception) {
         LPERROR("General STL exception: " << exception.what());
@@ -142,7 +160,7 @@ void Simplex::solve() {
 
 void Simplex::initModules()
 {
-    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, m_basisHead, m_variableStates);
+    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, m_basisHead, m_variableStates, m_basicVariableValues);
 }
 
 void Simplex::releaseModules()

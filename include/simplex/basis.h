@@ -123,8 +123,6 @@ protected:
 
     virtual void printStatistics() const = 0;
     void printActiveSubmatrix() const;
-    void printRowLinks() const;
-    void printColumnLinks() const;
 
 };
 

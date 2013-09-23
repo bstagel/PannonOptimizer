@@ -37,6 +37,10 @@ void DualSimplex::releaseModules() {
     m_updater = 0;
 }
 
-void DualSimplex::iterate() {
+void DualSimplex::reinvert() throw(NumericalException) {
+
+}
+
+void DualSimplex::iterate() throw(OptimizationResultException, NumericalException) {
 
 }
