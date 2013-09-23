@@ -42,7 +42,8 @@ public:
     virtual void addVariable(const Variable & variable, const Vector & column);
     virtual void addConstraint(const Constraint & constraint, const Vector & row);
     
-    virtual void print(std::ostream out = std::cout) const;
+//    virtual void print(std::ostream out = std::cout) const;
+    virtual void print(std::ostream out) const;
 
 protected:
     Matrix m_matrix;

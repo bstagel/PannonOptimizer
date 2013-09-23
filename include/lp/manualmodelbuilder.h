@@ -230,6 +230,11 @@ private:
             }
             return true;
         }
+
+        friend std::ostream& operator<<(std::ostream& os, const IndexValuePair& pair){
+            os << "[idx: " <<pair.m_index << " : " << pair.m_value << "]";
+            return os;
+        }
     };
 
     OBJECTIVE_TYPE m_objectiveType;

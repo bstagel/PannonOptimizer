@@ -18,10 +18,14 @@ using namespace std;
 
 typedef pair<int,int> intpair;
 
-SbfSuper::SbfSuper(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates):
+SbfSuper::SbfSuper(const SimplexModel& model,
+                   std::vector<int>& basisHead,
+                   IndexList& variableStates,
+                   const Vector& basicVariableValues):
     m_model(model),
     m_basisHead(basisHead),
-    m_variableStates(variableStates)
+    m_variableStates(variableStates),
+    m_basicVariableValues(basicVariableValues)
 {
 
 }

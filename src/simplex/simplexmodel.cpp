@@ -55,7 +55,6 @@ void SimplexModel::makeComputationalForm()
         case Constraint::NON_BINDING: {
             m_logicalVariables[j].setLowerBound(-Numerical::Infinity);
             m_logicalVariables[j].setUpperBound(Numerical::Infinity);
-            // TODO Nonbinding constraint value
             m_rhs.set(i, 0.);
             Numerical::Double temp = constraints.at(i).getUpperBound();
             Numerical::Double temp2 = constraints.at(i).getLowerBound();

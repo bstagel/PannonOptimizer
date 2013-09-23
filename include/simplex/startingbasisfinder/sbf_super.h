@@ -21,7 +21,10 @@
 class SbfSuper
 {
 public:
-    SbfSuper(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates);
+    SbfSuper(const SimplexModel& model,
+             std::vector<int>& basisHead,
+             IndexList& variableStates,
+             const Vector& basicVariableValues);
 	virtual ~SbfSuper();
 
     virtual void run() = 0;
@@ -30,6 +33,7 @@ protected:
     const SimplexModel & m_model;
     std::vector<int> & m_basisHead;
     IndexList & m_variableStates;
+    const Vector & m_basicVariableValues;
 
 //    unsigned int            	m_basisStructVarCount;
 

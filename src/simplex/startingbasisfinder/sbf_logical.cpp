@@ -9,9 +9,13 @@
 
 #include <simplex/simplex.h>
 
-SbfLogical::SbfLogical(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates, LogicalStrategy strategy)
- : SbfSuper(model, basisHead, variableStates),
-   m_strategy(strategy)
+SbfLogical::SbfLogical(const SimplexModel& model,
+                       std::vector<int>& basisHead,
+                       IndexList& variableStates,
+                       const Vector& basicVaraibleValues,
+                       LOGICAL_BASIS_STRATEGY strategy):
+    SbfSuper(model, basisHead, variableStates, basicVaraibleValues),
+    m_strategy(strategy)
 {
 
 }
@@ -34,7 +38,8 @@ void SbfLogical::run()
     for (i=0, j=basisSize; i < basisSize; i++, j++) {
         m_basisHead.push_back(j);
         //TODO: X_B pointere
-        m_variableStates.insert(Simplex::BASIC,j);
+        m_variableStates.insert(Simplex::BASIC, j );
+//        m_variableStates.setPointer(j,&(m_basicVariableValues.at(j)));
     }
 
     /* Nonbasic variables: set state to NONBASIC_AT_UB/LB depending on the strategy used */
@@ -59,7 +64,6 @@ void SbfLogical::run()
     case MIXED_LOGICAL: {
         const Vector & costs = m_model.getCostVector();
         switch (m_model.getObjectiveType()) {
-
         case MINIMIZE:
             for (i=0; i<basisSize; i++) {
                 if (costs.at(i) < 0) {
@@ -79,8 +83,9 @@ void SbfLogical::run()
                 }
             }
             break;
+        default:
+            LPERROR("Unknown objective type");
         }
-        break;
     }
 
     default: {

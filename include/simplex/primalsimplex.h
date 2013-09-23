@@ -23,7 +23,8 @@ private:
 
     void initModules();
     void releaseModules();
-    void iterate();
+    void reinvert() throw(NumericalException);
+    void iterate() throw(OptimizationResultException, NumericalException);
 };
 
 #endif /* PRIMALSIMPLEX_H */

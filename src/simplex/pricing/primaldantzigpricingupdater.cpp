@@ -1,5 +1,5 @@
 /* 
- * File:   primaldantzigreducedcostupdater.cpp
+ * File:   primaldantzigpricingupdater.cpp
  * Author: smidla
  * 
  * Created on 2013. augusztus 26., 0:59

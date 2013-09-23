@@ -6,16 +6,21 @@ DEFINES -= UNICODE QT_LARGEFILE_SUPPORT
 
 CONFIG += console
 
-TARGET = NewPanOptTester
+TARGET = NewPanOptDual
 
 
 CONFIG(release, debug|release) {
-    message("NewPanOpt: Release mode!")
+    message("NewPanOptDual: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
+    LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt
 }
 CONFIG(debug, debug|release) {
-    message("NewPanOpt: Debug mode!")
+    message("NewPanOptDual: Debug mode!")
+    QMAKE_CXXFLAGS_DEBUG += -std=c++11
+    POST_TARGETDEPS += ../build-NewPanOpt-Debug/debug/libNewPanOpt.a
+    LIBS += -L../build-NewPanOpt-Debug/debug/ -lNewPanOpt
 }
 
 #Includes
@@ -26,7 +31,5 @@ INCLUDEPATH += . \
 #Sources
 SOURCES += standalones/dual.cpp
 
-POST_TARGETDEPS += ../build-NewPanOpt-Release/release/libNewPanOpt.a
-LIBS += -L../build-NewPanOpt-Release/release/ -lNewPanOpt
 
 OBJECTS_DIR = .o

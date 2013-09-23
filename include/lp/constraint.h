@@ -27,20 +27,21 @@ public:
     /**
      * This enum type describes the type of the constraint.
      */
-    enum TYPE
+    enum CONSTRAINT_TYPE
     {
-        GREATER_OR_EQUAL, /*!< The constraint has a finite lower bound */
+        GREATER_OR_EQUAL = 0, /*!< The constraint has a finite lower bound */
         LESS_OR_EQUAL, /*!< The constraint has a finite upper bound */
         RANGE, /*!< The constraint has finite bounds */
         EQUALITY, /*!< The finite bounds are the same */
-        NON_BINDING /*!< The constraint has no finite bounds */
+        NON_BINDING, /*!< The constraint has no finite bounds */
+        CONSTRAINT_TYPE_ENUM_LENGTH
     };
 
     /**
      * A general exception class that represents constraint exception. Contains
      * a copy of the wrong constraint.
      */
-    class ConstraintException : public Exception
+    class ConstraintException : public PanOptException
     {
     public:
         /**
@@ -254,7 +255,7 @@ public:
      *
      * @return The type of the constraint.
      */
-    inline TYPE getType() const;
+    inline CONSTRAINT_TYPE getType() const;
 
     /**
      * Returns with the upper bound of the constraint.
@@ -332,7 +333,7 @@ private:
      * Represents the type of the constraint. It is modified by the adjustType()
      * function.
      */
-    TYPE m_type;
+    CONSTRAINT_TYPE m_type;
 
     /**
      * Represents the name of the constraint. The default name is <NO NAME>.
@@ -424,7 +425,7 @@ inline void Constraint::setLowerBound(Numerical::Double lowerBound)
     adjustType();
 }
 
-inline Constraint::TYPE Constraint::getType() const
+inline Constraint::CONSTRAINT_TYPE Constraint::getType() const
 {
     return m_type;
 }

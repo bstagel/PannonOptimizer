@@ -37,6 +37,10 @@ void PrimalSimplex::releaseModules() {
     m_updater = 0;
 }
 
-void PrimalSimplex::iterate() {
+void PrimalSimplex::reinvert() throw(NumericalException) {
+
+}
+
+void PrimalSimplex::iterate() throw(OptimizationResultException, NumericalException) {
 
 }

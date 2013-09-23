@@ -24,15 +24,22 @@ Basis::Basis(const SimplexModel& model, std::vector<int>& basisHead, IndexList& 
 Basis::~Basis()
 {
     delete m_columns;
+    m_columns = 0;
     delete m_columnsHash;
+    m_columnsHash = 0;
     delete m_rows;
+    m_rows = 0;
     delete m_rowCounts;
+    m_rowCounts = 0;
     delete m_columnCounts;
+    m_columnCounts = 0;
     if (m_rowCountIndexList != NULL) {
         delete m_rowCountIndexList;
+        m_rowCountIndexList = 0;
     }
     if (m_columnCountIndexList != NULL) {
         delete m_columnCountIndexList;
+        m_columnCountIndexList = 0;
     }
 }
 
@@ -134,7 +141,7 @@ void Basis::buildRowCountIndexLists(unsigned int maxRowCount) {
     }
     DEVINFO(D::PFIMAKER, "Row links built.");
 #ifndef NDEBUG
-    printRowLinks();
+    std::cout<<m_rowCountIndexList;
 #endif
 }
 
@@ -152,7 +159,7 @@ void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
     }
     DEVINFO(D::PFIMAKER, "Column links built.");
 #ifndef NDEBUG
-    printColumnLinks();
+    std::cout<<m_columnCountIndexList;
 #endif
 }
 
@@ -244,30 +251,3 @@ void Basis::printActiveSubmatrix() const
 #endif //!NDEBUG
 }
 
-void Basis::printRowLinks() const
-{
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, "Row links partitions: " << m_rowLinks->getPartitionCount());
-    DEVINFO(D::PFIMAKER, "Row links indices: " << m_rowLinks->getIndexCount());
-    for(unsigned int i=0;i<m_rowLinks->getPartitionCount();i++){
-        DEVINFO(D::PFIMAKER, "Row list " << i << ": ");
-        for (IndexLinkedList::Iterator it = m_rowLinks->begin(i); it != m_rowLinks->end(i); it++) {
-            DEVINFO(D::PFIMAKER, "     " << it.getData());
-        }
-    }
-#endif //!NDEBUG
-}
-
-void Basis::printColumnLinks() const
-{
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, "Column links partitions: " << m_columnLinks->getPartitionCount());
-    DEVINFO(D::PFIMAKER, "Column links indices: " << m_columnLinks->getIndexCount());
-    for(unsigned int i=0;i<m_columnLinks->getPartitionCount();i++){
-        DEVINFO(D::PFIMAKER, "Column list " << i << ": ");
-        for (IndexLinkedList::Iterator it = m_columnLinks->begin(i); it != m_columnLinks->end(i); it++) {
-            DEVINFO(D::PFIMAKER,  "     " << it.getData());
-        }
-    }
-#endif //!NDEBUG
-}

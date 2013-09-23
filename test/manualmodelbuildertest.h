@@ -12,6 +12,8 @@
 #include "framework/unittest.h"
 #include <lp/manualmodelbuilder.h>
 
+#include "prettyprint.h"
+
 class ManualModelBuilderTestSuite : public UnitTest
 {
 public:

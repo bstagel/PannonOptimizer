@@ -68,6 +68,8 @@ std::ostream & operator<<(std::ostream & os, const Variable & var)
         case Variable::FREE:
             os << "free";
             break;
+        default:
+            os << "unknown type";
     }
     os << std::endl;
     return os;
@@ -99,7 +101,7 @@ void Variable::check() const throw (InvalidLowerBoundException,
 }
 
 Variable::VariableException::VariableException(const Variable & variable,
-    const std::string & message) : Exception(message)
+    const std::string & message) : PanOptException(message)
 {
     m_variable = new Variable(variable);
 }
@@ -107,6 +109,7 @@ Variable::VariableException::VariableException(const Variable & variable,
 Variable::VariableException::~VariableException()
 {
     delete m_variable;
+    m_variable = 0;
 }
 
 const Variable * Variable::VariableException::getVariable() const

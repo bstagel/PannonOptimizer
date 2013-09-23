@@ -27,20 +27,21 @@ public:
     /**
      * 
      */
-    enum TYPE
+    enum VARIABLE_TYPE
     {
-        PLUS, /* Finite lower bound, infinity upper bound */
+        PLUS = 0, /* Finite lower bound, infinity upper bound */
         MINUS, /* -Infinity lower bound, finite upper bound */
         BOUNDED, /* Finite lower and upper bounds */
         FIXED, /* The finite lower and upper bounds are the same */
-        FREE /* The variable has no finite bounds */
+        FREE, /* The variable has no finite bounds */
+        VARIABLE_TYPE_ENUM_LENGTH
     };
 
     /**
      * The class expresses an exception about a variable. It contains
      * the copy of the wrong variable.
      */
-    class VariableException : public Exception
+    class VariableException : public PanOptException
     {
     public:
         /**
@@ -277,7 +278,7 @@ public:
      *
      * @return The type of the variable.
      */
-    inline TYPE getType() const;
+    inline VARIABLE_TYPE getType() const;
 
     /**
      * Sets the variable's name.
@@ -335,7 +336,7 @@ private:
      * Represents the type of the variable. It is modified by the adjustType()
      * function.
      */
-    TYPE m_type;
+    VARIABLE_TYPE m_type;
 
     /**
      * Represents the name of the variable. The default name is <NO NAME>.
@@ -426,7 +427,7 @@ inline void Variable::setLowerBound(Numerical::Double lowerBound) throw (Invalid
     adjustType();
 }
 
-inline Variable::TYPE Variable::getType() const
+inline Variable::VARIABLE_TYPE Variable::getType() const
 {
     return m_type;
 }

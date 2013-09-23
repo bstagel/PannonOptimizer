@@ -58,7 +58,7 @@ void ParameterHandler::loadValuesFromFile(std::ifstream &in)
                 throw std::string("Parameter error ... ").append(tokens[0]);
             }
 
-            double val = strtod(tokens[2].c_str(), NULL);
+            double val = atof(tokens[2].c_str());
 
             if (m_values.find(tokens[0])!=m_values.end()) {
                 m_values[tokens[0]].setValue(val);

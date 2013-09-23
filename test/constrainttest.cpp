@@ -932,7 +932,7 @@ void ConstraintTestSuite::assign()
 
     const Numerical::Double outputLowerBound1 = 6.0;
     const Numerical::Double outputUpperBound1 = 6.0;
-    const Constraint::TYPE outputType1 = Constraint::EQUALITY;
+    const Constraint::CONSTRAINT_TYPE outputType1 = Constraint::EQUALITY;
     const std::string outputName1 = "r4";
     Vector * const outputVector1 = 0;
 
@@ -946,7 +946,7 @@ void ConstraintTestSuite::assign()
 
     const Numerical::Double outputLowerBound2 = 6.0;
     const Numerical::Double outputUpperBound2 = 6.0;
-    const Constraint::TYPE outputType2 = Constraint::EQUALITY;
+    const Constraint::CONSTRAINT_TYPE outputType2 = Constraint::EQUALITY;
     const std::string outputName2 = "r4";
     Vector * const outputVector2 = 0;
 
@@ -964,7 +964,7 @@ void ConstraintTestSuite::copy()
 
     const Numerical::Double outputLowerBound1 = 6.0;
     const Numerical::Double outputUpperBound1 = 6.0;
-    const Constraint::TYPE outputType1 = Constraint::EQUALITY;
+    const Constraint::CONSTRAINT_TYPE outputType1 = Constraint::EQUALITY;
     const std::string outputName1 = "r4";
     Vector * const outputVector1 = 0;
 

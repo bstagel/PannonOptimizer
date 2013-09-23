@@ -7,10 +7,13 @@
 
 #define __UNUSED(x) (void)x;
 
+#define INVALID_POSITION INT_MIN
+
 enum OBJECTIVE_TYPE
 {
-    MINIMIZE, MAXIMIZE
-
+    MINIMIZE = 0,
+    MAXIMIZE,
+    OBJECTIVE_TYPE_ENUM_LENGHT
 };
 
 #endif // GLOBALS_H

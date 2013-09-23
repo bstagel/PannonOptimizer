@@ -67,6 +67,8 @@ std::ostream & operator<<(std::ostream & os, const Constraint & var)
         case Constraint::NON_BINDING:
             os << "non-binding";
             break;
+        default:
+            os << "unknown type";
     }
     os << std::endl;
     return os;
@@ -98,7 +100,7 @@ void Constraint::check() const throw (Constraint::InvalidLowerBoundException,
 }
 
 Constraint::ConstraintException::ConstraintException(const Constraint & constraint,
-    const std::string & message) : Exception(message)
+    const std::string & message) : PanOptException(message)
 {
     m_constraint = new Constraint(constraint);
 }
@@ -106,6 +108,7 @@ Constraint::ConstraintException::ConstraintException(const Constraint & constrai
 Constraint::ConstraintException::~ConstraintException()
 {
     delete m_constraint;
+    m_constraint = 0;
 }
 
 const Constraint * Constraint::ConstraintException::getConstraint() const

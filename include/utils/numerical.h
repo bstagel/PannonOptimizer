@@ -86,16 +86,6 @@ class Numerical
     static const Double AbsoluteTolerance;
     static const Double RelativeTolerance;
 
-//    /**
-//     * Absolute value of tolerance in feasibility checking
-//     */
-//    static const Double FeasibilityTolerance;
-
-//    /**
-//     * Absolute value of tolerance in optimality checking
-//     */
-//    static const Double OptimalityTolerance;
-
     /**
      * Does fuzzy comparison for checking equity on two Double variables
      *
