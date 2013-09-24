@@ -8,7 +8,7 @@
 #ifndef SBF_LOGICAL_H_
 #define SBF_LOGICAL_H_
 
-#include "globals.h"
+#include <globals.h>
 
 #include <simplex/startingbasisfinder/sbf_super.h>
 
@@ -23,9 +23,9 @@ public:
     };
 
     SbfLogical(const SimplexModel& model,
-               std::vector<int>& basisHead,
-               IndexList& variableStates,
-               const Vector& basicVaraibleValues,
+               std::vector<int>* basisHead,
+               IndexList<Numerical::Double>* variableStates,
+               Vector* basicVaraibleValues,
                LOGICAL_BASIS_STRATEGY strategy);
 	virtual ~SbfLogical();
 

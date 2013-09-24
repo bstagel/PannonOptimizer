@@ -6,7 +6,7 @@
 #ifndef VARIABLE_H
 #define	VARIABLE_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <iostream>
 #include <utils/numerical.h>

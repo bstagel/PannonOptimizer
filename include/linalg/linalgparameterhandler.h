@@ -1,7 +1,7 @@
 #ifndef LINALGPARAMETERHANDLER_H
 #define LINALGPARAMETERHANDLER_H
 
-#include "utils/parameterhandler.h"
+#include <utils/parameterhandler.h>
 
 class LinalgParameterHandler : public ParameterHandler
 {

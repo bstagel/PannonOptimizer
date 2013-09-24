@@ -1,13 +1,13 @@
 #ifndef STARTINGBASISFINDER_H
 #define STARTINGBASISFINDER_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 
-#include "simplex/simplexmodel.h"
-#include "utils/numerical.h"
-#include "utils/indexlist.h"
+#include <simplex/simplexmodel.h>
+#include <utils/numerical.h>
+#include <utils/indexlist.h>
 
 
 class SbfSuper;
@@ -35,7 +35,10 @@ public:
         STARTING_BASIS_STRATEGY_ENUM_LENGTH
     };
 
-    StartingBasisFinder(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates, const Vector& basicVariableValues);
+    StartingBasisFinder(const SimplexModel& model,
+                        std::vector<int>* basisHead,
+                        IndexList<Numerical::Double>* variableStates,
+                        Vector* basicVariableValues);
     ~StartingBasisFinder();
 
     /**
@@ -55,9 +58,9 @@ public:
 
 private:
     const SimplexModel & m_model;
-    std::vector<int> & m_basisHead;
-    IndexList & m_variableStates;
-    const Vector & m_basicVariableValues;
+    std::vector<int>* m_basisHead;
+    IndexList<Numerical::Double>* m_variableStates;
+    Vector* m_basicVariableValues;
 
     SbfSuper* m_algorithm;
 };

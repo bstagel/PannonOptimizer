@@ -29,7 +29,7 @@ public:
         DEFAULT_BTRAN
     };
 
-    Basis(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates);
+    Basis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates);
     virtual ~Basis();
 
     /**
@@ -53,9 +53,9 @@ public:
 protected:
     const SimplexModel& m_model;
 
-    IndexList& m_variableStates;
+    std::vector<int>* m_basisHead;
+    IndexList<Numerical::Double>* m_variableStates;
 
-    std::vector<int>& m_basisHead;
     std::vector<int> m_basisNewHead;
 
     /**
@@ -98,14 +98,14 @@ protected:
      * Each linked list represents a group of rows that have the same row count.
      * The first list has rows with a row count of 1, the second with 2, etc.
      */
-    IndexList* m_rowCountIndexList;
+    IndexList<>* m_rowCountIndexList;
 
     /**
      * The vector of linked lists of column indices.
      * Each linked list represents a group of columns that have the same column count.
      * The first list has columns with a column count of 1, the second with 2, etc.
      */
-    IndexList* m_columnCountIndexList;
+    IndexList<>* m_columnCountIndexList;
 
 
     bool m_isFresh;

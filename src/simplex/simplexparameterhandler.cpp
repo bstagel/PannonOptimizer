@@ -1,9 +1,9 @@
-#include "simplex/simplexparameterhandler.h"
+#include <simplex/simplexparameterhandler.h>
 
 #include <fstream>
 #include <iostream>
 
-#include "defaultparameters.h"
+#include <defaultparameters.h>
 
 static const std::string filename = "simplex.PAR";
 

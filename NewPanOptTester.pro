@@ -24,7 +24,8 @@ CONFIG(debug, debug|release) {
 
 #Includes
 INCLUDEPATH += . \
-               include/
+               include/ \
+               test/
 
 #Input
 HEADERS += test/framework/tester.h \

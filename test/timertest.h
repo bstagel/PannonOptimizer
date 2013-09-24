@@ -1,8 +1,8 @@
 #ifndef TIMERTESTSUITE_H
 #define TIMERTESTSUITE_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <utils/timer.h>
 
 class TimerTestSuite : public UnitTest

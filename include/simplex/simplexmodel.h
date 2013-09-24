@@ -5,9 +5,9 @@
 #ifndef SIMPLEXMODEL_H
 #define	SIMPLEXMODEL_H
 
-#include "globals.h"
+#include <globals.h>
 
-#include "lp/model.h"
+#include <lp/model.h>
 
 class SimplexModel
 {

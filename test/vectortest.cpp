@@ -1,5 +1,5 @@
-#include "vectortest.h"
-#include "testmacros.h"
+#include <vectortest.h>
+#include <testmacros.h>
 
 VectorTestSuite::VectorTestSuite(const char * name) : UnitTest(name)
 {

@@ -64,7 +64,6 @@ HEADERS += include/debug.h \
            include/simplex/pfibasis.h \
            include/simplex/startingbasisfinder.h \
            include/utils/thirdparty/prettyprint.h \
-           include/utils/thirdparty/prettyprint98.h \
            include/utils/numerical.h \
            include/utils/elementproducer.h \
            include/utils/file.h \
@@ -107,7 +106,6 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/pfibasis.cpp \
            src/simplex/startingbasisfinder.cpp \
            src/utils/file.cpp \
-           src/utils/indexlist.cpp \
            src/utils/numerical.cpp \
            src/utils/timer.cpp \
            src/utils/parameterhandler.cpp \

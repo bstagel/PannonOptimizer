@@ -1,4 +1,4 @@
-#include "simplexparameterhandlertest.h"
+#include <simplexparameterhandlertest.h>
 
 SimplexParameterHandlerTestSuite::SimplexParameterHandlerTestSuite(const char * name) : UnitTest(name)
 {

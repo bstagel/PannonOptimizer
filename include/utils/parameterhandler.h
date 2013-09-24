@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 
-#include "utils/parameter.h"
+#include <utils/parameter.h>
 
 class ParameterHandler{
     friend class LinalgParameterHandlerTestSuite;

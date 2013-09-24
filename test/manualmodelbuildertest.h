@@ -8,11 +8,10 @@
 #ifndef MANUALMODELBUILDERTEST_H
 #define	MANUALMODELBUILDERTEST_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
-#include <lp/manualmodelbuilder.h>
+#include <framework/tester.h>
+#include <framework/unittest.h>
 
-#include "prettyprint.h"
+#include <lp/manualmodelbuilder.h>
 
 class ManualModelBuilderTestSuite : public UnitTest
 {

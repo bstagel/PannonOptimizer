@@ -6,7 +6,7 @@
 #ifndef HEAP_H
 #define	HEAP_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <limits>
 #include <iostream>

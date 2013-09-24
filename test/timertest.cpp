@@ -1,4 +1,4 @@
-#include "timertest.h"
+#include <timertest.h>
 #include <ctime>
 #include <iostream>
 #include <globals.h>

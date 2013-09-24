@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <simplex/startingbasisfinder/sbf_super.h>
+#include <simplex/simplex.h>
 
 #include <debug.h>
 
@@ -19,9 +20,9 @@ using namespace std;
 typedef pair<int,int> intpair;
 
 SbfSuper::SbfSuper(const SimplexModel& model,
-                   std::vector<int>& basisHead,
-                   IndexList& variableStates,
-                   const Vector& basicVariableValues):
+                   std::vector<int>* basisHead,
+                   IndexList<Numerical::Double>* variableStates,
+                   Vector* basicVariableValues):
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
@@ -33,6 +34,34 @@ SbfSuper::SbfSuper(const SimplexModel& model,
 SbfSuper::~SbfSuper()
 {
 
+}
+
+inline void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABLE_STATE state)
+{
+    const Variable& variable = m_model.getVariable(variableIndex);
+    if (state == Simplex::NONBASIC_AT_LB || state == Simplex::NONBASIC_AT_UB) {
+        if (variable.getType() == Variable::FREE) {
+            m_variableStates->insert(Simplex::NONBASIC_FREE, variableIndex, 0.);
+        } else if (variable.getType() == Variable::MINUS) {
+            m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
+            return;
+        } else if (variable.getType() == Variable::PLUS) {
+            m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
+            return;
+        } else {
+            if (state == Simplex::NONBASIC_AT_LB) {
+                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
+                return;
+            } else{
+                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
+                return;
+            }
+        }
+    } else {
+        LPWARNING("Bad state given in adjustVariableByType");
+    }
+
+    return;
 }
 
 //bool SbfSuper::testTriangularity()

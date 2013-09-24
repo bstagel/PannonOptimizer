@@ -1,6 +1,8 @@
-#include "lp/model.h"
-#include "lp/mpsproblem.h"
-#include "simplex/primalsimplex.h"
+#include <globals.h>
+
+#include <lp/model.h>
+#include <lp/mpsproblem.h>
+#include <simplex/primalsimplex.h>
 
 int main(int, char** )
 {

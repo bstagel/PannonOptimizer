@@ -1,11 +1,3 @@
-
-/*
- * startingbasefinder.cpp
- *
- *  Created on: Feb 3, 2011
- *      Author: Virag Varga <varga@dcs.uni-pannon.hu>
- */
-
 #include <sstream>
 #include <map>
 #include <set>
@@ -18,17 +10,20 @@
 //#include <simplex/startingbasisfinder/sbf_crash_ltsf.h>
 //#include <simplex/startingbasisfinder/sbf_crash_symbo.h>
 
-#include "debug.h"
+#include <debug.h>
 
-#include "simplex/simplexmodel.h"
-#include "utils/numerical.h"
-#include "utils/indexlist.h"
+#include <simplex/simplexmodel.h>
+#include <utils/numerical.h>
+#include <utils/indexlist.h>
 
 using namespace std;
 
 typedef pair<int,int> intpair;
 
-StartingBasisFinder::StartingBasisFinder(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates, const Vector& basicVariableValues) :
+StartingBasisFinder::StartingBasisFinder(const SimplexModel& model,
+                                         std::vector<int>* basisHead,
+                                         IndexList<Numerical::Double>* variableStates,
+                                         Vector* basicVariableValues) :
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
@@ -40,7 +35,10 @@ StartingBasisFinder::StartingBasisFinder(const SimplexModel& model, std::vector<
 
 StartingBasisFinder::~StartingBasisFinder()
 {
-
+    if(m_algorithm != NULL){
+        delete m_algorithm;
+        m_algorithm = 0;
+    }
 }
 
 void StartingBasisFinder::print (int printLevel)
@@ -48,15 +46,15 @@ void StartingBasisFinder::print (int printLevel)
     if (printLevel & PRINT_STATISTIC ) {
         LPINFO("Starting basis found. Head contains " /*<<
                 m_basisStructVarCount << " structural variables"
-                << " ( / " <<  m_basisHead.size() << " ==> "
-                << (Numerical::Double)m_basisStructVarCount/m_basisHead.size()*100 << "% )"*/ );
+                << " ( / " <<  m_basisHead->size() << " ==> "
+                << (Numerical::Double)m_basisStructVarCount/m_basisHead->size()*100 << "% )"*/ );
     }
 
     if (printLevel & PRINT_DETAILED) {
         stringstream out;
 
-        for (unsigned int i=0; i < m_basisHead.size(); i++) {
-            out << m_basisHead.at(i) << " ";
+        for (unsigned int i=0; i < m_basisHead->size(); i++) {
+            out << m_basisHead->at(i) << " ";
         }
         string basisHeadString = out.str();
         LPINFO("Starting basis found. Head contains the following variables: \n" << basisHeadString );
@@ -66,9 +64,9 @@ void StartingBasisFinder::print (int printLevel)
         stringstream out;
         unsigned int basisSize = m_model.getRowCount();
 
-        for (unsigned int i=0; i < m_basisHead.size(); i++) {
-            if ((unsigned int)m_basisHead.at(i) < basisSize) {
-                out  << m_basisHead.at(i) << " ";
+        for (unsigned int i=0; i < m_basisHead->size(); i++) {
+            if ((unsigned int)m_basisHead->at(i) < basisSize) {
+                out  << m_basisHead->at(i) << " ";
             }
         }
 
@@ -79,6 +77,10 @@ void StartingBasisFinder::print (int printLevel)
 
 void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
 {
+    if(m_algorithm != NULL){
+        delete m_algorithm;
+        m_algorithm = 0;
+    }
     DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << m_strategy);
 
     switch(strategy) {

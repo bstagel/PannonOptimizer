@@ -6,20 +6,20 @@
 #pragma warning (disable: 4290)
 #endif
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
-#include "variabletest.h"
-#include "constrainttest.h"
-#include "matrixtest.h"
-#include "manualmodelbuildertest.h"
-#include "vectortest.h"
-#include "indexlisttest.h"
-#include "modeltest.h"
-#include "mpsproblemtest.h"
-#include "timertest.h"
-//#include "outputhandlertest.h"
-#include "linalgparameterhandlertest.h"
-#include "simplexparameterhandlertest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
+#include <variabletest.h>
+#include <constrainttest.h>
+#include <matrixtest.h>
+#include <manualmodelbuildertest.h>
+#include <vectortest.h>
+#include <indexlisttest.h>
+#include <modeltest.h>
+#include <mpsproblemtest.h>
+#include <timertest.h>
+//#include <outputhandlertest.h>
+#include <linalgparameterhandlertest.h>
+#include <simplexparameterhandlertest.h>
 
 using namespace std;
 

@@ -1,4 +1,4 @@
-#include "linalgparameterhandlertest.h"
+#include <linalgparameterhandlertest.h>
 
 LinalgParameterHandlerTestSuite::LinalgParameterHandlerTestSuite(const char * name) : UnitTest(name)
 {

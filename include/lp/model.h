@@ -6,7 +6,7 @@
 #ifndef MODEL_H
 #define	MODEL_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 #include <lp/variable.h>

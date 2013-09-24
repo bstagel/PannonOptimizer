@@ -154,7 +154,7 @@ void Simplex::solve() {
 }
 
 void Simplex::initModules() {
-    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, m_basisHead, m_variableStates, m_basicVariableValues);
+    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates, &m_basicVariableValues);
 }
 
 void Simplex::releaseModules() {
@@ -165,10 +165,11 @@ void Simplex::releaseModules() {
 }
 
 const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
-
+    return std::vector<Numerical::Double>();
 }
 
 
 const std::vector<Numerical::Double> Simplex::getDualSolution() const {
+    return std::vector<Numerical::Double>();
     //TODO
 }

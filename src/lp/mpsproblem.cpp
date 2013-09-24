@@ -542,7 +542,7 @@ const char * MpsModelBuilder::copyId(const register char * ptr, register char * 
 
     *dest = 0;
     char * originalDest = dest;
-    register unsigned int hashCode = 0;
+//    register unsigned int hashCode = 0;
     int len = 0;
     //    int end = index + MPS_NAME_LENGTH + 1;
     //std::cout << "|" << std::endl;

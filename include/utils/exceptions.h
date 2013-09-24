@@ -6,7 +6,7 @@
 #ifndef EXCEPTION_H
 #define	EXCEPTION_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <iostream>
 #include <typeinfo>

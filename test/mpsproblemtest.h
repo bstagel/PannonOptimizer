@@ -8,8 +8,8 @@
 #ifndef MPSPROBLEMTEST_H
 #define	MPSPROBLEMTEST_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <lp/mpsproblem.h>
 #include <lp/model.h>
 

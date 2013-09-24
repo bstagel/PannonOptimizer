@@ -1,5 +1,5 @@
-#include "matrixtest.h"
-#include "testmacros.h"
+#include <matrixtest.h>
+#include <testmacros.h>
 
 MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
 {

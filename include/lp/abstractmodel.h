@@ -6,7 +6,7 @@
 #ifndef ABSTRACTMODEL_H
 #define	ABSTRACTMODEL_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 

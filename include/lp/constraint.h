@@ -6,7 +6,7 @@
 #ifndef CONSTRAINT_H
 #define	CONSTRAINT_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <utils/numerical.h>
 #include <linalg/vector.h>

@@ -5,7 +5,7 @@
 #ifndef VECTOR_ITERATOR_H
 #define	VECTOR_ITERATOR_H
 
-#include "globals.h"
+#include <globals.h>
 
 #ifdef IN_VECTOR
 
