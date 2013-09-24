@@ -8,7 +8,7 @@
 #include <utils/exceptions.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/startingbasisfinder.h>
-
+#include <globals.h>
 
 Simplex::Simplex():
     m_simplexModel(NULL),
