@@ -2071,6 +2071,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
         LPERROR("Unknown error");
     }
     delete [] m_actualColumnNonzeros;
+    m_actualColumnNonzeros = 0;
     cl_end = clock();
     cl_mps = (Numerical::Double) (cl_end - cl_start);
 }

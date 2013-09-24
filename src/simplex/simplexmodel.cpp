@@ -83,7 +83,7 @@ void SimplexModel::makeComputationalForm()
     }
 }
 
-void SimplexModel::print(std::ostream out) const
+void SimplexModel::print(std::ostream& out) const
 {
     out << (getObjectiveType()==MINIMIZE?"min":"max");
     Vector::Iterator it = getCostVector().begin();

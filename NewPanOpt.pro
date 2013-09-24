@@ -12,10 +12,12 @@ CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    message($$PWD)
+    message($$OUT_PWD)
 }
 CONFIG(debug, debug|release) {
-    QMAKE_CXXFLAGS_DEBUG += -std=c++11
     message("NewPanOpt: Debug mode!")
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
 }
 
 #Includes
@@ -61,6 +63,8 @@ HEADERS += include/debug.h \
            include/simplex/basis.h \
            include/simplex/pfibasis.h \
            include/simplex/startingbasisfinder.h \
+           include/utils/thirdparty/prettyprint.h \
+           include/utils/thirdparty/prettyprint98.h \
            include/utils/numerical.h \
            include/utils/elementproducer.h \
            include/utils/file.h \
@@ -73,9 +77,7 @@ HEADERS += include/debug.h \
            include/utils/parameterhandler.h \
            include/utils/outputhandler.h \
            include/globals.h \
-           include/defaultparameters.h \
-    include/prettyprint.h \
-    include/prettyprint98.h
+           include/defaultparameters.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

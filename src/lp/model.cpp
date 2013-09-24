@@ -57,7 +57,7 @@ Model::~Model()
 
 }
 
-void Model::print(std::ostream out) const
+void Model::print(std::ostream& out) const
 {
     out << (m_objectiveType == MINIMIZE ? "min" : "max");
     Vector::Iterator it = m_costVector.begin();
@@ -82,6 +82,32 @@ void Model::print(std::ostream out) const
         out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound();
     }
 }
+
+//void Model::print(std::ostream& out) const
+//{
+//    out << (m_objectiveType == MINIMIZE ? "min" : "max");
+//    Vector::Iterator it = m_costVector.begin();
+//    Vector::Iterator end = m_costVector.end();
+//    for (unsigned int i = 0; it < end; i++, it++) {
+//        out << (i == 0 ? " " : "+ ") << *it << "*x" << i << " \n";
+//    }
+//    out << "\n s.t.: \n";
+//    for (unsigned int i = 0; i < m_matrix.rowCount(); i++) {
+//        out << m_constraints[i].getLowerBound() << " <= ";
+//        const Vector & row = m_matrix.row(i);
+//        Vector::Iterator it = row.begin();
+//        Vector::Iterator end = row.end();
+//        for (unsigned int j = 0; it < end; j++, it++) {
+//            out << (j == 0 ? " " : "+ ") << *it << "*x" << j << " ";
+//        }
+//        out << "<= " << m_constraints[i].getUpperBound() << "\n";
+//    }
+//    out << "\n";
+//    for (unsigned int i = 0; i < m_variables.size(); i++) {
+//        const Variable & variable = m_variables[i];
+//        out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound();
+//    }
+//}
 
 void Model::clear()
 {

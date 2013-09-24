@@ -344,6 +344,8 @@ public:
      *
      * @param index The function returns with the partition index of this value.
      * @return The partition index.
+     *
+     * @see m_partitionIndex
      */
     inline unsigned int where(unsigned int value) const {
         return m_dataArray[value].m_partitionIndex;

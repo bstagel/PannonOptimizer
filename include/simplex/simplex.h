@@ -43,9 +43,9 @@ public:
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
-    //TODO Ezt hogyan implementáljuk?
-    const std::vector<double> getPrimalSolution() const;
-    const std::vector<double> getDualSolution() const;
+    //TODO Ezt hogyan implementaljuk?
+    const std::vector<Numerical::Double> getPrimalSolution() const;
+    const std::vector<Numerical::Double> getDualSolution() const;
 
 
     void setModel(const Model & model);
