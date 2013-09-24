@@ -404,7 +404,7 @@ public:
      * Iterator class for listing elements of a linked list.
      */
     template <class TYPE>
-    class Iterator
+    class _Iterator
     {
         /**
          * Pointer to an element of a linked list.
@@ -419,7 +419,7 @@ public:
          * <hr>
          * Complexity: O(1)
          */
-        inline Iterator()
+        inline _Iterator()
         {
             m_actual = 0;
         }
@@ -432,7 +432,7 @@ public:
          *
          * @param actual The value of pointer of actual element in linked list.
          */
-        inline Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
+        inline _Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
         {
             m_actual = actual;
             m_borders = borders;
@@ -528,7 +528,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline Iterator & operator++()
+        inline _Iterator & operator++()
         {
             next();
             return *this;
@@ -543,7 +543,7 @@ public:
          * @param not used
          * @return Reference to the iterator object.
          */
-        inline Iterator & operator++(int)
+        inline _Iterator & operator++(int)
         {
             next();
             return *this;
@@ -557,7 +557,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline Iterator & operator--()
+        inline _Iterator & operator--()
         {
             previous();
             return *this;
@@ -572,7 +572,7 @@ public:
          * @param not used
          * @return Reference to the iterator object.
          */
-        inline Iterator & operator--(int)
+        inline _Iterator & operator--(int)
         {
             previous();
             return *this;
@@ -587,7 +587,7 @@ public:
          * @param iter
          * @return True, when the 2 iterators refer to the same list element.
          */
-        inline bool operator==(const Iterator & iter)
+        inline bool operator==(const _Iterator & iter)
         {
             return m_actual == iter.m_actual;
         }
@@ -601,27 +601,29 @@ public:
          * @param iter
          * @return True, when the 2 iterators refer to different list element.
          */
-        inline bool operator!=(const Iterator & iter)
+        inline bool operator!=(const _Iterator & iter)
         {
             return m_actual != iter.m_actual;
         }
 
     };
 
-    void getIterators(Iterator<ATTACHED_TYPE> * begin, Iterator<ATTACHED_TYPE> * end, unsigned int partitionIndex,
+    typedef _Iterator<ATTACHED_TYPE> Iterator;
+
+    void getIterators(_Iterator<ATTACHED_TYPE> * begin, _Iterator<ATTACHED_TYPE> * end, unsigned int partitionIndex,
                       unsigned int partitions = 1) const
     {
         unsigned int lastPartitionIndex = partitionIndex + partitions - 1;
         Element<ATTACHED_TYPE> * beginHead = m_heads + partitionIndex;
         Element<ATTACHED_TYPE> * endHead = m_heads + lastPartitionIndex;
         std::set<Element<ATTACHED_TYPE>*> borders;
-        *end = Iterator<ATTACHED_TYPE>(endHead, borders);
+        *end = _Iterator<ATTACHED_TYPE>(endHead, borders);
 
         unsigned int index = partitionIndex;
         for (; index <= lastPartitionIndex; index++) {
             borders.insert(m_heads + index);
         }
-        *begin = Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
+        *begin = _Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
 
     }
 
@@ -798,7 +800,7 @@ std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & 
     unsigned int index;
     for(index = 0; index < list.getPartitionCount(); index++){
         os << "List " << index << ": " << std::endl;
-        typename IndexList<ATTACHED_TYPE>::Iterator iter, iterEnd;
+        typename IndexList<ATTACHED_TYPE>::_Iterator iter, iterEnd;
         list.getIterators(&iter, &iterEnd, index);
         for (; iter != iterEnd; iter++) {
             os << "     " << iter.getData() << std::endl;
