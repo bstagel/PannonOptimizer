@@ -3,6 +3,8 @@
 
 //using namespace std;
 
+#include <climits>
+
 #define STATIC_ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
 #define __UNUSED(x) (void)x;

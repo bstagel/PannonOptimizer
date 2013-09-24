@@ -595,6 +595,10 @@ Numerical::Double Vector::at(unsigned int index) const
     return 0;
 }
 
+const Numerical::Double * Vector::getDenseElementPointer(unsigned int index) const {
+    return m_data + index;
+}
+
 unsigned int Vector::length() const
 {
     //    CHECK;

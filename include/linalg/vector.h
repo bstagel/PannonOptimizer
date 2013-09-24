@@ -334,6 +334,17 @@ public:
      * @return The index'th element of vector
      */
     Numerical::Double at(unsigned int index) const;
+
+    /**
+     * Returns with the pointer of the index'th dense element.
+     * Do not use this function on a sparse vector!
+     * Complexity: O(1)
+     *
+     * @param index Index of a dense element.
+     * @return Pointer of the index'th dense element.
+     */
+    const Numerical::Double * getDenseElementPointer(unsigned int index) const;
+
     /**
      * Returns with the logical lenth of vector.
      *
