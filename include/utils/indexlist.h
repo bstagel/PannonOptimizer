@@ -18,8 +18,9 @@ using namespace std;
  * of an empty linked list is the header. When the linked is not empty,
  * the next element of the last element is the header, and the previous
  * element of first element is the header also.
- * 
+ *
  */
+template <class ATTACHED_TYPE>
 class IndexList
 {
     friend class IndexListTestSuite;
@@ -27,6 +28,7 @@ class IndexList
     /**
      * Stores an element of the linked list.
      */
+    template <class TYPE>
     struct Element
     {
         /**
@@ -57,9 +59,9 @@ class IndexList
         unsigned int m_partitionIndex;
 
         /**
-         * A pointer to an optional object.
+         * An attached object.
          */
-        const void * m_pointer;
+        TYPE m_attached;
     };
 
 public:
@@ -102,11 +104,19 @@ public:
      *   <td> valid </td>
      * </tr>
      * </table>
-     * 
+     *
      * @param count Number of possible indices.
      * @param partitions Number of linked lists.
      */
-    IndexList(unsigned int count = 0, unsigned int partitions = 0);
+    IndexList(unsigned int count = 0, unsigned int partitions = 0) {
+        m_partitionCount = 0;
+        m_heads = 0;
+        m_count = 0;
+        m_dataArray = 0;
+        if (partitions != 0 && count != 0) {
+            init(count, partitions);
+        }
+    }
 
     /**
      * Copy constructor of IndexList.
@@ -145,10 +155,12 @@ public:
      *   <td> valid </td>
      * </tr>
      * </table>
-     * 
+     *
      * @param list The original list.
      */
-    IndexList(const IndexList & list);
+    IndexList(const IndexList & list) {
+        copy(list);
+    }
 
     /**
      * Assignment operator of IndexList.
@@ -187,24 +199,30 @@ public:
      *   <td> valid </td>
      * </tr>
      * </table>
-     * 
+     *
      * @param list The original list object.
      * @return Reference of the actual list object.
      */
-    IndexList & operator=(const IndexList & list);
+    IndexList & operator=(const IndexList & list) {
+        clear();
+        copy(list);
+        return *this;
+    }
 
     /**
      * Destructor of IndexList.
      * <hr>
      * Complexity: O(1)
      */
-    ~IndexList();
+    ~IndexList() {
+        clear();
+    }
 
     /**
      * Returns with the number of linked lists.
      * <hr>
      * Complexity: O(1)
-     * 
+     *
      * @return number of linked lists
      */
     inline unsigned int getPartitionCount() const
@@ -262,24 +280,55 @@ public:
      *   <td> valid </td>
      * </tr>
      * </table>
-     * 
+     *
      * @param count Number of possible indices.
      * @param partitions Number of linked lists.
      */
-    void init(unsigned int count, unsigned int partitions);
+    void init(unsigned int count, unsigned int partitions) {
+        clear();
+        Element<ATTACHED_TYPE> * pointerIterator;
+        Element<ATTACHED_TYPE> * pointerIteratorEnd;
+        m_partitionCount = partitions;
+        m_heads = new Element<ATTACHED_TYPE>[partitions];
+        pointerIterator = m_heads;
+        pointerIteratorEnd = m_heads + partitions;
+        unsigned int index = 0;
+        for (; pointerIterator < pointerIteratorEnd; pointerIterator++, index++) {
+            pointerIterator->m_data = index;
+            pointerIterator->m_next = pointerIterator;
+            pointerIterator->m_previous = pointerIterator;
+            pointerIterator->m_isHeader = true;
+            pointerIterator->m_partitionIndex = index;
+            pointerIterator->m_pointer = 0;
+        }
+
+        m_count = count;
+        m_dataArray = new Element<ATTACHED_TYPE>[count];
+        pointerIterator = m_dataArray;
+        pointerIteratorEnd = m_dataArray + count;
+        index = 0;
+        for (; pointerIterator < pointerIteratorEnd; pointerIterator++, index++) {
+            pointerIterator->m_data = index;
+            pointerIterator->m_next = 0;
+            pointerIterator->m_previous = 0;
+            pointerIterator->m_isHeader = false;
+            pointerIterator->m_partitionIndex = partitions;
+            pointerIterator->m_pointer = 0;
+        }
+    }
 
     /**
      * Inserts an index to the linked list given by argument partitionIndex.
      * Value most not be any of linked list.
      * <hr>
      * Complexity: O(1)
-     * 
+     *
      * @param partitionIndex The index will be inserted to this linked list.
      * @param index This index will be inserted.
      */
     inline void insert(unsigned int partitionIndex, unsigned int value, const void * pointer = 0)
     {
-        Element * forward = m_heads[partitionIndex].m_next;
+        Element<ATTACHED_TYPE> * forward = m_heads[partitionIndex].m_next;
         m_heads[partitionIndex].m_next = m_dataArray + value;
         m_dataArray[value].m_next = forward;
         m_dataArray[value].m_partitionIndex = partitionIndex;
@@ -311,12 +360,12 @@ public:
      * Removes the index from the linked lists.
      * <hr>
      * Complexity: O(1)
-     * 
+     *
      * @param index This index will be removed.
      */
     inline void remove(unsigned int value)
     {
-        Element & element = m_dataArray[value];
+        Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = m_partitionCount;
         element.m_previous->m_next = element.m_next;
         element.m_next->m_previous = element.m_previous;
@@ -328,10 +377,10 @@ public:
      * @param targetPartition
      */
     inline void move(unsigned int value, unsigned int targetPartition) {
-        Element & element = m_dataArray[value];
+        Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = targetPartition;
 
-        Element * forward = m_heads[targetPartition].m_next;
+        Element<ATTACHED_TYPE> * forward = m_heads[targetPartition].m_next;
         m_heads[targetPartition].m_next = &element;
         element.m_next = forward;
         forward->m_previous = &element;
@@ -354,14 +403,15 @@ public:
     /**
      * Iterator class for listing elements of a linked list.
      */
+    template <class TYPE>
     class Iterator
     {
         /**
          * Pointer to an element of a linked list.
          */
-        Element * m_actual;
+        Element<TYPE> * m_actual;
 
-        std::set<Element*> m_borders;
+        std::set<Element<TYPE>*> m_borders;
     public:
 
         /**
@@ -379,17 +429,17 @@ public:
          * of a linked list.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @param actual The value of pointer of actual element in linked list.
          */
-        inline Iterator(Element * actual, const std::set<Element*> & borders)
+        inline Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
         {
             m_actual = actual;
             m_borders = borders;
         }
 
         /**
-         * When the iterator refers to the header of linked list, 
+         * When the iterator refers to the header of linked list,
          * this functions returns the index of linked list, otherwise
          * returns the index of actual element in linked list.
          * <hr>
@@ -431,7 +481,7 @@ public:
             if (m_actual) {
                 m_actual = m_actual->m_next;
                 if (m_actual->m_isHeader == true) {
-                    std::set<Element*>::iterator iter = m_borders.find(m_actual);
+                    typename std::set<Element<TYPE>*>::iterator iter = m_borders.find(m_actual);
                     if (iter != m_borders.end()) {
                         iter++; // next border
                         if (iter != m_borders.end()) {
@@ -475,7 +525,7 @@ public:
          * refers to the last element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @return Reference to the iterator object.
          */
         inline Iterator & operator++()
@@ -489,7 +539,7 @@ public:
          * refers to the last element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @param not used
          * @return Reference to the iterator object.
          */
@@ -504,7 +554,7 @@ public:
          * refers to the first element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @return Reference to the iterator object.
          */
         inline Iterator & operator--()
@@ -518,7 +568,7 @@ public:
          * refers to the first element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @param not used
          * @return Reference to the iterator object.
          */
@@ -533,7 +583,7 @@ public:
          * list element.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @param iter
          * @return True, when the 2 iterators refer to the same list element.
          */
@@ -547,7 +597,7 @@ public:
          * list elements.
          * <hr>
          * Complexity: O(1)
-         * 
+         *
          * @param iter
          * @return True, when the 2 iterators refer to different list element.
          */
@@ -558,20 +608,20 @@ public:
 
     };
 
-    void getIterators(Iterator * begin, Iterator * end, unsigned int partitionIndex,
-        unsigned int partitions = 1) const
+    void getIterators(Iterator<ATTACHED_TYPE> * begin, Iterator<ATTACHED_TYPE> * end, unsigned int partitionIndex,
+                      unsigned int partitions = 1) const
     {
         unsigned int lastPartitionIndex = partitionIndex + partitions - 1;
-        Element * beginHead = m_heads + partitionIndex;
-        Element * endHead = m_heads + lastPartitionIndex;
-        std::set<Element*> borders;
-        *end = Iterator(endHead, borders);
+        Element<ATTACHED_TYPE> * beginHead = m_heads + partitionIndex;
+        Element<ATTACHED_TYPE> * endHead = m_heads + lastPartitionIndex;
+        std::set<Element<ATTACHED_TYPE>*> borders;
+        *end = Iterator<ATTACHED_TYPE>(endHead, borders);
 
         unsigned int index = partitionIndex;
         for (; index <= lastPartitionIndex; index++) {
             borders.insert(m_heads + index);
         }
-        *begin = Iterator(beginHead->m_next, borders);
+        *begin = Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
 
     }
 
@@ -582,7 +632,7 @@ public:
      * refers to the list head.
      * <hr>
      * Complexity: O(1)
-     * 
+     *
      * @param index The index of a linked list.
      * @return Iterator to the first element or header.
      */
@@ -596,7 +646,7 @@ public:
      * Returns an iterator refers to the head of the indexth linked list.
      * <hr>
      * Complexity: O(1)
-     * 
+     *
      * @param index The index of a linked list.
      * @return Iterator to the header.
      */
@@ -608,7 +658,7 @@ public:
 
     inline void clearPartition(unsigned int index)
     {
-        Element * element = m_heads + index;
+        Element<ATTACHED_TYPE> * element = m_heads + index;
         element->m_next = element;
         element->m_previous = element;
     }
@@ -624,7 +674,7 @@ private:
      * Pointer to the array of header pointers. The size of array
      * is m_partitionCount.
      */
-    Element * m_heads;
+    Element<ATTACHED_TYPE> * m_heads;
 
     /**
      * Number of possible indices.
@@ -635,14 +685,22 @@ private:
      * Pointer to the array of indices. The size of array is
      * m_count.
      */
-    Element * m_dataArray;
+    Element<ATTACHED_TYPE> * m_dataArray;
 
     /**
      * Releases the arrays, and sets to zero each variable.
      * <hr>
      * Complexity: O(1)
      */
-    void clear();
+    void clear() {
+
+        delete [] m_heads;
+        delete [] m_dataArray;
+        m_partitionCount = 0;
+        m_count = 0;
+        m_heads = 0;
+        m_dataArray = 0;
+    }
 
     /**
      * Copies the list.
@@ -663,13 +721,91 @@ private:
      *   <td> O(list.m_count + list.m_partitions) </td>
      * </tr>
      * </table>
-     * 
+     *
      * @param list
      */
-    void copy(const IndexList & list);
+    void copy(const IndexList & list) {
+        if (list.m_count == 0) {
+            m_partitionCount = 0;
+            m_heads = 0;
+            m_count = 0;
+            m_dataArray = 0;
+            return;
+        }
+
+        Element<ATTACHED_TYPE> * myPointerIterator;
+        Element<ATTACHED_TYPE> * myPointerIteratorEnd;
+        Element<ATTACHED_TYPE> * hisPointerIterator;
+        m_partitionCount = list.m_partitionCount;
+        m_heads = new Element<ATTACHED_TYPE>[m_partitionCount];
+        m_count = list.m_count;
+        m_dataArray = new Element<ATTACHED_TYPE>[m_count];
+
+        myPointerIterator = m_heads;
+        myPointerIteratorEnd = m_heads + m_partitionCount;
+        hisPointerIterator = list.m_heads;
+        unsigned int index = 0;
+        for (; myPointerIterator < myPointerIteratorEnd; myPointerIterator++,
+             hisPointerIterator++, index++) {
+            myPointerIterator->m_data = index;
+            if (hisPointerIterator->m_next != hisPointerIterator) {
+                myPointerIterator->m_next = m_dataArray + (hisPointerIterator->m_next - list.m_dataArray);
+                myPointerIterator->m_previous = m_dataArray + (hisPointerIterator->m_previous - list.m_dataArray);
+            } else {
+                myPointerIterator->m_next = myPointerIterator;
+                myPointerIterator->m_previous = myPointerIterator;
+            }
+
+        }
+
+        myPointerIterator = m_dataArray;
+        myPointerIteratorEnd = m_dataArray + m_count;
+        hisPointerIterator = list.m_dataArray;
+        index = 0;
+        for (; myPointerIterator < myPointerIteratorEnd; myPointerIterator++,
+             hisPointerIterator++, index++) {
+            myPointerIterator->m_data = index;
+            if (hisPointerIterator->m_next == 0) {
+                myPointerIterator->m_next = 0;
+                myPointerIterator->m_previous = 0;
+            } else {
+                if (hisPointerIterator->m_next >= list.m_dataArray &&
+                        hisPointerIterator->m_next < list.m_dataArray + m_count) {
+                    myPointerIterator->m_next = m_dataArray + (hisPointerIterator->m_next - list.m_dataArray);
+                } else {
+                    myPointerIterator->m_next = m_heads + (hisPointerIterator->m_next - list.m_heads);
+                }
+
+                if (hisPointerIterator->m_previous >= list.m_dataArray &&
+                        hisPointerIterator->m_previous < list.m_dataArray + m_count) {
+                    myPointerIterator->m_previous = m_dataArray + (hisPointerIterator->m_previous - list.m_dataArray);
+                } else {
+                    myPointerIterator->m_previous = m_heads + (hisPointerIterator->m_previous - list.m_heads);
+                }
+
+            }
+        }
+    }
 
 };
 
-std::ostream & operator << (std::ostream & os, const IndexList & list);
+template <class ATTACHED_TYPE>
+std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & list) {
+
+    os << "Partitions: " << list.getPartitionCount() << std::endl;
+    os << "Indices: " << list.getIndexCount() << std::endl;
+
+    unsigned int index;
+    for(index = 0; index < list.getPartitionCount(); index++){
+        os << "List " << index << ": " << std::endl;
+        typename IndexList<ATTACHED_TYPE>::Iterator iter, iterEnd;
+        list.getIterators(&iter, &iterEnd, index);
+        for (; iter != iterEnd; iter++) {
+            os << "     " << iter.getData() << std::endl;
+        }
+    }
+    return os;
+}
+
 
 #endif	/* LINKEDLIST_H */
