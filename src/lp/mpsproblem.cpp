@@ -539,42 +539,44 @@ const char * MpsModelBuilder::copyId(const register char * ptr, register char * 
     int index, int fieldEnd, MPS_ERROR_TYPE & errorCode, register unsigned int * hash)
 {
     errorCode = NO_ERROR;
-    // TODO: ezt ellenorizni
-    //    if (m_line == 10) {
-    //        LPINFO("to: " << to);
-    //        LPINFO("from: " << from);
-    //        std::cin.get();
-    //    }
-    //    if ((to - from + 1) > MPS_NAME_LENGTH) {
-    //        to = from + MPS_NAME_LENGTH;
-    //    }
-    //register int len = 0;
+
     *dest = 0;
     char * originalDest = dest;
     register unsigned int hashCode = 0;
     int len = 0;
     //    int end = index + MPS_NAME_LENGTH + 1;
-
+    //std::cout << "|" << std::endl;
     while (len < MPS_NAME_LENGTH && *ptr >= ' ') {
         if (index > fieldEnd && *ptr <= ' ') {
             break;
         }
-        hashCode += *ptr;
+        /*hashCode += *ptr;
         hashCode += (hashCode << 10);
-        hashCode ^= (hashCode >> 6);
+        hashCode ^= (hashCode >> 6);*/
 
         *dest = *ptr;
+      //  std::cout << *ptr;
         dest++;
         ptr++;
         len++;
         index++;
     }
+    /*std::cout << "|" << std::endl;
+    std::cin.get();*/
+    /*unsigned long long * shadowDest = reinterpret_cast<unsigned long long*>(dest);
+    const unsigned long long * shadowSrc = reinterpret_cast<const unsigned long long*>(ptr);
+    *shadowDest = *shadowSrc;
+    len += 8;
+    index += 8;
+    ptr += 8;
+    *hash = *shadowDest % MPS_HASH_TABLE_SIZE;*/
+
     // TODO: szokozokkel kiegesziteni
     while (len < MPS_NAME_LENGTH) {
         *dest = ' ';
-        hashCode += ' ';
+        /*hashCode += ' ';
         hashCode += (hashCode << 10);
-        hashCode ^= (hashCode >> 6);
+        hashCode ^= (hashCode >> 6);*/
         if (len < MPS_NAME_LENGTH) {
             dest++;
         }
@@ -583,10 +585,12 @@ const char * MpsModelBuilder::copyId(const register char * ptr, register char * 
     *dest = 0;
 
     len--;
-    hashCode += (hashCode << 3);
+    /*hashCode += (hashCode << 3);
     hashCode ^= (hashCode >> 11);
     hashCode += (hashCode << 15);
-    *hash = hashCode % MPS_HASH_TABLE_SIZE;
+    *hash = hashCode % MPS_HASH_TABLE_SIZE;*/
+    unsigned long long * shadowDest = reinterpret_cast<unsigned long long*>(originalDest);
+    *hash = *shadowDest % MPS_HASH_TABLE_SIZE;
 
     //    LPINFO("\"" << originalDest << "\", " << *hash);
     //    std::cin.get();
