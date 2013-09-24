@@ -619,9 +619,6 @@ class MpsModelBuilder : public ModelBuilder
 
             inline bool operator<(const BoundId & id) const
             {
-                //register unsigned int id1 = m_column * 100 + m_type;
-                //register unsigned int id2 = id.m_column * 100 + id.m_type;
-                //return id1 < id2;
                 return ((m_column << 4) | m_type) < ((id.m_column << 4) | id.m_type);
             }
         };
