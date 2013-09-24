@@ -17,7 +17,7 @@ CONFIG(release, debug|release) {
 }
 CONFIG(debug, debug|release) {
     message("NewPanOptPrimal: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -std=c++11
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
     POST_TARGETDEPS += ../build-NewPanOpt-Debug/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt-Debug/debug/ -lNewPanOpt
 }

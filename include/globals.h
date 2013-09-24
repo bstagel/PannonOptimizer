@@ -10,12 +10,18 @@
 #define __UNUSED(x) (void)x;
 
 #define INVALID_POSITION INT_MIN
+#define SPARSE 1
+#define DENSE 0
+
+#if !(__cplusplus > 199711L)
+  #error ERROR: PLEASE COMPILE WITH C++0x11!
+#endif
 
 enum OBJECTIVE_TYPE
 {
     MINIMIZE = 0,
     MAXIMIZE,
-    OBJECTIVE_TYPE_ENUM_LENGHT
+    OBJECTIVE_TYPE_ENUM_LENGTH
 };
 
 #endif // GLOBALS_H

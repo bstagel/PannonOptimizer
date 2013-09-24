@@ -21,20 +21,18 @@ Simplex::Simplex():
     m_phaseIObjectiveValue(0),
     m_startingBasisFinder(NULL)
 {
-    m_basicVariableValues.setSparsityRatio(1);
-    m_reducedCosts.setSparsityRatio(1);
+    m_basicVariableValues.setSparsityRatio(DENSE);
+    m_reducedCosts.setSparsityRatio(DENSE);
 }
 
-Simplex::~Simplex()
-{
+Simplex::~Simplex() {
     if(m_simplexModel){
         delete m_simplexModel;
         m_simplexModel = 0;
     }
 }
 
-void Simplex::setModel(const Model &model)
-{
+void Simplex::setModel(const Model &model) {
     if(m_simplexModel){
         delete m_simplexModel;
     }
@@ -133,9 +131,6 @@ void Simplex::solve() {
         LPERROR("STL runtime error: " << exception.what() );
     }
 #if __cplusplus > 199711L
-//    catch ( const std::bad_weak_ptr & exception ) {
-//        LPERROR("STL bad weak pointer exception: " << exception.what() );
-//    }
     catch ( const std::bad_function_call & exception ) {
         LPERROR("STL bad function call exception: " << exception.what() );
     }
@@ -158,15 +153,22 @@ void Simplex::solve() {
     releaseModules();
 }
 
-void Simplex::initModules()
-{
+void Simplex::initModules() {
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, m_basisHead, m_variableStates, m_basicVariableValues);
 }
 
-void Simplex::releaseModules()
-{
+void Simplex::releaseModules() {
     if(m_startingBasisFinder){
         delete m_startingBasisFinder;
         m_startingBasisFinder = 0;
     }
+}
+
+const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
+
+}
+
+
+const std::vector<Numerical::Double> Simplex::getDualSolution() const {
+    //TODO
 }

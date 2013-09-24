@@ -557,9 +557,9 @@ void ManualModelBuilderTestSuite::addVariable2()
         builder.m_nonZerosInColumns.begin(),
         builder.m_nonZerosInColumns.end(),
         outputNonZerosInColumns1) == true);
-    std::cout<<"m_columns: "<< builder.m_columns;
+    std::cout<<"\nm_columns: "<< builder.m_columns;
 
-    std::cout<<"outputColumnLists1: "<<outputColumnLists1;
+    std::cout<<"\noutputColumnLists1: "<<outputColumnLists1;
 
     TEST_ASSERT(builder.m_columns == outputColumnLists1);
 
