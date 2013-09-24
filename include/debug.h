@@ -5,7 +5,7 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
-#include "globals.h"
+#include <globals.h>
 
 #include <iomanip>
 #include <iostream>

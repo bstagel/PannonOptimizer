@@ -11,7 +11,8 @@
 #include <string>
 #include <vector>
 #include <ctime>
-#include "tester.h"
+
+#include <framework/tester.h>
 
 class UnitTest
 {

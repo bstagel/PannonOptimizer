@@ -5,7 +5,7 @@
 #ifndef MPSPROBLEM_H
 #define	MPSPROBLEM_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 #include <map>

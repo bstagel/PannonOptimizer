@@ -8,8 +8,8 @@
 #ifndef CONSTRAINTTEST_H
 #define	CONSTRAINTTEST_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <lp/constraint.h>
 
 class ConstraintTestSuite : public UnitTest

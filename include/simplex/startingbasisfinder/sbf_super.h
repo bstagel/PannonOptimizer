@@ -8,13 +8,14 @@
 #ifndef SBF_SUPER_H_
 #define SBF_SUPER_H_
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 #include <set>
 #include <assert.h>
 
 #include <simplex/simplexmodel.h>
+#include <simplex/simplex.h>
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
 
@@ -22,22 +23,22 @@ class SbfSuper
 {
 public:
     SbfSuper(const SimplexModel& model,
-             std::vector<int>& basisHead,
-             IndexList& variableStates,
-             const Vector& basicVariableValues);
+             std::vector<int>* basisHead,
+             IndexList<Numerical::Double>* variableStates,
+             Vector* basicVariableValues);
 	virtual ~SbfSuper();
 
     virtual void run() = 0;
 
 protected:
     const SimplexModel & m_model;
-    std::vector<int> & m_basisHead;
-    IndexList & m_variableStates;
-    const Vector & m_basicVariableValues;
+    std::vector<int> * m_basisHead;
+    IndexList<Numerical::Double> * m_variableStates;
+    Vector* m_basicVariableValues;
 
 //    unsigned int            	m_basisStructVarCount;
 
-//    void adjustVariableByType(Variable *v, Variable::STATE t);
+    void adjustVariableByType(unsigned int variableIndex, Simplex::VARIABLE_STATE state);
 //	void calculateNonZeros(std::vector<unsigned int>* rows, std::vector<unsigned int>* columns,
 //			std::map< unsigned int, std::set<unsigned int> >* rowIndeces = NULL);
 };
@@ -48,44 +49,6 @@ protected:
 //	return m_basisStructVarCount;
 //}
 
-//inline void SbfSuper::adjustVariableByType(Variable* v, Variable::STATE t)
-//{
-//    if (t == Variable::NONBASIC_AT_LB || t == Variable::NONBASIC_AT_UB) {
-//        if (v->getType() == Variable::FREE) {
-//            v->setState(Variable::SUPERBASIC);
-//            v->setValue(0.);
-//        } else if (v->getType() == Variable::MINUS) {
-//            goto SETUPPER;
-//        } else if (v->getType() == Variable::PLUS) {
-//            goto SETLOWER;
-//        } else {
-//            if (t == Variable::NONBASIC_AT_LB) {
-//                goto SETLOWER;
-//            } else {
-//                goto SETUPPER;
-//            }
-//        }
-//    } else {
-//        v->setState(t);
-//    }
-
-//    return;
-
-//    SETUPPER: {
-//        Numerical::Double temp = v->getUpperBound();
-//        v->setState(Variable::NONBASIC_AT_UB);
-//        v->setValue(temp);
-//        return;
-//    }
-
-//    SETLOWER: {
-//        Numerical::Double temp = v->getLowerBound();
-//        v->setState(Variable::NONBASIC_AT_LB);
-//        v->setValue(temp);
-//        return;
-//    }
-
-//}
 
 //inline void SbfSuper::calculateNonZeros(std::vector<unsigned int>* rows, std::vector<unsigned int>* columns,
 //        std::map< unsigned int, std::set<unsigned int> >* rowIndeces)

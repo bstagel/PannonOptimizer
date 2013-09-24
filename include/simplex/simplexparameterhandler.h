@@ -1,7 +1,7 @@
 #ifndef SIMPLEXPARAMETERHANDLER_H
 #define SIMPLEXPARAMETERHANDLER_H
 
-#include "utils/parameterhandler.h"
+#include <utils/parameterhandler.h>
 
 class SimplexParameterHandler : public ParameterHandler
 {

@@ -6,7 +6,7 @@
 #ifndef FILE_H
 #define	FILE_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <cstdio>
 

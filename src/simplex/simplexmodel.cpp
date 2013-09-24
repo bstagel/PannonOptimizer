@@ -7,7 +7,7 @@
 SimplexModel::SimplexModel(const Model & model):
     m_model(model)
 {
-
+    m_rhs.setSparsityRatio(DENSE);
 }
 
 void SimplexModel::makeComputationalForm()

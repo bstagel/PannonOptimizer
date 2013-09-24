@@ -5,13 +5,13 @@
 #ifndef _NUMERICAL_H_
 #define _NUMERICAL_H_
 
-#include "globals.h"
+#include <globals.h>
 
 #include <cmath>
 #include <limits>
 #include <cstring>
 #include <iostream>
-#include "../debug.h"
+#include <debug.h>
 
 class Numerical
 {

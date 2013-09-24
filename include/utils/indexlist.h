@@ -6,7 +6,7 @@
 #ifndef LINKEDLIST_H
 #define	LINKEDLIST_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <set>
 #include <iostream>
@@ -20,7 +20,10 @@ using namespace std;
  * element of first element is the header also.
  *
  */
-template <class ATTACHED_TYPE>
+
+namespace detail { struct unused { }; }
+
+template <class ATTACHED_TYPE = detail::unused>
 class IndexList
 {
     friend class IndexListTestSuite;
@@ -28,6 +31,7 @@ class IndexList
     /**
      * Stores an element of the linked list.
      */
+
     template <class TYPE>
     struct Element
     {
@@ -299,7 +303,7 @@ public:
             pointerIterator->m_previous = pointerIterator;
             pointerIterator->m_isHeader = true;
             pointerIterator->m_partitionIndex = index;
-            pointerIterator->m_pointer = 0;
+            pointerIterator->m_attached = ATTACHED_TYPE();
         }
 
         m_count = count;
@@ -313,7 +317,7 @@ public:
             pointerIterator->m_previous = 0;
             pointerIterator->m_isHeader = false;
             pointerIterator->m_partitionIndex = partitions;
-            pointerIterator->m_pointer = 0;
+            pointerIterator->m_attached = ATTACHED_TYPE();
         }
     }
 
@@ -326,25 +330,25 @@ public:
      * @param partitionIndex The index will be inserted to this linked list.
      * @param index This index will be inserted.
      */
-    inline void insert(unsigned int partitionIndex, unsigned int value, const void * pointer = 0)
+    inline void insert(unsigned int partitionIndex, unsigned int value, ATTACHED_TYPE attached = ATTACHED_TYPE())
     {
         Element<ATTACHED_TYPE> * forward = m_heads[partitionIndex].m_next;
         m_heads[partitionIndex].m_next = m_dataArray + value;
         m_dataArray[value].m_next = forward;
         m_dataArray[value].m_partitionIndex = partitionIndex;
-        m_dataArray[value].m_pointer = pointer;
+        m_dataArray[value].m_attached = attached;
         forward->m_previous = m_dataArray + value;
         m_dataArray[value].m_previous = m_heads + partitionIndex;
     }
 
     /**
-     * Sets the pointer of the value'th element.
+     * Sets the attached value of the value'th element.
      *
      * @param value
-     * @param pointer
+     * @param data
      */
-    inline void setPointer(unsigned int value, const void * pointer) {
-        m_dataArray[value].m_pointer = pointer;
+    inline void setAttachedData(unsigned int value, ATTACHED_TYPE data) {
+        m_dataArray[value].m_attached = data;
     }
 
     /**
@@ -352,10 +356,9 @@ public:
      * @param value
      * @return
      */
-    inline const void * getPointer(unsigned int value) const {
-        return m_dataArray[value].m_pointer;
+    inline ATTACHED_TYPE getAttachedData(unsigned int value) const {
+        return m_dataArray[value].m_attached;
     }
-
     /**
      * Removes the index from the linked lists.
      * <hr>

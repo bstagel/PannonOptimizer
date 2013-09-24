@@ -6,7 +6,7 @@
 #ifndef ELEMENTPRODUCER_H
 #define	ELEMENTPRODUCER_H
 
-#include "globals.h"
+#include <globals.h>
 
 template <class T, int N>
 class ElementProducer

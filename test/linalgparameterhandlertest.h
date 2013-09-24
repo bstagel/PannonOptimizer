@@ -1,8 +1,9 @@
 #ifndef LINALGPARAMETERHANDLERTEST_H
 #define LINALGPARAMETERHANDLERTEST_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
+
 #include <linalg/linalgparameterhandler.h>
 
 class LinalgParameterHandlerTestSuite : public UnitTest

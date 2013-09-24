@@ -1,6 +1,7 @@
 #include <iostream>
-#include "tester.h"
-#include "unittest.h"
+
+#include <framework/tester.h>
+#include <framework/unittest.h>
 
 
 std::list<UnitTest*> Tester::sm_tests;

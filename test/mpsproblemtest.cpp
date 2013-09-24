@@ -5,7 +5,7 @@
  * Created on 2013. augusztus 13., 14:01
  */
 
-#include "mpsproblemtest.h"
+#include <mpsproblemtest.h>
 #include <iostream>
 
 using namespace std;

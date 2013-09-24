@@ -1,4 +1,4 @@
-#include "constrainttest.h"
+#include <constrainttest.h>
 
 ConstraintTestSuite::ConstraintTestSuite(const char * name) : UnitTest(name)
 {

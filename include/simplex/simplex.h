@@ -57,9 +57,10 @@ protected:
     SimplexModel * m_simplexModel;
 
     std::vector<int> m_basisHead;
-    IndexList m_variableStates;
-    IndexList m_variableFeasibilities;
-    IndexList m_reducedCostFeasibilities;
+    //Template parameter holds the value of the variable
+    IndexList<Numerical::Double> m_variableStates;
+    IndexList<> m_variableFeasibilities;
+    IndexList<> m_reducedCostFeasibilities;
     Vector m_basicVariableValues;
     Vector m_reducedCosts;
     Numerical::Double m_objectiveValue;

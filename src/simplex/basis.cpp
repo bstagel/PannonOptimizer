@@ -6,10 +6,10 @@
 
 #include <fstream>
 
-Basis::Basis(const SimplexModel& model, std::vector<int>& basisHead, IndexList& variableStates) :
+Basis::Basis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates) :
     m_model(model),
-    m_variableStates(variableStates),
-    m_basisHead(basisHead)
+    m_basisHead(basisHead),
+    m_variableStates(variableStates)
 {
     m_isFresh = false;
     m_columns = new std::vector<Vector>();
@@ -55,7 +55,7 @@ void Basis::copyBasis(bool buildIndexLists) {
     std::vector<bool> headChecker(rowCount + columnCount, false);
     m_basisNewHead.resize(rowCount, -1);
     //Copy the active submatrix
-    for (std::vector<int>::iterator it = m_basisHead.begin(); it < m_basisHead.end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         if (headChecker.at(*it) == false) {
             headChecker.at(*it) = true;
             if (*it >= columnCount) {
@@ -131,7 +131,7 @@ void Basis::buildRowCountIndexLists(unsigned int maxRowCount) {
     if(m_rowCountIndexList != NULL){
         delete m_rowCountIndexList;
     }
-    m_rowCountIndexList = new IndexList(m_rows->size(), maxRowCount+1);
+    m_rowCountIndexList = new IndexList<>(m_rows->size(), maxRowCount+1);
     if(maxRowCount>0){
         for (std::vector<int>::iterator it = m_rowCounts->begin(); it < m_rowCounts->end(); it++) {
             if (*it >= 0) {
@@ -149,7 +149,7 @@ void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
     if(m_columnCountIndexList != NULL){
         delete m_columnCountIndexList;
     }
-    m_columnCountIndexList = new IndexList(m_columns->size(), maxColumnCount+1);
+    m_columnCountIndexList = new IndexList<>(m_columns->size(), maxColumnCount+1);
     if(maxColumnCount>0){
         for (std::vector<int>::iterator it = m_columnCounts->begin(); it < m_columnCounts->end(); it++) {
             if (*it >= 0) {
@@ -167,13 +167,13 @@ void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
     std::vector<bool> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
     //First mark the positions of the given basis head
-    for (std::vector<int>::iterator it = m_basisHead.begin(); it < m_basisHead.end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = true;
     }
     //Update the basis head with the recomputed one
-    m_basisHead.assign(m_basisNewHead.begin(), m_basisNewHead.end());
+    m_basisHead->assign(m_basisNewHead.begin(), m_basisNewHead.end());
     //Set the basic variables state and remove their traces from the pattern vector
-    for (std::vector<int>::iterator it = m_basisHead.begin(); it < m_basisHead.end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = false;
         //TODO mit ad vissza ha egyikbe sincs benne?????
 //        if (m_variableStates.where(*it) != Simplex::BASIC){

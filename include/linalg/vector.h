@@ -5,7 +5,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <iostream>
 #include <cmath>
@@ -76,7 +76,7 @@ public:
     class NonzeroIterator;
     class ConstNonzeroIterator;
 
-#include "vector_iterator.h"
+#include <linalg/vector_iterator.h>
 
     /**
      * This constructor initializes a vector, with dimension given by parameter.

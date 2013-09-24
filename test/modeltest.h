@@ -8,8 +8,8 @@
 #ifndef MODELTEST_H
 #define	MODELTEST_H
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <iostream>
 #include <lp/model.h>
 

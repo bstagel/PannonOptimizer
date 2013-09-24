@@ -2,14 +2,14 @@
  * @file parameterhandler.cpp
  */
 
-#include "utils/parameterhandler.h"
+#include <utils/parameterhandler.h>
 #include <defaultparameters.h>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
-#include "debug.h"
+#include <debug.h>
 
 ParameterHandler::~ParameterHandler()
 {

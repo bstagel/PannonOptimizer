@@ -5,7 +5,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <vector>
 #include <linalg/vector.h>

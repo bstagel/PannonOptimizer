@@ -13,6 +13,8 @@
 #include <map>
 #include <string>
 
+#include <utils/thirdparty/prettyprint.h>
+
 struct TestResult
 {
     std::string m_file;

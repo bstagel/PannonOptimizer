@@ -1,4 +1,5 @@
-#include "modeltest.h"
+#include <modeltest.h>
+
 #include <lp/manualmodelbuilder.h>
 
 ModelTestSuite::ModelTestSuite(const char * name): UnitTest(name) {

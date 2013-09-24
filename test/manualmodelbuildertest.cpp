@@ -1,4 +1,5 @@
-#include "manualmodelbuildertest.h"
+#include <manualmodelbuildertest.h>
+
 #include <algorithm>
 
 ManualModelBuilderTestSuite::ManualModelBuilderTestSuite(const char * name) : UnitTest(name)

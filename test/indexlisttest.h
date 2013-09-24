@@ -8,8 +8,9 @@
 #ifndef _INDEXLISTTEST_H_
 #define	_INDEXLISTTEST_H_
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
+
 #include <utils/indexlist.h>
 
 class IndexListTestSuite : public UnitTest

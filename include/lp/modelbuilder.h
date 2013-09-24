@@ -6,7 +6,7 @@
 #ifndef MODELBUILDER_H
 #define	MODELBUILDER_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <linalg/matrixbuilder.h>
 #include <lp/variable.h>

@@ -9,8 +9,8 @@
 #define	VECTORTEST_H
 
 #include <sstream>
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <linalg/vector.h>
 #include <linalg/matrix.h>
 

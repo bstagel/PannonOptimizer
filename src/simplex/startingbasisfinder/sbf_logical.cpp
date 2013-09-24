@@ -10,9 +10,9 @@
 #include <simplex/simplex.h>
 
 SbfLogical::SbfLogical(const SimplexModel& model,
-                       std::vector<int>& basisHead,
-                       IndexList& variableStates,
-                       const Vector& basicVaraibleValues,
+                       std::vector<int>* basisHead,
+                       IndexList<Numerical::Double>* variableStates,
+                       Vector* basicVaraibleValues,
                        LOGICAL_BASIS_STRATEGY strategy):
     SbfSuper(model, basisHead, variableStates, basicVaraibleValues),
     m_strategy(strategy)
@@ -32,14 +32,15 @@ void SbfLogical::run()
 
     unsigned int basisSize = m_model.getRowCount();
 
-    m_basisHead.clear();
+    m_basisHead->clear();
 
     /* Basic variables: set state to BASIC */
     for (i=0, j=basisSize; i < basisSize; i++, j++) {
-        m_basisHead.push_back(j);
+        m_basisHead->push_back(j);
         //TODO: X_B pointere
-        m_variableStates.insert(Simplex::BASIC, j );
-//        m_variableStates.setPointer(j,&(m_basicVariableValues.at(j)));
+        Numerical::Double RHSValue = m_model.getRhs().at(j);
+        m_variableStates->insert(Simplex::BASIC, j , RHSValue);
+        m_basicVariableValues->set(j, RHSValue);
     }
 
     /* Nonbasic variables: set state to NONBASIC_AT_UB/LB depending on the strategy used */
@@ -47,16 +48,14 @@ void SbfLogical::run()
 
     case LOWER_LOGICAL: {
         for (i=0; i<basisSize; i++) {
-            //TODO: pointer
-            m_variableStates.insert(Simplex::NONBASIC_AT_LB, i);
+            adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
         }
         break;
     }
 
     case UPPER_LOGICAL: {
         for (i=0; i<basisSize; i++) {
-            //TODO: pointer
-            m_variableStates.insert(Simplex::NONBASIC_AT_UB, i);
+            adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
         }
         break;
     }
@@ -67,9 +66,9 @@ void SbfLogical::run()
         case MINIMIZE:
             for (i=0; i<basisSize; i++) {
                 if (costs.at(i) < 0) {
-                    m_variableStates.insert(Simplex::NONBASIC_AT_LB, i);
+                    adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
                 } else {
-                    m_variableStates.insert(Simplex::NONBASIC_AT_UB, i);
+                    adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
                 }
             }
             break;
@@ -77,9 +76,9 @@ void SbfLogical::run()
         case MAXIMIZE:
             for (i=0; i<basisSize; i++) {
                 if (costs.at(i) > 0) {
-                    m_variableStates.insert(Simplex::NONBASIC_AT_UB, i);
+                    adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
                 } else {
-                    m_variableStates.insert(Simplex::NONBASIC_AT_LB, i);
+                    adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
                 }
             }
             break;

@@ -6,7 +6,7 @@
 #ifndef LIST_H
 #define	LIST_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <utils/elementproducer.h>
 #include <cstring>

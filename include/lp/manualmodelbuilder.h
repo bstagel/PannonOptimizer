@@ -6,7 +6,7 @@
 #ifndef MANUALBUILDER_H
 #define	MANUALBUILDER_H
 
-#include "globals.h"
+#include <globals.h>
 
 #include <lp/modelbuilder.h>
 #include <list>

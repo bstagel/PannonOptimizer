@@ -1,8 +1,8 @@
 #ifndef _VARIABLE_TEST_H_
 #define _VARIABLE_TEST_H_
 
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
 #include <iostream>
 #include <lp/variable.h>
 

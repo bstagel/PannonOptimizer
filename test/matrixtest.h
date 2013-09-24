@@ -9,8 +9,9 @@
 #define	MATRIXTEST_H
 
 #include <sstream>
-#include "framework/tester.h"
-#include "framework/unittest.h"
+#include <framework/tester.h>
+#include <framework/unittest.h>
+
 #include <linalg/matrix.h>
 
 class MatrixTestSuite : public UnitTest
