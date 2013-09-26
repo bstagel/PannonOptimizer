@@ -461,7 +461,7 @@ public:
          *
          * @return The stored pointer.
          */
-        inline const void * getPointer() const {
+        inline const void * getPointer() const{
             return m_actual->m_pointer;
         }
 

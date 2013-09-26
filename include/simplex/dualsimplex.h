@@ -11,6 +11,7 @@
 #include <simplex/simplex.h>
 #include <simplex/dualpricing.h>
 #include <simplex/dualupdater.h>
+#include <simplex/dualfeasibilitychecker.h>
 
 class DualSimplex: public Simplex
 {
@@ -21,6 +22,8 @@ private:
     DualPricing * m_pricing;
 
     DualUpdater * m_updater;
+
+    DualFeasibilityChecker * m_feasibilityChecker;
 
     void initModules();
     void releaseModules();

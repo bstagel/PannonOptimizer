@@ -149,27 +149,20 @@ void Basis::setNewHead() {
     //are aout of the basis, these must be marked as nonbasic and their states must be updated too.
     for (std::vector<bool>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
         if (*it == true) {
-            const Variable& variable = m_model.getVariable(variableIndex);
+            const Variable& variable = m_model.getVariable(*it);
 
             if (variable.getType() == Variable::FREE) {
-                m_variableStates->insert(Simplex::NONBASIC_FREE, variableIndex, 0.);
+                m_variableStates->insert(Simplex::NONBASIC_FREE, *it, 0.);
             } else if (variable.getType() == Variable::MINUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_UB, *it, variable.getUpperBound());
                 return;
             } else if (variable.getType() == Variable::PLUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, variable.getLowerBound());
                 return;
             } else {
-                if (state == Simplex::NONBASIC_AT_LB) {
-                    m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
-                    return;
-                } else{
-                    m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
-                    return;
-                }
-            //TODO
-//            m_model.getVariable(*it).setState(Variable::NONBASIC_AT_LB);
-//            m_model.getVariable(*it).setValue(m_model.getVariable(*it).getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, variable.getLowerBound());
+                return;
+            }
         }
     }
 }

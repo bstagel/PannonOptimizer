@@ -148,9 +148,7 @@ void SimplexParameterHandler::initParameters()
 
     //Basis factorization
     m_values["factorization_type"] = Parameter("factorization_type", DefaultParameters::FACTORIZATION_TYPE);
-    m_values["triangular_method"] = Parameter("triangular_method", DefaultParameters::TRIANGULAR_METHOD);
     m_values["nontriangular_method"] = Parameter("nontriangular_method", DefaultParameters::NONTRIANGULAR_METHOD);
-    m_values["triangular_pivot_rule"] = Parameter("triangular_pivot_rule", DefaultParameters::TRIANGULAR_PIVOT_RULE);
     m_values["nontriangular_pivot_rule"] = Parameter("nontriangular_pivot_rule", DefaultParameters::NONTRIANGULAR_PIVOT_RULE);
     m_values["pivot_threshold"] = Parameter("pivot_threshold", DefaultParameters::PIVOT_THRESHOLD);
     m_values["reinversion_frequency"] = Parameter("reinversion_frequency", DefaultParameters::REINVERSION_FREQUENCY);

@@ -8,7 +8,8 @@
 
 DualSimplex::DualSimplex():
     m_pricing(0),
-    m_updater(0)
+    m_updater(0),
+    m_feasibilityChecker(0)
 {
 
 }
@@ -25,6 +26,9 @@ void DualSimplex::initModules() {
     m_updater = new DualUpdater;
     m_updater->setPricingUpdater( pricingFactory->createDualPricingUpdater() );
 
+    //Éetrehozod a feas. checkert
+    m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel, m_variableStates, &m_reducedCostFeasibilities, m_reducedCosts, &m_phaseIObjectiveValue);
+
     delete pricingFactory;
     pricingFactory = 0;
 }
@@ -35,15 +39,19 @@ void DualSimplex::releaseModules() {
 
     delete m_updater;
     m_updater = 0;
+
+    //Felszabaditod
+    delete m_feasibilityChecker;
 }
 
 
 void DualSimplex::computeFeasibility() throw (NumericalException) {
-
+    //meghivod
+    m_feasibilityChecker->computeFeasibility();
 }
 
 void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
-
+    m_feasibilityChecker->checkFeasibility(m_reducedCostFeasibilities);
 }
 
 void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
