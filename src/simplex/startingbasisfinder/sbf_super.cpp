@@ -46,11 +46,11 @@ inline void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::
             m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
             return;
         } else if (variable.getType() == Variable::PLUS) {
-            m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
+            m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, variable.getLowerBound());
             return;
         } else {
             if (state == Simplex::NONBASIC_AT_LB) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, variable.getLowerBound());
                 return;
             } else{
                 m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());

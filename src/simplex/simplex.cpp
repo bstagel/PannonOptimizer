@@ -84,7 +84,7 @@ void Simplex::solve() {
                 reinversionCounter = 0;
                 reinvert();
                 computeBasicSolution();
-                computeReducedCosts();
+                //computeReducedCosts();
                 computeFeasibility();
             }
             try{

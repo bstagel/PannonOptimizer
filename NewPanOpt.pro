@@ -74,8 +74,8 @@ HEADERS += include/debug.h \
            include/utils/parameterhandler.h \
            include/utils/outputhandler.h \
            include/globals.h \
-           include/defaultparameters.h
-
+           include/simplex/dual_ratiotest.h \
+           include/simplex/dualfeasibilitychecker.h
 #Sources
 SOURCES += src/linalg/matrix.cpp \
            src/linalg/vector.cpp \
@@ -109,6 +109,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/parameterhandler.cpp \
            src/utils/outputhandler.cpp \
            src/debug.cpp \
-    src/defaultparameters.cpp
+           src/simplex/dual_ratiotest.cpp \
+           src/simplex/dualfeasibilitychecker.cpp
 
 OBJECTS_DIR = .o
