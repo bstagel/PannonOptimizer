@@ -74,8 +74,14 @@ protected:
 
     virtual void initModules();
     virtual void releaseModules();
+
     virtual void reinvert() throw (NumericalException) = 0;
-    virtual void iterate() throw (OptimizationResultException, NumericalException) = 0;
+    virtual void computeBasicSolution() throw (NumericalException) = 0;
+    virtual void computeFeasibility() throw (NumericalException) = 0;
+    virtual void checkFeasibility() throw (OptimizationResultException, NumericalException) = 0;
+    virtual void price() throw (OptimizationResultException, NumericalException) = 0;
+    virtual void selectPivot() throw (OptimizationResultException, NumericalException) = 0;
+    virtual void update()throw (NumericalException)  = 0;
 };
 
 #endif /* SIMPLEX_H */

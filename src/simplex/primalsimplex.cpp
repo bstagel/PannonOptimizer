@@ -37,10 +37,22 @@ void PrimalSimplex::releaseModules() {
     m_updater = 0;
 }
 
-void PrimalSimplex::reinvert() throw(NumericalException) {
+void PrimalSimplex::computeFeasibility() throw (NumericalException) {
 
 }
 
-void PrimalSimplex::iterate() throw(OptimizationResultException, NumericalException) {
+void PrimalSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void PrimalSimplex::price() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void PrimalSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void PrimalSimplex::update()throw (NumericalException) {
 
 }

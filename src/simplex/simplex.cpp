@@ -81,11 +81,21 @@ void Simplex::solve() {
              iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit;
              iterationIndex++) {
             if(reinversionCounter == reinversionFrequency){
-                reinvert();
                 reinversionCounter = 0;
+                reinvert();
+                computeBasicSolution();
+                computeReducedCosts();
+                computeFeasibility();
             }
             try{
-                iterate();
+                checkFeasibility();
+                price();
+                selectPivot();
+                reinversionCounter++;
+                if(reinversionCounter < reinversionFrequency){
+                    update();
+                }
+//                iterate();
             }
             catch ( const OptimizationResultException & exception ) {
                    //Check the result with triggering reinversion
@@ -95,7 +105,6 @@ void Simplex::solve() {
                     reinversionCounter = reinversionFrequency;
                 }
             }
-            reinversionCounter++;
         }
         timer.stop();
 
@@ -127,23 +136,20 @@ void Simplex::solve() {
         LPERROR("STL arithmetic overflow error: " << exception.what() );
     } catch ( const std::underflow_error & exception ) {
         LPERROR("STL arithmetic underflow error: " << exception.what() );
+#if __cplusplus > 199711L
+    } catch ( const std::system_error & exception ) {
+        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
+        LPERROR("STL system error: " << std::endl);
+        LPERROR("\tError: " << exception.what() << std::endl);
+        LPERROR("\tCode: " << exception.code().value() << std::endl);
+        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
+        LPERROR("\tMessage: " << exception.code().message() << std::endl);
+    } catch ( const std::bad_function_call & exception ) {
+        LPERROR("STL bad function call exception: " << exception.what() );
+#endif
     } catch (const std::runtime_error & exception ) {
         LPERROR("STL runtime error: " << exception.what() );
     }
-#if __cplusplus > 199711L
-    catch ( const std::bad_function_call & exception ) {
-        LPERROR("STL bad function call exception: " << exception.what() );
-    }
-//WARNING: Already cached before
-//    catch ( const std::system_error & exception ) {
-//        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
-//        LPERROR("STL system error: " << std::endl);
-//        LPERROR("\tError: " << exception.what() << std::endl);
-//        LPERROR("\tCode: " << exception.code().value() << std::endl);
-//        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
-//        LPERROR("\tMessage: " << exception.code().message() << std::endl);
-//    }
-#endif
     catch (const std::exception & exception) {
         LPERROR("General STL exception: " << exception.what());
     } catch (...) {

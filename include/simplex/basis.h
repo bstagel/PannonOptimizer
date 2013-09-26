@@ -64,26 +64,7 @@ protected:
      * in the basis head. The rows of logical are also contained here. The logical rows
      * are omitted by setting the appropriate row counts to -1.
      */
-    std::vector<Vector>* m_columns;
-
-    /**
-     * Stores the variable indices for each column in the submatrix.
-     */
-    std::vector<int>* m_columnsHash;
-
-    /**
-     * Rowwise representation of the submatrix.
-     */
-    std::vector<Vector>* m_rows;
-
-    /**
-     * The vector of the row counts (r_i).
-     * The row count represents the number of nonzeros in a row. A row count of
-     * an  inactive row (used or logical) is -1, the row count of a row of the
-     * active submatrix is a natural number.
-     */
-    std::vector<int>* m_rowCounts;
-
+    std::vector<Vector> m_columns;
 
     /**
      * The vector of the column counts (c_i).
@@ -91,21 +72,41 @@ protected:
      * an inactive column (used) is -1, the column count of a column of the active submatrix
      * is a natural number.
      */
-    std::vector<int>* m_columnCounts;
-
-    /**
-     * The vector of linked lists of row indices.
-     * Each linked list represents a group of rows that have the same row count.
-     * The first list has rows with a row count of 1, the second with 2, etc.
-     */
-    IndexList<>* m_rowCountIndexList;
+    std::vector<int> m_columnCounts;
 
     /**
      * The vector of linked lists of column indices.
      * Each linked list represents a group of columns that have the same column count.
      * The first list has columns with a column count of 1, the second with 2, etc.
      */
-    IndexList<>* m_columnCountIndexList;
+    IndexList<> m_columnCountIndexList;
+
+    /**
+     * Stores the original variable indices for each column in the submatrix.
+     */
+    std::vector<int> m_columnsHash;
+
+
+    /**
+     * Rowwise representation of the submatrix.
+     */
+    std::vector<Vector> m_rows;
+
+    /**
+     * The vector of the row counts (r_i).
+     * The row count represents the number of nonzeros in a row. A row count of
+     * an  inactive row (used or logical) is -1, the row count of a row of the
+     * active submatrix is a natural number.
+     */
+    std::vector<int> m_rowCounts;
+
+    /**
+     * The vector of linked lists of row indices.
+     * Each linked list represents a group of rows that have the same row count.
+     * The first list has rows with a row count of 1, the second with 2, etc.
+     */
+    IndexList<> m_rowCountIndexList;
+
 
 
     bool m_isFresh;
