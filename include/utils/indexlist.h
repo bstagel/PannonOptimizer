@@ -379,7 +379,7 @@ public:
      * @param value
      * @param targetPartition
      */
-    inline void move(unsigned int value, unsigned int targetPartition) {
+    inline void move(unsigned int value, unsigned int targetPartition, ATTACHED_TYPE attached = ATTACHED_TYPE()) {
         Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = targetPartition;
 
@@ -388,6 +388,7 @@ public:
         element.m_next = forward;
         forward->m_previous = &element;
         element.m_previous = m_heads + targetPartition;
+        m_dataArray[value].m_attached = attached;
     }
 
     /**
@@ -794,6 +795,7 @@ private:
 
 };
 
+
 template <class ATTACHED_TYPE>
 std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & list) {
 
@@ -803,7 +805,8 @@ std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & 
     unsigned int index;
     for(index = 0; index < list.getPartitionCount(); index++){
         os << "List " << index << ": " << std::endl;
-        typename IndexList<ATTACHED_TYPE>::_Iterator iter, iterEnd;
+
+        typename IndexList<ATTACHED_TYPE>::Iterator iter, iterEnd;
         list.getIterators(&iter, &iterEnd, index);
         for (; iter != iterEnd; iter++) {
             os << "     " << iter.getData() << std::endl;

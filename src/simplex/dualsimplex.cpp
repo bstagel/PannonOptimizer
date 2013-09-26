@@ -37,10 +37,23 @@ void DualSimplex::releaseModules() {
     m_updater = 0;
 }
 
-void DualSimplex::reinvert() throw(NumericalException) {
+
+void DualSimplex::computeFeasibility() throw (NumericalException) {
 
 }
 
-void DualSimplex::iterate() throw(OptimizationResultException, NumericalException) {
+void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
+
+}
+
+void DualSimplex::update()throw (NumericalException) {
 
 }

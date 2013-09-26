@@ -18,9 +18,7 @@ const double DefaultParameters::SCALING = 0.0;
 const double DefaultParameters::STARTING_BASIS = 0.0;
 //Basis factorization
 const double DefaultParameters::FACTORIZATION_TYPE = 0.0;
-const double DefaultParameters::TRIANGULAR_METHOD = 1.0;
 const double DefaultParameters::NONTRIANGULAR_METHOD = 2.0;
-const double DefaultParameters::TRIANGULAR_PIVOT_RULE = 0.0;
 const double DefaultParameters::NONTRIANGULAR_PIVOT_RULE = 1.0;
 const double DefaultParameters::PIVOT_THRESHOLD = 0.01;
 //Pricing

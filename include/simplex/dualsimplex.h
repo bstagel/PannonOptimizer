@@ -24,8 +24,14 @@ private:
 
     void initModules();
     void releaseModules();
-    void reinvert() throw(NumericalException);
-    void iterate() throw(OptimizationResultException, NumericalException);
+
+    virtual void reinvert() throw (NumericalException);
+    virtual void computeBasicSolution() throw (NumericalException);
+    virtual void computeFeasibility() throw (NumericalException);
+    virtual void checkFeasibility() throw (OptimizationResultException, NumericalException);
+    virtual void price() throw (OptimizationResultException, NumericalException);
+    virtual void selectPivot() throw (OptimizationResultException, NumericalException);
+    virtual void update()throw (NumericalException);
 };
 
 #endif /* DUALSIMPLEX_H */

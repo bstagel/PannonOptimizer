@@ -11,9 +11,7 @@ TARGET = NewPanOpt
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -g
-    message($$PWD)
-    message($$OUT_PWD)
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")

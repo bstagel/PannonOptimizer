@@ -23,9 +23,7 @@ public:
     const static double STARTING_BASIS;
     //Basis factorization
     const static double FACTORIZATION_TYPE;
-    const static double TRIANGULAR_METHOD;
     const static double NONTRIANGULAR_METHOD;
-    const static double TRIANGULAR_PIVOT_RULE;
     const static double NONTRIANGULAR_PIVOT_RULE;
     const static double PIVOT_THRESHOLD;
     //Pricing
