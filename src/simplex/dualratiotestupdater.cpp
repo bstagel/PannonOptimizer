@@ -6,7 +6,9 @@ DualRatiotestUpdater::DualRatiotestUpdater(IndexList<>* reducedcostFeasiblities,
     m_reducedcostFeasibilities(reducedcostFeasiblities),
     m_variableStates(variableStates)
 {
+
 }
+
 void DualRatiotestUpdater::updateFeasibilities(){
 
     //TODO: updateVector not valid?!!

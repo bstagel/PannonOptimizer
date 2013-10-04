@@ -5,34 +5,34 @@
 class DefaultParameters {
 public:
     //Linalg Parameters
-    const static double E_ABSOLUTE;
-    const static double E_RELATIVE;
-    const static double SPARSITY_RATIO;
-    const static double ELBOWROOM;
+    static const double E_ABSOLUTE;
+    static const double E_RELATIVE;
+    static const double SPARSITY_RATIO;
+    static const double ELBOWROOM;
 
 
     //Simplex Parameters
     //Tolerances
-    const static double E_PIVOT;
-    const static double E_HARRIS;
-    const static double E_FEASIBILITY;
-    const static double E_OPTIMALITY;
+    static const double E_PIVOT;
+    static const double E_HARRIS;
+    static const double E_FEASIBILITY;
+    static const double E_OPTIMALITY;
     //Starting procedures
-    const static double PRESOLVE;
-    const static double SCALING;
-    const static double STARTING_BASIS;
+    static const double PRESOLVE;
+    static const double SCALING;
+    static const double STARTING_BASIS;
     //Basis factorization
-    const static double FACTORIZATION_TYPE;
-    const static double NONTRIANGULAR_METHOD;
-    const static double NONTRIANGULAR_PIVOT_RULE;
-    const static double PIVOT_THRESHOLD;
+    static const double FACTORIZATION_TYPE;
+    static const double NONTRIANGULAR_METHOD;
+    static const double NONTRIANGULAR_PIVOT_RULE;
+    static const double PIVOT_THRESHOLD;
     //Pricing
-    const static double PRICING_TYPE;
+    static const double PRICING_TYPE;
     //Global
-    const static double DEBUG_LEVEL;
-    const static double ITERATION_LIMIT;
-    const static double TIME_LIMIT;
-    const static double REINVERSION_FREQUENCY;
+    static const double DEBUG_LEVEL;
+    static const double ITERATION_LIMIT;
+    static const double TIME_LIMIT;
+    static const double REINVERSION_FREQUENCY;
 
 };
 
