@@ -14,7 +14,7 @@
 #define DENSE 0
 
 #if !(__cplusplus > 199711L)
-  #error ERROR: PLEASE COMPILE WITH C++0x11!
+//  #error ERROR: PLEASE COMPILE WITH C++0x11!
 #endif
 
 enum OBJECTIVE_TYPE

@@ -15,7 +15,7 @@ CONFIG(release, debug|release) {
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
 }
 
 #Includes
@@ -73,9 +73,12 @@ HEADERS += include/debug.h \
            include/utils/timer.h \
            include/utils/parameterhandler.h \
            include/utils/outputhandler.h \
+           include/defaultparameters.h \
            include/globals.h \
-           include/simplex/dual_ratiotest.h \
-           include/simplex/dualfeasibilitychecker.h
+           include/simplex/dualfeasibilitychecker.h \
+           include/simplex/dualratiotest.h \
+           include/simplex/dualratiotestupdater.h
+
 #Sources
 SOURCES += src/linalg/matrix.cpp \
            src/linalg/vector.cpp \
@@ -109,7 +112,9 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/parameterhandler.cpp \
            src/utils/outputhandler.cpp \
            src/debug.cpp \
-           src/simplex/dual_ratiotest.cpp \
-           src/simplex/dualfeasibilitychecker.cpp
+           src/defaultparameters.cpp \
+           src/simplex/dualfeasibilitychecker.cpp \
+    	   src/simplex/dualratiotest.cpp \
+    	   src/simplex/dualratiotestupdater.cpp
 
 OBJECTS_DIR = .o

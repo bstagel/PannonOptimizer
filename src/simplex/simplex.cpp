@@ -84,7 +84,7 @@ void Simplex::solve() {
                 reinversionCounter = 0;
                 reinvert();
                 computeBasicSolution();
-                //computeReducedCosts();
+                computeReducedCosts();
                 computeFeasibility();
             }
             try{
@@ -178,4 +178,17 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
 const std::vector<Numerical::Double> Simplex::getDualSolution() const {
     return std::vector<Numerical::Double>();
     //TODO
+}
+
+
+void Simplex::reinvert() throw (NumericalException) {
+
+}
+
+void Simplex::computeBasicSolution() throw (NumericalException) {
+
+}
+
+void Simplex::computeReducedCosts() throw (NumericalException) {
+
 }

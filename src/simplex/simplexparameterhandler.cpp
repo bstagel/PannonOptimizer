@@ -71,21 +71,12 @@ void SimplexParameterHandler::writeParameterFile()
                "! 1.0 = LU Decomposition --- NOT AVAILABLE YET" << std::endl;
         out << "\t" << "factorization_type = " << m_values["factorization_type"].getValue() << std::endl;
 
-        out << "\t! PFI specific parameters\n"
-               "! The method used to identify the triangular parts of the basis\n"
-               "\t! 0.0 = Iterative search\n"
-               "\t! 1.0 = Linked lists based on the row and column counts" << std::endl;
-
-        out << "\t" << "triangular_method = " << m_values["triangular_method"].getValue() << std::endl;
+        out << "\t! PFI specific parameters" << std::endl;
         out << "\t! The method used to process the non-triangular kernel\n"
                "\t! 0.0 = Simple search for potential pivot positions\n"
                "\t! 1.0 = Create a block triangular form and pivot down the diagonal\n"
                "\t! 2.0 = Create a block triangular form and order the blocks by column counts before pivoting"<< std::endl;
         out << "\t\t" << "nontriangular_method = " << m_values["nontriangular_method"].getValue() <<  std::endl;
-
-        out << "\t! Pivot tolerance for the triangular part\n\t! 0.0 = Absolute tolerance\n"
-               "\t! 1.0 = Relative tolerance" <<  std::endl;
-        out << "\t\t" << "triangular_pivot_rule = " << m_values["triangular_pivot_rule"].getValue() <<  std::endl;
 
         out << "\t! Pivot rules for the non-triangular part\n\t! 0.0 = Simple pivot tolerance is used\n"
                "\t! 1.0 = Threshold pivoting" <<  std::endl;

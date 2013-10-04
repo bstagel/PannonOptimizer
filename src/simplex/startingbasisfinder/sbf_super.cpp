@@ -36,7 +36,7 @@ SbfSuper::~SbfSuper()
 
 }
 
-inline void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABLE_STATE state)
+void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABLE_STATE state)
 {
     const Variable& variable = m_model.getVariable(variableIndex);
     if (state == Simplex::NONBASIC_AT_LB || state == Simplex::NONBASIC_AT_UB) {

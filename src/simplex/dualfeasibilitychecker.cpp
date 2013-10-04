@@ -1,6 +1,7 @@
 #include <simplex/dualfeasibilitychecker.h>
 #include <lp/model.h>
 #include <simplex/simplex.h>
+#include <simplex/simplexparameterhandler.h>
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
                                                const IndexList<Numerical::Double>& variableStates,
@@ -11,12 +12,14 @@ DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
     m_variableStates(variableStates),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_reducedCosts(reducedCosts),
-    m_phaseIObjectiveValue(phaseIObjectiveValue)
+    m_phaseIObjectiveValue(phaseIObjectiveValue),
+    m_optimalityTolerance(SimplexParameterHandler::getInstance().getParameterValue("e_optimality"))
 {
 
 }
 Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alpha)const{
-//TODO: ez a függvény nem itt van, feasibilitik még nincsenek kiszámolva?
+
+//TODO: phase one reduced cost as a param?!!
 
     Numerical::Double phaseIreducedCost = 0;
     IndexList<>::Iterator it;
@@ -39,7 +42,23 @@ Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alp
                  }
             }
         }
+        return phaseIreducedCost;
 }
+
+bool DualFeasibilityChecker::equal(Numerical::Double variable,Numerical::Double value){
+    if( Numerical::fabs(variable-value) <= m_optimalityTolerance ){
+        return true;
+    }
+    return false;
+}
+bool DualFeasibilityChecker::lessthan(Numerical::Double variable,Numerical::Double value){
+    //var < val <=> var+e < val
+    if( variable + m_optimalityTolerance < value ){
+        return true;
+    }
+    return false;
+}
+
 bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeasibilities){
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
@@ -50,8 +69,12 @@ bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeas
     }
     return true;
 }
+bool DualFeasibilityChecker::lessOrEqual(Numerical::Double variable,Numerical::Double value){
+    return ( lessthan(variable,value) || equal(variable,value) );
+}
 
 void DualFeasibilityChecker::computeFeasibility(){
+//this function determines M/F/P sets, dual objective function value, dual reduced cost
 
     //TODO: JOCO _ CLEAR ALL PARTITION
     m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
@@ -59,7 +82,6 @@ void DualFeasibilityChecker::computeFeasibility(){
     m_reducedCostFeasibilities->clearPartition(Simplex::PLUS);
     *m_phaseIObjectiveValue = 0;
 
-//this function determines M/F/P sets, dual objective function value, dual reduced cost
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
     m_reducedCostFeasibilities->getIterators(&it,&endit,1,3);
@@ -68,22 +90,28 @@ void DualFeasibilityChecker::computeFeasibility(){
         for(;it!=endit;it++){
             if(m_variableStates.where(variableIndex) != Simplex::BASIC){
                 typeOfIthVariable=m_model.getVariable(variableIndex).getType();
+
     //nonbasic variables with M type infeasibility
-                if(m_reducedCosts[variableIndex]<0 &&
+
+                if(lessthan(m_reducedCosts[variableIndex],0) &&
                     (typeOfIthVariable==Variable::PLUS || typeOfIthVariable==Variable::FREE)){
                     m_reducedCostFeasibilities->insert(variableIndex,Simplex::MINUS);
                         (*m_phaseIObjectiveValue)+=m_reducedCosts[variableIndex];
                 }else
+
     //nonbasic variables with P type infeasibility
-                 if(m_reducedCosts[variableIndex]>0 &&
+
+                 if(lessthan(0,m_reducedCosts[variableIndex]) &&
                     (typeOfIthVariable==Variable::MINUS || typeOfIthVariable==Variable::FREE)){
                      m_reducedCostFeasibilities->insert(variableIndex,Simplex::PLUS);
                         (*m_phaseIObjectiveValue)-=m_reducedCosts[variableIndex];
                  }else{
+
     //nonbasic variables with F type infeasibility
-                     if((m_reducedCosts[variableIndex]>=0 && typeOfIthVariable==Variable::PLUS) ||
-                             (m_reducedCosts[variableIndex]<=0 && typeOfIthVariable==Variable::MINUS) ||
-                             (m_reducedCosts[variableIndex]==0 && typeOfIthVariable==Variable::FREE)){
+
+                     if(( !lessthan(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::PLUS) ||
+                             (lessOrEqual(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::MINUS) ||
+                             (equal(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::FREE)){
                          m_reducedCostFeasibilities->insert(variableIndex,Simplex::FEASIBLE);
                      }
                  }

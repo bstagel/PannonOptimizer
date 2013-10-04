@@ -75,8 +75,9 @@ protected:
     virtual void initModules();
     virtual void releaseModules();
 
-    virtual void reinvert() throw (NumericalException) = 0;
-    virtual void computeBasicSolution() throw (NumericalException) = 0;
+    void reinvert() throw (NumericalException);
+    void computeBasicSolution() throw (NumericalException);
+    void computeReducedCosts() throw (NumericalException);
     virtual void computeFeasibility() throw (NumericalException) = 0;
     virtual void checkFeasibility() throw (OptimizationResultException, NumericalException) = 0;
     virtual void price() throw (OptimizationResultException, NumericalException) = 0;
