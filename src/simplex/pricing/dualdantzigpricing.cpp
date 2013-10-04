@@ -7,11 +7,14 @@
 
 #include <simplex/pricing/dualdantzigpricing.h>
 
-DualDantzigPricing::DualDantzigPricing()
+DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
+                                       const DualPricingUpdater &updater):
+    DualPricing(model, updater)
 {
 }
 
-DualDantzigPricing::DualDantzigPricing(const DualDantzigPricing& orig)
+DualDantzigPricing::DualDantzigPricing(const DualDantzigPricing& orig):
+    DualPricing(orig)
 {
     __UNUSED(orig);
 }

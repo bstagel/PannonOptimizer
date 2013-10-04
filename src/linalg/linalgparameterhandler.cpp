@@ -18,7 +18,7 @@ ParameterHandler& LinalgParameterHandler::getInstance()
     static bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
-        s_instance.readParameterFile(filename);
+     //   s_instance.readParameterFile(filename);
         s_init = true;
     }
     return s_instance;

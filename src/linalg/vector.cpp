@@ -1924,3 +1924,11 @@ Vector operator*(Numerical::Double m, const Vector& v)
     ret.scaleBy(m);
     return ret;
 }
+
+void Vector::swap(Vector * vector1, Vector * vector2) {
+    // new and delete are too slow
+    static char buffer[sizeof(Vector)];
+    memcpy(buffer, vector1, sizeof(Vector));
+    memcpy(vector1, vector2, sizeof(Vector));
+    memcpy(vector2, buffer, sizeof(Vector));
+}
