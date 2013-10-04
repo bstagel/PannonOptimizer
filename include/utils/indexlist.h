@@ -405,6 +405,20 @@ public:
     }
 
     /**
+     * Returns the first element of a partition
+     *
+     * @param partitionIndex The index of the linked list
+     * @return The data of the first element or -1 if the list is empty
+     */
+    inline int firstElement(unsigned int partitionIndex) const {
+        if (&(m_heads[partitionIndex]) == m_heads[partitionIndex].m_next){
+            return -1;
+        } else {
+            return m_heads[partitionIndex].m_next->m_data;
+        }
+    }
+
+    /**
      * Iterator class for listing elements of a linked list.
      */
     template <class TYPE>
@@ -631,7 +645,7 @@ public:
 
     }
 
-    
+
     /**
      * Returns an iterator. When the indexth linked list contains indices,
      * the iterator refers to the first element of the list, otherwise it

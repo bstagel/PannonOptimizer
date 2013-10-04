@@ -26,7 +26,10 @@ private:
     IndexList<>* m_reducedCostFeasibilities;
     const Vector& m_reducedCosts;
     Numerical::Double* m_phaseIObjectiveValue;
-
+    Numerical::Double m_optimalityTolerance;
+    bool equal(Numerical::Double variable,Numerical::Double value);
+    bool lessthan(Numerical::Double variable,Numerical::Double value);
+    bool lessOrEqual(Numerical::Double variable,Numerical::Double value);
 };
 
 #endif // DUALFEASIBILITYCHECKER_H

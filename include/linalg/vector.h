@@ -44,7 +44,7 @@ class Vector
 
     friend class ModelIO;
     friend class MpsModelBuilder;
-    friend class Linalg;
+    friend class PfiBasis;
     friend class VectorTestSuite;
 public:
 
@@ -851,18 +851,28 @@ protected:
     static unsigned int gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
         unsigned int * index, unsigned int denseLength, bool setZero);
 
+
     // sparse -> dense
     /**
      * @param denseVector
      * @param denseLength
      * @param sparseVector
-     * @param index
-     * @param sparseLength
-     * @param sparseMaxIndex
      */
     static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-        Numerical::Double * sparseVector, unsigned int * index,
-        unsigned int sparseLength, unsigned int sparseMaxIndex);
+        const Vector& sparseVector);
+
+//    // sparse -> dense
+//    /**
+//     * @param denseVector
+//     * @param denseLength
+//     * @param sparseVector
+//     * @param index
+//     * @param sparseLength
+//     * @param sparseMaxIndex
+//     */
+//    static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
+//        Numerical::Double * sparseVector, unsigned int * index,
+//        unsigned int sparseLength, unsigned int sparseMaxIndex);
 
     // sparse -> dense
     /**

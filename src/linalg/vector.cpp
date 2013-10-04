@@ -808,8 +808,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         // both of them are sparse
         needScatter = true;
         if (m_nonZeros >= vector.m_nonZeros) {
-            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-                m_data, m_index, m_size, m_dimension);
+            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, *this);
             denseVector = sm_fullLengthVector;
             data = vector.m_data;
             index = vector.m_index;
@@ -817,8 +816,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
             origIndex = m_index;
             origSize = m_size;
         } else {
-            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-                vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
+            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
             denseVector = sm_fullLengthVector;
             data = m_data;
             index = m_index;
@@ -958,8 +956,7 @@ void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector)
 void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector)
 {
     m_sorted = false;
-    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-        vector.m_data, vector.m_index, vector.m_size, vector.m_dimension);
+    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
 
     register Numerical::Double * denseVector = sm_fullLengthVector;
     register Numerical::Double * ptrActualVector = m_data;
@@ -1382,8 +1379,7 @@ void Vector::countingSort() const
     }
 
 
-    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght,
-        m_data, m_index, m_size, m_dimension);
+    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, *this);
     static int count = 0;
     count++;
 
@@ -1664,6 +1660,7 @@ unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double *
             *ptrIndex = index;
             *ptrSparse = *ptrDense;
             // setting to zero is NECESSARY!
+            //TODO: Ez sojha nincs hasznalva, ki kellene venni
             if (setZero)
                 *ptrDense = 0.0;
             ptrIndex++;
@@ -1712,27 +1709,26 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
 }
 
 void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-    Numerical::Double * sparseVector, unsigned int * index,
-    unsigned int sparseLength, unsigned int sparseMaxIndex)
+    const Vector& sparseVector)
 {
     // sparse -> dense
-    if (denseLength < sparseMaxIndex) {
+    if (denseLength < sparseVector.m_dimension) {
         delete [] denseVector;
-        denseVector = allocateData(sparseMaxIndex + 1);
+        denseVector = allocateData(sparseVector.m_dimension + 1);
         register Numerical::Double * ptrDense = denseVector;
-        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
+        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseVector.m_dimension + 1;
         while (ptrDense < ptrDenseEnd) {
             *ptrDense = 0.0;
             ptrDense++;
         }
-        denseLength = sparseMaxIndex;
+        denseLength = sparseVector.m_dimension;
     }
-    if (sparseVector == 0) {
+    if (sparseVector.m_data == 0) {
         return;
     }
-    register const Numerical::Double * ptrSparse = sparseVector;
-    register const unsigned int * ptrIndex = index;
-    register const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
+    register const Numerical::Double * ptrSparse = sparseVector.m_data;
+    register const unsigned int * ptrIndex = sparseVector.m_index;
+    register const Numerical::Double * const ptrSparseEnd = sparseVector.m_data + sparseVector.m_size;
     register Numerical::Double * ptrDense = denseVector;
     while (ptrSparse < ptrSparseEnd) {
         //LPINFO("*ptrIndex: " << *ptrIndex);
@@ -1742,6 +1738,38 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
     }
 
 }
+
+//void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
+//    Numerical::Double * sparseVector, unsigned int * index,
+//    unsigned int sparseLength, unsigned int sparseMaxIndex)
+//{
+//    // sparse -> dense
+//    if (denseLength < sparseMaxIndex) {
+//        delete [] denseVector;
+//        denseVector = allocateData(sparseMaxIndex + 1);
+//        register Numerical::Double * ptrDense = denseVector;
+//        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
+//        while (ptrDense < ptrDenseEnd) {
+//            *ptrDense = 0.0;
+//            ptrDense++;
+//        }
+//        denseLength = sparseMaxIndex;
+//    }
+//    if (sparseVector == 0) {
+//        return;
+//    }
+//    register const Numerical::Double * ptrSparse = sparseVector;
+//    register const unsigned int * ptrIndex = index;
+//    register const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
+//    register Numerical::Double * ptrDense = denseVector;
+//    while (ptrSparse < ptrSparseEnd) {
+//        //LPINFO("*ptrIndex: " << *ptrIndex);
+//        ptrDense[ *ptrIndex ] = *ptrSparse;
+//        ptrIndex++;
+//        ptrSparse++;
+//    }
+
+//}
 
 void Vector::clearFullLenghtVector(Numerical::Double * denseVector,
     unsigned int * sparseIndex, unsigned int sparseLength)
@@ -1780,7 +1808,7 @@ void Vector::sparseToDense()
         *ptr = 0.0;
         ptr++;
     }
-    scatter(temp, m_dimension, m_data, m_index, m_size, m_dimension);
+    scatter(temp, m_dimension, *this);
 
     freeData(m_data);
     m_data = temp;

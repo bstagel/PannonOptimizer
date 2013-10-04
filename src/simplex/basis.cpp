@@ -21,26 +21,24 @@ Basis::~Basis()
 
 void Basis::copyBasis(bool buildIndexLists) {
     DEVINFO(D::PFIMAKER, "Copy the basis");
-    int columnCount = m_model.getColumnCount();
-    int rowCount = m_model.getRowCount();
+    unsigned int columnCount = m_model.getColumnCount();
+    unsigned int rowCount = m_model.getRowCount();
 
     //Reinit data structures
-    //TODO clear utan kell vajon megint reserve?
     m_columns.clear();
-    m_columnCounts.clear();
     m_columnCountIndexList.init(0,0);
     m_columnsHash.clear();
     m_rows.clear();
-    m_rowCounts.clear();
     m_rowCountIndexList.init(0,0);
 
-    m_columns.reserve(rowCount);
-    m_columnCounts.resize(rowCount,0);
-    m_columnsHash.reserve(rowCount);
+    if(m_columns.capacity() != rowCount){
+        m_columns.reserve(rowCount);
+        m_columnCounts.resize(rowCount,0);
+        m_columnsHash.reserve(rowCount);
 
-    m_rows.resize(rowCount, Vector(m_columns.size()));
-    m_rowCounts.resize(rowCount, 0);
-
+        m_rows.resize(rowCount, Vector(m_columns.size()));
+        m_rowCounts.resize(rowCount, 0);
+    }
 
     std::vector<bool> headChecker(rowCount + columnCount, false);
     m_basisNewHead.resize(rowCount, -1);
@@ -48,7 +46,7 @@ void Basis::copyBasis(bool buildIndexLists) {
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         if (headChecker.at(*it) == false) {
             headChecker.at(*it) = true;
-            if (*it >= columnCount) {
+            if (*it >= (int) columnCount) {
                 DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
                 //Collect the logical columns
                 Vector logical(rowCount);
@@ -135,6 +133,7 @@ void Basis::setNewHead() {
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = true;
     }
+    //TODO beállítani a basis listát!
     //Update the basis head with the recomputed one
     m_basisHead->assign(m_basisNewHead.begin(), m_basisNewHead.end());
     //Set the basic variables state and remove their traces from the pattern vector
@@ -150,7 +149,6 @@ void Basis::setNewHead() {
     for (std::vector<bool>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);
-
             if (variable.getType() == Variable::FREE) {
                 m_variableStates->insert(Simplex::NONBASIC_FREE, *it, 0.);
             } else if (variable.getType() == Variable::MINUS) {
@@ -182,17 +180,19 @@ void Basis::checkSingularity() {
     }
 }
 
-Vector* Basis::createEta(Vector* v, int pivotPosition) throw (NumericalException)
+Vector* Basis::createEta(const Vector& vector, int pivotPosition) throw (NumericalException)
 {
-    Vector * eta = new Vector(0, 0, 0);
-    eta->prepareForData(v->nonZeros(), v->length());
-    Numerical::Double atPivot = v->at(pivotPosition);
+    Vector* eta = new Vector();
+    eta->prepareForData(vector.nonZeros(), vector.length());
+    //TODO Ezt vajon lehet gyorsabban?
+    Numerical::Double atPivot = vector.at(pivotPosition);
 
     if (Numerical::equals(atPivot, 0)) {
-        LPERROR("Pivot element is zero at row " << pivotPosition);
-        throw NumericalException("NUMERICAL problem");
+        throw NumericalException("NUMERICAL problem: Pivot element is zero at row " + pivotPosition );
     } else {
-        for (Vector::NonzeroIterator it = v->beginNonzero(); it < v->endNonzero(); it++) {
+        Vector::NonzeroIterator it = vector.beginNonzero();
+        Vector::NonzeroIterator endit = vector.endNonzero();
+        for (; it < endit; it++) {
             if (it.getIndex() == (unsigned int) pivotPosition) {
                 eta->newNonZero(1 / atPivot, pivotPosition);
             } else {

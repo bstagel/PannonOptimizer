@@ -27,6 +27,7 @@ class Numerical
             unsigned long long int m_bits;
         } m_number;
 
+        public:
         Summarizer()
         {
             m_negpos[0] = 0.0;
@@ -37,11 +38,6 @@ class Numerical
         {
             m_number.m_num = v;
             *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
-            /*if (v < 0.0) {
-                m_negpos[0] += v;
-            } else {
-                m_negpos[1] += v;
-            }*/
         }
 
         inline double getResult() const

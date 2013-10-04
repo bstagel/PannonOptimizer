@@ -8,7 +8,6 @@ CONFIG += console
 
 TARGET = NewPanOptDual
 
-
 CONFIG(release, debug|release) {
     message("NewPanOptDual: Release mode!")
     DEFINES += NDEBUG

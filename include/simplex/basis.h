@@ -43,11 +43,11 @@ public:
         return m_isFresh;
     }
     virtual void invert() throw (NumericalException) = 0;
-    virtual void append(const Vector & v, int pivotRow, int incoming) throw (NumericalException) = 0;
+    virtual void append(const Vector & vector, int pivotRow, int incoming) throw (NumericalException) = 0;
 
     virtual int lastPivotIndex() const = 0;
-    virtual Vector & Ftran(Vector & v, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
-    virtual Vector & Btran(Vector & v, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
+    virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
+    virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
     virtual void printTransformationStatistics() const = 0;
 protected:
@@ -120,7 +120,7 @@ protected:
 
     void setNewHead();
     void checkSingularity();
-    Vector* createEta(Vector* v, int pivotPosition) throw (NumericalException);
+    Vector* createEta(const Vector& vector, int pivotPosition) throw (NumericalException);
 
     virtual void printStatistics() const = 0;
     void printActiveSubmatrix() const;
