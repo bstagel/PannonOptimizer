@@ -1,14 +1,23 @@
 #ifndef DUALRATIOTESTUPDATER_H
 #define DUALRATIOTESTUPDATER_H
-#include <simplex/dualratiotest.h>
+
+#include <vector>
+
 #include <utils/indexlist.h>
+#include <utils/numerical.h>
+
+//class DualRatiotest;
 
 class DualRatiotestUpdater{
-    IndexList<> * m_reducedcostFeasibilities;
-    IndexList<const Numerical::Double*> * m_variableStates;
+    friend class DualRatiotest;
 public:
-    DualRatiotestUpdater(IndexList<>* reducedcostFeasibilities,IndexList<const Numerical::Double*>* variableStates);
+    DualRatiotestUpdater(IndexList<>* reducedcostFeasibilities,IndexList<Numerical::Double>* variableStates);
     void updateFeasibilities(const std::vector<int>& updateVector);
+private:
+    IndexList<> * m_reducedcostFeasibilities;
+    IndexList<Numerical::Double> * m_variableStates;
+
+    std::vector<int> m_updateVector;
 };
 
 #endif // DUALRATIOTESTUPDATER_H
