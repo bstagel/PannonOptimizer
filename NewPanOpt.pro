@@ -1,5 +1,5 @@
 TEMPLATE = lib
-# test2
+
 CONFIG += staticlib
 
 QT -= gui
