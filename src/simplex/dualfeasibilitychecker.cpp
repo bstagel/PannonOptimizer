@@ -3,8 +3,11 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 
+static const Numerical::Double optimalityTolerance =
+        SimplexParameterHandler::getInstance().getParameterValue("e_optimality");
+
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
-                                               const IndexList<const Numerical::Double*>& variableStates,
+                                               const IndexList<Numerical::Double>& variableStates,
                                                IndexList<>* reducedCostFeasibilities,
                                                const Vector& reducedCosts,
                                                Numerical::Double* phaseIObjectiveValue):
@@ -12,8 +15,7 @@ DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
     m_variableStates(variableStates),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_reducedCosts(reducedCosts),
-    m_phaseIObjectiveValue(phaseIObjectiveValue),
-    m_optimalityTolerance(SimplexParameterHandler::getInstance().getParameterValue("e_optimality"))
+    m_phaseIObjectiveValue(phaseIObjectiveValue)
 {
 
 }
@@ -30,12 +32,16 @@ Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alp
         for(;it!=endit;it++){
             if(m_variableStates.where(variableIndex) != Simplex::BASIC){
                 typeOfIthVariable=m_model.getVariable(variableIndex).getType();
+
     //nonbasic variables with M type infeasibility
+
                 if(m_reducedCosts[variableIndex]<0 &&
                     (typeOfIthVariable==Variable::PLUS || typeOfIthVariable==Variable::FREE)){
                     phaseIreducedCost+=alpha[variableIndex];
                 }else
+
     //nonbasic variables with P type infeasibility
+
                  if(m_reducedCosts[variableIndex]>0 &&
                     (typeOfIthVariable==Variable::MINUS || typeOfIthVariable==Variable::FREE)){
                     phaseIreducedCost-=alpha[variableIndex];
@@ -43,20 +49,6 @@ Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alp
             }
         }
         return phaseIreducedCost;
-}
-
-bool DualFeasibilityChecker::equal(Numerical::Double variable,Numerical::Double value){
-    if( Numerical::fabs(variable-value) <= m_optimalityTolerance ){
-        return true;
-    }
-    return false;
-}
-bool DualFeasibilityChecker::lessthan(Numerical::Double variable,Numerical::Double value){
-    //var < val <=> var+e < val
-    if( variable + m_optimalityTolerance < value ){
-        return true;
-    }
-    return false;
 }
 
 bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeasibilities){
@@ -68,9 +60,6 @@ bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeas
         return false;
     }
     return true;
-}
-bool DualFeasibilityChecker::lessOrEqual(Numerical::Double variable,Numerical::Double value){
-    return ( lessthan(variable,value) || equal(variable,value) );
 }
 
 void DualFeasibilityChecker::computeFeasibility(){
@@ -89,29 +78,32 @@ void DualFeasibilityChecker::computeFeasibility(){
     unsigned int variableIndex = it.getData();
         for(;it!=endit;it++){
             if(m_variableStates.where(variableIndex) != Simplex::BASIC){
-                typeOfIthVariable=m_model.getVariable(variableIndex).getType();
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
     //nonbasic variables with M type infeasibility
 
-                if(lessthan(m_reducedCosts[variableIndex],0) &&
-                    (typeOfIthVariable==Variable::PLUS || typeOfIthVariable==Variable::FREE)){
+                if(Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                    (typeOfIthVariable == Variable::PLUS || typeOfIthVariable==Variable::FREE)){
                     m_reducedCostFeasibilities->insert(variableIndex,Simplex::MINUS);
-                        (*m_phaseIObjectiveValue)+=m_reducedCosts[variableIndex];
+                        (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
                 }else
 
     //nonbasic variables with P type infeasibility
 
-                 if(lessthan(0,m_reducedCosts[variableIndex]) &&
-                    (typeOfIthVariable==Variable::MINUS || typeOfIthVariable==Variable::FREE)){
+                 if(Numerical::lessthan(0,m_reducedCosts[variableIndex],optimalityTolerance) &&
+                    (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)){
                      m_reducedCostFeasibilities->insert(variableIndex,Simplex::PLUS);
-                        (*m_phaseIObjectiveValue)-=m_reducedCosts[variableIndex];
+                        (*m_phaseIObjectiveValue) -= m_reducedCosts[variableIndex];
                  }else{
 
     //nonbasic variables with F type infeasibility
 
-                     if(( !lessthan(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::PLUS) ||
-                             (lessOrEqual(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::MINUS) ||
-                             (equal(m_reducedCosts[variableIndex],0) && typeOfIthVariable==Variable::FREE)){
+                     if(( !Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                          typeOfIthVariable == Variable::PLUS) ||
+                             (Numerical::lessOrEqual(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                              typeOfIthVariable == Variable::MINUS) ||
+                             (Numerical::equal(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                              typeOfIthVariable == Variable::FREE)){
                          m_reducedCostFeasibilities->insert(variableIndex,Simplex::FEASIBLE);
                      }
                  }
