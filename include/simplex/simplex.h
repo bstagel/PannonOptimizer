@@ -14,6 +14,7 @@
 #include <utils/indexlist.h>
 
 class StartingBasisFinder;
+class Basis;
 
 class Simplex : public Method
 {
@@ -58,7 +59,7 @@ protected:
 
     std::vector<int> m_basisHead;
     //Template parameter holds the value of the variable
-    IndexList<Numerical::Double> m_variableStates;
+    IndexList<const Numerical::Double*> m_variableStates;
     IndexList<> m_variableFeasibilities;
     IndexList<> m_reducedCostFeasibilities;
     Vector m_basicVariableValues;
@@ -68,6 +69,7 @@ protected:
 
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
+    Basis* m_basis;
 
     void constraintAdded();
     void variableAdded();

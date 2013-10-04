@@ -56,7 +56,10 @@ public:
      * @construtor
      * @param model The assigned model.
      */
-    PfiBasis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates);
+    PfiBasis(const SimplexModel& model,
+             std::vector<int>* basisHead,
+             IndexList<const Numerical::Double*>* variableStates,
+             const Vector& basicVariableValues);
     /**
      * Destruct the PfiBasis object and frees up the allocated memory.
      *

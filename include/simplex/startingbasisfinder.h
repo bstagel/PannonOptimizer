@@ -37,7 +37,7 @@ public:
 
     StartingBasisFinder(const SimplexModel& model,
                         std::vector<int>* basisHead,
-                        IndexList<Numerical::Double>* variableStates,
+                        IndexList<const Numerical::Double*>* variableStates,
                         Vector* basicVariableValues);
     ~StartingBasisFinder();
 
@@ -59,7 +59,7 @@ public:
 private:
     const SimplexModel & m_model;
     std::vector<int>* m_basisHead;
-    IndexList<Numerical::Double>* m_variableStates;
+    IndexList<const Numerical::Double*>* m_variableStates;
     Vector* m_basicVariableValues;
 
     SbfSuper* m_algorithm;

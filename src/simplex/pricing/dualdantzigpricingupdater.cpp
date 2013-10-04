@@ -14,10 +14,10 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
 {
 }
 
-DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig)
-{
-    __UNUSED(orig);
-}
+//DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig)
+//{
+//    __UNUSED(orig);
+//}
 
 DualDantzigPricingUpdater::~DualDantzigPricingUpdater()
 {

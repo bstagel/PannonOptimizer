@@ -14,8 +14,11 @@
 
 int PfiBasis::m_inversionCount = 0;
 
-PfiBasis::PfiBasis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates) :
-    Basis(model, basisHead, variableStates) {
+PfiBasis::PfiBasis(const SimplexModel& model,
+                   std::vector<int>* basisHead,
+                   IndexList<const Numerical::Double*>* variableStates,
+                   const Vector& basicVariableValues) :
+    Basis(model, basisHead, variableStates, basicVariableValues) {
     m_basis = new std::vector<ETM>();
 
     m_transformationCount = 0;
@@ -148,13 +151,13 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (
     int outgoing = m_basisHead->at(pivotRow);
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
     //TODO - ENNEK ITT UTÁNANÉZNI,HOGY HONNAN JÖN EZ AZ ÉRTÉK
-    if (Numerical::equals(m_variableStates->getAttachedData(outgoing), outgoingVariable.getLowerBound())) {
-        m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, outgoingVariable.getLowerBound());
-    } else if (Numerical::equals(m_variableStates->getAttachedData(outgoing), outgoingVariable.getUpperBound())) {
-        m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, outgoingVariable.getUpperBound());
+    if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound())) {
+        m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
+    } else if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound())) {
+        m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
     } else {
         LPERROR("Variable leaves the basis at value between lower at upper bound!");
-        LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << m_variableStates->getAttachedData(outgoing));
+        LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
         LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
         LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
         cerr.unsetf(ios_base::floatfield);
@@ -701,80 +704,81 @@ void PfiBasis::invertM() throw (NumericalException) {
 
         break;
     }
-//    case BLOCK_ORDERED_TRIANGULAR:{
-//        clock_t createBlockTriangularStart = clock();
-//        createBlockTriangular();
-//        clock_t createBlockTriangularStop = clock();
-//        cl_createBlockTriangular += createBlockTriangularStop - createBlockTriangularStart;
-//        {
-//            int blockStart = 0;
-//            for (std::vector<int>::iterator blockIt = m_mmBlocks->begin(); blockIt < m_mmBlocks->end(); blockIt++) {
-//                int currentBlock = blockIt - m_mmBlocks->begin();
-//                int currentBlockSize = *blockIt;
-//                std::multimap<int, int> columnOrders;
-//                int i;
-//                for (i = blockStart; i < blockStart + currentBlockSize; i++) {
-//                    columnOrders.insert(
-//                            std::make_pair((int) m_mmColumns->at(i).nonZeros(),
-//                                    m_mmColumnIndices->at(m_columnSwapHash->at(i))));
-//                }
-//                for (std::multimap<int, int>::iterator colIt = columnOrders.begin(); colIt != columnOrders.end(); colIt++) {
-//                    blockStart++;
-//                    int rowindex = -1;
-//                    int columnindex = colIt->second;
-//                    Vector* currentColumn = &(m_columns->at(columnindex));
-//                    if (nontriangularCheck(rowindex, currentColumn, currentBlock)) {
-//                        if (m_columns->at(columnindex).at(rowindex) != 0) {
-//                            DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
-//                            //Invert the chosen M column
-//                            pivot(currentColumn, rowindex);
-//                            m_basisNewHead.at(rowindex) = m_columnsHash->at(columnindex);
-//                            //Update the remaining columns
-//                            updateColumns(rowindex, columnindex);
-//                        } else {
-//                            DEVINFO(D::PFIMAKER, "M column " << columnindex << " is singular with pivot row " << rowindex);
-//                        }
-//                        //Update the row lists and row counts
-//                        for (Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero(); vectorIt
-//                                < currentColumn->endNonzero(); vectorIt++) {
-//                            if (m_rows->at(vectorIt.getIndex()).at(columnindex) != 0) {
-//                                m_rowCounts->at(vectorIt.getIndex())--;
-//                                m_rows->at(vectorIt.getIndex()).set(columnindex, 0);
-//                            }
-//                        }
-//                        //Update the column counts too
-//                        for (Vector::NonzeroIterator vectorIt = m_rows->at(rowindex).beginNonzero(); vectorIt
-//                                < m_rows->at(rowindex).endNonzero(); vectorIt++) {
-//                            m_columnCounts->at(vectorIt.getIndex())--;
-//                        }
-//                        //Delete the chosen row list
-//                        while (m_rows->at(rowindex).nonZeros() > 0) {
-//                            m_rows->at(rowindex).set(m_rows->at(rowindex).beginNonzero().getIndex(), 0);
-//                        }
-//                        //Set the column and row count to zero to represent that which column and row has been chosen.
-//                        m_rowCounts->at(rowindex) = -1;
-//                        m_columnCounts->at(columnindex) = -1;
-//                    } else {
-//                        LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" <<
-//                                columnindex << ")");
-//                        //Update the row lists and row counts
-//                        for (Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero(); vectorIt
-//                                < currentColumn->endNonzero(); vectorIt++) {
-//                            if (m_rows->at(vectorIt.getIndex()).at(columnindex) != 0) {
-//                                m_rowCounts->at(vectorIt.getIndex())--;
-//                                m_rows->at(vectorIt.getIndex()).set(columnindex, 0);
-//                            }
-//                        }
-//                        //Set the column count to zero to represent that which column is unstable.
-//                        m_columnCounts->at(columnindex) = -1;
-//                    }
-//                    mNum++;
-//                }
-//            }
-//        }
+    case BLOCK_ORDERED_TRIANGULAR:{
+        clock_t createBlockTriangularStart = clock();
+        createBlockTriangular();
+        clock_t createBlockTriangularStop = clock();
+        cl_createBlockTriangular += createBlockTriangularStop - createBlockTriangularStart;
+        {
+            int blockStart = 0;
+            for (std::vector<int>::iterator blockIt = m_mmBlocks->begin(); blockIt < m_mmBlocks->end(); blockIt++) {
+                int currentBlock = blockIt - m_mmBlocks->begin();
+                int currentBlockSize = *blockIt;
+                std::multimap<int, int> columnOrders;
+                int i;
+                for (i = blockStart; i < blockStart + currentBlockSize; i++) {
+                    columnOrders.insert(
+                            std::make_pair((int) m_mmColumns->at(i).nonZeros(),
+                                    m_mmColumnIndices->at(m_columnSwapHash->at(i))));
+                }
+                for (std::multimap<int, int>::iterator colIt = columnOrders.begin(); colIt != columnOrders.end(); colIt++) {
+                    blockStart++;
+                    int rowindex = -1;
+                    int columnindex = colIt->second;
+                    Vector* currentColumn = &(m_columns.at(columnindex));
+                    if (nontriangularCheck(rowindex, currentColumn, currentBlock)) {
+                        if (m_columns.at(columnindex).at(rowindex) != 0) {
+                            DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
+                            //Invert the chosen M column
 
-//        break;
-//    }
+                            pivot(*currentColumn, rowindex);
+                            m_basisNewHead.at(rowindex) = m_columnsHash.at(columnindex);
+                            //Update the remaining columns
+                            updateColumns(rowindex, columnindex);
+                        } else {
+                            DEVINFO(D::PFIMAKER, "M column " << columnindex << " is singular with pivot row " << rowindex);
+                        }
+                        //Update the row lists and row counts
+                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
+                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        for (; it < itend; it++) {
+                            if (m_rows.at(it.getIndex()).at(columnindex) != 0) {
+                                m_rowCounts.at(it.getIndex())--;
+                                m_rows.at(it.getIndex()).set(columnindex, 0);
+                            }
+                        }
+                        //Update the column counts too
+                        it = m_rows.at(rowindex).beginNonzero();
+                        itend = m_rows.at(rowindex).endNonzero();
+                        for (; it < itend; it++) {
+                            m_columnCounts.at(it.getIndex())--;
+                        }
+                        //Delete the chosen row list
+                        m_rows.at(rowindex).clear();
+                        //Set the column and row count to zero to represent that which column and row has been chosen.
+                        m_rowCounts.at(rowindex) = -1;
+                        m_columnCounts.at(columnindex) = -1;
+                    } else {
+                        LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
+                        //Update the row lists and row counts
+                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
+                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        for (; it < itend; it++) {
+                            if (m_rows.at(it.getIndex()).at(columnindex) != 0) {
+                                m_rowCounts.at(it.getIndex())--;
+                                m_rows.at(it.getIndex()).set(columnindex, 0);
+                            }
+                        }
+                        //Set the column count to zero to represent that which column is unstable.
+                        m_columnCounts.at(columnindex) = -1;
+                    }
+                    mNum++;
+                }
+            }
+        }
+
+        break;
+    }
     default:
         LPWARNING("No triangulatrization method defined!")
         ;

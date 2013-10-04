@@ -24,7 +24,7 @@ DualDantzigPricingFactory::~DualDantzigPricingFactory()
 
 DualPricingUpdater * DualDantzigPricingFactory::createDualPricingUpdater() const
 {
-    return new DualDantzigPricingUpdater;
+//    return new DualDantzigPricingUpdater;
 }
 
 DualPricing * DualDantzigPricingFactory::createDualPricing(const SimplexModel & model,

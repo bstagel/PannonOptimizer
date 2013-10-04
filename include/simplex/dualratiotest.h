@@ -13,11 +13,11 @@ class Model;
 
 class DualRatiotest{
 
-    typedef struct BreakPoints{
+    struct BreakPoints{
         unsigned int index;
         Numerical::Double value;
         Numerical::Double functionValue;
-    }BreakPoints;
+    };
 
 public:
     DualRatiotest(const Model & model);
@@ -36,7 +36,7 @@ public:
                                 const Vector& alpha,
                                 const Vector& reducedCosts,
                                 const IndexList<>& reducedCostFeasibilities,
-                                const IndexList<Numerical::Double>& variableStates,
+                                const IndexList<const Numerical::Double*>& variableStates,
                                 const DualFeasibilityChecker& feasibilityChecker,
                                 Numerical::Double phaseIObjectiveValue
                                 );
@@ -44,7 +44,7 @@ public:
                                 const Vector& alpha,
                                 const Vector& reducedCosts,
                                 Numerical::Double objVal,
-                                const IndexList<Numerical::Double>& variableStates
+                                const IndexList<const Numerical::Double*>& variableStates
                                 );
 private:
     Model const& m_model;

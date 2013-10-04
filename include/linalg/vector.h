@@ -333,7 +333,7 @@ public:
      * @param index The index of the element of we need
      * @return The index'th element of vector
      */
-    Numerical::Double at(unsigned int index) const;
+    const Numerical::Double &at(unsigned int index) const;
 
     /**
      * Returns with the pointer of the index'th dense element.

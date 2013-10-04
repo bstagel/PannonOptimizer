@@ -18,7 +18,7 @@ public:
     DualDantzigPricingUpdater(const Vector & basicVariableValues,
                               IndexList<> variableFeasibilities,
                               std::vector<int> basisHead);
-    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
+//    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
     virtual ~DualDantzigPricingUpdater();
 private:
 

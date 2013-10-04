@@ -575,7 +575,7 @@ Vector Vector::operator+(const Vector& vector) const
     return ret;
 }
 
-Numerical::Double Vector::at(unsigned int index) const
+const Numerical::Double& Vector::at(unsigned int index) const
 {
 
     if (m_vectorType == DENSE_VECTOR) {
@@ -588,11 +588,11 @@ Numerical::Double Vector::at(unsigned int index) const
             return *value;
         } else {
             CHECK;
-            return 0.0;
+            return ZERO;
         }
     }
     CHECK;
-    return 0;
+    return ZERO;
 }
 
 const Numerical::Double * Vector::getDenseElementPointer(unsigned int index) const {

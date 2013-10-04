@@ -49,7 +49,7 @@ void DualRatiotest::performRatioTestPhase1(unsigned int outgoing,
                                             const Vector& alpha,
                                             const Vector& reducedCosts,
                                             const IndexList<>& reducedCostFeasibilities,
-                                            const IndexList<Numerical::Double>& variableStates,
+                                            const IndexList<const Numerical::Double*>& variableStates,
                                             const DualFeasibilityChecker& feasibilityChecker,
                                             Numerical::Double phaseIObjectiveValue){
     m_updateVector.clear();
@@ -243,7 +243,7 @@ void DualRatiotest::performRatioTestPhase1(unsigned int outgoing,
 
 //determining primal steplength
 
-    Numerical::Double valueOfOutgoingVariable=variableStates.getAttachedData(m_outgoingVariableIndex);
+    Numerical::Double valueOfOutgoingVariable=*(variableStates.getAttachedData(m_outgoingVariableIndex));
     if(typeOfIthVariable==Variable::FIXED){
         m_primalSteplength=(valueOfOutgoingVariable-m_model.getVariable(m_outgoingVariableIndex).getLowerBound())/alpha[m_outgoingVariableIndex];
     }
@@ -334,7 +334,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
                                             const Vector& alpha,
                                             const Vector& reducedCosts,
                                             Numerical::Double objVal,
-                                            const IndexList<Numerical::Double>& variableStates){
+                                            const IndexList<const Numerical::Double*>& variableStates){
     std::vector<BreakPoints> breakpoints;
     Numerical::Double functionSlope;
     Numerical::Double previousSlope=0;
@@ -352,18 +352,18 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
 //determining t>0 or t<0 cases
 
-    if( variableStates.getAttachedData(m_outgoingVariableIndex) < m_model.getVariable(m_outgoingVariableIndex).getLowerBound()){
+    if( *(variableStates.getAttachedData(m_outgoingVariableIndex)) < m_model.getVariable(m_outgoingVariableIndex).getLowerBound()) {
         tPositive=true;
-    }else if(variableStates.getAttachedData(m_outgoingVariableIndex) > m_model.getVariable(m_outgoingVariableIndex).getUpperBound()){
+    } else if( *(variableStates.getAttachedData(m_outgoingVariableIndex)) > m_model.getVariable(m_outgoingVariableIndex).getUpperBound()) {
         tPositive=false;
     }
 
 //computing ratios
 
     Variable::VARIABLE_TYPE typeOfIthVariable;
-    IndexList<Numerical::Double>::Iterator it;
-    IndexList<Numerical::Double>::Iterator endit;
-    variableStates.getIterators(&it,&endit,Simplex::BASIC,Simplex::FEASIBILITY_ENUM_LENGTH);
+    IndexList<const Numerical::Double*>::Iterator it;
+    IndexList<const Numerical::Double*>::Iterator endit;
+    variableStates.getIterators(&it,&endit,0,Simplex::FEASIBILITY_ENUM_LENGTH);
     unsigned int variableIndex=it.getData();
 
     //t>=0 case
@@ -419,7 +419,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
             }
             it++;
         }
-        functionSlope=Numerical::fabs(variableStates.getAttachedData(m_outgoingVariableIndex));
+        functionSlope=Numerical::fabs(*(variableStates.getAttachedData(m_outgoingVariableIndex)));
 
     //t<=0 case
 
@@ -474,7 +474,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
             }
             it++;
         }
-        functionSlope=variableStates.getAttachedData(m_outgoingVariableIndex)-m_model.getVariable(m_outgoingVariableIndex).getUpperBound();
+        functionSlope=*(variableStates.getAttachedData(m_outgoingVariableIndex)) - m_model.getVariable(m_outgoingVariableIndex).getUpperBound();
         }
 
 //determining primal,dual steplength incoming variable
