@@ -27,6 +27,8 @@ class Numerical
             unsigned long long int m_bits;
         } m_number;
 
+    public:
+
         Summarizer()
         {
             m_negpos[0] = 0.0;

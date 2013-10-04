@@ -10,9 +10,11 @@
 
 class DualRatiotestUpdater{
     friend class DualRatiotest;
+
 public:
     DualRatiotestUpdater(IndexList<>* reducedcostFeasibilities,IndexList<Numerical::Double>* variableStates);
-    void updateFeasibilities(const std::vector<int>& updateVector);
+    void updateFeasibilities();
+
 private:
     IndexList<> * m_reducedcostFeasibilities;
     IndexList<Numerical::Double> * m_variableStates;

@@ -7,7 +7,7 @@ static const Numerical::Double optimalityTolerance =
         SimplexParameterHandler::getInstance().getParameterValue("e_optimality");
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
-                                               const IndexList<Numerical::Double>& variableStates,
+                                               const IndexList<const Numerical::Double*>& variableStates,
                                                IndexList<>* reducedCostFeasibilities,
                                                const Vector& reducedCosts,
                                                Numerical::Double* phaseIObjectiveValue):
