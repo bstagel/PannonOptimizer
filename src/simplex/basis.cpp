@@ -6,10 +6,14 @@
 
 #include <fstream>
 
-Basis::Basis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates) :
+Basis::Basis(const SimplexModel& model,
+             std::vector<int>* basisHead,
+             IndexList<const Numerical::Double*>* variableStates,
+             const Vector &basicVariableValues) :
     m_model(model),
     m_basisHead(basisHead),
-    m_variableStates(variableStates)
+    m_variableStates(variableStates),
+    m_basicVariableValues(basicVariableValues)
 {
     m_isFresh = false;
 }
@@ -133,16 +137,17 @@ void Basis::setNewHead() {
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = true;
     }
-    //TODO beállítani a basis listát!
     //Update the basis head with the recomputed one
     m_basisHead->assign(m_basisNewHead.begin(), m_basisNewHead.end());
     //Set the basic variables state and remove their traces from the pattern vector
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = false;
-        //TODO mit ad vissza ha egyikbe sincs benne?????
-//        if (m_variableStates.where(*it) != Simplex::BASIC){
-//            if()
-//        }.m_model.getVariable(*it).setState(Variable::BASIC);
+        if (m_variableStates->where(*it) >= Simplex::VARIABLE_STATE_ENUM_LENGTH){
+            LPERROR("A varible is not in variablestates!")
+            //TODO exception
+        } else if(m_variableStates->where(*it) != Simplex::BASIC) {
+            m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
+        }
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
     //are aout of the basis, these must be marked as nonbasic and their states must be updated too.
@@ -150,15 +155,15 @@ void Basis::setNewHead() {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);
             if (variable.getType() == Variable::FREE) {
-                m_variableStates->insert(Simplex::NONBASIC_FREE, *it, 0.);
+                m_variableStates->insert(Simplex::NONBASIC_FREE, *it, &ZERO);
             } else if (variable.getType() == Variable::MINUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, *it, variable.getUpperBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_UB, *it, &(variable.getUpperBound()));
                 return;
             } else if (variable.getType() == Variable::PLUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, variable.getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, &(variable.getLowerBound()));
                 return;
             } else {
-                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, variable.getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, &(variable.getLowerBound()));
                 return;
             }
         }

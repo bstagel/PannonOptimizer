@@ -21,7 +21,7 @@ typedef pair<int,int> intpair;
 
 SbfSuper::SbfSuper(const SimplexModel& model,
                    std::vector<int>* basisHead,
-                   IndexList<Numerical::Double>* variableStates,
+                   IndexList<const Numerical::Double *> *variableStates,
                    Vector* basicVariableValues):
     m_model(model),
     m_basisHead(basisHead),
@@ -41,19 +41,19 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
     const Variable& variable = m_model.getVariable(variableIndex);
     if (state == Simplex::NONBASIC_AT_LB || state == Simplex::NONBASIC_AT_UB) {
         if (variable.getType() == Variable::FREE) {
-            m_variableStates->insert(Simplex::NONBASIC_FREE, variableIndex, 0.);
+            m_variableStates->insert(Simplex::NONBASIC_FREE, variableIndex, &ZERO);
         } else if (variable.getType() == Variable::MINUS) {
-            m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
+            m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, &(variable.getUpperBound()));
             return;
         } else if (variable.getType() == Variable::PLUS) {
-            m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, variable.getLowerBound());
+            m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, &(variable.getLowerBound()));
             return;
         } else {
             if (state == Simplex::NONBASIC_AT_LB) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, variable.getLowerBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, &(variable.getLowerBound()));
                 return;
             } else{
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, variable.getUpperBound());
+                m_variableStates->insert(Simplex::NONBASIC_AT_UB, variableIndex, &(variable.getUpperBound()));
                 return;
             }
         }

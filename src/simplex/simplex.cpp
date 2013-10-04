@@ -8,6 +8,7 @@
 #include <utils/exceptions.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/startingbasisfinder.h>
+#include <simplex/pfibasis.h>
 #include <globals.h>
 
 Simplex::Simplex():
@@ -19,13 +20,16 @@ Simplex::Simplex():
     m_reducedCosts(0),
     m_objectiveValue(0),
     m_phaseIObjectiveValue(0),
-    m_startingBasisFinder(NULL)
+    m_startingBasisFinder(NULL),
+    m_basis(NULL)
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
 }
 
 Simplex::~Simplex() {
+    releaseModules();
+
     if(m_simplexModel){
         delete m_simplexModel;
         m_simplexModel = 0;
@@ -75,6 +79,12 @@ void Simplex::solve() {
 
     try {
         timer.start();
+        m_basicVariableValues.prepareForData(m_simplexModel->getRhs().nonZeros(), m_basicVariableValues.length(), DENSE);
+        Vector::NonzeroIterator it = m_simplexModel->getRhs().beginNonzero();
+        Vector::NonzeroIterator itend = m_simplexModel->getRhs().endNonzero();
+        for(; it < itend; it++){
+            m_basicVariableValues.newNonZero(*it, it.getIndex());
+        }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
         for (iterationIndex = 0;
@@ -161,6 +171,13 @@ void Simplex::solve() {
 
 void Simplex::initModules() {
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates, &m_basicVariableValues);
+    double factorizationType = SimplexParameterHandler::getInstance().getParameterValue("factorization_type");
+    if (factorizationType == 0){
+        m_basis = new PfiBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
+    } else {
+        LPERROR("Wrong parameter: factorization_type");
+        //TODO: Throw parameter exception
+    }
 }
 
 void Simplex::releaseModules() {
@@ -168,10 +185,20 @@ void Simplex::releaseModules() {
         delete m_startingBasisFinder;
         m_startingBasisFinder = 0;
     }
+    if(m_basis){
+        delete m_basis;
+        m_basis = 0;
+    }
 }
 
 const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
-    return std::vector<Numerical::Double>();
+    std::vector<Numerical::Double> result;
+    unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
+    result.reserve(totalVariableCount);
+    for(unsigned int i = 0; i<totalVariableCount; i++) {
+        result[i] = *(m_variableStates.getAttachedData(i));
+    }
+    return result;
 }
 
 
@@ -182,7 +209,7 @@ const std::vector<Numerical::Double> Simplex::getDualSolution() const {
 
 
 void Simplex::reinvert() throw (NumericalException) {
-
+    m_basis->invert();
 }
 
 void Simplex::computeBasicSolution() throw (NumericalException) {

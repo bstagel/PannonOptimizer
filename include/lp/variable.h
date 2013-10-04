@@ -240,7 +240,7 @@ public:
      * 
      * @return The lower bound of the variable.
      */
-    inline Numerical::Double getLowerBound() const;
+    inline const Numerical::Double &getLowerBound() const;
 
     /**
      * Sets the lower bound of the variable.
@@ -259,7 +259,7 @@ public:
      *
      * @return The upper bound of the variable.
      */
-    inline Numerical::Double getUpperBound() const;
+    inline const Numerical::Double &getUpperBound() const;
 
     /**
      * Sets the upper bound of the variable.
@@ -414,7 +414,7 @@ inline Variable::Variable(Numerical::Double lowerBound,
     adjustType();
 }
 
-inline Numerical::Double Variable::getLowerBound() const
+inline const Numerical::Double& Variable::getLowerBound() const
 {
     return m_lowerBound;
 }
@@ -432,7 +432,7 @@ inline Variable::VARIABLE_TYPE Variable::getType() const
     return m_type;
 }
 
-inline Numerical::Double Variable::getUpperBound() const
+inline const Numerical::Double& Variable::getUpperBound() const
 {
     return m_upperBound;
 }

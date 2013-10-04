@@ -4,7 +4,7 @@
 #include <simplex/simplexparameterhandler.h>
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
-                                               const IndexList<Numerical::Double>& variableStates,
+                                               const IndexList<const Numerical::Double*>& variableStates,
                                                IndexList<>* reducedCostFeasibilities,
                                                const Vector& reducedCosts,
                                                Numerical::Double* phaseIObjectiveValue):

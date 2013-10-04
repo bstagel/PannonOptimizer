@@ -29,7 +29,10 @@ public:
         DEFAULT_BTRAN
     };
 
-    Basis(const SimplexModel& model, std::vector<int>* basisHead, IndexList<Numerical::Double>* variableStates);
+    Basis(const SimplexModel& model,
+          std::vector<int>* basisHead,
+          IndexList<const Numerical::Double*>* variableStates,
+          const Vector& basicVariableValues);
     virtual ~Basis();
 
     /**
@@ -54,7 +57,8 @@ protected:
     const SimplexModel& m_model;
 
     std::vector<int>* m_basisHead;
-    IndexList<Numerical::Double>* m_variableStates;
+    IndexList<const Numerical::Double*>* m_variableStates;
+    const Vector& m_basicVariableValues;
 
     std::vector<int> m_basisNewHead;
 

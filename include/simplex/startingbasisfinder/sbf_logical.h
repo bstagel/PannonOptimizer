@@ -24,7 +24,7 @@ public:
 
     SbfLogical(const SimplexModel& model,
                std::vector<int>* basisHead,
-               IndexList<Numerical::Double>* variableStates,
+               IndexList<const Numerical::Double*>* variableStates,
                Vector* basicVaraibleValues,
                LOGICAL_BASIS_STRATEGY strategy);
 	virtual ~SbfLogical();

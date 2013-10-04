@@ -11,7 +11,7 @@
 
 SbfLogical::SbfLogical(const SimplexModel& model,
                        std::vector<int>* basisHead,
-                       IndexList<Numerical::Double>* variableStates,
+                       IndexList<const Numerical::Double*>* variableStates,
                        Vector* basicVaraibleValues,
                        LOGICAL_BASIS_STRATEGY strategy):
     SbfSuper(model, basisHead, variableStates, basicVaraibleValues),
@@ -37,10 +37,7 @@ void SbfLogical::run()
     /* Basic variables: set state to BASIC */
     for (i=0, j=basisSize; i < basisSize; i++, j++) {
         m_basisHead->push_back(j);
-        //TODO: X_B pointere
-        Numerical::Double RHSValue = m_model.getRhs().at(j);
-        m_variableStates->insert(Simplex::BASIC, j , RHSValue);
-        m_basicVariableValues->set(j, RHSValue);
+        m_variableStates->insert(Simplex::BASIC, j);
     }
 
     /* Nonbasic variables: set state to NONBASIC_AT_UB/LB depending on the strategy used */

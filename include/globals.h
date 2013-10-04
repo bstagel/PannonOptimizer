@@ -17,6 +17,8 @@
 //  #error ERROR: PLEASE COMPILE WITH C++0x11!
 #endif
 
+const double ZERO = 0.0;
+
 enum OBJECTIVE_TYPE
 {
     MINIMIZE = 0,
