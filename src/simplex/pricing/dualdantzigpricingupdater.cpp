@@ -7,7 +7,10 @@
 
 #include <simplex/pricing/dualdantzigpricingupdater.h>
 
-DualDantzigPricingUpdater::DualDantzigPricingUpdater()
+DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariableValues,
+                                                     IndexList<> variableFeasibilities,
+                                                     std::vector<int> basisHead):
+    DualPricingUpdater(basicVariableValues, variableFeasibilities, basisHead)
 {
 }
 

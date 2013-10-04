@@ -647,6 +647,14 @@ public:
 
     void scaleByLambdas(const std::vector<Numerical::Double> & lambdas);
 
+    /**
+     * Swaps the content of vector1 and vector2. The complexity is O(1).
+     *
+     * @param vector1
+     * @param vector2
+     */
+    static void swap(Vector * vector1, Vector * vector2);
+
 protected:
     /**
      * Describes the type of vector. When the value of m_vectorType is DENSE_VECTOR

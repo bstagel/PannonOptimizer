@@ -115,6 +115,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/defaultparameters.cpp \
            src/simplex/dualfeasibilitychecker.cpp \
     	   src/simplex/dualratiotest.cpp \
-    	   src/simplex/dualratiotestupdater.cpp
+    	   src/simplex/dualratiotestupdater.cpp \
+    src/simplex/dualpricing.cpp \
+    src/simplex/dualpricingupdater.cpp
 
 OBJECTS_DIR = .o

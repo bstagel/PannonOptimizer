@@ -471,9 +471,9 @@ public:
         }
 
         /**
-         * Returns with the stored pointer of the current element.
+         * Returns with the stored attached data of the current element.
          *
-         * @return The stored pointer.
+         * @return The stored attached data.
          */
         inline const void * getPointer() const{
             return m_actual->m_pointer;

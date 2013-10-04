@@ -20,7 +20,8 @@ public:
     virtual ~DualDantzigPricingFactory();
     
     DualPricingUpdater * createDualPricingUpdater() const;
-    DualPricing * createDualPricing() const;    
+    DualPricing * createDualPricing(const SimplexModel & model,
+                                    const DualPricingUpdater & updater) const;
 private:
 
 };
