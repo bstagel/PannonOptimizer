@@ -1,10 +1,8 @@
 #include "simplex/dualratiotestupdater.h"
 #include "simplex/simplex.h"
 
-DualRatiotestUpdater::DualRatiotestUpdater(IndexList<>* reducedcostFeasiblities,
-                                           IndexList<Numerical::Double>* variableStates):
-    m_reducedcostFeasibilities(reducedcostFeasiblities),
-    m_variableStates(variableStates)
+DualRatiotestUpdater::DualRatiotestUpdater(IndexList<>* reducedcostFeasiblities):
+    m_reducedcostFeasibilities(reducedcostFeasiblities)
 {
 
 }

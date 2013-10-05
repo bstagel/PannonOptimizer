@@ -27,24 +27,25 @@ Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alp
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
     Variable::VARIABLE_TYPE typeOfIthVariable;
-    m_reducedCostFeasibilities->getIterators(&it,&endit,Simplex::MINUS,2);
+    m_reducedCostFeasibilities->getIterators(&it,&endit,0,2);
     unsigned int variableIndex = it.getData();
-        for(;it!=endit;it++){
+
+        for(; it != endit; it++){
             if(m_variableStates.where(variableIndex) != Simplex::BASIC){
-                typeOfIthVariable=m_model.getVariable(variableIndex).getType();
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
     //nonbasic variables with M type infeasibility
 
-                if(m_reducedCosts[variableIndex]<0 &&
-                    (typeOfIthVariable==Variable::PLUS || typeOfIthVariable==Variable::FREE)){
-                    phaseIreducedCost+=alpha[variableIndex];
+                if(m_reducedCosts[variableIndex] < 0 &&
+                    (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)){
+                    phaseIreducedCost += alpha[variableIndex];
                 }else
 
     //nonbasic variables with P type infeasibility
 
-                 if(m_reducedCosts[variableIndex]>0 &&
-                    (typeOfIthVariable==Variable::MINUS || typeOfIthVariable==Variable::FREE)){
-                    phaseIreducedCost-=alpha[variableIndex];
+                 if(m_reducedCosts[variableIndex] > 0 &&
+                    (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)){
+                    phaseIreducedCost -= alpha[variableIndex];
                  }
             }
         }
@@ -52,14 +53,18 @@ Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alp
 }
 
 bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeasibilities){
-    IndexList<>::Iterator it;
-    IndexList<>::Iterator endit;
-    reducedCostFeasibilities.getIterators(&it,&endit,1,2);
+    IndexList<>::Iterator setMit;
+    IndexList<>::Iterator setMendit;
+    IndexList<>::Iterator setPit;
+    IndexList<>::Iterator setPendit;
 
-    if(it!=endit){
-        return false;
+    reducedCostFeasibilities.getIterators(&setMit,&setMendit,Simplex::MINUS,1);
+    reducedCostFeasibilities.getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+
+    if( (setMit == setMendit) && (setPit == setPendit) ){
+        return true;
     }
-    return true;
+    return false;
 }
 
 void DualFeasibilityChecker::computeFeasibility(){
@@ -73,17 +78,18 @@ void DualFeasibilityChecker::computeFeasibility(){
 
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
-    m_reducedCostFeasibilities->getIterators(&it,&endit,1,3);
+    m_reducedCostFeasibilities->getIterators(&it,&endit,0,3);
     Variable::VARIABLE_TYPE typeOfIthVariable;
     unsigned int variableIndex = it.getData();
-        for(;it!=endit;it++){
+
+        for(; it != endit; it++){
             if(m_variableStates.where(variableIndex) != Simplex::BASIC){
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
     //nonbasic variables with M type infeasibility
 
                 if(Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
-                    (typeOfIthVariable == Variable::PLUS || typeOfIthVariable==Variable::FREE)){
+                    (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)){
                     m_reducedCostFeasibilities->insert(variableIndex,Simplex::MINUS);
                         (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
                 }else
