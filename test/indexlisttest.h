@@ -21,6 +21,14 @@ public:
 private:
 
     void init();
+    void getPartitionCount();
+    void getIndexCount();
+    void insert();
+    void where();
+    void attachedData();
+    void remove();
+    void move();
+    void firstElement();
 };
 
 #endif	/* _INDEXLISTTEST_H_ */

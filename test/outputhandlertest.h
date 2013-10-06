@@ -13,7 +13,9 @@ public:
 
 private:
     void init();
-    void change();
+    void changeMessage();
+    void changeWarning();
+    void changeError();
 };
 
 #endif // OUTPUTHANDLERTEST_H
