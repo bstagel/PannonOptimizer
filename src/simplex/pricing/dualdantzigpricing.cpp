@@ -45,5 +45,6 @@ unsigned int DualDantzigPricing::performPricingPhase2() throw (OptimalException)
     if ( m_updater.m_phase2Index == -1 ) {
         throw OptimalException("Optimal solution found.");
     }
+    m_reducedCost = m_updater.m_phase2ReducedCost;
     return m_updater.m_phase2Index;
 }
