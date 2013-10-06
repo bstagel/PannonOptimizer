@@ -23,7 +23,8 @@ public:
                                                   const IndexList<> & variableFeasibilities,
                                                   const IndexList<> & reducedCostFeasibilities,
                                                   const std::vector<int> & basisHead,
-                                                  const SimplexModel & simplexModel) const;
+                                                  const SimplexModel & simplexModel,
+                                                  const Basis & basis) const;
     DualPricing * createDualPricing(const SimplexModel & model,
                                     const DualPricingUpdater & updater) const;
 private:
