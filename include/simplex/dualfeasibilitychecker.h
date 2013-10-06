@@ -18,13 +18,15 @@ public:
 
     bool checkFeasibility(const IndexList<>& reducedCostFeasibilities);
     void computeFeasibility();
+
+    //TODO: this function does not belong here
     Numerical::Double getPhaseIreducedCost(const Vector& alpha)const;
 
 private:
     const SimplexModel& m_model;
+    const Vector& m_reducedCosts;
     const IndexList<const Numerical::Double*>& m_variableStates;
     IndexList<>* m_reducedCostFeasibilities;
-    const Vector& m_reducedCosts;
     Numerical::Double* m_phaseIObjectiveValue;
 };
 

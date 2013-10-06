@@ -15,7 +15,7 @@ class Model;
 
 class DualRatiotest{
 
-    struct BreakPoints{
+    struct BreakPoint{
         unsigned int index;
         Numerical::Double value;
         Numerical::Double functionValue;
@@ -53,6 +53,7 @@ public:
                                 Numerical::Double objectiveFunction,
                                 const IndexList<const Numerical::Double*>& variableStates
                                 );
+
 private:
     const Model& m_model;
     DualRatiotestUpdater& m_dualRatiotestUpdater;
@@ -63,10 +64,10 @@ private:
     Numerical::Double m_objectiveFunctionPhase1;
     Numerical::Double m_objectiveFunctionPhase2;
     std::vector <unsigned int> m_boundflips;
-    std::vector <BreakPoints> breakpoints;
+    std::vector <BreakPoint> breakpoints;
 
-    void shift(std::vector<BreakPoints>* breakpoints, unsigned int startid, unsigned int stopid);
-    void getNextElement(std::vector<BreakPoints>* breakpoints, unsigned int startingPosition, unsigned int length);
+    void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
+    void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
 
 };
 #endif // DUAL_RATIOTEST_H
