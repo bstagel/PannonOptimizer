@@ -21,8 +21,6 @@ void DualSimplex::initModules() {
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
     DualPricingFactory * pricingFactory = new DualDantzigPricingFactory;
-    m_updater = new DualUpdater;
-    DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater();
 
     m_updater = new DualUpdater;
     DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater(

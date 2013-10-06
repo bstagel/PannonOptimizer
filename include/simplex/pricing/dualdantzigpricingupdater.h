@@ -22,7 +22,7 @@ public:
                               const IndexList<> & reducedCostFeasibilities,
                               const std::vector<int> & basisHead,
                               const SimplexModel & simplexModel);
-//    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
+    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
 
     DualDantzigPricingUpdater & operator = (const DualDantzigPricingUpdater & orig);
 
