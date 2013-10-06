@@ -12,7 +12,9 @@
 #include <linalg/vector.h>
 #include <utils/indexlist.h>
 #include <simplex/simplexmodel.h>
+#include <simplex/basis.h>
 #include <vector>
+
 
 class DualPricingUpdater {
 public:
@@ -20,7 +22,8 @@ public:
                        const IndexList<> & variableFeasibilities,
                        const IndexList<> & reducedCostFeasibilities,
                        const std::vector<int> & basisHead,
-                       const SimplexModel & simplexModel);
+                       const SimplexModel & simplexModel,
+                       const Basis & basis);
     virtual ~DualPricingUpdater();
 
     virtual void updatePhase1() = 0;
@@ -37,6 +40,8 @@ protected:
     const std::vector<int> & m_basisHead;
 
     const SimplexModel & m_simplexModel;
+
+    const Basis & m_basis;
 };
 
 #endif	/* DUALPRICINGUPDATER_H */

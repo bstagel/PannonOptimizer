@@ -12,6 +12,7 @@
 
 #include <simplex/dualpricingupdater.h>
 #include <simplex/simplexmodel.h>
+#include <simplex/basis.h>
 
 class DualDantzigPricingUpdater: public DualPricingUpdater
 {
@@ -21,7 +22,8 @@ public:
                               const IndexList<> & variableFeasibilities,
                               const IndexList<> & reducedCostFeasibilities,
                               const std::vector<int> & basisHead,
-                              const SimplexModel & simplexModel);
+                              const SimplexModel & simplexModel,
+                              const Basis & basis);
     DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
 
     DualDantzigPricingUpdater & operator = (const DualDantzigPricingUpdater & orig);

@@ -12,9 +12,11 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
                                                      const IndexList<> & variableFeasibilities,
                                                      const IndexList<> & reducedCostFeasibilities,
                                                      const std::vector<int> & basisHead,
-                                                     const SimplexModel & simplexModel):
+                                                     const SimplexModel & simplexModel,
+                                                     const Basis & basis):
     DualPricingUpdater(basicVariableValues, variableFeasibilities,
-                       reducedCostFeasibilities, basisHead, simplexModel)
+                       reducedCostFeasibilities, basisHead, simplexModel,
+                       basis)
 {
     m_phase1ReducedCosts = new Numerical::Double[ simplexModel.getRowCount() ];
     clearPhase1ReducedCosts();
@@ -63,9 +65,9 @@ void DualDantzigPricingUpdater::updatePhase1() {
     clearPhase1ReducedCosts();
     IndexList<>::Iterator iter, iterEnd;
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS, 1);
-
+    unsigned int index;
     for (; iter != iterEnd; iter++) {
-        unsigned int index = iter.getData();
+        index = iter.getData();
         if (index >= variableCount) {
             Numerical::stableAddTo( m_phase1ReducedCosts[ variableCount - index ], 1 );
         } else {
@@ -80,7 +82,7 @@ void DualDantzigPricingUpdater::updatePhase1() {
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS, 1);
 
     for (; iter != iterEnd; iter++) {
-        unsigned int index = iter.getData();
+        index = iter.getData();
         if (index >= variableCount) {
             Numerical::stableSubFrom( m_phase1ReducedCosts[ variableCount - index ], 1 );
         } else {
@@ -90,6 +92,25 @@ void DualDantzigPricingUpdater::updatePhase1() {
                 Numerical::stableSubFrom( m_phase1ReducedCosts[columnIter.getIndex()], *columnIter );
             }
         }
+    }
+    unsigned int nonzeros = 0;
+    for (index = 0; index < matrix.rowCount(); index++) {
+        nonzeros += m_phase1ReducedCosts[index] != 0.0;
+    }
+
+    Vector temp;
+    temp.prepareForData( nonzeros, matrix.rowCount(), 0.0);
+    for (index = 0; index < matrix.rowCount(); index++) {
+        if (m_phase1ReducedCosts[index] != 0.0) {
+            temp.newNonZero( m_phase1ReducedCosts[index], index );
+        }
+    }
+    m_basis.Ftran(temp);
+    clearPhase1ReducedCosts();
+    Vector::NonzeroIterator vectorIter = temp.beginNonzero();
+    Vector::NonzeroIterator vectorIterEnd = temp.endNonzero();
+    for (; vectorIter < vectorIterEnd; vectorIter++) {
+        m_phase1ReducedCosts[ vectorIter.getIndex() ] = *vectorIter;
     }
 }
 

@@ -28,7 +28,8 @@ void DualSimplex::initModules() {
                 m_variableFeasibilities,
                 m_reducedCostFeasibilities,
                 m_basisHead,
-                *m_simplexModel
+                *m_simplexModel,
+                *m_basis
                 );
     m_updater->setPricingUpdater( pricingUpdater );
 

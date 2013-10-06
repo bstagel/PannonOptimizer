@@ -24,7 +24,8 @@ public:
                                                           const IndexList<> & variableFeasibilities,
                                                           const IndexList<> & reducedCostFeasibilities,
                                                           const std::vector<int> & basisHead,
-                                                          const SimplexModel & simplexModel) const = 0;
+                                                          const SimplexModel & simplexModel,
+                                                          const Basis & basis) const = 0;
     virtual DualPricing * createDualPricing(const SimplexModel & model,
                                             const DualPricingUpdater & updater) const = 0;
 };
