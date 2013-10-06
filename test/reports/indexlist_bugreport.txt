@@ -1,0 +1,12 @@
+INDEXLIST CLASS BUGREPORT
+
+***************************************************
+2013. 10. 06.
+***************************************************
+
+IndexList(const IndexList & list):
+Should toggle headers' m_header variable.
+Should set unused indices m_partition to highest partition index plus 1.
+
+previous():
+Should pay attention to the m_borders set of the Iterator.

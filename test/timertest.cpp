@@ -21,24 +21,26 @@ void TimerTestSuite::elapsedTime() {
     Timer timer;
     double totalTime = 0;
     for (index = 0; index < count; index++) {
-        const double lowerTime = testTimes[index] - tolerance;
-        const double upperTime = testTimes[index] + tolerance;
+        const double lowerTime = (testTimes[index] - tolerance) * 1000000;
+        const double upperTime = (testTimes[index] + tolerance) * 1000000;
         totalTime += testTimes[index];
-        clock_t start, end;
+        clock_t start, end, endPlusOne;
         LPINFO("Testing time interval: " << testTimes[index] << " sec");
         timer.start();
         start = clock();
         do {
             end = clock();
         } while (((end - start) / (double)CLOCKS_PER_SEC) < testTimes[index] );
+        endPlusOne = clock();
         timer.stop();
+        end = (end + endPlusOne) / 2;
 
         TEST_ASSERT( timer.getLastElapsed() >= lowerTime );
         TEST_ASSERT( timer.getLastElapsed() <= upperTime );
     }
     const double totalTolerance = 0.05;
-    const double lowerTime = totalTime - totalTolerance;
-    const double upperTime = totalTime + totalTolerance;
+    const double lowerTime = (totalTime - totalTolerance) * 1000000;
+    const double upperTime = (totalTime + totalTolerance) * 1000000;
 
     TEST_ASSERT( timer.getTotalElapsed() >= lowerTime );
     TEST_ASSERT( timer.getTotalElapsed() <= upperTime );

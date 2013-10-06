@@ -12,9 +12,9 @@ DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
                                                const Vector& reducedCosts,
                                                Numerical::Double* phaseIObjectiveValue):
     m_model(model),
+    m_reducedCosts(reducedCosts),
     m_variableStates(variableStates),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
-    m_reducedCosts(reducedCosts),
     m_phaseIObjectiveValue(phaseIObjectiveValue)
 {
 
