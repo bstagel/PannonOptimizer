@@ -39,6 +39,8 @@ private:
 
     int m_phase2Index;
 
+    Numerical::Double m_phase2ReducedCost;
+
     void copy(const DualDantzigPricingUpdater & orig);
 
     void release();

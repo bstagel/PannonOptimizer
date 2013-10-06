@@ -20,6 +20,8 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
 {
     m_phase1ReducedCosts = new Numerical::Double[ simplexModel.getRowCount() ];
     clearPhase1ReducedCosts();
+    m_phase2ReducedCost = 0;
+    m_phase2Index = -1;
 }
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig):
@@ -48,6 +50,7 @@ void DualDantzigPricingUpdater::copy(const DualDantzigPricingUpdater & orig) {
     memcpy(m_phase1ReducedCosts, orig.m_phase1ReducedCosts,
            sizeof(Numerical::Double) * m_simplexModel.getRowCount());
     m_phase2Index = orig.m_phase2Index;
+    m_phase2ReducedCost = orig.m_phase2ReducedCost;
 }
 
 void DualDantzigPricingUpdater::release() {
@@ -140,5 +143,5 @@ void DualDantzigPricingUpdater::updatePhase2() {
             m_phase2Index = rowIndex;
         }
     }
-
+    m_phase2ReducedCost = max;
 }
