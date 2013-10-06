@@ -380,7 +380,7 @@ public:
      * @param targetPartition
      */
     inline void move(unsigned int value, unsigned int targetPartition, ATTACHED_TYPE attached = ATTACHED_TYPE()) {
-        Element<ATTACHED_TYPE> & element = m_dataArray[value];
+        /*Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = targetPartition;
 
         Element<ATTACHED_TYPE> * forward = m_heads[targetPartition].m_next;
@@ -388,7 +388,9 @@ public:
         element.m_next = forward;
         forward->m_previous = &element;
         element.m_previous = m_heads + targetPartition;
-        m_dataArray[value].m_attached = attached;
+        m_dataArray[value].m_attached = attached;*/
+        remove(value);
+        insert(targetPartition, value, attached);
     }
 
     /**
@@ -475,8 +477,8 @@ public:
          *
          * @return The stored attached data.
          */
-        inline const void * getPointer() const{
-            return m_actual->m_pointer;
+        inline const TYPE & getAttached() const{
+            return m_actual->m_attached;
         }
 
         /**

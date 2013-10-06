@@ -8,6 +8,7 @@
 #ifndef PRIMALUPDATER_H
 #define	PRIMALUPDATER_H
 
+#include <globals.h>
 #include <simplex/primalpricingupdater.h>
 
 class PrimalUpdater {

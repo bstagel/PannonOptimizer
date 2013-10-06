@@ -11,17 +11,37 @@
 #include <globals.h>
 
 #include <simplex/dualpricingupdater.h>
+#include <simplex/simplexmodel.h>
 
 class DualDantzigPricingUpdater: public DualPricingUpdater
 {
+    friend class DualDantzigPricing;
 public:
-    DualDantzigPricingUpdater(const Vector & basicVariableValues,
-                              IndexList<> variableFeasibilities,
-                              std::vector<int> basisHead);
+    DualDantzigPricingUpdater(const Vector &basicVariableValues,
+                              const IndexList<> & variableFeasibilities,
+                              const IndexList<> & reducedCostFeasibilities,
+                              const std::vector<int> & basisHead,
+                              const SimplexModel & simplexModel);
 //    DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
+
+    DualDantzigPricingUpdater & operator = (const DualDantzigPricingUpdater & orig);
+
     virtual ~DualDantzigPricingUpdater();
+
+    void updatePhase1();
+
+    void updatePhase2();
 private:
 
+    Numerical::Double * m_phase1ReducedCosts;
+
+    int m_phase2Index;
+
+    void copy(const DualDantzigPricingUpdater & orig);
+
+    void release();
+
+    void clearPhase1ReducedCosts();
 };
 
 #endif	/* DUALDANTZIGREPRICINGUPDATER_H */

@@ -5,17 +5,9 @@ DualPricing::DualPricing(const SimplexModel & model,
     m_model(model),
     m_updater(updater)
 {
-
+    m_reducedCost = 0.0;
 }
 
 DualPricing::~DualPricing() {
 
-}
-
-unsigned int DualPricing::performPricingPhase1() {
-    return 0;
-}
-
-unsigned int DualPricing::performPricingPhase2() {
-    return 0;
 }

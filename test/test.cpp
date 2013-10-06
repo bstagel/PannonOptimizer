@@ -17,7 +17,7 @@
 #include <modeltest.h>
 #include <mpsproblemtest.h>
 #include <timertest.h>
-//#include <outputhandlertest.h>
+#include <outputhandlertest.h>
 #include <linalgparameterhandlertest.h>
 #include <simplexparameterhandlertest.h>
 

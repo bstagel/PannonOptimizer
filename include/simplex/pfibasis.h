@@ -1,6 +1,7 @@
 #ifndef PFIBASIS_H
 #define PFIBASIS_H
 
+#include <globals.h>
 #include <vector>
 #include <list>
 

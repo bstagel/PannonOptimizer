@@ -2,7 +2,7 @@
 #define GLOBALS_H
 
 //using namespace std;
-
+#include <utils/memoryman.h>
 #include <climits>
 
 #define STATIC_ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))

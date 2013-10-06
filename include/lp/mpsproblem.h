@@ -200,7 +200,7 @@ public:
      * @param hash_func
      * @param size
      */
-    inline void init(HASH_FUNC hash_func, int size1, int size2)
+    inline void init(HASH_FUNC hash_func, unsigned int size1, unsigned int size2)
     {
         m_hash_func = hash_func;
         m_table.resize(size1);

@@ -1,6 +1,7 @@
 #ifndef OUTPUTHANDLER_H
 #define OUTPUTHANDLER_H
 
+#include <globals.h>
 #include <sstream>
 
 class GeneralMessageHandler {

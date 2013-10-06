@@ -1,6 +1,8 @@
 #ifndef DUAL_RATIOTEST_H
 #define DUAL_RATIOTEST_H
 
+#include <globals.h>
+
 #include <iostream>
 #include <vector>
 #include <linalg/vector.h>

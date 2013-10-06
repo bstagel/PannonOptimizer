@@ -5,6 +5,7 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
+#include <globals.h>
 
 #ifdef WIN32   // Windows system specific
     #include <windows.h>
