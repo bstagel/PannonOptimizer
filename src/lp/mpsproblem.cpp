@@ -450,7 +450,7 @@ inline const char * MpsModelBuilder::skipWhiteSpace(const register char * ptr)
 inline const char * MpsModelBuilder::goToEndLineOrWord(const register char * ptr)
 {
     int offset = 0;
-    const unsigned int * intPtr = (const unsigned int*) ptr;
+    //const unsigned int * intPtr = (const unsigned int*) ptr;
 
     /*if (*intPtr == 0x20202020) {
         ptr += 4;
@@ -656,8 +656,8 @@ const char * MpsModelBuilder::copyId(const char * ptr,
     // az also 5 bitet, ha van kozte 0, akkor ott vege van
     // a mintanak
 
-    static int _counter0 = 0;
-    static int _counter1 = 0;
+    //static int _counter0 = 0;
+    //static int _counter1 = 0;
     timer.start();
     while (len < MPS_NAME_LENGTH && *ptr >= ' ') {
         if (index > fieldEnd && *ptr <= ' ') {
@@ -1296,7 +1296,7 @@ const char * MpsModelBuilder::fastReadColumnRecord(const char * ptr,
     }
     info = NO_INFO;
     const char * originalPtr = ptr;
-    static bool ascendingOrderedColumnNames = true;
+    //static bool ascendingOrderedColumnNames = true;
     const ColumnFirstFields * firstFields;
     firstFields = reinterpret_cast<const ColumnFirstFields*>(ptr);
     if (firstFields->m_space1 != 0x20202020 ||
@@ -1391,15 +1391,15 @@ const char * MpsModelBuilder::fastReadColumnRecord(const char * ptr,
     Row actualRow;
     actualRow.m_name = rowName;
     int * rowIdPtr = m_rows.getValueAndKey(actualRow, rowData, rowHashCode1, rowHashCode2);
-    bool isCostValue = false;
+    //bool isCostValue = false;
     if (rowIdPtr == 0) {
         if ( m_costRow.m_name != rowName ) {
             //invalidRowName(nameToString(rowName).c_str());
             *wellFormed = false;
             return originalPtr;
-        } else {
+        } /*else {
             isCostValue = true;
-        }
+        }*/
     } else {
         m_actualColumnNonzeros[ *rowIdPtr ] = value != 0.0;
         m_actualColumnData->add( *rowIdPtr, value );
@@ -1466,8 +1466,8 @@ inline const char * MpsModelBuilder::readColumnRecord(const register char * ptr,
         //LPINFO("read column");
         Column * col_ptr = 0;
 
-        static Timer timer;
-        static int _counter = 0;
+        //static Timer timer;
+        //static int _counter = 0;
         //timer.start();
         if ( m_actualColumn == 0 ) {
             m_actualColumn = col.m_name;

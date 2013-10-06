@@ -1,6 +1,7 @@
 #ifndef SIMPLEXPARAMETERHANDLER_H
 #define SIMPLEXPARAMETERHANDLER_H
 
+#include <globals.h>
 #include <utils/parameterhandler.h>
 
 class SimplexParameterHandler : public ParameterHandler

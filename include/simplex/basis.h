@@ -3,6 +3,7 @@
 
 class SimplexModel;
 
+#include <globals.h>
 #include <vector>
 
 #include <linalg/vector.h>

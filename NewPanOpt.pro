@@ -77,7 +77,8 @@ HEADERS += include/debug.h \
            include/globals.h \
            include/simplex/dualfeasibilitychecker.h \
            include/simplex/dualratiotest.h \
-           include/simplex/dualratiotestupdater.h
+           include/simplex/dualratiotestupdater.h \
+    include/utils/memoryman.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -117,6 +118,7 @@ SOURCES += src/linalg/matrix.cpp \
     	   src/simplex/dualratiotest.cpp \
     	   src/simplex/dualratiotestupdater.cpp \
     src/simplex/dualpricing.cpp \
-    src/simplex/dualpricingupdater.cpp
+    src/simplex/dualpricingupdater.cpp \
+    src/utils/memoryman.cpp
 
 OBJECTS_DIR = .o

@@ -20,12 +20,18 @@ public:
 
     virtual ~DualPricing();
 
-    unsigned int performPricingPhase1();
-    unsigned int performPricingPhase2();
-private:
+    virtual unsigned int performPricingPhase1() = 0;
+    virtual unsigned int performPricingPhase2() = 0;
+
+    inline Numerical::Double getReducedCost() const {
+        return m_reducedCost;
+    }
+protected:
     const SimplexModel & m_model;
 
     const DualPricingUpdater & m_updater;
+
+    Numerical::Double m_reducedCost;
 };
 
 #endif	/* DUALPRICING_H */

@@ -19,7 +19,11 @@ public:
     DualDantzigPricingFactory(const DualDantzigPricingFactory& orig);
     virtual ~DualDantzigPricingFactory();
     
-    DualPricingUpdater * createDualPricingUpdater() const;
+    DualPricingUpdater * createDualPricingUpdater(const Vector &basicVariableValues,
+                                                  const IndexList<> & variableFeasibilities,
+                                                  const IndexList<> & reducedCostFeasibilities,
+                                                  const std::vector<int> & basisHead,
+                                                  const SimplexModel & simplexModel) const;
     DualPricing * createDualPricing(const SimplexModel & model,
                                     const DualPricingUpdater & updater) const;
 private:

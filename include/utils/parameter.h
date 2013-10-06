@@ -5,6 +5,7 @@
 #ifndef PARAMETER_H_
 #define PARAMETER_H_
 
+#include <globals.h>
 #include <string>
 #include <ostream>
 

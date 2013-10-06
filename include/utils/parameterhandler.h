@@ -5,9 +5,10 @@
 #ifndef PARAMETERHANDLER_H
 #define PARAMETERHANDLER_H
 
+#include <globals.h>
+
 #include <map>
 #include <vector>
-
 #include <utils/parameter.h>
 
 class ParameterHandler{

@@ -24,6 +24,16 @@ void DualSimplex::initModules() {
     m_updater = new DualUpdater;
     DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater();
 
+    m_updater = new DualUpdater;
+    DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater(
+                m_basicVariableValues,
+                m_variableFeasibilities,
+                m_reducedCostFeasibilities,
+                m_basisHead,
+                *m_simplexModel
+                );
+    m_updater->setPricingUpdater( pricingUpdater );
+
     m_pricing = pricingFactory->createDualPricing( *m_simplexModel, *pricingUpdater );
     m_updater->setPricingUpdater( pricingUpdater );
 

@@ -216,6 +216,23 @@ class Numerical
     }
 
     /**
+     * Numerical stable add operation. Ensures that when the first operand
+     * is negative of second one, the result will be zero.
+     *
+     * @param value1
+     * @param value2
+     */
+    static inline void stableAddTo(register Double & value1, register const Double & value2)
+    {
+        register const Double value1abs = Numerical::fabs(value1);
+        register const Double value2abs = Numerical::fabs(value2);
+        value1 += value2;
+        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance > Numerical::fabs(value1)) {
+            value1 = 0.0;
+        }
+    }
+
+    /**
      * Numerical stable subtraction operation. Ensures that when operands are equal,
      * the result will be zero.
      *
@@ -234,7 +251,23 @@ class Numerical
         return result;
     }
 
-
+    /**
+     * Numerical stable subtraction operation. Ensures that when operands are equal,
+     * the result will be zero.
+     *
+     * @param value1
+     * @param value2
+     * @return
+     */
+    static inline void stableSubFrom(register Double & value1, register const Double & value2)
+    {
+        register const Double value1abs = Numerical::fabs(value1);
+        register const Double value2abs = Numerical::fabs(value2);
+        value1 -= value2;
+        if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance > Numerical::fabs(value1)) {
+            value1 = 0.0;
+        }
+    }
 };
 
 
