@@ -17,30 +17,30 @@ DualRatiotest::DualRatiotest(const Model & m_model, DualRatiotestUpdater& dualRa
 {
 }
 
-void DualRatiotest::shift(std::vector<BreakPoints>* breakpoints, unsigned int startId, unsigned int stopId) {
+void DualRatiotest::shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId) {
     unsigned int i=startId,  j=2*i+1;
-    BreakPoints elementToShift = (*breakpoints)[startId];
+    BreakPoint elementToShift = (*breakpoints)[startId];
 
-//choosing bigger son
-    if(j<stopId && (*breakpoints)[j+1].value > (*breakpoints)[j].value) j++;
+//choosing smaller son
+    if(j<stopId && (*breakpoints)[j+1].value < (*breakpoints)[j].value) j++;
 //shifting
-    while(j<=stopId && (*breakpoints)[j].value > elementToShift.value) {
+    while(j<=stopId && (*breakpoints)[j].value < elementToShift.value) {
         (*breakpoints)[i] = (*breakpoints)[j];
         i=j;
         j=2*i+1;
-        if(j<stopId && (*breakpoints)[j+1].value > (*breakpoints)[j].value ) j++;
+        if(j<stopId && (*breakpoints)[j+1].value < (*breakpoints)[j].value ) j++;
     };
     (*breakpoints)[i] = elementToShift;
 }
 
 //getting smallest element considering the given length
-void DualRatiotest::getNextElement(std::vector<BreakPoints>* breakpoints, unsigned int startingPosition, unsigned int length) {
-    BreakPoints temp;
+void DualRatiotest::getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length) {
+    BreakPoint temp;
 
 //creating the heap
     if(length>=2){
         for(int i=(length-2)/2; i>=0; i--){
-            shift(breakpoints,i+startingPosition,length-1);
+            shift(breakpoints,i,length-1);
         }
     }
 
@@ -75,9 +75,9 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
 //computing ratios
 
-        std::vector <BreakPoints> breakpoints;
+        std::vector <BreakPoint> breakpoints;
         breakpoints.reserve(alpha.nonZeros()*2);
-        BreakPoints currentRatio;
+        BreakPoint currentRatio;
         currentRatio.functionValue = m_objectiveFunctionPhase1;
         currentRatio.index = 0;
         currentRatio.value = 0;
@@ -345,7 +345,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
                                             const Vector& reducedCosts,
                                             Numerical::Double objectiveFunction,
                                             const IndexList<const Numerical::Double*>& variableStates){
-    std::vector<BreakPoints> breakpoints;
+    std::vector<BreakPoint> breakpoints;
     Numerical::Double functionSlope = 0;
     Numerical::Double previousSlope = 0;
     bool transform = false, tPositive = false;
@@ -354,7 +354,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
     m_boundflips.clear();
     m_boundflips.reserve(alpha.nonZeros());
     breakpoints.reserve(alpha.nonZeros());
-    BreakPoints currentRatio;
+    BreakPoint currentRatio;
     currentRatio.index = 0;
     currentRatio.value = 0;
     currentRatio.functionValue = objectiveFunction;
