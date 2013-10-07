@@ -8,6 +8,7 @@ SimplexModel::SimplexModel(const Model & model):
     m_model(model)
 {
     m_rhs.setSparsityRatio(DENSE);
+    makeComputationalForm();
 }
 
 void SimplexModel::makeComputationalForm()
@@ -26,6 +27,9 @@ void SimplexModel::makeComputationalForm()
 //    variables.resize(variablesSize);
 
     m_rhs.reInit(rowCount);
+    //TODO HA ez megjavul a sparsityratio itt nem kell
+    m_rhs.setSparsityRatio(DENSE);
+    m_logicalVariables.resize(rowCount);
 
     for (i=0, j=0; i < rowCount; i++, j++) {
 

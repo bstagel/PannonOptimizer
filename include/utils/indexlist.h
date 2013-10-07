@@ -643,8 +643,10 @@ public:
         for (; index <= lastPartitionIndex; index++) {
             borders.insert(m_heads + index);
         }
-        *begin = _Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
-
+        //TODO: Ez bugos
+//        *begin = _Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
+        *begin = _Iterator<ATTACHED_TYPE>(beginHead, borders);
+        begin->next();
     }
 
 

@@ -67,7 +67,7 @@ void DualDantzigPricingUpdater::updatePhase1() {
     const unsigned int variableCount = matrix.columnCount();
     clearPhase1ReducedCosts();
     IndexList<>::Iterator iter, iterEnd;
-    m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS, 1);
+    m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     unsigned int index;
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
@@ -82,7 +82,7 @@ void DualDantzigPricingUpdater::updatePhase1() {
         }
     }
 
-    m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS, 1);
+    m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
 
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
@@ -122,7 +122,7 @@ void DualDantzigPricingUpdater::updatePhase2() {
     Numerical::Double max = -1.0;
     int rowIndex;
     m_simplexModel.getVariable(0);
-    m_variableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS, 1);
+    m_variableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         int variableIndex = m_basisHead[rowIndex];
@@ -133,7 +133,7 @@ void DualDantzigPricingUpdater::updatePhase2() {
         }
     }
 
-    m_variableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS, 1);
+    m_variableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         int variableIndex = m_basisHead[rowIndex];

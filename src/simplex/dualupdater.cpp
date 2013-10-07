@@ -7,6 +7,17 @@ DualUpdater::DualUpdater():
 
 }
 
+DualUpdater::~DualUpdater() {
+    if(m_pricingUpdater){
+        delete m_pricingUpdater;
+        m_pricingUpdater = 0;
+    }
+    if(m_ratiotestUpdater){
+        delete m_ratiotestUpdater;
+        m_ratiotestUpdater = 0;
+    }
+}
+
 void DualUpdater::setPricingUpdater(DualPricingUpdater * pricingUpdater) {
     m_pricingUpdater = pricingUpdater;
 }

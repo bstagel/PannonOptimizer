@@ -67,6 +67,8 @@ protected:
     Numerical::Double m_objectiveValue;
     Numerical::Double m_phaseIObjectiveValue;
 
+    bool m_baseChanged;
+
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
     Basis* m_basis;
@@ -85,6 +87,11 @@ protected:
     virtual void price() throw (OptimizationResultException, NumericalException) = 0;
     virtual void selectPivot() throw (OptimizationResultException, NumericalException) = 0;
     virtual void update()throw (NumericalException)  = 0;
+
+    void transform(unsigned int incomingIndex,
+                   int outgoingIndex,
+                   const std::vector<unsigned int>& boundflips,
+                   Numerical::Double primalTheta);
 };
 
 #endif /* SIMPLEX_H */

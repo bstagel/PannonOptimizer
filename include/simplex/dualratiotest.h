@@ -22,7 +22,11 @@ class DualRatiotest{
     };
 
 public:
-    DualRatiotest(const Model & model, DualRatiotestUpdater& dualRatiotestUpdater);
+    DualRatiotest(const SimplexModel & model,
+                  const Vector& reducedCosts,
+                  const IndexList<>& reducedCostFeasibilities,
+                  const IndexList<const Numerical::Double*>& variableStates,
+                  DualRatiotestUpdater& dualRatiotestUpdater);
     virtual ~DualRatiotest();
 
     inline unsigned int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
@@ -37,25 +41,25 @@ public:
 
     inline Numerical::Double getObjectiveFunctionPhase2()const{return m_objectiveFunctionPhase2;}
 
-    inline const std::vector <unsigned int>& getBoundflip()const{return m_boundflips;}
+    inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
     void performRatiotestPhase1(unsigned int outgoing,
                                 const Vector& alpha,
-                                const Vector& reducedCosts,
-                                const IndexList<>& reducedCostFeasibilities,
-                                const IndexList<const Numerical::Double*>& variableStates,
-                                const DualFeasibilityChecker& feasibilityChecker,
+                                Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue
                                 );
+
     void performRatiotestPhase2(unsigned int outgoing,
                                 const Vector& alpha,
-                                const Vector& reducedCosts,
-                                Numerical::Double objectiveFunction,
-                                const IndexList<const Numerical::Double*>& variableStates
+                                Numerical::Double objectiveFunction
                                 );
 
 private:
-    const Model& m_model;
+    const SimplexModel& m_model;
+    const Vector& m_reducedCosts;
+    const IndexList<>& m_reducedCostFeasibilities;
+    const IndexList<const Numerical::Double*>& m_variableStates;
+
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     unsigned int m_incomingVariableIndex;
     unsigned int m_outgoingVariableIndex;

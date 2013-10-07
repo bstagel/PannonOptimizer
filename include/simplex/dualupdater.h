@@ -16,6 +16,7 @@
 class DualUpdater {
 public:
     DualUpdater();
+    ~DualUpdater();
 
     void setPricingUpdater(DualPricingUpdater * pricingUpdater);
     void setRatiotestUpdater(DualRatiotestUpdater* ratiotestUpdater);

@@ -5,8 +5,15 @@
 
 static const Numerical::Double pivotThreshold=0.00001;
 
-DualRatiotest::DualRatiotest(const Model & m_model, DualRatiotestUpdater& dualRatiotestUpdater) :
-    m_model(m_model),
+DualRatiotest::DualRatiotest(const SimplexModel & model,
+                             const Vector& reducedCosts,
+                             const IndexList<>& reducedCostFeasibilities,
+                             const IndexList<const Numerical::Double*>& variableStates,
+                             DualRatiotestUpdater &dualRatiotestUpdater  ) :
+    m_model(model),
+    m_reducedCosts(reducedCosts),
+    m_reducedCostFeasibilities(reducedCostFeasibilities),
+    m_variableStates(variableStates),
     m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(0),
     m_outgoingVariableIndex(0),
@@ -50,24 +57,20 @@ void DualRatiotest::getNextElement(std::vector<BreakPoint>* breakpoints, unsigne
 }
 
 void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
-                                            const Vector& alpha,
-                                            const Vector& reducedCosts,
-                                            const IndexList<>& reducedCostFeasibilities,
-                                            const IndexList<const Numerical::Double*>& variableStates,
-                                            const DualFeasibilityChecker& feasibilityChecker,
-                                            Numerical::Double phaseIObjectiveValue) {
+                                           const Vector& alpha,
+                                           Numerical::Double phaseIReducedCost,
+                                           Numerical::Double phaseIObjectiveValue) {
 
     m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount());
 
-    Numerical::Double phaseIreducedCost = feasibilityChecker.getPhaseIreducedCost(alpha);
-    Numerical::Double functionSlope = Numerical::fabs(phaseIreducedCost);
+    Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     m_objectiveFunctionPhase1 = phaseIObjectiveValue;
     m_outgoingVariableIndex = outgoing;
 
 //determining t>=0 or t<=0 cases
 
         bool tPositive;
-        if(phaseIreducedCost > 0){
+        if(phaseIReducedCost > 0){
             tPositive = false;
         }else{
             tPositive = true;
@@ -93,13 +96,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in M
 
-            reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS,1);
+            m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
             for(; it!=endit; it++){
                 variableIndex = it.getData();
                 if(alpha[variableIndex] < 0){
                     currentRatio.index = variableIndex;
-                    currentRatio.value = reducedCosts[variableIndex] / alpha[variableIndex];
+                    currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                     currentRatio.functionValue = 0;
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
@@ -112,13 +115,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in P
 
-            reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS,1);
+            m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
 
             for(; it!=endit; it++){
                 variableIndex = it.getData();
                 if(alpha[variableIndex] > 0){
                     currentRatio.index = variableIndex;
-                    currentRatio.value = reducedCosts[variableIndex] / alpha[variableIndex];
+                    currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                     currentRatio.functionValue = 0;
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
@@ -131,13 +134,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in F
 
-            reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE,1);
+            m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
 
             for(; it!=endit; it++){
                 variableIndex = it.getData();
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
                 currentRatio.index = variableIndex;
-                currentRatio.value = reducedCosts[variableIndex] / alpha[variableIndex];
+                currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                 currentRatio.functionValue = 0;
                 if(typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0){
                     breakpoints.push_back(currentRatio);
@@ -163,13 +166,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in M
 
-            reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS,1);
+            m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
                 for(; it!=endit; it++){
                     variableIndex = it.getData();
                     if(alpha[variableIndex] > 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
@@ -182,13 +185,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in P
 
-                reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS,1);
+                m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
 
                 for(; it!=endit; it++){
                     variableIndex = it.getData();
                     if(alpha[variableIndex] < 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
@@ -201,13 +204,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         //computing ratios in F
 
-                reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE,1);
+                m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
 
                 for(; it!=endit; it++){
                     variableIndex = it.getData();
                     typeOfIthVariable = m_model.getVariable(variableIndex).getType();
                     currentRatio.index = variableIndex;
-                    currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                    currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                     currentRatio.functionValue = 0;
                     if(typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0){
                         breakpoints.push_back(currentRatio);
@@ -247,26 +250,25 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
     typeOfIthVariable = m_model.getVariable(m_outgoingVariableIndex).getType();
 
 //determining primal steplength
-
-    Numerical::Double valueOfOutgoingVariable = *(variableStates.getAttachedData(m_outgoingVariableIndex));
+    Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_outgoingVariableIndex));
     if(typeOfIthVariable == Variable::FIXED){
         m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(m_outgoingVariableIndex).getLowerBound()) /
-                alpha[m_outgoingVariableIndex];
+                alpha[m_incomingVariableIndex];
     }
     else if(typeOfIthVariable == Variable::BOUNDED){
         m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(m_outgoingVariableIndex).getLowerBound()) /
-                alpha[m_outgoingVariableIndex];
+                alpha[m_incomingVariableIndex];
     }
     else if(typeOfIthVariable == Variable::PLUS){
         m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(m_outgoingVariableIndex).getLowerBound()) /
-                alpha[m_outgoingVariableIndex];
+                alpha[m_incomingVariableIndex];
     }
     else if(typeOfIthVariable == Variable::FREE){
-        m_primalSteplength = valueOfOutgoingVariable / alpha[m_outgoingVariableIndex];
+        m_primalSteplength = valueOfOutgoingVariable / alpha[m_incomingVariableIndex];
     }
     else if(typeOfIthVariable == Variable::MINUS){
         m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(m_outgoingVariableIndex).getUpperBound()) /
-                alpha[m_outgoingVariableIndex];
+                alpha[m_incomingVariableIndex];
     }
 
 //numerical threshold
@@ -342,9 +344,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
 void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
                                             const Vector& alpha,
-                                            const Vector& reducedCosts,
-                                            Numerical::Double objectiveFunction,
-                                            const IndexList<const Numerical::Double*>& variableStates){
+                                            Numerical::Double objectiveFunction){
     std::vector<BreakPoint> breakpoints;
     Numerical::Double functionSlope = 0;
     Numerical::Double previousSlope = 0;
@@ -362,9 +362,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
 //determining t>0 or t<0 cases
 
-    if( *(variableStates.getAttachedData(m_outgoingVariableIndex)) < m_model.getVariable(m_outgoingVariableIndex).getLowerBound()){
+    if( *(m_variableStates.getAttachedData(m_outgoingVariableIndex)) < m_model.getVariable(m_outgoingVariableIndex).getLowerBound()){
         tPositive = true;
-    }else if(*(variableStates.getAttachedData(m_outgoingVariableIndex)) > m_model.getVariable(m_outgoingVariableIndex).getUpperBound()){
+    }else if(*(m_variableStates.getAttachedData(m_outgoingVariableIndex)) > m_model.getVariable(m_outgoingVariableIndex).getUpperBound()){
         tPositive = false;
     }
 
@@ -373,7 +373,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
     Variable::VARIABLE_TYPE typeOfIthVariable;
     IndexList<const Numerical::Double*>::Iterator it;
     IndexList<const Numerical::Double*>::Iterator endit;
-    variableStates.getIterators(&it,&endit,0,Simplex::FEASIBILITY_ENUM_LENGTH);
+    m_variableStates.getIterators(&it,&endit,0,Simplex::FEASIBILITY_ENUM_LENGTH);
     unsigned int variableIndex = it.getData();
 
     //t>=0 case
@@ -381,7 +381,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
     if(tPositive){
         while(!transform && it != endit){
             variableIndex = it.getData();
-            if(variableStates.where(variableIndex) != Simplex::BASIC){
+            if(m_variableStates.where(variableIndex) != Simplex::BASIC){
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
         //free variables
@@ -393,17 +393,17 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
         //bounded variables
 
-                    if(variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+                    if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha[variableIndex] < 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
-                    if(variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+                    if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha[variableIndex] > 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
@@ -412,7 +412,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
                     if(typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
@@ -421,7 +421,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
                     if(typeOfIthVariable == Variable::MINUS && alpha[variableIndex] > 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }
@@ -429,14 +429,14 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
             }
             it++;
         }
-        functionSlope = Numerical::fabs(*(variableStates.getAttachedData(m_outgoingVariableIndex)));
+        functionSlope = Numerical::fabs(*(m_variableStates.getAttachedData(m_outgoingVariableIndex)));
 
     //t<=0 case
 
     }else{
         while(!transform && it != endit){
             variableIndex = it.getData();
-            if(variableStates.where(variableIndex) != Simplex::BASIC){
+            if(m_variableStates.where(variableIndex) != Simplex::BASIC){
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
         //free variables
@@ -448,17 +448,17 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
         //bounded variables
 
-                    if(variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+                    if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha[variableIndex] > 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
-                    if(variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+                    if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha[variableIndex] < 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
@@ -467,7 +467,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
                     if(typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }else
@@ -476,7 +476,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
                     if(typeOfIthVariable == Variable::MINUS && alpha[variableIndex] < 0){
                         currentRatio.index = variableIndex;
-                        currentRatio.value = Numerical::fabs(reducedCosts[variableIndex] / alpha[variableIndex]);
+                        currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
                     }
@@ -484,7 +484,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
             }
             it++;
         }
-        functionSlope = *(variableStates.getAttachedData(m_outgoingVariableIndex)) -
+        functionSlope = *(m_variableStates.getAttachedData(m_outgoingVariableIndex)) -
                 m_model.getVariable(m_outgoingVariableIndex).getUpperBound();
         }
 

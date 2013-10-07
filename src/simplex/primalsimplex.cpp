@@ -30,6 +30,8 @@ void PrimalSimplex::initModules() {
 }
 
 void PrimalSimplex::releaseModules() {
+    Simplex::releaseModules();
+
     delete m_pricing;
     m_pricing = 0;
 
@@ -54,5 +56,12 @@ void PrimalSimplex::selectPivot() throw (OptimizationResultException, NumericalE
 }
 
 void PrimalSimplex::update()throw (NumericalException) {
+    //Call this with appropriate parameters:
+//    void Simplex::transform(unsigned int incomingIndex,
+//      unsigned int outgoingIndex,
+//      const std::vector<unsigned int>& boundflips,
+//      Numerical::Double reducedCost) {
 
+    //Do dual specific using the updater
+    m_updater->update();
 }
