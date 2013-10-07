@@ -337,7 +337,7 @@ private:
         //        am |= D::PRESOLVER;
         //        am |= D::CFMAKER;
         //        am |= D::STARTINGBASISFINDER;
-        //        am |= D::PFIMAKER;
+                am |= D::PFIMAKER;
         //        am |= D::SBF1;
         //        am |= D::SIMPLEX;
         //        am |= D::RATIOTEST;

@@ -30,12 +30,13 @@ void SbfLogical::run()
     register unsigned int i;
     register unsigned int j;
 
-    unsigned int basisSize = m_model.getRowCount();
+    unsigned int rowCount = m_model.getRowCount();
+    unsigned int columnCount = m_model.getColumnCount();
 
     m_basisHead->clear();
 
     /* Basic variables: set state to BASIC */
-    for (i=0, j=basisSize; i < basisSize; i++, j++) {
+    for (i=0, j=columnCount; i < rowCount; i++, j++) {
         m_basisHead->push_back(j);
         m_variableStates->insert(Simplex::BASIC, j);
     }
@@ -44,14 +45,14 @@ void SbfLogical::run()
     switch (m_strategy) {
 
     case LOWER_LOGICAL: {
-        for (i=0; i<basisSize; i++) {
+        for (i=0; i<columnCount; i++) {
             adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
         }
         break;
     }
 
     case UPPER_LOGICAL: {
-        for (i=0; i<basisSize; i++) {
+        for (i=0; i<columnCount; i++) {
             adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
         }
         break;
@@ -61,7 +62,7 @@ void SbfLogical::run()
         const Vector & costs = m_model.getCostVector();
         switch (m_model.getObjectiveType()) {
         case MINIMIZE:
-            for (i=0; i<basisSize; i++) {
+            for (i=0; i<columnCount; i++) {
                 if (costs.at(i) < 0) {
                     adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
                 } else {
@@ -71,7 +72,7 @@ void SbfLogical::run()
             break;
 
         case MAXIMIZE:
-            for (i=0; i<basisSize; i++) {
+            for (i=0; i<columnCount; i++) {
                 if (costs.at(i) > 0) {
                     adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
                 } else {

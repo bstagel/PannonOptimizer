@@ -40,7 +40,7 @@ void Basis::copyBasis(bool buildIndexLists) {
         m_columnCounts.resize(rowCount,0);
         m_columnsHash.reserve(rowCount);
 
-        m_rows.resize(rowCount, Vector(m_columns.size()));
+        m_rows.resize(rowCount, Vector(rowCount));
         m_rowCounts.resize(rowCount, 0);
     }
 
@@ -111,7 +111,7 @@ void Basis::buildRowCountIndexLists(unsigned int maxRowCount) {
     }
     DEVINFO(D::PFIMAKER, "Row links built.");
 #ifndef NDEBUG
-//    std::cout<<m_rowCountIndexList;
+    DEVINFO(D::PFIMAKER, m_rowCountIndexList);
 #endif
 }
 
@@ -126,7 +126,7 @@ void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
     }
     DEVINFO(D::PFIMAKER, "Column links built.");
 #ifndef NDEBUG
-//    std::cout<<m_columnCountIndexList;
+    DEVINFO(D::PFIMAKER, m_columnCountIndexList);
 #endif
 }
 

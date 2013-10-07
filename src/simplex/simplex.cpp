@@ -11,6 +11,8 @@
 #include <simplex/pfibasis.h>
 #include <globals.h>
 
+#include <utils/thirdparty/prettyprint.h>
+
 Simplex::Simplex():
     m_simplexModel(NULL),
     m_variableStates(0,0),
@@ -20,6 +22,7 @@ Simplex::Simplex():
     m_reducedCosts(0),
     m_objectiveValue(0),
     m_phaseIObjectiveValue(0),
+    m_baseChanged(false),
     m_startingBasisFinder(NULL),
     m_basis(NULL)
 {
@@ -53,6 +56,9 @@ void Simplex::setModel(const Model &model) {
     m_reducedCostFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
     m_basicVariableValues.reInit(rowCount);
     m_reducedCosts.reInit(rowCount + columnCount);
+    //TODO: Ezt ne kelljen ujra beallitani egy init miatt
+    m_basicVariableValues.setSparsityRatio(DENSE);
+    m_reducedCosts.setSparsityRatio(DENSE);
 }
 
 void Simplex::constraintAdded()
@@ -74,7 +80,7 @@ void Simplex::solve() {
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
             (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getParameterValue("starting_basis");
     unsigned int reinversionFrequency = simplexParameters.getParameterValue("reinversion_frequency");
-    unsigned int reinversionCounter = 0;
+    unsigned int reinversionCounter = reinversionFrequency;
     Timer timer;
 
     try {
@@ -86,28 +92,53 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
+        LPINFO("rowcount: "<<m_simplexModel->getRowCount());
+        LPINFO("columncount: "<<m_simplexModel->getColumnCount());
+        LPINFO("basishead: "<<m_basisHead);
 
-        for (iterationIndex = 0;
-             iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit;
-             iterationIndex++) {
+        for (iterationIndex = 0;iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; iterationIndex++) {
+            LPINFO("Iteration: "<<iterationIndex);
             if(reinversionCounter == reinversionFrequency){
+                LPINFO("reinvert");
                 reinversionCounter = 0;
                 reinvert();
+                LPINFO("computeBasicSolution");
                 computeBasicSolution();
+                LPINFO("computeReducedCosts");
                 computeReducedCosts();
+                LPINFO("computeFeasibility");
                 computeFeasibility();
             }
             try{
+                LPINFO("checkFeasibility");
                 checkFeasibility();
+                LPINFO("price");
                 price();
+                LPINFO("selectPivot");
                 selectPivot();
+                LPINFO("update");
                 reinversionCounter++;
                 if(reinversionCounter < reinversionFrequency){
                     update();
                 }
-//                iterate();
             }
-            catch ( const OptimizationResultException & exception ) {
+            catch ( const OptimalException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            catch ( const InfeasibleException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            catch ( const UnboundedException & exception ) {
                    //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
@@ -119,13 +150,14 @@ void Simplex::solve() {
         timer.stop();
 
     } catch ( const OptimalException & exception ) {
-        LPINFO("Optimal solution found!");
+        LPINFO("OPTIMAL SOLUTION found! ");
+        LPINFO("The objective value: " << m_objectiveValue);
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const InfeasibleException & exception ) {
-        LPERROR("The problem is infeasible.");
+        LPERROR("The problem is INFEASIBLE.");
     } catch ( const UnboundedException & exception ) {
-        LPERROR("The problem is unbounded.");
+        LPERROR("The problem is UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
         LPERROR("Numerical error!");
     } catch ( const std::bad_alloc & exception ) {
@@ -213,9 +245,102 @@ void Simplex::reinvert() throw (NumericalException) {
 }
 
 void Simplex::computeBasicSolution() throw (NumericalException) {
+    m_basicVariableValues = m_simplexModel->getRhs();
+    m_objectiveValue = m_simplexModel->getCostConstant();
 
+    const unsigned int columnCount = m_simplexModel->getColumnCount();
+    //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})
+    IndexList<const Numerical::Double *>::Iterator it;
+    IndexList<const Numerical::Double *>::Iterator itend;
+    //This iterates through Simplex::NONBASIC_AT_LB and Simplex::NONBASIC_AT_UB too -- BUG with 2 partitions
+    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,2);
+
+    for(; it != itend; it++) {
+        if(it.getData() < columnCount){
+            m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()));
+            m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
+        } else {
+            m_basicVariableValues.set(it.getData() - columnCount,
+                                      m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+        }
+    }
+
+    //This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
+    m_basis->Ftran(m_basicVariableValues);
+
+    m_variableStates.getIterators(&it, &itend, Simplex::BASIC);
+    for(; it != itend; it++) {
+        if(it.getData() < columnCount){
+            m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
+        }
+    }
 }
 
 void Simplex::computeReducedCosts() throw (NumericalException) {
+    m_reducedCosts.clear();
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
 
+    //Get the c_B vector
+    Vector simplexMultiplier(rowCount);
+    simplexMultiplier.setSparsityRatio(DENSE);
+    const Vector& costVector = m_simplexModel->getCostVector();
+    for(unsigned int i = 0; i<m_basisHead.size(); i++){
+        if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+            simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
+        }
+    }
+    //Compute simplex multiplier
+    m_basis->Btran(simplexMultiplier);
+
+    //For each variable
+    for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+        //Compute the dot product and the reduced cost
+        Numerical::Double reducedCost;
+        if(i < columnCount){
+            reducedCost = costVector.at(i) - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
+        } else {
+            reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+        }
+        if(reducedCost != 0.0){
+            m_reducedCosts.setNewNonzero(i, reducedCost);
+        }
+    }
+}
+
+void Simplex::transform(unsigned int incomingIndex,
+                        int outgoingIndex,
+                        const std::vector<unsigned int>& boundflips,
+                        Numerical::Double primalTheta) {
+    //Save whether the basis is to be changed
+    m_baseChanged = outgoingIndex != -1;
+
+    //Todo update the solution properly
+//    Numerical::Double boundflipTheta = 0.0;
+    std::vector<unsigned int>::const_iterator it = boundflips.begin();
+    std::vector<unsigned int>::const_iterator itend = boundflips.end();
+    //TODO Atgondolni hogy mit mikor kell ujraszamolni
+    for(; it < itend; it++){
+        const Variable& variable = m_simplexModel->getVariable(*it);
+        Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
+        Vector alpha = m_simplexModel->getMatrix().column(*it);
+        m_basis->Ftran(alpha);
+        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+        } else {
+            LPERROR("Boundflipping variable in the basis (or superbasic)!");
+            //TODO Throw some exception here
+        }
+    }
+
+    if(outgoingIndex != -1){
+        Vector alpha = m_simplexModel->getMatrix().column(*it);
+        m_basis->Ftran(alpha);
+        m_basicVariableValues.addVector(-1 * primalTheta, alpha);
+        //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
+        m_basicVariableValues.set(incomingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
+        m_basis->append(alpha, outgoingIndex, incomingIndex);
+    }
 }

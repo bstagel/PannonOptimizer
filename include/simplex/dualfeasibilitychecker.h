@@ -20,7 +20,7 @@ public:
     void computeFeasibility();
 
     //TODO: this function does not belong here
-    Numerical::Double getPhaseIreducedCost(const Vector& alpha)const;
+//    Numerical::Double getPhaseIreducedCost(const Vector& alpha)const;
 
 private:
     const SimplexModel& m_model;

@@ -164,6 +164,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (
         throw NumericalException("NUMERICAL problem");
     }
     m_basisHead->at(pivotRow) = incoming;
+    m_variableStates->move(incoming,Simplex::BASIC, &(m_basicVariableValues.at(pivotRow)));
     m_isFresh = false;
 }
 
@@ -505,7 +506,7 @@ void PfiBasis::invertR() throw (NumericalException) {
                 m_rowCounts.at(rowindex) = -1;
 #ifndef NDEBUG
                 printCounts();
-                std::cout << m_rowCountIndexList;
+                DEVINFO(D::PFIMAKER, m_rowCountIndexList);
 #endif //!NDEBUG
                 rNum++;
             }
@@ -518,7 +519,7 @@ void PfiBasis::findC() {
     //The lower triangular part is called C part
     DEVINFO(D::PFIMAKER, "Search for C part");
     unsigned int cNum = 0;
-    if (m_columnCountIndexList.getPartitionCount() > 0) {
+    if (m_columnCountIndexList.getPartitionCount() > 1) {
         while (m_columnCountIndexList.firstElement(1) != -1) {
             //This part searches for rows with row count 1 and order them to the upper triangular part
             int columnindex = m_columnCountIndexList.firstElement(1);
@@ -564,7 +565,7 @@ void PfiBasis::findC() {
 
 #ifndef NDEBUG
             printCounts();
-            std::cout << m_columnCountIndexList;
+            DEVINFO(D::PFIMAKER, m_columnCountIndexList);
 #endif //!NDEBUG
             cNum++;
         }
@@ -787,19 +788,16 @@ void PfiBasis::invertM() throw (NumericalException) {
     DEVINFO(D::PFIMAKER, "MPART num: " << mNum);
 }
 
-//void PfiBasis::invertC() throw (NumericalException) {
-//    //The lower triangular part is called C part
-//    DEVINFO(D::PFIMAKER, "Invert the C part");
-//    for (std::vector<Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); it++) {
-//        DEVINFO(D::PFIMAKER, "Inverting C column " << m_cColumns->rend() - 1 - it << " with pivot row " << m_cPivotIndexes->at(m_cColumns->rend() - 1 - it));
-//        //                            { ofstream ofs("update.txt", std::ios_base::app);
-//        //                            ofs << "pivot5" << std::endl;
-//        //                            ofs.close(); }
-
-//        pivot(*it, m_cPivotIndexes->at(m_cColumns->rend() - 1 - it));
-//    }
-//    return;
-//}
+void PfiBasis::invertC() throw (NumericalException) {
+    //The lower triangular part is called C part
+    DEVINFO(D::PFIMAKER, "Invert the C part");
+    for (std::vector<Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); it++) {
+        DEVINFO(D::PFIMAKER, "Inverting C column " << m_cColumns->rend() - 1 - it <<
+                " with pivot row " << m_cPivotIndexes->at(m_cColumns->rend() - 1 - it));
+        pivot(*(*it), m_cPivotIndexes->at(m_cColumns->rend() - 1 - it));
+    }
+    return;
+}
 
 void PfiBasis::buildMM() {
     //Reset the data structures used for processing the non-triangular part

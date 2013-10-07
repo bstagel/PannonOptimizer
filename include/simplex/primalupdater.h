@@ -14,6 +14,7 @@
 class PrimalUpdater {
 public:
     PrimalUpdater();
+    ~PrimalUpdater();
 
     void setPricingUpdater(PrimalPricingUpdater * pricingUpdater);
 

@@ -12,6 +12,8 @@
 #include <simplex/dualpricing.h>
 #include <simplex/dualupdater.h>
 #include <simplex/dualfeasibilitychecker.h>
+#include <simplex/dualratiotest.h>
+#include <simplex/dualratiotestupdater.h>
 
 class DualSimplex: public Simplex
 {
@@ -24,6 +26,12 @@ private:
     DualUpdater * m_updater;
 
     DualFeasibilityChecker * m_feasibilityChecker;
+
+    DualRatiotest * m_ratiotest;
+
+    bool m_feasible;
+    unsigned int m_incomingIndex;
+    unsigned int m_outgoingIndex;
 
     void initModules();
     void releaseModules();
