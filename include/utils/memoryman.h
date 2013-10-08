@@ -1,3 +1,7 @@
+/**
+ * @file memoryman.h
+ */
+
 #ifndef MEMORYMAN_H
 #define MEMORYMAN_H
 

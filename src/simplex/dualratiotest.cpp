@@ -1,3 +1,7 @@
+/**
+ * @file dualratiotest.cpp
+ */
+
 #include <simplex/dualratiotest.h>
 #include <lp/model.h>
 #include <utility>

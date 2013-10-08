@@ -368,6 +368,7 @@ public:
 class MpsModelBuilder : public ModelBuilder
 {
     // FIXME: CONFLICTING DEFINE AND ENUMERATED CONSTANTS
+    // NEM MUKODIK
 #ifdef _WINERROR_H
 #undef ERROR
 #undef NO_ERROR
@@ -437,7 +438,7 @@ class MpsModelBuilder : public ModelBuilder
 
     enum MPS_ERROR_TYPE
     {
-        NO_ERROR,
+        MPS_NO_ERROR, // windowsnal nem jo
         INVALID_ROW_TYPE,
         INVALID_ROW_NAME,
         INVALID_COLUMN_NAME,

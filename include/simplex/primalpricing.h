@@ -1,8 +1,5 @@
-/* 
- * File:   primalpricing.h
- * Author: smidla
- *
- * Created on 2013. augusztus 25., 15:48
+/**
+ * @file primalpricing.h
  */
 
 #ifndef PRIMAPRICING_H

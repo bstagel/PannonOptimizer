@@ -1,8 +1,5 @@
-/* 
- * File:   primaldantzigpricingfactory.h
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 1:02
+/**
+ * @file   primaldantzigpricingfactory.h
  */
 
 #ifndef PRIMALDANTZIGPRICINGFACTORY_H

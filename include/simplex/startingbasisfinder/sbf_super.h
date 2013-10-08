@@ -1,8 +1,5 @@
-/*
- * sbf_super.h
- *
- *  Created on: Apr 1, 2012
- *      Author: greenvirag
+/**
+ * @file sbf_super.h
  */
 
 #ifndef SBF_SUPER_H_

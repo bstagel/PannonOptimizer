@@ -1,3 +1,7 @@
+/**
+ * @file dualupdater.cpp
+ */
+
 #include <simplex/dualupdater.h>
 
 DualUpdater::DualUpdater():

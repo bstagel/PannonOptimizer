@@ -1,3 +1,7 @@
+/**
+ * @file dualpricingupdater.cpp
+ */
+
 #include <simplex/dualpricingupdater.h>
 
 DualPricingUpdater::DualPricingUpdater(const Vector &basicVariableValues,

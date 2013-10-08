@@ -1,3 +1,7 @@
+/**
+ * @file startingbasisfinder.h
+ */
+
 #ifndef STARTINGBASISFINDER_H
 #define STARTINGBASISFINDER_H
 

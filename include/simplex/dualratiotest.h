@@ -1,3 +1,7 @@
+/**
+ * @file dualratiotest.h
+ */
+
 #ifndef DUAL_RATIOTEST_H
 #define DUAL_RATIOTEST_H
 

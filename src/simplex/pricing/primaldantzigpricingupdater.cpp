@@ -1,8 +1,5 @@
-/* 
- * File:   primaldantzigpricingupdater.cpp
- * Author: smidla
- * 
- * Created on 2013. augusztus 26., 0:59
+/**
+ * @file   primaldantzigpricingupdater.cpp
  */
 
 #include <simplex/pricing/primaldantzigpricingupdater.h>

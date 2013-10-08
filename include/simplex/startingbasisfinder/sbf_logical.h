@@ -1,8 +1,5 @@
-/*
- * sbf_logical.h
- *
- *  Created on: Apr 1, 2012
- *      Author: greenvirag
+/**
+ * @file sbf_logical.h
  */
 
 #ifndef SBF_LOGICAL_H_

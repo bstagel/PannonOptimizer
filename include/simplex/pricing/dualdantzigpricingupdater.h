@@ -1,8 +1,5 @@
-/* 
- * File:   dualdantzigpricingupdater.h
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 1:00
+/**
+ * @file:   dualdantzigpricingupdater.h
  */
 
 #ifndef DUALDANTZIGREPRICINGUPDATER_H

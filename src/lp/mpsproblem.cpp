@@ -500,7 +500,7 @@ const char * MpsModelBuilder::goToEndLine(const register char * ptr)
 inline const char * MpsModelBuilder::copyWord(const register char * ptr, register char * dest,
                                               register int length, MPS_ERROR_TYPE & errorCode)
 {
-    errorCode = NO_ERROR;
+    errorCode = MPS_NO_ERROR;
     register int len = 0;
     *dest = 0;
     char * originalDest = dest;
@@ -567,7 +567,7 @@ const char * MpsModelBuilder::copyId(const char * ptr,
                                      unsigned int & hash1,
                                      unsigned int & hash2)
 {
-    errorCode = NO_ERROR;
+    errorCode = MPS_NO_ERROR;
 
     static Timer timer;
     static int _counter = 0;

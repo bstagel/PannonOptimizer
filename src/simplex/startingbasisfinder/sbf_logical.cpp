@@ -1,8 +1,5 @@
-/*
- * sbf_logical.cpp
- *
- *  Created on: Apr 1, 2012
- *      Author: Virag Varga <varga@dcs.uni-pannon.hu>
+/**
+ * @file sbf_logical.cpp
  */
 
 #include <simplex/startingbasisfinder/sbf_logical.h>

@@ -1,8 +1,5 @@
-/* 
- * File:   primalupdater.h
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 0:54
+/**
+ * @file   primalupdater.h
  */
 
 #ifndef PRIMALUPDATER_H

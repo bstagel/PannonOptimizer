@@ -1,3 +1,7 @@
+/**
+ * @file outputhandler.h
+ */
+
 #ifndef OUTPUTHANDLER_H
 #define OUTPUTHANDLER_H
 

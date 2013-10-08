@@ -1,3 +1,7 @@
+/**
+ * @file outputhandler.cpp
+ */
+
 #include <utils/outputhandler.h>
 #include <iostream>
 #include <cstdlib>

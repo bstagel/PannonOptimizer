@@ -1,3 +1,6 @@
+/**
+ * @file basis.cpp
+ */
 
 #include <simplex/basis.h>
 
