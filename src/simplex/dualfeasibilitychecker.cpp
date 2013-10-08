@@ -1,3 +1,7 @@
+/**
+ * @file dualfeasibilitychecker.cpp
+ */
+
 #include <simplex/dualfeasibilitychecker.h>
 #include <lp/model.h>
 #include <simplex/simplex.h>

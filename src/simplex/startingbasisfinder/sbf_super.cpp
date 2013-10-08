@@ -1,8 +1,5 @@
-/*
- * sbf_super.cpp
- *
- *  Created on: Apr 1, 2012
- *      Author: greenvirag
+/**
+ * @file sbf_super.cpp
  */
 
 #include <sstream>

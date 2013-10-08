@@ -1,3 +1,7 @@
+/**
+ * @file dualfeasibilitychecker.h
+ */
+
 #ifndef DUALFEASIBILITYCHECKER_H
 #define DUALFEASIBILITYCHECKER_H
 

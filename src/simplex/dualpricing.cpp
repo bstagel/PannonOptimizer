@@ -1,3 +1,7 @@
+/**
+ * @file dualpricing.cpp
+ */
+
 #include <simplex/dualpricing.h>
 
 DualPricing::DualPricing(const SimplexModel & model,

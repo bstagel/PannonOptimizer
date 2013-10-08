@@ -1,3 +1,7 @@
+/**
+ * memoryman.cpp
+ */
+
 #include <utils/memoryman.h>
 
 #ifndef CLASSIC_NEW_DELETE

@@ -1,8 +1,5 @@
-/* 
- * File:   dualupdater.h
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 0:54
+/**
+ * @file dualapdater.h
  */
 
 #ifndef DUALUPDATER_H

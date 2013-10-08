@@ -1,8 +1,6 @@
-/* 
- * File:   dualdantzigpricingfactory.h
+/**
+ * @file   dualdantzigpricingfactory.h
  * Author: smidla
- *
- * Created on 2013. augusztus 26., 1:03
  */
 
 #ifndef DUALDANTZIGPRICINGFACTORY_H

@@ -1,8 +1,5 @@
-/* 
- * File:   primaldantzigpricing.cpp
- * Author: smidla
- * 
- * Created on 2013. augusztus 26., 0:58
+/**
+ * @file   primaldantzigpricing.cpp
  */
 
 #include <simplex/pricing/primaldantzigpricing.h>

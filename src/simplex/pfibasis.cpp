@@ -1,8 +1,5 @@
-/*
- * pfibasis.cpp
- *
- *  Created on: Feb 9, 2011
- *      Author: Peter Tar
+/**
+ * @file pfibasis.cpp
  */
 
 #include <string>

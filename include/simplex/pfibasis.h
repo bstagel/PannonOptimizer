@@ -1,3 +1,7 @@
+/**
+ * @file pfibasis.h
+ */
+
 #ifndef PFIBASIS_H
 #define PFIBASIS_H
 

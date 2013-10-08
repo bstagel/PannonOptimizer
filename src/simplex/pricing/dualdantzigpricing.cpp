@@ -1,8 +1,5 @@
-/* 
- * File:   dualdantzigpricing.cpp
- * Author: smidla
- * 
- * Created on 2013. augusztus 26., 0:59
+/**
+ * @file   dualdantzigpricing.cpp
  */
 
 #include <simplex/pricing/dualdantzigpricing.h>

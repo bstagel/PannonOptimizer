@@ -1,3 +1,7 @@
+/**
+ * @file linalgparameterhandler.h
+ */
+
 #ifndef LINALGPARAMETERHANDLER_H
 #define LINALGPARAMETERHANDLER_H
 

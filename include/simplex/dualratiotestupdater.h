@@ -1,3 +1,7 @@
+/**
+ * @file dualratiotestupdater.h
+ */
+
 #ifndef DUALRATIOTESTUPDATER_H
 #define DUALRATIOTESTUPDATER_H
 

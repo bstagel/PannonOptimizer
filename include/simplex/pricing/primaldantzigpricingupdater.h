@@ -1,8 +1,5 @@
-/* 
- * File:   primaldantzigpricingupdater.h
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 0:59
+/**
+ * @file   primaldantzigpricingupdater.h
  */
 
 #ifndef PRIMALDANTZIGPRICINGUPDATER_H

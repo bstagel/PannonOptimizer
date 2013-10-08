@@ -1,3 +1,7 @@
+/**
+ * @file primalupdater.cpp
+ */
+
 #include <simplex/primalupdater.h>
 
 PrimalUpdater::PrimalUpdater():

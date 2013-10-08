@@ -1,8 +1,5 @@
-/* 
- * File:   dualdantzigpricingupdater.cpp
- * Author: smidla
- *
- * Created on 2013. augusztus 26., 1:00
+/**
+ * @file   dualdantzigpricingupdater.cpp
  */
 
 #include <simplex/pricing/dualdantzigpricingupdater.h>

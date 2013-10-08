@@ -1,3 +1,7 @@
+/**
+ * @file defaultparameters.h
+ */
+
 #ifndef DEFAULTPARAMETERS_H
 #define DEFAULTPARAMETERS_H
 
