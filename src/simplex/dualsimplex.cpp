@@ -39,9 +39,10 @@ void DualSimplex::initModules() {
     m_pricing = pricingFactory->createDualPricing( *m_simplexModel, *pricingUpdater );
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
-                                                    m_variableStates,
+                                                    &m_variableStates,
                                                     &m_reducedCostFeasibilities,
                                                     m_reducedCosts,
+                                                    *m_basis,
                                                     &m_phaseIObjectiveValue);
 
     DualRatiotestUpdater * ratiotestUpdater = new DualRatiotestUpdater(&m_reducedCostFeasibilities);
