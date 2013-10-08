@@ -54,7 +54,7 @@ void Basis::copyBasis(bool buildIndexLists) {
                 DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
                 //Collect the logical columns
                 Vector logical(rowCount);
-                logical.set(*it - columnCount,1);
+                logical.setNewNonzero(*it - columnCount,1);
                 m_columns.push_back(logical);
                 m_columnsHash.push_back(*it);
                 m_basisNonzeros++;
