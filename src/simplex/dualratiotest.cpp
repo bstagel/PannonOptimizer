@@ -6,6 +6,7 @@
 #include <lp/model.h>
 #include <utility>
 #include <simplex/simplex.h>
+#include <globals.h>
 
 static const Numerical::Double pivotThreshold=0.00001;
 
@@ -93,6 +94,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
         IndexList<>::Iterator endit;
         unsigned int variableIndex = 0;
         Variable::VARIABLE_TYPE typeOfIthVariable;
+        OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
 
     //t>=0 case
 
@@ -146,14 +148,34 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
                 currentRatio.index = variableIndex;
                 currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                 currentRatio.functionValue = 0;
-                if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0) {
-                    breakpoints.push_back(currentRatio);
-                    m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
-                } else
-                if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] < 0) {
-                    breakpoints.push_back(currentRatio);
-                    m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
-                } else
+
+        //min problem
+
+                if (objectiveType == MINIMIZE) {
+                    if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0) {
+                        breakpoints.push_back(currentRatio);
+                        m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
+                    } else
+                    if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] < 0) {
+                        breakpoints.push_back(currentRatio);
+                        m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
+                    }
+
+        //max problem
+
+                } else {
+                    if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0) {
+                        breakpoints.push_back(currentRatio);
+                        m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
+                    } else
+                    if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] > 0) {
+                        breakpoints.push_back(currentRatio);
+                        m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
+                    }
+                }
+
+        //both cases
+
                 if (typeOfIthVariable == Variable::FREE && alpha[variableIndex] > 0) {
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
@@ -216,14 +238,34 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
                     currentRatio.index = variableIndex;
                     currentRatio.value = Numerical::fabs(m_reducedCosts[variableIndex] / alpha[variableIndex]);
                     currentRatio.functionValue = 0;
-                    if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0) {
-                        breakpoints.push_back(currentRatio);
-                        m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
-                    } else
-                    if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] > 0) {
-                        breakpoints.push_back(currentRatio);
-                        m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
-                    } else
+
+        //min problem
+
+                    if (objectiveType == MINIMIZE) {
+                        if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0) {
+                            breakpoints.push_back(currentRatio);
+                            m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
+                        } else
+                        if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] > 0) {
+                            breakpoints.push_back(currentRatio);
+                            m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
+                        }
+
+        //max problem
+
+                    } else{
+                        if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0) {
+                            breakpoints.push_back(currentRatio);
+                            m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
+                        } else
+                        if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] < 0) {
+                            breakpoints.push_back(currentRatio);
+                            m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
+                        }
+                    }
+
+        //both cases
+
                     if (typeOfIthVariable == Variable::FREE && alpha[variableIndex] < 0) {
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
@@ -556,3 +598,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
 
 DualRatiotest::~DualRatiotest(){
 }
+
+
+
