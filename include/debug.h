@@ -63,7 +63,7 @@
  * If DEVELOPMENT macro is not defined, the messages will not be generated at all.
  */
 
-#define DEVELOPMENT
+//#define DEVELOPMENT
 
 
 #if COLORFLAGS == WINDOWSCOLOR
