@@ -8,6 +8,7 @@
 //using namespace std;
 #include <utils/memoryman.h>
 #include <climits>
+#include <float.h>
 
 #define STATIC_ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
@@ -18,10 +19,11 @@
 #define DENSE 0
 
 #if !(__cplusplus > 199711L)
-//  #error ERROR: PLEASE COMPILE WITH C++0x11!
+  #error ERROR: PLEASE COMPILE WITH C++0x11!
 #endif
 
 const double ZERO = 0.0;
+const double INVALID = -DBL_MAX;
 
 enum OBJECTIVE_TYPE
 {

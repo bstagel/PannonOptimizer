@@ -85,7 +85,7 @@ void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
         delete m_algorithm;
         m_algorithm = 0;
     }
-    DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << m_strategy);
+    DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << strategy);
 
     switch(strategy) {
         case LOWER_LOGICAL:

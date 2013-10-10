@@ -150,6 +150,8 @@ void Basis::setNewHead() {
             //TODO exception
         } else if(m_variableStates->where(*it) != Simplex::BASIC) {
             m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
+        } else {
+            m_variableStates->setAttachedData(*it, &(m_basicVariableValues.at(it - m_basisHead->begin())));
         }
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
@@ -158,15 +160,15 @@ void Basis::setNewHead() {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);
             if (variable.getType() == Variable::FREE) {
-                m_variableStates->insert(Simplex::NONBASIC_FREE, *it, &ZERO);
+                m_variableStates->move(*it, Simplex::NONBASIC_FREE, &ZERO);
             } else if (variable.getType() == Variable::MINUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_UB, *it, &(variable.getUpperBound()));
+                m_variableStates->move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 return;
             } else if (variable.getType() == Variable::PLUS) {
-                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, &(variable.getLowerBound()));
+                m_variableStates->move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 return;
             } else {
-                m_variableStates->insert(Simplex::NONBASIC_AT_LB, *it, &(variable.getLowerBound()));
+                m_variableStates->move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 return;
             }
         }

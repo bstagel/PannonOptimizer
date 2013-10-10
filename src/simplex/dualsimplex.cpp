@@ -88,7 +88,11 @@ void DualSimplex::computeFeasibility() throw (NumericalException) {
 }
 
 void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
+    bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility(m_reducedCostFeasibilities);
+    if(lastFeasible == false && m_feasible == true){
+        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
+    }
 }
 
 void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
@@ -102,12 +106,12 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
 }
 
 void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
-    Vector alpha = m_simplexModel->getMatrix().row(m_outgoingIndex);
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columCount = m_simplexModel->getColumnCount();
-    alpha.resize(rowCount + columCount);
-    alpha.set(columCount + m_outgoingIndex, 1);
-    m_basis->Btran(alpha);
+
+    Vector alpha(rowCount + columCount);
+    computeTransformedRow(&alpha, m_outgoingIndex);
+
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
     } else {
@@ -122,11 +126,45 @@ void DualSimplex::update()throw (NumericalException) {
     //Update objective value
 
     //RECOMPUTE NOW
+    LPINFO("transformed");
+    LPINFO("reinvert");
     reinvert();
+    LPINFO("computeBasicSolution");
     computeBasicSolution();
+    LPINFO("computeReducedCosts");
     computeReducedCosts();
+    LPINFO("computeFeasibility");
     computeFeasibility();
 
     //Do dual specific using the updater
 //    m_updater->update();
+}
+
+void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw(NumericalException) {
+
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+
+    if (rowIndex > rowCount){
+        LPERROR("Invalid row index!");
+        throw NumericalException("Invalid row index, the transformed row cannot be computed");
+    }
+
+    //TODO:Nem lenne jobb konstruktorban megadni hogy dense?
+    Vector rho(rowCount); //Row of the inverse of the basis
+    rho.setSparsityRatio(DENSE);
+    rho.setNewNonzero(rowIndex, 1);
+
+    m_basis->Btran(rho);
+    IndexList<const Numerical::Double *>::Iterator it;
+    IndexList<const Numerical::Double *>::Iterator itEnd;
+    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, 3);
+    for(; it != itEnd ; it++){
+        unsigned int columnIndex = it.getData();
+        if(columnIndex < columnCount){
+            alpha->set(columnIndex, rho.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+        } else {
+            alpha->set(columnIndex, rho.at(columnIndex - columnCount));
+        }
+    }
 }

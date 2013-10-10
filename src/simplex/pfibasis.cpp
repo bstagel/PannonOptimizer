@@ -147,7 +147,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (
 
     int outgoing = m_basisHead->at(pivotRow);
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
-    //TODO - ENNEK ITT UTÁNANÉZNI,HOGY HONNAN JÖN EZ AZ ÉRTÉK
+
     if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound())) {
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
     } else if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound())) {
@@ -294,7 +294,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     //If the dimension mismatches, then the operation cannot be performed.
     //This can't happen in the "normal" case, so in release mode this check is unnecessary.
     if (vector.length() != m_basisHead->size()) {
-        LPERROR("FTRAN failed, vector dimension mismatch! ");
+        LPERROR("BTRAN failed, vector dimension mismatch! ");
         LPERROR("Dimension of the vector to be transformed: " << vector.length());
         LPERROR("Dimension of the basis: " << m_basisHead->size());
     }
@@ -429,7 +429,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             Vector::NonzeroIterator beforeItend = before.endNonzero();
             for (; beforeIt > beforeItend; beforeIt++) {
                 if (m_columns.at(it.getIndex()).at(beforeIt.getIndex()) == 0) {
-                    DEVINFO(D::PFIMAKER, "Zero generated in column " << it.getIndex() << " row index: " << vectorIt.getIndex());
+                    DEVINFO(D::PFIMAKER, "Zero generated in column " << it.getIndex() << " row index: " << beforeIt.getIndex());
                     m_rows.at(beforeIt.getIndex()).set(it.getIndex(), 0);
                     m_rowCounts.at(beforeIt.getIndex())--;
                 }

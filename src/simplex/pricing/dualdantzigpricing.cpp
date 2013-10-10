@@ -24,7 +24,9 @@ DualDantzigPricing::~DualDantzigPricing()
 }
 
 unsigned int DualDantzigPricing::performPricingPhase1() {
-    const unsigned int variableCount = m_model.getMatrix().columnCount();
+    //TODO: rowcount kell ide
+//    const unsigned int variableCount = m_model.getMatrix().columnCount();
+    const unsigned int variableCount = m_model.getMatrix().rowCount();
     Numerical::Double max = m_updater.m_phase1ReducedCosts[0];
     unsigned int maxIndex = 0;
     unsigned int index;

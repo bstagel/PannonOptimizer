@@ -65,7 +65,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
                                            const Vector& alpha,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue) {
-
+    LPINFO("PHASE1 RATIO TEST");
     m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount());
 
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
@@ -82,7 +82,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
         }
 
 //computing ratios
-
+LPINFO("computing ratios");
         std::vector <BreakPoint> breakpoints;
         breakpoints.reserve(alpha.nonZeros()*2);
         BreakPoint currentRatio;
@@ -99,9 +99,9 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
     //t>=0 case
 
         if (tPositive) {
+            LPINFO("t>=0 case");
 
         //computing ratios in M
-
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
             for (; it!=endit; it++){
@@ -190,8 +190,8 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 
         } else{
 
+            LPINFO("t<=0 case");
         //computing ratios in M
-
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
                 for (; it!=endit; it++) {
@@ -296,7 +296,9 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
     typeOfIthVariable = m_model.getVariable(m_outgoingVariableIndex).getType();
 
 //determining primal steplength
+
     Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_outgoingVariableIndex));
+
     if (typeOfIthVariable == Variable::FIXED) {
         m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(m_outgoingVariableIndex).getLowerBound()) /
                 alpha[m_incomingVariableIndex];
@@ -391,6 +393,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoing,
 void DualRatiotest::performRatiotestPhase2(unsigned int outgoing,
                                             const Vector& alpha,
                                             Numerical::Double objectiveFunction){
+    LPINFO("PHASE2 RATIO TEST");
     std::vector<BreakPoint> breakpoints;
     Numerical::Double functionSlope = 0;
     Numerical::Double previousSlope = 0;
