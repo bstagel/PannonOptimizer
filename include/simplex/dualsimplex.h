@@ -41,6 +41,8 @@ private:
     virtual void price() throw (OptimizationResultException, NumericalException);
     virtual void selectPivot() throw (OptimizationResultException, NumericalException);
     virtual void update()throw (NumericalException);
+
+    void computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw (NumericalException);
 };
 
 #endif /* DUALSIMPLEX_H */

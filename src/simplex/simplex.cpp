@@ -88,13 +88,12 @@ void Simplex::solve() {
         m_basicVariableValues.prepareForData(m_simplexModel->getRhs().nonZeros(), m_basicVariableValues.length(), DENSE);
         Vector::NonzeroIterator it = m_simplexModel->getRhs().beginNonzero();
         Vector::NonzeroIterator itend = m_simplexModel->getRhs().endNonzero();
+        LPERROR("rhs\n" <<m_simplexModel->getRhs());
         for(; it < itend; it++){
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-        LPINFO("rowcount: "<<m_simplexModel->getRowCount());
-        LPINFO("columncount: "<<m_simplexModel->getColumnCount());
-        LPINFO("basishead: "<<m_basisHead);
+
 
         for (iterationIndex = 0;iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; iterationIndex++) {
             LPINFO("Iteration: "<<iterationIndex);
@@ -102,6 +101,8 @@ void Simplex::solve() {
                 LPINFO("reinvert");
                 reinversionCounter = 0;
                 reinvert();
+
+
                 LPINFO("computeBasicSolution");
                 computeBasicSolution();
                 LPINFO("computeReducedCosts");
@@ -121,6 +122,7 @@ void Simplex::solve() {
                 if(reinversionCounter < reinversionFrequency){
                     update();
                 }
+                LPINFO("updateend");
             }
             catch ( const OptimalException & exception ) {
                    //Check the result with triggering reinversion
@@ -256,16 +258,18 @@ void Simplex::computeBasicSolution() throw (NumericalException) {
     m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,2);
 
     for(; it != itend; it++) {
-        if(it.getData() < columnCount){
-            m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()));
-            m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
-        } else {
-            m_basicVariableValues.set(it.getData() - columnCount,
-                                      m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+        if(*(it.getAttached()) != 0){
+            if(it.getData() < columnCount){
+                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()));
+                m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
+            } else {
+                m_basicVariableValues.set(it.getData() - columnCount,
+                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+            }
         }
     }
 
-    //This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
+//    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
     m_basis->Ftran(m_basicVariableValues);
 
     m_variableStates.getIterators(&it, &itend, Simplex::BASIC);
@@ -335,12 +339,28 @@ void Simplex::transform(unsigned int incomingIndex,
         }
     }
 
+    LPERROR("baziscsere");
     if(outgoingIndex != -1){
-        Vector alpha = m_simplexModel->getMatrix().column(*it);
+        unsigned int rowCount = m_simplexModel->getRowCount();
+        unsigned int columnCount = m_simplexModel->getColumnCount();
+
+        //TODO: Az alpha vajon sparse vagy dense?
+        Vector alpha(rowCount);
+        LPERROR("alpha");
+        if(incomingIndex < columnCount){
+            alpha = m_simplexModel->getMatrix().column(incomingIndex);
+        } else {
+            alpha.setNewNonzero(incomingIndex - columnCount, 1);
+        }
+        LPERROR("alpha\n"<<alpha);
         m_basis->Ftran(alpha);
         m_basicVariableValues.addVector(-1 * primalTheta, alpha);
+        LPERROR("m_basicVariableValues"<<m_basicVariableValues);
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-        m_basicVariableValues.set(incomingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
         m_basis->append(alpha, outgoingIndex, incomingIndex);
+        LPERROR("m_basicVariableValues"<<m_basicVariableValues);
+        m_basicVariableValues.set(incomingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
+
+        LPERROR("m_basicVariableValues"<<m_basicVariableValues);
     }
 }

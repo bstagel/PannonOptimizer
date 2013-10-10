@@ -2533,7 +2533,7 @@ void MpsModelBuilder::collectConstraintBounds()
             }
             break;
         default:
-            DEVINFO(D::MPSREADER, "Error,  rowIter->first.m_type = " << rowIter->first.m_type);
+            DEVINFO(D::MPSREADER, "Error,  rowIter->first.m_type = " << (*rowIterator)->m_type);
             break;
         }
 

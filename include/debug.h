@@ -63,7 +63,7 @@
  * If DEVELOPMENT macro is not defined, the messages will not be generated at all.
  */
 
-//#define DEVELOPMENT
+#define DEVELOPMENT
 
 
 #if COLORFLAGS == WINDOWSCOLOR
@@ -104,6 +104,71 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
  *
  *
  */
+
+/*********************************HELPER****************************************************************/
+// Define colors
+#if COLORFLAGS == BASHCOLOR
+
+#define DC_K "\e[0;30m"
+#define DC_R "\e[0;31m"
+#define DC_G "\e[0;32m"
+#define DC_Y "\e[0;33m"
+#define DC_B "\e[0;34m"
+#define DC_M "\e[0;35m"
+#define DC_C "\e[0;36m"
+#define DC_W "\e[0;37m"
+#define DC_D "\e[0m"
+
+#define DC_BGK "\e[40m"
+#define DC_BGR "\e[41m"
+#define DC_BGG "\e[42m"
+#define DC_BGY "\e[43m"
+#define DC_BGB "\e[44m"
+#define DC_BGM "\e[45m"
+#define DC_BGC "\e[46m"
+#define DC_BGW "\e[47m"
+
+#define DC_EMK "\e[1;30m"
+#define DC_EMR "\e[1;31m"
+#define DC_EMG "\e[1;32m"
+#define DC_EMY "\e[1;33m"
+#define DC_EMB "\e[1;34m"
+#define DC_EMM "\e[1;35m"
+#define DC_EMC "\e[1;36m"
+#define DC_EMW "\e[1;37m"
+
+#else
+#include <cstdlib>
+#define DC_K ""
+#define DC_R ""
+#define DC_G ""
+#define DC_Y ""
+#define DC_B ""
+#define DC_M ""
+#define DC_C ""
+#define DC_W ""
+#define DC_D ""
+
+#define DC_BGK ""
+#define DC_BGR ""
+#define DC_BGG ""
+#define DC_BGY ""
+#define DC_BGB ""
+#define DC_BGM ""
+#define DC_BGC ""
+#define DC_BGW ""
+
+#define DC_EMK ""
+#define DC_EMR ""
+#define DC_EMG ""
+#define DC_EMY ""
+#define DC_EMB ""
+#define DC_EMM ""
+#define DC_EMC ""
+#define DC_EMW ""
+
+#endif
+
 
 
 #if COLORFLAGS != WINDOWSCOLOR
@@ -336,8 +401,8 @@ private:
         //        am |= D::MPSREADER;
         //        am |= D::PRESOLVER;
         //        am |= D::CFMAKER;
-        //        am |= D::STARTINGBASISFINDER;
-                am |= D::PFIMAKER;
+//                am |= D::STARTINGBASISFINDER;
+//                am |= D::PFIMAKER;
         //        am |= D::SBF1;
         //        am |= D::SIMPLEX;
         //        am |= D::RATIOTEST;
@@ -534,7 +599,7 @@ private:
     if (D::getActiveModules()&mod) {                    \
         if (mygetenv("ECLIPSE")) {                        \
             DEBUG_NCINFO(D::getName(mod), msg);         \
-        } else {                                        \
+    } else {                                            \
             DEBUG_INFO(D::getName(mod), msg);           \
         }                                               \
     }

@@ -1291,8 +1291,11 @@ void Vector::append(Numerical::Double value)
 
 Vector & Vector::operator=(const Vector & vector)
 {
-    freeData(m_data);
-    freeIndex(m_index);
+    //TODO: Ezt atgondolni, hogy biztos jo-e igy
+    if(m_dimension!=vector.m_dimension){
+        freeData(m_data);
+        freeIndex(m_index);
+    }
     copy(vector);
     CHECK;
     return *this;

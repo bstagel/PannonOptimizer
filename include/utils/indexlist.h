@@ -7,9 +7,11 @@
 #define	LINKEDLIST_H
 
 #include <globals.h>
+#include <utils/numerical.h>
 
 #include <set>
 #include <iostream>
+#include <typeinfo>
 using namespace std;
 
 /**
@@ -21,7 +23,9 @@ using namespace std;
  *
  */
 
-namespace detail { struct unused { }; }
+namespace detail { struct unused { int operator*() const {return 0;}
+                                   std::ostream & operator << (std::ostream & os) {return os;}
+                                 }; }
 
 template <class ATTACHED_TYPE = detail::unused>
 class IndexList
@@ -827,7 +831,11 @@ std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & 
         typename IndexList<ATTACHED_TYPE>::Iterator iter, iterEnd;
         list.getIterators(&iter, &iterEnd, index);
         for (; iter != iterEnd; iter++) {
-            os << "     " << iter.getData() << std::endl;
+            os << "     " << iter.getData();
+//            if(typeid(ATTACHED_TYPE) == typeid(Numerical::Double*)){
+                os << "  ; val = " << *(iter.getAttached());
+//            }
+            os << std::endl;
         }
     }
     return os;
