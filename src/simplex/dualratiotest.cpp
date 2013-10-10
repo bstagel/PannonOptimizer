@@ -8,8 +8,6 @@
 #include <simplex/simplex.h>
 #include <globals.h>
 
-static const Numerical::Double pivotThreshold=0.00001;
-
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
                              const IndexList<>& reducedCostFeasibilities,
@@ -95,6 +93,7 @@ LPINFO("computing ratios");
         unsigned int variableIndex = 0;
         Variable::VARIABLE_TYPE typeOfIthVariable;
         OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
+        Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("pivot_threshold");
 
     //t>=0 case
 
@@ -378,7 +377,7 @@ LPINFO("computing ratios");
         prevIsBetter = nextObjValue > prevObjValue? false : true;
     }
 
-    if ((prevObjValue == Numerical::Infinity) && (nextObjValue == Numerical::Infinity)) {
+    if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
         m_incomingVariableIndex=breakpoints[alphaId].index;
         m_dualSteplength = breakpoints[alphaId].value;
     } else if (prevIsBetter) {
