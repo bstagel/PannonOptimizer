@@ -2310,7 +2310,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
             case SEC_COLUMNS:
                 //ptr = fastReadColumnRecord(ptr, &wellFormedRecord, info);
                 //if (wellFormedRecord == false) {
-                    ptr = readColumnRecord(ptr, m_columns, info, &m_columnIndexTable);
+                ptr = readColumnRecord(ptr, m_columns, info, &m_columnIndexTable);
                 //}
                 if (info != NO_INFO && info != COMMENT) {
                     m_columnLower.resize(m_columns.getCount(), 0);
@@ -2475,6 +2475,8 @@ void MpsModelBuilder::collectConstraintBounds()
     std::vector<bool> rangesGiven(rowCount, false);
     //std::vector<bool> rhsGiven(rowCount, false);
     getColumnVector(rhsIndex, &rhs, m_rhs, 0);
+
+    LPINFO("RHS VECTOR: " << rhs);
 
     getColumnVector(rangesIndex, &ranges, m_ranges, &rangesGiven);
 
@@ -3290,21 +3292,54 @@ void MpsModelBuilder::getColumnVector(unsigned int columnIndex, Vector * vector,
                                       std::vector<bool> * given)
 {
     __UNUSED(columnHashTable);
-    Column * column = m_columnIndexTable[columnIndex];
-    List< Column::Pair >::Iterator row_iter = column->m_coeffs.begin();
-    List< Column::Pair >::Iterator row_end = column->m_coeffs.end();
+    if ( &columnHashTable == &m_columns) {
+        Column * column = m_columnIndexTable[columnIndex];
+        List< Column::Pair >::Iterator row_iter = column->m_coeffs.begin();
+        List< Column::Pair >::Iterator row_end = column->m_coeffs.end();
 
-    for (; row_iter != row_end; row_iter++) {
-        if (given) {
-            if (row_iter.getData().m_index >= m_costVectorIndex) {
-                (*given)[row_iter.getData().m_index - 1] = true;
-            } else {
-                (*given)[row_iter.getData().m_index] = true;
+        for (; row_iter != row_end; row_iter++) {
+            if (given) {
+                if (row_iter.getData().m_index >= m_costVectorIndex) {
+                    (*given)[row_iter.getData().m_index - 1] = true;
+                } else {
+                    (*given)[row_iter.getData().m_index] = true;
+                }
+            }
+            vector->set(row_iter.getData().m_index, row_iter.getData().m_value);
+        }
+    } else if ( &columnHashTable == &m_rhs ) {
+
+        std::vector< std::vector< std::map<Column, int> > >::const_iterator columnIter1 =
+                m_rhs.m_table.begin();
+        std::vector< std::vector< std::map<Column, int> > >::const_iterator columnIterEnd1 =
+                m_rhs.m_table.end();
+        for (; columnIter1 < columnIterEnd1; columnIter1++) {
+            std::vector< std::map<Column, int> >::const_iterator columnIter2 =
+                    columnIter1->begin();
+            std::vector< std::map<Column, int> >::const_iterator columnIterEnd2 =
+                    columnIter1->end();
+            for (; columnIter2 < columnIterEnd2; columnIter2++) {
+                if ( columnIter2->size() > 0 ) {
+                    Column column = columnIter2->begin()->first;
+                    List< Column::Pair >::Iterator row_iter = column.m_coeffs.begin();
+                    List< Column::Pair >::Iterator row_end = column.m_coeffs.end();
+
+                    for (; row_iter != row_end; row_iter++) {
+                        if (given) {
+                            if (row_iter.getData().m_index >= m_costVectorIndex) {
+                                (*given)[row_iter.getData().m_index - 1] = true;
+                            } else {
+                                (*given)[row_iter.getData().m_index] = true;
+                            }
+                        }
+                        vector->set(row_iter.getData().m_index, row_iter.getData().m_value);
+                    }
+                    return;
+                }
             }
         }
-        vector->set(row_iter.getData().m_index, row_iter.getData().m_value);
-    }
 
+    }
     /*std::vector< std::map<Column, int> >::const_iterator columnHashIter =
         columnHashTable.m_table.begin();
     std::vector< std::map<Column, int> >::const_iterator columnHashEnd =
