@@ -5,6 +5,8 @@
 #ifndef MEMORYMAN_H
 #define MEMORYMAN_H
 
+#define CLASSIC_NEW_DELETE
+
 #ifndef CLASSIC_NEW_DELETE
 
 #include <new>
