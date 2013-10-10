@@ -96,6 +96,7 @@ void DualFeasibilityChecker::computeFeasibility(){
             if(objectiveType == MINIMIZE) {
 
     //nonbasic variables with M type infeasibility
+
                 if (Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
