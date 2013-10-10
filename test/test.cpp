@@ -29,17 +29,17 @@ using namespace std;
 int main(int, char** )
 {
     setbuf(stdout, 0);
-//    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
-//    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
-//    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
-//    Tester::addUnitTest(new VectorTestSuite("Vector Test"));
-//    Tester::addUnitTest(new MatrixTestSuite("Matrix Test"));
+    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
+    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
+    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
+    Tester::addUnitTest(new VectorTestSuite("Vector Test"));
+    Tester::addUnitTest(new MatrixTestSuite("Matrix Test"));
     Tester::addUnitTest(new ManualModelBuilderTestSuite("ManualModelBuilder Test"));
-//    Tester::addUnitTest(new ModelTestSuite("Model Test"));
+    Tester::addUnitTest(new ModelTestSuite("Model Test"));
 
 //    Tester::addUnitTest(new MpsProblemTestSuite("MpsProblem Test"));
-//    Tester::addUnitTest(new OutputHandlerTestSuite("Output Handler Test"));
-//    Tester::addUnitTest(new TimerTestSuite("Timer Test"));
+    Tester::addUnitTest(new OutputHandlerTestSuite("Output Handler Test"));
+    Tester::addUnitTest(new TimerTestSuite("Timer Test"));
 
 
 //    Tester::addUnitTest(new LinalgParameterHandlerTestSuite("Linalg Parameter Handler Test"));

@@ -478,6 +478,7 @@ void ManualModelBuilderTestSuite::addVariable2()
     Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     const Numerical::Double testCostCoefficient1 = 4.2;
     Vector testVector1(11);
+    testVector1.setSparsityRatio(0.35);
     testVector1.set(7, 1.0);
     testVector1.set(3, -2.3);
     testVector1.set(10, 0.13);
@@ -558,10 +559,6 @@ void ManualModelBuilderTestSuite::addVariable2()
         builder.m_nonZerosInColumns.begin(),
         builder.m_nonZerosInColumns.end(),
         outputNonZerosInColumns1) == true);
-    std::cout<<"\nm_columns: "<< builder.m_columns;
-
-    std::cout<<"\noutputColumnLists1: "<<outputColumnLists1;
-
     TEST_ASSERT(builder.m_columns == outputColumnLists1);
 
     TEST_ASSERT(std::equal(
@@ -579,6 +576,7 @@ void ManualModelBuilderTestSuite::addVariable2()
     const Numerical::Double testCostCoefficient2 = -0.2;
 
     Vector testVector2(13);
+    testVector2.setSparsityRatio(0.35);
     testVector2.set(1, 4.2);
     testVector2.set(5, 1.03);
     testVector2.set(7, 4.31);
@@ -692,6 +690,7 @@ void ManualModelBuilderTestSuite::addVariable2()
     const Numerical::Double testCostCoefficient3 = 3.0;
 
     Vector testVector3(13);
+    testVector3.setSparsityRatio(0.35);
 
     builder.addVariable(testVariable3, testCostCoefficient3, testVector3);
 
@@ -783,6 +782,7 @@ void ManualModelBuilderTestSuite::addVariable2()
     const Numerical::Double testCostCoefficient4 = 0.0;
 
     Vector testVector4(13);
+    testVector4.setSparsityRatio(0.35);
     testVector4.set(0, 0.02);
     testVector4.set(11, 31.02);
 
@@ -1177,6 +1177,7 @@ void ManualModelBuilderTestSuite::addVariable3()
     const Numerical::Double testCostCoefficient4 = 0.0;
 
     Vector testVector4(13);
+    testVector4.setSparsityRatio(0.35);
     testVector4.set(0, 0.02);
     testVector4.set(11, 31.02);
 
@@ -1701,6 +1702,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
     ManualModelBuilder builder;
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
     Vector testVector1(11);
+    testVector1.setSparsityRatio(0.35);
     testVector1.set(7, 1.0);
     testVector1.set(3, -2.3);
     testVector1.set(10, 0.13);
@@ -1768,6 +1770,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     Constraint testConstraint2 = Constraint::createNonBindingTypeConstraint("r2");
     Vector testVector2(13);
+    testVector2.setSparsityRatio(0.35);
     testVector2.set(1, 4.2);
     testVector2.set(5, 1.03);
     testVector2.set(7, 4.31);
@@ -1853,7 +1856,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     Constraint testConstraint3 = Constraint::createLessTypeConstraint("r2", 3.0);
     Vector testVector3;
-
+    testVector3.setSparsityRatio(0.35);
     builder.addConstraint(testConstraint3, testVector3);
 
     TEST_ASSERT(builder.getColumnCount() == 13);
@@ -1926,6 +1929,7 @@ void ManualModelBuilderTestSuite::addConstraint2()
 
     Constraint testConstraint4 = Constraint::createGreaterTypeConstraint("r4", 43.2);
     Vector testVector4(12);
+    testVector4.setSparsityRatio(0.35);
     testVector4.set(0, 0.02);
     testVector4.set(11, 31.02);
     builder.addConstraint(testConstraint4, testVector4);
@@ -2457,6 +2461,7 @@ void ManualModelBuilderTestSuite::addVariableAndConstraint()
     ManualModelBuilder builder;
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
     Vector testRow1(11);
+    testRow1.setSparsityRatio(0.35);
     testRow1.set(7, 1.0);
     testRow1.set(3, -2.3);
     testRow1.set(10, 0.13);
@@ -2481,6 +2486,7 @@ void ManualModelBuilderTestSuite::addVariableAndConstraint()
 
     Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
+    testColumn1.setSparsityRatio(0.35);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
     testColumn1.set(11, 4.13);
@@ -2573,6 +2579,7 @@ void ManualModelBuilderTestSuite::buildRow()
     ManualModelBuilder builder;
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
     Vector testRow1(11);
+    testRow1.setSparsityRatio(0.35);
     testRow1.set(7, 1.0);
     testRow1.set(3, -2.3);
     testRow1.set(10, 0.13);
@@ -2581,6 +2588,7 @@ void ManualModelBuilderTestSuite::buildRow()
 
     Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
+    testColumn1.setSparsityRatio(0.35);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
     testColumn1.set(11, 4.13);
@@ -2620,6 +2628,7 @@ void ManualModelBuilderTestSuite::buildRow()
     unsigned int index;
     unsigned int rowIndex;
     Vector row;
+    row.setSparsityRatio(0.35);
     for (rowIndex = 0; rowIndex < 12; rowIndex++) {
         builder.buildRow(rowIndex, &row, 0);
         TEST_ASSERT(row.length() == 12);
@@ -2681,6 +2690,7 @@ void ManualModelBuilderTestSuite::buildColumn()
     ManualModelBuilder builder;
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
     Vector testRow1(11);
+    testRow1.setSparsityRatio(0.35);
     testRow1.set(7, 1.0);
     testRow1.set(3, -2.3);
     testRow1.set(10, 0.13);
@@ -2689,6 +2699,7 @@ void ManualModelBuilderTestSuite::buildColumn()
 
     Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
+    testColumn1.setSparsityRatio(0.35);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
     testColumn1.set(11, 4.13);
@@ -2728,6 +2739,7 @@ void ManualModelBuilderTestSuite::buildColumn()
     unsigned int index;
     unsigned int columnIndex;
     Vector column;
+    column.setSparsityRatio(0.35);
     for (columnIndex = 0; columnIndex < 12; columnIndex++) {
         builder.buildColumn(columnIndex, &column, 0);
         TEST_ASSERT(column.length() == 12);
@@ -2797,6 +2809,7 @@ void ManualModelBuilderTestSuite::buildCostVector()
     ManualModelBuilder builder;
     Constraint testConstraint1 = Constraint::createEqualityTypeConstraint("r1", 4.4);
     Vector testRow1(11);
+    testRow1.setSparsityRatio(0.35);
     testRow1.set(7, 1.0);
     testRow1.set(3, -2.3);
     testRow1.set(10, 0.13);
@@ -2805,6 +2818,7 @@ void ManualModelBuilderTestSuite::buildCostVector()
 
     Variable testVariable1 = Variable::createMinusTypeVariable("x1", 10.0);
     Vector testColumn1(14);
+    testColumn1.setSparsityRatio(0.35);
     testColumn1.set(0, 1.2);
     testColumn1.set(2, 2.3);
     testColumn1.set(11, 4.13);
@@ -2825,6 +2839,7 @@ void ManualModelBuilderTestSuite::buildCostVector()
     builder.setCostCoefficient(testIndex4, testCostCoefficient4);
 
     Vector costVector;
+    costVector.setSparsityRatio(0.35);
     builder.buildCostVector(&costVector);
     unsigned int index;
     TEST_ASSERT(costVector.length() == 12);
