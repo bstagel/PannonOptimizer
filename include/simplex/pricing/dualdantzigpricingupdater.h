@@ -23,8 +23,6 @@ public:
                               const Basis & basis);
     DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig);
 
-    DualDantzigPricingUpdater & operator = (const DualDantzigPricingUpdater & orig);
-
     virtual ~DualDantzigPricingUpdater();
 
     void updatePhase1();
@@ -35,10 +33,6 @@ private:
     int m_phase2Index;
 
     Numerical::Double m_phase2ReducedCost;
-
-    void copy(const DualDantzigPricingUpdater & orig);
-
-    void release();
 
     void clearPhase1ReducedCosts();
 };

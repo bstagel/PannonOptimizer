@@ -22,22 +22,9 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig):
     DualPricingUpdater(orig)
 {
-    copy(orig);
 }
 
 DualDantzigPricingUpdater::~DualDantzigPricingUpdater() {
-    release();
-}
-
-DualDantzigPricingUpdater & DualDantzigPricingUpdater::operator = (
-        const DualDantzigPricingUpdater & orig) {
-    if (&orig == this) {
-        return *this;
-    }
-    //DualPricingUpdater::operator=(orig);
-    release();
-    copy(orig);
-    return *this;
 }
 
 void DualDantzigPricingUpdater::updatePhase1() {
