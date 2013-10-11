@@ -7,6 +7,7 @@
 #include <utility>
 #include <simplex/simplex.h>
 #include <globals.h>
+#include <simplex/simplexparameterhandler.h>
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
