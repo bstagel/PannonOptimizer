@@ -118,6 +118,9 @@ private:
 class MemoryManager {
     friend class MemoryManagerInitializer;
 public:
+
+    static bool sm_initialized;
+
     MemoryManager() {
         //std::cout << "Initialize memory manager" << std::endl;
         //init();
@@ -160,7 +163,7 @@ private:
 
     static ChunkStack * sm_smallStacks;
     static ChunkStack * sm_largeStacks;
-
+public:
     static void init() {
         Pool::init();
         unsigned int count = sm_maxSmallStackSize / sm_smallSteps + 1;
@@ -175,6 +178,7 @@ private:
         for (index = 0; index < count; index++) {
             sm_largeStacks[index].init();
         }
+        sm_initialized = true;
         //printf("Memory manager initialized\n");
 
     }
@@ -194,6 +198,7 @@ private:
         free(sm_largeStacks);
         sm_largeStacks = 0;
         Pool::release();
+        sm_initialized = false;
         printf("Memory manager released\n");
     }
 };
@@ -215,7 +220,7 @@ inline void operator delete(void * p) {
     }
 }
 
-class MemoryManagerInitializer {
+/*class MemoryManagerInitializer {
 public:
     MemoryManagerInitializer() {
         static MemoryManager manager;
@@ -227,7 +232,25 @@ public:
     }
 };
 
-static MemoryManagerInitializer memoryInitializer;
+static MemoryManagerInitializer memoryInitializer;*/
+
+__attribute__((constructor))
+static void initMemory() {
+    if (MemoryManager::sm_initialized == false) {
+        MemoryManager::init();
+        printf("Memory manager initialized\n");
+    }
+}
+
+__attribute__((destructor))
+static void releaseMemory() {
+    static bool released = false;
+    if (MemoryManager::sm_initialized == true && released == false) {
+        MemoryManager::release();
+        printf("Memory manager released\n");
+        released = true;
+    }
+}
 
 #endif
 
