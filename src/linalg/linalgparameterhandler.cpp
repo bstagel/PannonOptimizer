@@ -8,7 +8,9 @@
 
 #include <defaultparameters.h>
 
-static const std::string filename = "linalg.PAR";
+#include <cstdio>
+
+const char * LinalgParameterHandler::sm_filename = "linalg.PAR";
 
 LinalgParameterHandler::LinalgParameterHandler()
 {
@@ -21,15 +23,17 @@ ParameterHandler& LinalgParameterHandler::getInstance()
     static bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
-     //   s_instance.readParameterFile(filename);
+        s_instance.readParameterFile(sm_filename);
         s_init = true;
     }
     return s_instance;
 }
 
 void LinalgParameterHandler::writeParameterFile()
-{try {
-        std::ofstream out(filename.data());
+{
+    try {
+        std::ofstream out(sm_filename);
+
         if (!out.is_open()) throw -1;
 
         out << "!!! Linear Algebraic parameter file for the Pannon Optimizer !!!" << std::endl;
@@ -51,7 +55,7 @@ void LinalgParameterHandler::writeParameterFile()
         out.close();
     }
     catch(int) {
-        std::cerr << "Parameter file can not be written: " <<filename;
+        std::cerr << "Parameter file can not be written: " << sm_filename << std::endl;
     }
 }
 

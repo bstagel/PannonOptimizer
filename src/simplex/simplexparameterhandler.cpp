@@ -9,7 +9,7 @@
 
 #include <defaultparameters.h>
 
-static const std::string filename = "simplex.PAR";
+const char * SimplexParameterHandler::sm_filename = "simplex.PAR";
 
 SimplexParameterHandler::SimplexParameterHandler()
 {
@@ -22,7 +22,7 @@ ParameterHandler& SimplexParameterHandler::getInstance()
     static bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
-        s_instance.readParameterFile(filename);
+        s_instance.readParameterFile(sm_filename);
         s_init = true;
     }
     return s_instance;
@@ -30,7 +30,7 @@ ParameterHandler& SimplexParameterHandler::getInstance()
 
 void SimplexParameterHandler::writeParameterFile()
 {try {
-        std::ofstream out(filename.data());
+        std::ofstream out(sm_filename);
         if (!out.is_open()) throw -1;
 
         out << "!!! Simplex parameter file for the Pannon Optimizer !!!" << std::endl;
@@ -124,7 +124,7 @@ void SimplexParameterHandler::writeParameterFile()
         out.close();
     }
     catch(int) {
-        std::cerr << "Parameter file can not be written: " <<filename;
+        std::cerr << "Parameter file can not be written: " << sm_filename;
     }
 }
 

@@ -17,6 +17,9 @@ public:
     void writeParameterFile();
 
 private:
+
+    static const char * sm_filename;
+
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}
     void initParameters();
