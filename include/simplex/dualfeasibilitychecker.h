@@ -8,7 +8,6 @@
 #include <globals.h>
 #include <utils/indexlist.h>
 #include <linalg/vector.h>
-
 #include <simplex/simplexmodel.h>
 
 class Basis;

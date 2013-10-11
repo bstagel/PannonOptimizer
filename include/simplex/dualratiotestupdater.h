@@ -10,8 +10,6 @@
 #include <utils/indexlist.h>
 #include <utils/numerical.h>
 
-//class DualRatiotest;
-
 class DualRatiotestUpdater{
     friend class DualRatiotest;
 
