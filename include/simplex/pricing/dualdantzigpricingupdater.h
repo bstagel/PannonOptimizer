@@ -32,8 +32,6 @@ public:
     void updatePhase2();
 private:
 
-    Numerical::Double * m_phase1ReducedCosts;
-
     int m_phase2Index;
 
     Numerical::Double m_phase2ReducedCost;

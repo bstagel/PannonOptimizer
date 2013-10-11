@@ -26,6 +26,16 @@ public:
 private:
 
     const DualDantzigPricingUpdater & m_updater;
+
+    Numerical::Double * m_phase1ReducedCosts;
+
+    void clearPhase1ReducedCosts();
+
+    void copy(const DualDantzigPricing & orig);
+
+    void release();
+
+    void initPhase1();
 };
 
 #endif	/* DUALDANTZIGPRICING_H */
