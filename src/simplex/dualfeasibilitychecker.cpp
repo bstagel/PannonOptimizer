@@ -66,8 +66,10 @@ bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeas
     IndexList<>::Iterator setPit;
     IndexList<>::Iterator setPendit;
 
-    reducedCostFeasibilities.getIterators(&setMit,&setMendit,Simplex::MINUS,1);
-    reducedCostFeasibilities.getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+    (*m_reducedCostFeasibilities) = reducedCostFeasibilities;
+
+    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
+    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
         return true;

@@ -5,9 +5,6 @@
 #ifndef DUAL_RATIOTEST_H
 #define DUAL_RATIOTEST_H
 
-#include <globals.h>
-
-#include <iostream>
 #include <vector>
 #include <linalg/vector.h>
 #include <linalg/matrix.h>
@@ -35,8 +32,6 @@ public:
 
     inline unsigned int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
 
-    inline unsigned int getOugoingVariableIndex()const{return m_outgoingVariableIndex;}
-
     inline Numerical::Double getPrimalSteplength()const{return m_primalSteplength;}
 
     inline Numerical::Double getDualSteplength()const{return m_dualSteplength;}
@@ -47,13 +42,13 @@ public:
 
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
-    void performRatiotestPhase1(unsigned int outgoing,
+    void performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue
                                 );
 
-    void performRatiotestPhase2(unsigned int outgoing,
+    void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
                                 Numerical::Double objectiveFunction
                                 );
@@ -66,7 +61,6 @@ private:
 
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     unsigned int m_incomingVariableIndex;
-    unsigned int m_outgoingVariableIndex;
     Numerical::Double m_dualSteplength;
     Numerical::Double m_primalSteplength;
     Numerical::Double m_objectiveFunctionPhase1;
