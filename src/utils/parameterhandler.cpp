@@ -16,14 +16,14 @@ ParameterHandler::~ParameterHandler()
 
 }
 
-void ParameterHandler::readParameterFile(const std::string filename)
+void ParameterHandler::readParameterFile(const char * filename)
 {
     try {
         std::ifstream in;
-        in.open(filename.data());
+        in.open(filename);
         if (!in.is_open()){
             writeParameterFile();
-            in.open(filename.data());
+            in.open(filename);
             if (!in.is_open()){
                 throw -1;
             }

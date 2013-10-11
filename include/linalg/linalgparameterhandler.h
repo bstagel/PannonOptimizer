@@ -17,6 +17,9 @@ public:
     void writeParameterFile();
 
 private:
+
+    static const char * sm_filename;
+
     LinalgParameterHandler();
     LinalgParameterHandler(const LinalgParameterHandler &){}
     void initParameters();
