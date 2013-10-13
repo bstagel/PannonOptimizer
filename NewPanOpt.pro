@@ -81,7 +81,8 @@ HEADERS += include/debug.h \
     include/utils/memoryman.h \
     include/simplex/primalratiotest.h \
     include/simplex/primalfeasibilitychecker.h \
-    include/simplex/primalratiotestupdater.h
+    include/simplex/primalratiotestupdater.h \
+    include/utils/colors.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

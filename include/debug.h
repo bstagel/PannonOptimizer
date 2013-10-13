@@ -19,41 +19,18 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <utils/colors.h>
 #include <utils/outputhandler.h>
 
-/*static char * mygetenv(const char * name) {
-    return getenv(name);
-}*/
-
-#define mygetenv(name) (getenv(name) == 0 ? false : true)
-
-/*
- * Use COLORFLAGS macro to define the colors of the output.
- * To use bash compatile color flags: define COLORFLAGS to BASHCOLOR
- * To use windows color flags: define COLORFLAGS to WINDOWSCOLOR
- *  !!! In that case the default windows headers are needed !!!
- * For no colors at all: define COLORFLAGS to NOCOLOR
- *
- * !!! Note: if ECLIPSE environment variable is defined at run time, then
- *  it will result no color output independently from COLORFLAGS macro !!!
- *
- */
-#define BASHCOLOR       1
-#define WINDOWSCOLOR    2
-#define NOCOLOR         3
-
-#define COLORFLAGS NOCOLOR
+//#define mygetenv(name) (getenv(name) == 0 ? false : true)
 
 
-/*
- * The WINDOWSCOLOR macro is available only on _WIN32 platforms.
- */
-#if COLORFLAGS == WINDOWSCOLOR
+/*#if COLORFLAGS == WINDOWSCOLOR
 #ifndef _WIN32
 #undef COLORFLAGS
 #define COLORFLAGS NOCOLOR
 #endif
-#endif
+#endif*/
 
 /*
  * To use development messages with module names, timestamps, file names, line numbers,
@@ -66,10 +43,10 @@
 //#define DEVELOPMENT
 
 
-#if COLORFLAGS == WINDOWSCOLOR
+/*#if COLORFLAGS == WINDOWSCOLOR
 #include <windows.h>
 static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
-#endif
+#endif*/
 
 
 
@@ -107,7 +84,7 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
 
 /*********************************HELPER****************************************************************/
 // Define colors
-#if COLORFLAGS == BASHCOLOR
+/*#if COLORFLAGS == BASHCOLOR
 
 #define DC_K "\e[0;30m"
 #define DC_R "\e[0;31m"
@@ -167,10 +144,24 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
 #define DC_EMC ""
 #define DC_EMW ""
 
-#endif
+#endif*/
 
+#define LPTEST(msg)
+#define LPINFO(msg) { std::ostringstream str; \
+    str << msg; \
+    OutputHandler::getInstance().addMessage(str); \
+    }
 
+#define LPWARNING(msg) { std::ostringstream str; \
+    str << msg; \
+    OutputHandler::getInstance().addWarning(str); \
+    }
+#define LPERROR(msg) { std::ostringstream str; \
+    str << msg; \
+    OutputHandler::getInstance().addError(str); \
+    }
 
+/*
 #if COLORFLAGS != WINDOWSCOLOR
 
 #define LPTEST(msg)
@@ -178,52 +169,24 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
     str << msg; \
     OutputHandler::getInstance().addMessage(str); \
     }
-/*#define LPINFO(msg)    { \
-    if (getenv("ECLIPSE")) { \
-        std::cerr<<"[INFO   ]"; \
-    } else { \
-        std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D ); \
-    } \
-    std::cerr<<msg << std::endl; \
-}*/
+
 #define LPWARNING(msg) { std::ostringstream str; \
     str << msg; \
     OutputHandler::getInstance().addWarning(str); \
     }
-/*#define LPWARNING(msg)    { \
-    if (getenv("ECLIPSE")) { \
-        std::cerr<<"[WARNING   ]"; \
-    } else { \
-        std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D); \
-    } \
-    std::cerr<<msg << std::endl; \
-}*/
-/*#define LPERROR(msg)   { \
-    if (getenv("ECLIPSE")) { \
-        std::cerr<<"[ERROR   ]"; \
-    } else { \
-        std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D ); \
-    } \
-    std::cerr<<msg << std::endl; \
-}*/
 #define LPERROR(msg) { std::ostringstream str; \
     str << msg; \
     OutputHandler::getInstance().addError(str); \
     }
 
 
-//#define LPINFO(msg)    { std::cerr << ( mygetenv("ECLIPSE") ? "[INFO   ]" : (DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D ) ) << " " << msg << std::endl; }
-//#define LPWARNING(msg) { std::cerr << ( mygetenv("ECLIPSE") ? "[WARNING]" : (DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D ) ) << " " << msg << std::endl; }
-//#define LPERROR(msg)   { std::cerr << ( mygetenv("ECLIPSE") ? "[ERROR  ]" : (DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D ) ) << " " << msg << std::endl; }
-
-/*
  #ifdef NDEBUG
      #define LPDEBUG(msg)
  #else
      #define LPDEBUG(msg) { std::cerr    << ( mygetenv("ECLIPSE") ? ("[" __FILE__  " : " ) :  ( DC_EMM DC_BGM "[" DC_EMW  __FILE__  DC_EMM ":" DC_EMW ) ) \
                                          << std::setw(5) << __LINE__  << ( mygetenv("ECLIPSE") ? "]" : (DC_EMM "]" DC_D ) ) << " " << msg << std::endl; }
  #endif
- */
+
 
 #else  // WINDOWSCOLOR
 
@@ -260,7 +223,7 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
      SetConsoleTextAttribute(hConsole, 7); \
      std::cerr << " " << msg << std::endl; } }
 
-/*
+
  #ifdef NDEBUG
      #define LPDEBUG(msg)
  #else
@@ -279,9 +242,9 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
          SetConsoleTextAttribute(hConsole, 7); \
          std::cerr << " " << msg << std::endl; }  }
  #endif
- */
-#endif //
 
+#endif //
+*/
 
 /***********************************************************************************************/
 /************************************* DEVELOPMENT MESSAGES ************************************/
