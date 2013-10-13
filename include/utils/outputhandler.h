@@ -9,9 +9,15 @@
 #include <sstream>
 
 class GeneralMessageHandler {
+protected:
+    bool m_colors;
 public:
+    GeneralMessageHandler();
     virtual void addMessage( const std::string & message ) = 0;
     virtual ~GeneralMessageHandler() {}
+    void enableColors();
+    void disableColors();
+    bool isColored() const;
 };
 
 class MessageHandler: public GeneralMessageHandler {
@@ -54,6 +60,9 @@ public:
     void setDefaultWarningHandler();
     void setDefaultErrorHandler();
     void setDefaultDebugHandler();
+
+    void enableAllColors();
+    void disableAllColors();
 private:
     OutputHandler();
     ~OutputHandler();
@@ -62,6 +71,7 @@ private:
     GeneralMessageHandler * m_warningHandler;
     GeneralMessageHandler * m_errorHandler;
     GeneralMessageHandler * m_debugHandler;
+    bool m_colors;
 };
 
 #endif // OUTPUTHANDLER_H

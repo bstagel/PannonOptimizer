@@ -8,9 +8,27 @@
 #include <iostream>
 #include <cstdlib>
 
+GeneralMessageHandler::GeneralMessageHandler():
+    m_colors(true)
+{
+
+}
+
+void GeneralMessageHandler::enableColors() {
+    m_colors = true;
+}
+
+void GeneralMessageHandler::disableColors() {
+    m_colors = false;
+}
+
+bool GeneralMessageHandler::isColored() const {
+    return m_colors;
+}
+
 void MessageHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
-    if (getenv("ECLIPSE")) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[INFO   ]";
     } else {
         std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D );
@@ -34,7 +52,7 @@ void MessageHandler::addMessage(const std::string & message) {
 
 void WarningHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
-    if (getenv("ECLIPSE")) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[WARNING   ]";
     } else {
         std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D);
@@ -58,7 +76,7 @@ void WarningHandler::addMessage(const std::string & message) {
 
 void ErrorHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
-    if (getenv("ECLIPSE")) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[ERROR   ]";
     } else {
         std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D );
@@ -88,7 +106,7 @@ void DebugHandler::addMessage(const std::string & message,
                               const char *file,
                               unsigned int line) {
 #if COLORFLAGS != WINDOWSCOLOR
-    if (getenv("ECLIPSE")) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[ERROR   ]";
     } else {
         std::cerr<<(DC_EMM DC_BGM "[" DC_EMW "DEBUG " DC_EMM "]" DC_EMW );
@@ -123,7 +141,8 @@ OutputHandler::OutputHandler():
     m_messageHandler( new MessageHandler ),
     m_warningHandler( new WarningHandler ),
     m_errorHandler( new ErrorHandler ),
-    m_debugHandler( new DebugHandler )
+    m_debugHandler( new DebugHandler ),
+    m_colors(true)
 {
 
 }
@@ -210,5 +229,17 @@ void OutputHandler::setDefaultDebugHandler() {
     m_debugHandler = new DebugHandler;
 }
 
+void OutputHandler::enableAllColors() {
+    m_messageHandler->enableColors();
+    m_warningHandler->enableColors();
+    m_errorHandler->enableColors();
+    m_debugHandler->enableColors();
+}
 
+void OutputHandler::disableAllColors() {
+    m_messageHandler->disableColors();
+    m_warningHandler->disableColors();
+    m_errorHandler->disableColors();
+    m_debugHandler->disableColors();
+}
 
