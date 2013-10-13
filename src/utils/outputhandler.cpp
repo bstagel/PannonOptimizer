@@ -96,7 +96,7 @@ void DebugHandler::addMessage(const std::string & message,
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
     if ( getenv("ECLIPSE") ) {
-        std::cerr << "[" file ":"  << std::setw(5) << file "] " << message << std::endl;
+        std::cerr << "[" << file << ":"  << std::setw(5) << file << "] " << message << std::endl;
     } else {
         SetConsoleTextAttribute(hConsole, 93);
         std::cerr << "[";

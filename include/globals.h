@@ -6,6 +6,7 @@
 #define GLOBALS_H
 
 //using namespace std;
+#include <utils/platform.h>
 #include <utils/memoryman.h>
 #include <climits>
 #include <float.h>

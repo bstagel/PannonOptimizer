@@ -369,10 +369,10 @@ class MpsModelBuilder : public ModelBuilder
 {
     // FIXME: CONFLICTING DEFINE AND ENUMERATED CONSTANTS
     // NEM MUKODIK
-#ifdef _WINERROR_H
+/*#ifdef _WINERROR_H
 #undef ERROR
 #undef NO_ERROR
-#endif
+#endif*/
 
 #pragma pack(push)  /* push current alignment to stack */
 #pragma pack(1)     /* set alignment to 1 byte boundary */
@@ -710,9 +710,9 @@ class MpsModelBuilder : public ModelBuilder
 
         /**
          */
-        enum ERROR_LEVEL
+        enum MPS_ERROR_LEVEL
         {
-            WARNING, ERROR, FATAL_ERROR
+           MPS_WARNING, MPS_ERROR, MPS_FATAL_ERROR
         };
         /**
          */
@@ -725,7 +725,7 @@ class MpsModelBuilder : public ModelBuilder
         std::string m_text;
         /**
          */
-        ERROR_LEVEL m_level;
+        MPS_ERROR_LEVEL m_level;
         /**
          */
         static unsigned int sm_warningCount;
@@ -753,20 +753,20 @@ class MpsModelBuilder : public ModelBuilder
          * @param level
          */
         inline MpsError(unsigned int row, SECTION_TYPE section, std::string text,
-                        MpsErrorData::ERROR_LEVEL level, bool terminate = false)
+                        MpsErrorData::MPS_ERROR_LEVEL level, bool terminate = false)
         {
             m_data.m_row = row;
             m_data.m_section = section;
             m_data.m_text = text;
             m_data.m_level = level;
             switch (level) {
-            case MpsErrorData::WARNING:
+            case MpsErrorData::MPS_WARNING:
                 MpsErrorData::sm_warningCount++;
                 break;
-            case MpsErrorData::ERROR:
+            case MpsErrorData::MPS_ERROR:
                 MpsErrorData::sm_errorCount++;
                 break;
-            case MpsErrorData::FATAL_ERROR:
+            case MpsErrorData::MPS_FATAL_ERROR:
                 MpsErrorData::sm_fatalErrorCount++;
                 break;
             }
@@ -774,13 +774,13 @@ class MpsModelBuilder : public ModelBuilder
             str << "row: [" << row << "], section: " << MpsModelBuilder::getSectionName(section) <<
                    ", error code: " << type << " : " << text;
             if (sm_count < sm_limit) {
-                if (level != MpsErrorData::WARNING) {
+                if (level != MpsErrorData::MPS_WARNING) {
                     LPERROR(str.str());
                 } else {
                     LPWARNING(str.str());
                 }
             } else if (sm_count == sm_limit) {
-                if (level != MpsErrorData::WARNING) {
+                if (level != MpsErrorData::MPS_WARNING) {
                     LPERROR("The number of type " << type << " errors is unless " << sm_limit);
                 } else {
                     LPWARNING("The number of type " << type << " errors is unless " << sm_limit);
@@ -788,7 +788,7 @@ class MpsModelBuilder : public ModelBuilder
             }
             sm_count++;
 
-            if (level == MpsErrorData::FATAL_ERROR && terminate) {
+            if (level == MpsErrorData::MPS_FATAL_ERROR && terminate) {
                 throw FatalErrorException(std::string("fatal error: ") + str.str());
             }
         }

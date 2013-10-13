@@ -809,7 +809,7 @@ void MpsModelBuilder::invalidStartFieldError(int index, int field_start)
            ", but field starts at " << field_start;
     LPERROR(str.str());
     m_errors.push_back(MpsError<INVALID_START_FIELD > (m_line, m_section, str.str(),
-                                                       MpsErrorData::ERROR).getData());
+                                                       MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidEndFieldError(int index, int field_end)
@@ -819,7 +819,7 @@ void MpsModelBuilder::invalidEndFieldError(int index, int field_end)
            ", but field ends at " << field_end;
     LPERROR(str.str());
     m_errors.push_back(MpsError<INVALID_END_FIELD > (m_line, m_section, str.str(),
-                                                     MpsErrorData::ERROR).getData());
+                                                     MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidRowTypeError(const char * type)
@@ -827,7 +827,7 @@ void MpsModelBuilder::invalidRowTypeError(const char * type)
     m_modifyLogicErrors++;
     LPERROR("Invalid row type");
     m_errors.push_back(MpsError<INVALID_ROW_TYPE > (m_line, m_section,
-                                                    "invalid row type: " + std::string(type), MpsErrorData::ERROR).getData());
+                                                    "invalid row type: " + std::string(type), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidRowName(const char * row)
@@ -835,7 +835,7 @@ void MpsModelBuilder::invalidRowName(const char * row)
     m_modifyLogicErrors++;
     LPERROR("Invalid row name");
     m_errors.push_back(MpsError<INVALID_ROW_NAME > (m_line, m_section,
-                                                    "invalid row: \"" + std::string(row) + "\"", MpsErrorData::ERROR).getData());
+                                                    "invalid row: \"" + std::string(row) + "\"", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidColumnName(const char * column)
@@ -843,7 +843,7 @@ void MpsModelBuilder::invalidColumnName(const char * column)
     m_modifyLogicErrors++;
     LPERROR("Invalid column name");
     m_errors.push_back(MpsError<INVALID_COLUMN_NAME > (m_line, m_section,
-                                                       "invalid column: \"" + std::string(column) + "\"", MpsErrorData::ERROR).getData());
+                                                       "invalid column: \"" + std::string(column) + "\"", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::valueOverridedError(const char * column, const char * row, Numerical::Double original,
@@ -872,7 +872,7 @@ void MpsModelBuilder::valueOverridedError(const char * column, const char * row,
     str << "\", from " <<
            original << " to " << newValue;
     m_errors.push_back(MpsError<VALUE_OVERRIDED > (m_line, m_section,
-                                                   str.str(), MpsErrorData::ERROR).getData());
+                                                   str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidBoundType(const char * bound)
@@ -880,7 +880,7 @@ void MpsModelBuilder::invalidBoundType(const char * bound)
     LPERROR(__FUNCTION__);
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INVALID_BOUND_TYPE > (m_line, m_section,
-                                                      "invalid bound type: " + std::string(bound), MpsErrorData::ERROR).getData());
+                                                      "invalid bound type: " + std::string(bound), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidComment(unsigned int position)
@@ -889,7 +889,7 @@ void MpsModelBuilder::invalidComment(unsigned int position)
     LPERROR(__FUNCTION__);
     str << "invalid comment, comment starts at position " << position;
     m_errors.push_back(MpsError<INVALID_COMMENT > (m_line, m_section,
-                                                   str.str(), MpsErrorData::ERROR).getData());
+                                                   str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidNumberFormat(const char * number, Numerical::Double parsed)
@@ -904,7 +904,7 @@ void MpsModelBuilder::invalidNumberFormat(const char * number, Numerical::Double
     }
     str << "\", parsed value: " << parsed;
     m_errors.push_back(MpsError<INVALID_NUMBER_FORMAT > (m_line, m_section,
-                                                         str.str(), MpsErrorData::ERROR).getData());
+                                                         str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::invalidSectionName(const char * name, const char * expected)
@@ -914,7 +914,7 @@ void MpsModelBuilder::invalidSectionName(const char * name, const char * expecte
     std::stringstream str;
     str << "invalid section name: " << name << ", expected " << expected;
     m_errors.push_back(MpsError<INVALID_SECTION_NAME > (m_line, m_section,
-                                                        str.str(), MpsErrorData::ERROR).getData());
+                                                        str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::unknownSectionName(const char * name, int start, int end)
@@ -925,14 +925,14 @@ void MpsModelBuilder::unknownSectionName(const char * name, int start, int end)
     str << "unknown section name: " << name << ", records from " << start
         << " to " << end << " were skipped";
     m_errors.push_back(MpsError<INVALID_SECTION_NAME > (m_line, m_section,
-                                                        str.str(), MpsErrorData::ERROR).getData());
+                                                        str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::unnecessaryContentError()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<UNNECESSARY_CONTENT > (m_line, m_section,
-                                                       "unnecessary content", MpsErrorData::ERROR).getData());
+                                                       "unnecessary content", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::tooLongWordError(const char * word, bool logicModify)
@@ -942,14 +942,14 @@ void MpsModelBuilder::tooLongWordError(const char * word, bool logicModify)
         m_modifyLogicErrors++;
     }
     m_errors.push_back(MpsError<TOO_LONG_WORD > (m_line, m_section,
-                                                 "too long word: " + std::string(word), MpsErrorData::ERROR).getData());
+                                                 "too long word: " + std::string(word), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::missingCommentError(const char * word)
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<MISSING_COMMENT > (m_line, m_section,
-                                                   "missing comment sign (*) after " + std::string(word), MpsErrorData::ERROR).getData());
+                                                   "missing comment sign (*) after " + std::string(word), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::rowExistsError(const char * row)
@@ -957,14 +957,14 @@ void MpsModelBuilder::rowExistsError(const char * row)
     LPERROR(__FUNCTION__);
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<ROW_EXISTS > (m_line, m_section,
-                                              "row exists: " + std::string(row), MpsErrorData::ERROR).getData());
+                                              "row exists: " + std::string(row), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::columnExistsError(const char * column)
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<COLUMN_EXISTS > (m_line, m_section,
-                                                 "column already exists: " + std::string(column), MpsErrorData::ERROR).getData());
+                                                 "column already exists: " + std::string(column), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::incompleteRecordError()
@@ -972,7 +972,7 @@ void MpsModelBuilder::incompleteRecordError()
     LPERROR(__FUNCTION__);
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<INCOMPLETE_RECORD > (m_line, m_section,
-                                                     "incomplete record", MpsErrorData::ERROR).getData());
+                                                     "incomplete record", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::tooLongRecordError(unsigned int length)
@@ -981,14 +981,14 @@ void MpsModelBuilder::tooLongRecordError(unsigned int length)
     std::stringstream str;
     str << "too long record ( " << length << " characters )";
     m_errors.push_back(MpsError<TOO_LONG_RECORD > (m_line, m_section,
-                                                   str.str(), MpsErrorData::ERROR).getData());
+                                                   str.str(), MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::missingNameSection()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<NAME_MISSING > (m_line, m_section,
-                                                "missing NAME section", MpsErrorData::ERROR).getData());
+                                                "missing NAME section", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::missingRowsSection()
@@ -996,7 +996,7 @@ void MpsModelBuilder::missingRowsSection()
     LPERROR(__FUNCTION__);
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<ROWS_MISSING > (m_line, m_section,
-                                                "missing ROWS section", MpsErrorData::FATAL_ERROR).getData());
+                                                "missing ROWS section", MpsErrorData::MPS_FATAL_ERROR).getData());
 }
 
 void MpsModelBuilder::missingColumnsSection()
@@ -1004,35 +1004,35 @@ void MpsModelBuilder::missingColumnsSection()
     LPERROR(__FUNCTION__);
     m_modifyLogicErrors++;
     m_errors.push_back(MpsError<COLUMNS_MISSING > (m_line, m_section,
-                                                   "missing COLUMNS section", MpsErrorData::FATAL_ERROR).getData());
+                                                   "missing COLUMNS section", MpsErrorData::MPS_FATAL_ERROR).getData());
 }
 
 void MpsModelBuilder::missingRhsSection()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<RHS_MISSING > (m_line, m_section,
-                                               "missing RHS section", MpsErrorData::ERROR).getData());
+                                               "missing RHS section", MpsErrorData::MPS_ERROR).getData());
 }
 
 void MpsModelBuilder::missingRangesSection()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<RANGES_MISSING > (m_line, m_section,
-                                                  "missing RANGES section", MpsErrorData::WARNING).getData());
+                                                  "missing RANGES section", MpsErrorData::MPS_WARNING).getData());
 }
 
 void MpsModelBuilder::missingBoundsSection()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<BOUNDS_MISSING > (m_line, m_section,
-                                                  "missing BOUNDS section", MpsErrorData::WARNING).getData());
+                                                  "missing BOUNDS section", MpsErrorData::MPS_WARNING).getData());
 }
 
 void MpsModelBuilder::missingEndataSection()
 {
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<ENDATA_MISSING > (m_line, m_section,
-                                                  "missing ENDATA section", MpsErrorData::ERROR).getData());
+                                                  "missing ENDATA section", MpsErrorData::MPS_ERROR).getData());
 }
 
 const char * MpsModelBuilder::nextRowType(const register char * ptr, ROW_INFO & info, bool)
@@ -2001,7 +2001,7 @@ void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
         if (bound != oldLower) {
             //            LPERROR("isFixed && bound");
             m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                         "bound is already fixed type", MpsErrorData::FATAL_ERROR, false).getData());
+                                                         "bound is already fixed type", MpsErrorData::MPS_FATAL_ERROR, false).getData());
         }
 #endif
         return;
@@ -2020,24 +2020,24 @@ void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
             if (newLower < oldLower) {
                 str << "lower bound has decreased from " << oldLower << " to " << newLower;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //LPWARNING("newLower < oldLower");
             } else if (newLower > oldLower && newLower < oldUpper) {
                 str << "lower bound has increased from " << oldLower << " to " << newLower;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //LPWARNING("newLower > oldLower && newLower < oldUpper");
             } else if (newLower == oldUpper) {
                 str << "lower bound has increased from " << oldLower << " to " << newLower <<
                        ", and bound type has become fixed type";
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //LPWARNING("newLower == oldUpper");
             } else if (newLower > oldUpper) {
                 str << "lower bound has changed from " << oldLower << " to " << newLower <<
                        " but upper bound is less: " << oldUpper;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::FATAL_ERROR, false).getData());
+                                                             str.str(), MpsErrorData::MPS_FATAL_ERROR, false).getData());
                 //LPERROR("newLower > oldUpper");
                 return;
             }
@@ -2055,24 +2055,24 @@ void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
             if (newUpper > oldUpper) {
                 str << "upper bound has increased from " << oldUpper << " to " << newUpper;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //LPWARNING("newUpper > oldUpper");
             } else if (newUpper > oldLower && newUpper < oldUpper) {
                 str << "upper bound has decreased from " << oldUpper << " to " << newUpper;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //                    LPWARNING("newUpper > oldLower && newUpper < oldUpper < oldUpper");
             } else if (newUpper == oldLower) {
                 str << "upper bound has decreased from " << oldUpper << " to " << newUpper <<
                        ", and bound type has become fixed type";
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::WARNING).getData());
+                                                             str.str(), MpsErrorData::MPS_WARNING).getData());
                 //LPWARNING("newUpper == oldLower");
             } else if (newUpper < oldLower) {
                 str << "upper bound has changed from " << oldUpper << " to " << newUpper <<
                        " but lower bound is greater: " << oldLower;
                 m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                             str.str(), MpsErrorData::FATAL_ERROR, false).getData());
+                                                             str.str(), MpsErrorData::MPS_FATAL_ERROR, false).getData());
                 LPERROR("newUpper < oldLower");
                 return;
             }
@@ -2089,7 +2089,7 @@ void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
         if (readyLower || readyUpper) {
             str << "bound type has become fixed type, bound: " << bound;
             m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                         str.str(), MpsErrorData::WARNING).getData());
+                                                         str.str(), MpsErrorData::MPS_WARNING).getData());
             //                LPWARNING("changed to fixed type");
         }
 #endif
@@ -2102,7 +2102,7 @@ void MpsModelBuilder::setBound(unsigned int columnIndex, Bound::BOUND_TYPE type,
 #ifdef REPORT_BOUND_ERRORS
         if (readyLower || readyUpper) {
             m_errors.push_back(MpsError<BOUND_CHANGED > (m_line, m_section,
-                                                         "bound type has become free type", MpsErrorData::WARNING).getData());
+                                                         "bound type has become free type", MpsErrorData::MPS_WARNING).getData());
             //                LPWARNING("changed to free type");
         }
 #endif
