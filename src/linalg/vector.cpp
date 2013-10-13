@@ -1299,11 +1299,11 @@ Vector & Vector::operator=(const Vector & vector)
         return *this;
     }
     //TODO: Ezt atgondolni, hogy biztos jo-e igy
-    bool reallocate = true;
+    bool reallocate = false;
     if(m_dimension!=vector.m_dimension){
         freeData(m_data);
         freeIndex(m_index);
-        reallocate = false;
+        reallocate = true;
     }
     copy(vector, reallocate);
     CHECK;
