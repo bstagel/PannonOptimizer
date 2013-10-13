@@ -785,7 +785,7 @@ protected:
      * @param original The original vector, the function creates a copy from this
      * object
      */
-    void copy(const Vector & original);
+    void copy(const Vector & original, bool reallocate = true);
 
     /**
      * @param lambda
