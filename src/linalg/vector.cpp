@@ -232,7 +232,7 @@ void Vector::fill(Numerical::Double value)
     }
 }
 
-void Vector::copy(const Vector & original)
+void Vector::copy(const Vector & original, bool reallocate)
 {
     m_vectorType = original.m_vectorType;
     m_size = original.m_size;
@@ -247,12 +247,16 @@ void Vector::copy(const Vector & original)
         m_index = 0;
     } else {
         if (m_vectorType == DENSE_VECTOR) {
-            m_data = allocateData(m_capacity);
+            if (reallocate == true) {
+                m_data = allocateData(m_capacity);
+            }
             COPY_DOUBLES(m_data, original.m_data, m_size);
             m_index = 0;
         } else {
-            m_data = allocateData(m_capacity);
-            m_index = allocateIndex(m_capacity);
+            if (reallocate == true) {
+                m_data = allocateData(m_capacity);
+                m_index = allocateIndex(m_capacity);
+            }
             COPY_DOUBLES(m_data, original.m_data, m_size);
             memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
@@ -1291,12 +1295,17 @@ void Vector::append(Numerical::Double value)
 
 Vector & Vector::operator=(const Vector & vector)
 {
+    if (this == &vector) {
+        return *this;
+    }
     //TODO: Ezt atgondolni, hogy biztos jo-e igy
+    bool reallocate = true;
     if(m_dimension!=vector.m_dimension){
         freeData(m_data);
         freeIndex(m_index);
+        reallocate = false;
     }
-    copy(vector);
+    copy(vector, reallocate);
     CHECK;
     return *this;
 }
