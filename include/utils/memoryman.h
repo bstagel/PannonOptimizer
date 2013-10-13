@@ -14,7 +14,6 @@
 #include <iostream>
 #include <cstdio>
 
-
 struct ChunkStack;
 
 struct Chunk {
@@ -57,11 +56,12 @@ public:
 
     inline static Chunk * getChunk(size_t size) {
         Buffer * actual = sm_head;
-        size += sizeof(Chunk);
+        size += sizeof(Chunk) + 80;
         while ( actual != 0 && ((actual->m_bufferEnd - actual->m_actual) < (long int)size) ) {
             actual = actual->m_next;
         }
         if (actual == 0) {
+            printf("Uj buffer kell\n");
             Buffer * newBuffer = static_cast<Buffer*>(malloc(sizeof(Buffer)));
             newBuffer->m_next = sm_head;
             sm_head = newBuffer;
@@ -85,6 +85,10 @@ private:
 
 class ChunkStack {
 public:
+    ChunkStack() {
+        m_head = 0;
+    }
+
     void init() {
         m_head = 0;
     }
@@ -95,18 +99,41 @@ public:
 
     inline Chunk * getChunk(size_t size) {
         Chunk * result;
+        //int b;
         if (m_head != 0) {
+            //b = 0;
             result = m_head;
             m_head = m_head->m_previous;
         } else {
-            result = Pool::getChunk(size);
+            //b = 1;
+            result = reinterpret_cast<Chunk*>(malloc(sizeof(Chunk) + size + 100));
+            //result = Pool::getChunk(size);
+            //if (size / 4 == 8) {
+            /*    FILE * fd = fopen("memlog2.txt", "a");
+                fprintf(fd, "result = %p\n", result);
+                fclose(fd);*/
+            //}
             result->m_stack = this;
             result->m_previous = 0;
         }
+        //result->m_stack = this;
+        /*if (size / 4 == 8) {
+            FILE * fd = fopen("memlog.txt", "a");
+            fprintf(fd, " this: %p stack: %p branch: %d  RESULT: %p ",
+                    this, result->m_stack, b, result);
+            fclose(fd);
+        }*/
+
         return result;
     }
 
     inline void addChunk(Chunk * chunk) {
+        /*FILE * fd = fopen("addChunk.txt", "a");
+        fprintf(fd, "chunk = %p  stack = %p this = %p\n", chunk, chunk->m_stack, this);
+        fclose(fd);
+        if (chunk->m_stack != this) {
+            printf("PARAAAAAAAAAAAAAAAAAAAAA %p %p\n", chunk->m_stack, this);
+        }*/
         chunk->m_previous = m_head;
         m_head = chunk;
     }
@@ -137,15 +164,25 @@ public:
         } else if (size <= (size_t) sm_maxLargeStackSize) {
             chunk = sm_largeStacks[size >> 10].getChunk(size);
         } else {
-            chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size ));
+            chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size + 100));
             chunk->m_stack = 0;
         }
-        return chunk + 1;
+        //FILE * fd = fopen("memlog.txt", "a");
+        //fprintf(fd, " STACK: %p   SIZE: %ld ", chunk->m_stack, size);
+        //fclose(fd);
+        //printf("pointers: %p %p %d %d\n", chunk, (chunk + 1), sizeof(Chunk), (chunk + 1) - chunk);
+        chunk++;
+        return static_cast<void*>(chunk);
         //return chunk->m_start;
     }
 
     inline static void release(void * pointer) {
-        Chunk * chunk = reinterpret_cast<Chunk*>(reinterpret_cast<char*>(pointer) - sizeof(Chunk));
+        //return;
+        Chunk * chunk = reinterpret_cast<Chunk*>(pointer);  //reinterpret_cast<Chunk*>(reinterpret_cast<char*>(pointer) - sizeof(Chunk));
+        chunk--;
+        //FILE * fd = fopen("memlog.txt", "a");
+        //fprintf(fd, " STACK: %p\n", chunk->m_stack);
+        //fclose(fd);
         if (chunk->m_stack != 0) {
             chunk->m_stack->addChunk(chunk);
         } else {
@@ -199,26 +236,43 @@ public:
         sm_largeStacks = 0;
         Pool::release();
         sm_initialized = false;
-        printf("Memory manager released\n");
     }
 };
 
 inline void * operator new (size_t size) {
-    //if ( Pool::sm_head != 0 ) {
-        return MemoryManager::allocate(size);
-    //}
-    //return malloc(size);
+    //return malloc(size + sizeof(Chunk));
+    //return MemoryManager::allocate(size);
+    void * result = MemoryManager::allocate(size);
+    /*FILE * fd = fopen("memlog.txt", "a");
+    fprintf(fd, "%s.: %p \n", __FUNCTION__, result);
+    fclose(fd);*/
+    return result;
 }
 
 inline void operator delete(void * p) {
+    //free(p);
+    //return;
     if (p != 0) {
-        //if ( Pool::sm_head != 0 ) {
-            MemoryManager::release(p);
-        //} else {
-            // free(p);
-        //}
+        /*FILE * fd = fopen("memlog.txt", "a");
+        fprintf(fd, "%s.: %p ", __FUNCTION__, p);
+        fclose(fd);*/
+        MemoryManager::release(p);
+        //fd = fopen("memlog.txt", "a");
+        //fprintf(fd, " DELETED\n");
+        //fclose(fd);
     }
 }
+
+inline void * operator new [](size_t size) {
+    return MemoryManager::allocate(size);
+}
+
+inline void operator delete [](void * p) {
+    if (p != 0) {
+        MemoryManager::release(p);
+    }
+}
+
 
 /*class MemoryManagerInitializer {
 public:
@@ -247,7 +301,8 @@ static void releaseMemory() {
     static bool released = false;
     if (MemoryManager::sm_initialized == true && released == false) {
         MemoryManager::release();
-        printf("Memory manager released\n");
+        printf("Memory manager released %p %p\n", &MemoryManager::sm_initialized,
+               &released);
         released = true;
     }
 }

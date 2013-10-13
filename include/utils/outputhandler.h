@@ -20,14 +20,20 @@ public:
 };
 
 class WarningHandler: public GeneralMessageHandler {
+public:
     void addMessage( const std::string & message );
 };
 
 class ErrorHandler: public GeneralMessageHandler {
+public:
     void addMessage( const std::string & message );
 };
 
 class DebugHandler: public GeneralMessageHandler {
+public:
+    void addMessage( const std::string & message,
+                     const char * file,
+                     unsigned int line);
     void addMessage( const std::string & message );
 };
 
@@ -42,7 +48,8 @@ public:
     void addMessage(const std::ostringstream & stream);
     void addWarning(const std::ostringstream & stream);
     void addError(const std::ostringstream & stream);
-    void addDebug(const std::ostringstream & stream);
+    void addDebug(const std::ostringstream & stream,
+                  const char * file, unsigned int line);
     void setDefaultMessageHandler();
     void setDefaultWarningHandler();
     void setDefaultErrorHandler();

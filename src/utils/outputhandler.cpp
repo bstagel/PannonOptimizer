@@ -9,39 +9,109 @@
 #include <cstdlib>
 
 void MessageHandler::addMessage(const std::string & message) {
+#if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE")) {
         std::cerr<<"[INFO   ]";
     } else {
         std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D );
     }
     std::cerr << message << std::endl;
+#else // WINDOWSCOLOR
+    if ( getenv("ECLIPSE") ) {
+        std::cerr << "[INFO   ] " << message << std::endl;
+    } else {
+        SetConsoleTextAttribute(hConsole, 25);
+        std::cerr << "[";
+        SetConsoleTextAttribute(hConsole, 31);
+        std::cerr << "INFO   ";
+        SetConsoleTextAttribute(hConsole, 25);
+        std::cerr << "]";
+        SetConsoleTextAttribute(hConsole, 7);
+        std::cerr << " " << message << std::endl;
+    }
+#endif
 }
 
 void WarningHandler::addMessage(const std::string & message) {
+#if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE")) {
         std::cerr<<"[WARNING   ]";
     } else {
         std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D);
     }
     std::cerr << message << std::endl;
+#else // WINDOWSCOLOR
+    if ( getenv("ECLIPSE") ) {
+        std::cerr << "[WARNING] " << message << std::endl;
+    } else {
+        SetConsoleTextAttribute(hConsole, 110);
+        std::cerr << "[";
+        SetConsoleTextAttribute(hConsole, 111);
+        std::cerr << "WARNING";
+        SetConsoleTextAttribute(hConsole, 110);
+        std::cerr << "]";
+        SetConsoleTextAttribute(hConsole, 7);
+        std::cerr << " " << message << std::endl;
+    }
+#endif
 }
 
 void ErrorHandler::addMessage(const std::string & message) {
+#if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE")) {
         std::cerr<<"[ERROR   ]";
     } else {
         std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D );
     }
     std::cerr << message << std::endl;
+#else // WINDOWSCOLOR
+    if ( getenv("ECLIPSE") ) {
+        std::cerr << "[ERROR  ] " << message << std::endl;
+    } else {
+        SetConsoleTextAttribute(hConsole, 76);
+        std::cerr << "[";
+        SetConsoleTextAttribute(hConsole, 79);
+        std::cerr << "ERROR  ";
+        SetConsoleTextAttribute(hConsole, 76);
+        std::cerr << "]";
+        SetConsoleTextAttribute(hConsole, 7);
+        std::cerr << " " << message << std::endl;
+    }
+#endif
 }
 
-void DebugHandler::addMessage(const std::string & message) {
+void DebugHandler::addMessage(const std::string &message) {
+    addMessage(message, "", 0);
+}
+
+void DebugHandler::addMessage(const std::string & message,
+                              const char *file,
+                              unsigned int line) {
+#if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE")) {
         std::cerr<<"[ERROR   ]";
     } else {
         std::cerr<<(DC_EMM DC_BGM "[" DC_EMW "DEBUG " DC_EMM "]" DC_EMW );
     }
     std::cerr << message << std::endl;
+#else // WINDOWSCOLOR
+    if ( getenv("ECLIPSE") ) {
+        std::cerr << "[" file ":"  << std::setw(5) << file "] " << message << std::endl;
+    } else {
+        SetConsoleTextAttribute(hConsole, 93);
+        std::cerr << "[";
+        SetConsoleTextAttribute(hConsole, 95);
+        std::cerr << file;
+        SetConsoleTextAttribute(hConsole, 93);
+        std::cerr << ":";
+        SetConsoleTextAttribute(hConsole, 95);
+        std::cerr << std::setw(5) << line;
+        SetConsoleTextAttribute(hConsole, 93);
+        std::cerr << "]";
+        SetConsoleTextAttribute(hConsole, 7);
+        std::cerr << " " << message << std::endl;
+    }
+#endif
 }
 
 OutputHandler & OutputHandler::getInstance() {
@@ -107,9 +177,16 @@ void OutputHandler::addError(const std::ostringstream & stream) {
     }
 }
 
-void OutputHandler::addDebug(const std::ostringstream & stream) {
+void OutputHandler::addDebug(const std::ostringstream & stream,
+                             const char *file,
+                             unsigned int line) {
     if ( m_debugHandler != 0 ) {
-        m_debugHandler->addMessage( stream.str() );
+        DebugHandler * handler = dynamic_cast<DebugHandler*>(m_debugHandler);
+        if (handler != 0) {
+            handler->addMessage( stream.str(), file, line );
+        } else {
+            m_debugHandler->addMessage( stream.str() );
+        }
     }
 }
 

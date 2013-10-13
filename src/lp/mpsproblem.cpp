@@ -1636,7 +1636,12 @@ inline const char * MpsModelBuilder::readColumnRecord(const register char * ptr,
                 }
 
             } else {
-                m_actualColumnNonzeros[row_id] = false;
+                if (row_id >= 0) {
+                    //if (row_id >= m_rows.getCount() || row_id < 0) {
+                    //    LPERROR("Para van: "<<row_id << " >= "<<m_rows.getCount() << "  "<< nameToString(row.m_name) );
+                    //}
+                    m_actualColumnNonzeros[row_id] = false;
+                }
             }
             isCostValue = false;
             index = ptr - m_startPtr + m_rowLength;
@@ -2475,8 +2480,6 @@ void MpsModelBuilder::collectConstraintBounds()
     std::vector<bool> rangesGiven(rowCount, false);
     //std::vector<bool> rhsGiven(rowCount, false);
     getColumnVector(rhsIndex, &rhs, m_rhs, 0);
-
-    LPINFO("RHS VECTOR: " << rhs);
 
     getColumnVector(rangesIndex, &ranges, m_ranges, &rangesGiven);
 
