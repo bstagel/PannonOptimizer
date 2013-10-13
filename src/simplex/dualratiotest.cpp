@@ -3,6 +3,7 @@
  */
 
 #include <simplex/dualratiotest.h>
+#include <simplex/simplexparameterhandler.h>
 #include <lp/model.h>
 #include <utility>
 #include <simplex/simplex.h>
@@ -79,7 +80,6 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
         }
 
 //computing ratios
-LPINFO("computing ratios");
         std::vector <BreakPoint> breakpoints;
         breakpoints.reserve(alpha.nonZeros()*2);
         BreakPoint currentRatio;
@@ -97,7 +97,6 @@ LPINFO("computing ratios");
     //t>=0 case
 
         if (tPositive) {
-            LPINFO("t>=0 case");
 
         //computing ratios in M
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
@@ -188,7 +187,6 @@ LPINFO("computing ratios");
 
         } else{
 
-            LPINFO("t<=0 case");
         //computing ratios in M
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
@@ -280,7 +278,8 @@ LPINFO("computing ratios");
     unsigned int iterationCounter = 0,length = breakpoints.size();
 
     getNextElement(&breakpoints,length);
-    while (functionSlope > 0 && iterationCounter < length) {
+    //TODO: Ez itt nem length-1?
+    while (functionSlope > 0 && iterationCounter < length-1) {
         iterationCounter++;
         getNextElement(&breakpoints,length-iterationCounter);
         m_objectiveFunctionPhase1 += functionSlope * (breakpoints[length-1-iterationCounter].value -
@@ -542,7 +541,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     if (!transform) {
         unsigned int iterationCounter = 0, length = breakpoints.size(),id = 0;
         getNextElement(&breakpoints,length);
-        while (!transform && functionSlope > 0 && iterationCounter < length) {
+        while (!transform && functionSlope > 0 && iterationCounter < length-1) {
             iterationCounter++;
             getNextElement(&breakpoints,length-iterationCounter);
             id = length-1-iterationCounter;

@@ -89,7 +89,7 @@ void DualSimplex::computeFeasibility() throw (NumericalException) {
 
 void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
     bool lastFeasible = m_feasible;
-    m_feasible = m_feasibilityChecker->checkFeasibility(m_reducedCostFeasibilities);
+    m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
         m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
     }
