@@ -1300,7 +1300,7 @@ Vector & Vector::operator=(const Vector & vector)
     }
     //TODO: Ezt atgondolni, hogy biztos jo-e igy
     bool reallocate = false;
-    if(m_dimension!=vector.m_dimension){
+    if(m_size!=vector.m_size ){
         freeData(m_data);
         freeIndex(m_index);
         reallocate = true;
