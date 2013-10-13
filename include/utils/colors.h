@@ -1,6 +1,8 @@
 #ifndef COLORS_H
 #define COLORS_H
 
+#include <utils/platform.h>
+
 /*
  * Use COLORFLAGS macro to define the colors of the output.
  * To use bash compatile color flags: define COLORFLAGS to BASHCOLOR
@@ -16,16 +18,17 @@
 #define NOCOLOR             0
 #define COLORFLAGS NOCOLOR
 
-#ifdef __unix__
+#ifdef UNIX
 #define BASHCOLOR       1
 #undef NOCOLOR
 #undef COLORFLAGS
 #define COLORFLAGS BASHCOLOR
 #endif
-#ifdef WIN32
+
 /*
  * The WINDOWSCOLOR macro is available only on _WIN32 platforms.
  */
+#ifdef WIN32
 #define WINDOWSCOLOR    2
 #undef NOCOLOR
 #undef COLORFLAGS
