@@ -22,16 +22,6 @@
 #include <utils/colors.h>
 #include <utils/outputhandler.h>
 
-//#define mygetenv(name) (getenv(name) == 0 ? false : true)
-
-
-/*#if COLORFLAGS == WINDOWSCOLOR
-#ifndef _WIN32
-#undef COLORFLAGS
-#define COLORFLAGS NOCOLOR
-#endif
-#endif*/
-
 /*
  * To use development messages with module names, timestamps, file names, line numbers,
  *  function names and block formatted output.
@@ -40,15 +30,7 @@
  * If DEVELOPMENT macro is not defined, the messages will not be generated at all.
  */
 
-//#define DEVELOPMENT
-
-
-/*#if COLORFLAGS == WINDOWSCOLOR
-#include <windows.h>
-static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
-#endif*/
-
-
+#define DEVELOPMENT
 
 /***********************************************************************************************/
 /**************************************** END USER MESSAGES ************************************/
@@ -83,68 +65,6 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
  */
 
 /*********************************HELPER****************************************************************/
-// Define colors
-/*#if COLORFLAGS == BASHCOLOR
-
-#define DC_K "\e[0;30m"
-#define DC_R "\e[0;31m"
-#define DC_G "\e[0;32m"
-#define DC_Y "\e[0;33m"
-#define DC_B "\e[0;34m"
-#define DC_M "\e[0;35m"
-#define DC_C "\e[0;36m"
-#define DC_W "\e[0;37m"
-#define DC_D "\e[0m"
-
-#define DC_BGK "\e[40m"
-#define DC_BGR "\e[41m"
-#define DC_BGG "\e[42m"
-#define DC_BGY "\e[43m"
-#define DC_BGB "\e[44m"
-#define DC_BGM "\e[45m"
-#define DC_BGC "\e[46m"
-#define DC_BGW "\e[47m"
-
-#define DC_EMK "\e[1;30m"
-#define DC_EMR "\e[1;31m"
-#define DC_EMG "\e[1;32m"
-#define DC_EMY "\e[1;33m"
-#define DC_EMB "\e[1;34m"
-#define DC_EMM "\e[1;35m"
-#define DC_EMC "\e[1;36m"
-#define DC_EMW "\e[1;37m"
-
-#else
-#include <cstdlib>
-#define DC_K ""
-#define DC_R ""
-#define DC_G ""
-#define DC_Y ""
-#define DC_B ""
-#define DC_M ""
-#define DC_C ""
-#define DC_W ""
-#define DC_D ""
-
-#define DC_BGK ""
-#define DC_BGR ""
-#define DC_BGG ""
-#define DC_BGY ""
-#define DC_BGB ""
-#define DC_BGM ""
-#define DC_BGC ""
-#define DC_BGW ""
-
-#define DC_EMK ""
-#define DC_EMR ""
-#define DC_EMG ""
-#define DC_EMY ""
-#define DC_EMB ""
-#define DC_EMM ""
-#define DC_EMC ""
-#define DC_EMW ""
-
-#endif*/
 
 #define LPTEST(msg)
 #define LPINFO(msg) { std::ostringstream str; \
@@ -160,91 +80,6 @@ static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
     str << msg; \
     OutputHandler::getInstance().addError(str); \
     }
-
-/*
-#if COLORFLAGS != WINDOWSCOLOR
-
-#define LPTEST(msg)
-#define LPINFO(msg) { std::ostringstream str; \
-    str << msg; \
-    OutputHandler::getInstance().addMessage(str); \
-    }
-
-#define LPWARNING(msg) { std::ostringstream str; \
-    str << msg; \
-    OutputHandler::getInstance().addWarning(str); \
-    }
-#define LPERROR(msg) { std::ostringstream str; \
-    str << msg; \
-    OutputHandler::getInstance().addError(str); \
-    }
-
-
- #ifdef NDEBUG
-     #define LPDEBUG(msg)
- #else
-     #define LPDEBUG(msg) { std::cerr    << ( mygetenv("ECLIPSE") ? ("[" __FILE__  " : " ) :  ( DC_EMM DC_BGM "[" DC_EMW  __FILE__  DC_EMM ":" DC_EMW ) ) \
-                                         << std::setw(5) << __LINE__  << ( mygetenv("ECLIPSE") ? "]" : (DC_EMM "]" DC_D ) ) << " " << msg << std::endl; }
- #endif
-
-
-#else  // WINDOWSCOLOR
-
-#define LPINFO(msg) { \
-     if ( mygetenv("ECLIPSE") ) { std::cerr << "[INFO   ] " << msg << std::endl; } \
-     else { SetConsoleTextAttribute(hConsole, 25); \
-     std::cerr << "["; \
-     SetConsoleTextAttribute(hConsole, 31); \
-     std::cerr << "INFO   "; \
-     SetConsoleTextAttribute(hConsole, 25); \
-     std::cerr << "]"; \
-     SetConsoleTextAttribute(hConsole, 7); \
-     std::cerr << " " << msg << std::endl; } }
-
-#define LPWARNING(msg) { \
-     if ( mygetenv("ECLIPSE") ) { std::cerr << "[WARNING] " << msg << std::endl; } \
-     else { SetConsoleTextAttribute(hConsole, 110); \
-     std::cerr << "["; \
-     SetConsoleTextAttribute(hConsole, 111); \
-     std::cerr << "WARNING"; \
-     SetConsoleTextAttribute(hConsole, 110); \
-     std::cerr << "]"; \
-     SetConsoleTextAttribute(hConsole, 7); \
-     std::cerr << " " << msg << std::endl; } }
-
-#define LPERROR(msg) { \
-     if ( mygetenv("ECLIPSE") ) { std::cerr << "[ERROR  ] " << msg << std::endl; } \
-     else { SetConsoleTextAttribute(hConsole, 76); \
-     std::cerr << "["; \
-     SetConsoleTextAttribute(hConsole, 79); \
-     std::cerr << "ERROR  "; \
-     SetConsoleTextAttribute(hConsole, 76); \
-     std::cerr << "]"; \
-     SetConsoleTextAttribute(hConsole, 7); \
-     std::cerr << " " << msg << std::endl; } }
-
-
- #ifdef NDEBUG
-     #define LPDEBUG(msg)
- #else
-     #define LPDEBUG(msg) { \
-         if ( mygetenv("ECLIPSE") ) { std::cerr << "[" __FILE__ ":"  << std::setw(5) << __FILE__ "] " << msg << std::endl; } \
-         else { SetConsoleTextAttribute(hConsole, 93); \
-         std::cerr << "["; \
-         SetConsoleTextAttribute(hConsole, 95); \
-         std::cerr << __FILE__; \
-         SetConsoleTextAttribute(hConsole, 93); \
-         std::cerr << ":"; \
-         SetConsoleTextAttribute(hConsole, 95); \
-         std::cerr << std::setw(5) << __LINE__; \
-         SetConsoleTextAttribute(hConsole, 93); \
-         std::cerr << "]"; \
-         SetConsoleTextAttribute(hConsole, 7); \
-         std::cerr << " " << msg << std::endl; }  }
- #endif
-
-#endif //
-*/
 
 /***********************************************************************************************/
 /************************************* DEVELOPMENT MESSAGES ************************************/
@@ -560,7 +395,7 @@ private:
 #else
 #define DEVINFO(mod, msg)                               \
     if (D::getActiveModules()&mod) {                    \
-        if (mygetenv("ECLIPSE")) {                        \
+        if (getenv("ECLIPSE")) {                        \
             DEBUG_NCINFO(D::getName(mod), msg);         \
     } else {                                            \
             DEBUG_INFO(D::getName(mod), msg);           \
@@ -569,7 +404,7 @@ private:
 
 #define DEVWARNING(mod, msg)                            \
     if (D::getActiveModules()&mod) {                    \
-        if (mygetenv("ECLIPSE")) {                        \
+        if (getenv("ECLIPSE")) {                        \
             DEBUG_NCWARNING(D::getName(mod), msg);      \
         } else {                                        \
             DEBUG_WARNING(D::getName(mod), msg);        \
@@ -578,7 +413,7 @@ private:
 
 #define DEVERROR(mod, msg)                              \
     if (D::getActiveModules()&mod) {                    \
-        if (mygetenv("ECLIPSE")) {                        \
+        if (getenv("ECLIPSE")) {                        \
             DEBUG_NCERROR(D::getName(mod), msg);        \
         } else {                                        \
             DEBUG_ERROR(D::getName(mod), msg);          \
@@ -587,7 +422,7 @@ private:
 
 #define DEVDEBUG(mod, msg)                              \
     if (D::getActiveModules()&mod) {                    \
-        if (mygetenv("ECLIPSE")) {                        \
+        if (getenv("ECLIPSE")) {                        \
             DEBUG_NCDEBUG(D::getName(mod), msg);        \
         } else {                                        \
             DEBUG_DEBUG(D::getName(mod), msg);          \
