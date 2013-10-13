@@ -237,7 +237,7 @@ void IndexListTestSuite::where() {
 
         IndexList<int> list(curCount, curPartitions);
 
-        unsigned int index = 0, index2 = 0;
+        unsigned int index = 0;
         for(;index < curInsertCount; index++)
         {
             //Make sure that the test contains only valid cases

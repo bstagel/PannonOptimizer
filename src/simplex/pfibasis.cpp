@@ -126,6 +126,7 @@ void PfiBasis::invert() throw (NumericalException) {
 
     //Update the basis head
     setNewHead();
+
     m_isFresh = true;
 
     clock_t inversionStop = clock();

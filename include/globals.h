@@ -23,8 +23,8 @@
   #error ERROR: PLEASE COMPILE WITH C++0x11!
 #endif
 
-const double ZERO = 0.0;
-const double INVALID = -DBL_MAX;
+extern const double ZERO;
+extern const double INVALID;
 
 enum OBJECTIVE_TYPE
 {

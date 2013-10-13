@@ -23,9 +23,7 @@ using namespace std;
  *
  */
 
-namespace detail { struct unused { int operator*() const {return 0;}
-                                   std::ostream & operator << (std::ostream & os) {return os;}
-                                 }; }
+namespace detail { struct unused { int operator*() const {return 0;}}; }
 
 template <class ATTACHED_TYPE = detail::unused>
 class IndexList

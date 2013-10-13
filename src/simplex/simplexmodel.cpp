@@ -33,8 +33,6 @@ void SimplexModel::makeComputationalForm()
 
     for (i=0, j=0; i < rowCount; i++, j++) {
 
-        LPERROR("constraints.at(i).getLowerBound() " <<constraints.at(i).getLowerBound());
-        LPERROR("constraints.at(i).getUpperBound() " <<constraints.at(i).getUpperBound());
         switch(constraints.at(i).getType())
         {
         case Constraint::LESS_OR_EQUAL: {

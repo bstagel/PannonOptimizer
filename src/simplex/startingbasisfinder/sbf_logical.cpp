@@ -35,7 +35,7 @@ void SbfLogical::run()
     /* Basic variables: set state to BASIC */
     for (i=0, j=columnCount; i < rowCount; i++, j++) {
         m_basisHead->push_back(j);
-        m_variableStates->insert(Simplex::BASIC, j, &INVALID);
+        m_variableStates->insert(Simplex::BASIC, j, &ZERO);
     }
 
     /* Nonbasic variables: set state to NONBASIC_AT_UB/LB depending on the strategy used */

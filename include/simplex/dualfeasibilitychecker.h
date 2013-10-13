@@ -22,12 +22,9 @@ public:
                            const Basis& basis,
                            Numerical::Double* phaseIObjectiveValue);
 
-    bool checkFeasibility(const IndexList<>& reducedCostFeasibilities);
+    bool checkFeasibility();
     void computeFeasibility();
     void feasiblityCorrection(Vector* basicVariableValues);
-
-    //TODO: this function does not belong here
-//    Numerical::Double getPhaseIreducedCost(const Vector& alpha)const;
 
 private:
     const SimplexModel& m_model;

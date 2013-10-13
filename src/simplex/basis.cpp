@@ -7,6 +7,8 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexmodel.h>
 
+#include <utils/thirdparty/prettyprint.h>
+
 #include <fstream>
 
 Basis::Basis(const SimplexModel& model,
@@ -33,19 +35,20 @@ void Basis::copyBasis(bool buildIndexLists) {
 
     //Reinit data structures
     m_columns.clear();
+    m_columnCounts.clear();
     m_columnCountIndexList.init(0,0);
     m_columnsHash.clear();
     m_rows.clear();
+    m_rowCounts.clear();
     m_rowCountIndexList.init(0,0);
 
-    if(m_columns.capacity() != rowCount){
-        m_columns.reserve(rowCount);
-        m_columnCounts.resize(rowCount,0);
-        m_columnsHash.reserve(rowCount);
-
-        m_rows.resize(rowCount, Vector(rowCount));
-        m_rowCounts.resize(rowCount, 0);
-    }
+    //Containers to be resized directly
+    m_columns.reserve(rowCount);
+    m_columnCounts.resize(rowCount,0);
+    m_columnsHash.reserve(rowCount);
+    m_rowCounts.clear();
+    m_rowCounts.resize(rowCount, 0);
+    m_rows.resize(rowCount, Vector(rowCount));
 
     std::vector<bool> headChecker(rowCount + columnCount, false);
     m_basisNewHead.resize(rowCount, -1);
@@ -81,7 +84,9 @@ void Basis::copyBasis(bool buildIndexLists) {
         if (maxColumnCount < it->nonZeros()) {
             maxColumnCount = it->nonZeros();
         }
-        for (Vector::NonzeroIterator vectorIt = it->beginNonzero(); vectorIt < it->endNonzero(); vectorIt++) {
+        Vector::NonzeroIterator vectorIt = it->beginNonzero();
+        Vector::NonzeroIterator vectorItEnd = it->endNonzero();
+        for (; vectorIt < vectorItEnd; vectorIt++) {
             m_rowCounts.at(vectorIt.getIndex())++;
             m_rows.at(vectorIt.getIndex()).setNewNonzero(it - m_columns.begin(), *vectorIt);
         }

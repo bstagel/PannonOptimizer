@@ -27,49 +27,14 @@ DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
 
 }
 
-//Numerical::Double DualFeasibilityChecker::getPhaseIreducedCost(const Vector& alpha)const{
-
-////TODO: phase one reduced cost as a param?!!
-
-//    Numerical::Double phaseIreducedCost = 0;
-//    IndexList<>::Iterator it;
-//    IndexList<>::Iterator endit;
-//    Variable::VARIABLE_TYPE typeOfIthVariable;
-//    m_reducedCostFeasibilities->getIterators(&it,&endit,0,2);
-//    unsigned int variableIndex = it.getData();
-
-//        for (; it != endit; it++) {
-//            if (m_variableStates->where(variableIndex) != Simplex::BASIC) {
-//                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
-
-//    //nonbasic variables with M type infeasibility
-
-//                if (m_reducedCosts[variableIndex] < 0 &&
-//                    (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
-//                    phaseIreducedCost += alpha[variableIndex];
-//                } else
-
-//    //nonbasic variables with P type infeasibility
-
-//                 if (m_reducedCosts[variableIndex] > 0 &&
-//                    (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
-//                    phaseIreducedCost -= alpha[variableIndex];
-//                 }
-//            }
-//        }
-//        return phaseIreducedCost;
-//}
-
-bool DualFeasibilityChecker::checkFeasibility(const IndexList<>& reducedCostFeasibilities){
+bool DualFeasibilityChecker::checkFeasibility(){
     IndexList<>::Iterator setMit;
     IndexList<>::Iterator setMendit;
     IndexList<>::Iterator setPit;
     IndexList<>::Iterator setPendit;
 
-    (*m_reducedCostFeasibilities) = reducedCostFeasibilities;
-
-    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
-    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
+    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
         return true;
@@ -103,7 +68,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
                         (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
-                    std::cout<<*m_reducedCostFeasibilities;
                 } else
 
     //nonbasic variables with P type infeasibility
@@ -112,7 +76,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
                         (*m_phaseIObjectiveValue) -= m_reducedCosts[variableIndex];
-                    LPINFO("P TYPE d_j found");
                 } else
 
     //nonbasic variables with F type infeasibility
@@ -124,7 +87,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (Numerical::equal(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
-                    LPINFO("F TYPE d_j found");
                 }
 
      //max problem
@@ -137,7 +99,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
                         (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
-                    LPINFO("M TYPE d_j found");
                 } else
 
     //nonbasic variables with P type infeasibility
@@ -146,7 +107,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
                         (*m_phaseIObjectiveValue) -= m_reducedCosts[variableIndex];
-                    LPINFO("P TYPE d_j found");
                 } else
 
     //nonbasic variables with F type infeasibility
@@ -158,7 +118,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                         (Numerical::equal(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
-                    LPINFO("F TYPE d_j found");
                 }
             }
         }
