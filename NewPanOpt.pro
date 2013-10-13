@@ -125,8 +125,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/dualpricing.cpp \
            src/simplex/dualpricingupdater.cpp \
            src/utils/memoryman.cpp \
-           include/simplex/primalratiotest.cpp \
-           include/simplex/primalfeasibilitychecker.cpp \
-           include/simplex/primalratiotestupdater.cpp
+           src/simplex/primalratiotest.cpp \
+           src/simplex/primalfeasibilitychecker.cpp \
+           src/simplex/primalratiotestupdater.cpp
 
 OBJECTS_DIR = .o
