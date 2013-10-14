@@ -17,9 +17,15 @@ class Model;
 class DualRatiotest{
 
     struct BreakPoint{
-        unsigned int index;
+        int index;
         Numerical::Double value;
         Numerical::Double functionValue;
+
+        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint)
+        {
+            os << "(" << breakpoint.index << "; " << breakpoint.value << "; " << breakpoint.functionValue << ")";
+            return os;
+        }
     };
 
 public:
@@ -30,7 +36,7 @@ public:
                   DualRatiotestUpdater& dualRatiotestUpdater);
     virtual ~DualRatiotest();
 
-    inline unsigned int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
+    inline int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
 
     inline Numerical::Double getPrimalSteplength()const{return m_primalSteplength;}
 
@@ -45,13 +51,13 @@ public:
     void performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
-                                Numerical::Double phaseIObjectiveValue
-                                );
+                                Numerical::Double phaseIObjectiveValue)
+                                throw (NumericalException);
 
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
-                                Numerical::Double objectiveFunction
-                                );
+                                Numerical::Double objectiveFunction)
+                                throw (NumericalException, DualUnboundedException);
 
 private:
     const SimplexModel& m_model;
@@ -60,7 +66,7 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
 
     DualRatiotestUpdater& m_dualRatiotestUpdater;
-    unsigned int m_incomingVariableIndex;
+    int m_incomingVariableIndex;
     Numerical::Double m_dualSteplength;
     Numerical::Double m_primalSteplength;
     Numerical::Double m_objectiveFunctionPhase1;

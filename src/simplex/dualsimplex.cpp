@@ -7,6 +7,8 @@
 #include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pfibasis.h>
 
+#include <utils/thirdparty/prettyprint.h>
+
 DualSimplex::DualSimplex():
     m_pricing(0),
     m_updater(0),
@@ -112,6 +114,15 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
     Vector alpha(rowCount + columCount);
     computeTransformedRow(&alpha, m_outgoingIndex);
 
+
+//    LPINFO("m_reducedCostFeasibilities: "<<m_reducedCostFeasibilities);
+//    LPINFO("m_reducedCosts: "<<m_reducedCosts);
+//    LPINFO("m_basisHead: "<<m_basisHead);
+//    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
+//    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
+//    LPINFO("transformedRow: "<<alpha);
+//    LPINFO("PHASE I OBJ VAL: "<<m_phaseIObjectiveValue);
+
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
     } else {
@@ -121,6 +132,12 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 }
 
 void DualSimplex::update()throw (NumericalException) {
+
+    LPINFO("incomingIndex: "<<m_incomingIndex);
+    LPINFO("outgoingIndex: "<<m_outgoingIndex);
+    LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
+    LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
+
     transform(m_incomingIndex, m_outgoingIndex, m_ratiotest->getBoundflips(), m_ratiotest->getPrimalSteplength());
     //Transform
     //Update objective value

@@ -56,24 +56,25 @@ void Basis::copyBasis(bool buildIndexLists) {
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         if (headChecker.at(*it) == false) {
             headChecker.at(*it) = true;
-            if (*it >= (int) columnCount) {
-                DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
-                //Collect the logical columns
-                Vector logical(rowCount);
-                logical.setNewNonzero(*it - columnCount,1);
-                m_columns.push_back(logical);
-                m_columnsHash.push_back(*it);
-                m_basisNonzeros++;
-            } else {
-                DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
-                //The submatrix is the active submatrix needed for inversion
-                m_columns.push_back(m_model.getMatrix().column(*it));
-                m_columnsHash.push_back(*it);
-                m_basisNonzeros += m_columns.back().nonZeros();
-            }
         } else {
             //TODO: throw exception here
+            //TODO: Ennek az esetnek a kezelese vmiert nem jo
             LPWARNING("Duplicate index in basis head: " << *it);
+        }
+        if (*it >= (int) columnCount) {
+            DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
+            //Collect the logical columns
+            Vector logical(rowCount);
+            logical.setNewNonzero(*it - columnCount,1);
+            m_columns.push_back(logical);
+            m_columnsHash.push_back(*it);
+            m_basisNonzeros++;
+        } else {
+            DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
+            //The submatrix is the active submatrix needed for inversion
+            m_columns.push_back(m_model.getMatrix().column(*it));
+            m_columnsHash.push_back(*it);
+            m_basisNonzeros += m_columns.back().nonZeros();
         }
     }
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists

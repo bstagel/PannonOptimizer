@@ -59,21 +59,41 @@ public:
 /**
  * This exception should be thrown when unboundedness raised and therefore the problem will be always infeasible
  * (for example during presolving)
- * @class UnboundedException
+ * @class PrimalUnboundedException
  */
-class UnboundedException: public OptimizationResultException {
+class PrimalUnboundedException: public OptimizationResultException {
 public:
-    UnboundedException(const std::string& message): OptimizationResultException(message) {}
+    PrimalUnboundedException(const std::string& message): OptimizationResultException(message) {}
+};
+
+/**
+ * This exception should be thrown when unboundedness raised and therefore the problem will be always infeasible
+ * (for example during presolving)
+ * @class DualUnboundedException
+ */
+class DualUnboundedException: public OptimizationResultException {
+public:
+    DualUnboundedException(const std::string& message): OptimizationResultException(message) {}
 };
 
 /**
  * This exception should be thrown when infeasibility raised and therefore the problem will be always infeasible
  * (for example during presolving)
- * @class InfeasibleException
+ * @class PrimalInfeasibleException
  */
-class InfeasibleException: public OptimizationResultException {
+class PrimalInfeasibleException: public OptimizationResultException {
 public:
-    InfeasibleException(const std::string& message): OptimizationResultException(message) {}
+    PrimalInfeasibleException(const std::string& message): OptimizationResultException(message) {}
+};
+
+/**
+ * This exception should be thrown when infeasibility raised and therefore the problem will be always infeasible
+ * (for example during presolving)
+ * @class DualInfeasibleException
+ */
+class DualInfeasibleException: public OptimizationResultException {
+public:
+    DualInfeasibleException(const std::string& message): OptimizationResultException(message) {}
 };
 
 /**

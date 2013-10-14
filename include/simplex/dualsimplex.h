@@ -30,8 +30,8 @@ private:
     DualRatiotest * m_ratiotest;
 
     bool m_feasible;
-    unsigned int m_incomingIndex;
-    unsigned int m_outgoingIndex;
+    int m_incomingIndex;
+    int m_outgoingIndex;
 
     void initModules();
     void releaseModules();
