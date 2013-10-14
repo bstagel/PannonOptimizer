@@ -17,6 +17,7 @@ public:
 
     virtual ~DualPricing();
 
+    //TODO: EXCEPTIONS
     virtual unsigned int performPricingPhase1() = 0;
     virtual unsigned int performPricingPhase2() = 0;
 

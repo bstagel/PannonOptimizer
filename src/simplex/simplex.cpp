@@ -129,7 +129,7 @@ void Simplex::solve() {
                     reinversionCounter = reinversionFrequency;
                 }
             }
-            catch ( const InfeasibleException & exception ) {
+            catch ( const PrimalInfeasibleException & exception ) {
                    //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
@@ -137,7 +137,31 @@ void Simplex::solve() {
                     reinversionCounter = reinversionFrequency;
                 }
             }
-            catch ( const UnboundedException & exception ) {
+            catch ( const DualInfeasibleException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            catch ( const PrimalUnboundedException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            catch ( const DualUnboundedException & exception ) {
+                   //Check the result with triggering reinversion
+                if(reinversionCounter == 0){
+                    throw exception;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+            catch ( const NumericalException & exception ) {
                    //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
@@ -153,10 +177,14 @@ void Simplex::solve() {
         LPINFO("The objective value: " << m_objectiveValue);
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
-    } catch ( const InfeasibleException & exception ) {
-        LPERROR("The problem is INFEASIBLE.");
-    } catch ( const UnboundedException & exception ) {
-        LPERROR("The problem is UNBOUNDED.");
+    } catch ( const PrimalInfeasibleException & exception ) {
+        LPERROR("The problem is PRIMAL INFEASIBLE.");
+    } catch ( const DualInfeasibleException & exception ) {
+        LPERROR("The problem is DUAL INFEASIBLE.");
+    } catch ( const PrimalUnboundedException & exception ) {
+        LPERROR("The problem is PRIMAL UNBOUNDED.");
+    } catch ( const DualUnboundedException & exception ) {
+        LPERROR("The problem is DUAL UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
         LPERROR("Numerical error!");
     } catch ( const std::bad_alloc & exception ) {
@@ -310,16 +338,10 @@ void Simplex::computeReducedCosts() throw (NumericalException) {
     }
 }
 
-void Simplex::transform(unsigned int incomingIndex,
+void Simplex::transform(int incomingIndex,
                         int outgoingIndex,
                         const std::vector<unsigned int>& boundflips,
                         Numerical::Double primalTheta) {
-    //Save whether the basis is to be changed
-    m_baseChanged = outgoingIndex != -1;
-
-    LPINFO("incomingIndex: "<<incomingIndex);
-    LPINFO("outgoingIndex: "<<outgoingIndex);
-    LPINFO("primalTheta: "<<primalTheta);
 
     //Todo update the solution properly
 //    Numerical::Double boundflipTheta = 0.0;
@@ -341,20 +363,17 @@ void Simplex::transform(unsigned int incomingIndex,
         }
     }
 
-    if(outgoingIndex != -1){
+    if(outgoingIndex != -1 && incomingIndex != -1){
+        //Save whether the basis is to be changed
+        m_baseChanged = true;
+
         unsigned int rowCount = m_simplexModel->getRowCount();
         unsigned int columnCount = m_simplexModel->getColumnCount();
 
         //TODO: Az alpha vajon sparse vagy dense?
         Vector alpha(rowCount);
         if(incomingIndex < columnCount){
-            LPERROR("GETCOL");
-            LPERROR(" m_simplexModel->getMatrix "<< m_simplexModel->getMatrix().column(incomingIndex));
-            LPERROR("ALPHATYPE: "<<alpha.getType());
-                    LPERROR("m_simplexModel->getMatrix().column(incomingIndex)TYPE: "<<m_simplexModel->getMatrix().column(incomingIndex).getType());
             alpha = m_simplexModel->getMatrix().column(incomingIndex);
-            LPERROR(" alpha "<< alpha);
-            LPERROR("GETCOL");
         } else {
             alpha.setNewNonzero(incomingIndex - columnCount, 1);
         }
