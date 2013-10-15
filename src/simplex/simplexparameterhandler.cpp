@@ -105,6 +105,15 @@ void SimplexParameterHandler::writeParameterFile()
 
 
         out << std::fixed << std::endl;
+        out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
+
+        out << "! Use the piecewise linear concave function in dual phase I." << std::endl;
+        out << "\t" << "nonlinear_dual_phaseI_function = " << m_values["nonlinear_dual_phaseI_function"].getValue() << std::endl;
+        out << "! Use the piecewise linear concave function in dual phase II." << std::endl;
+        out << "\t" << "nonlinear_dual_phaseII_function = " << m_values["nonlinear_dual_phaseII_function"].getValue() << std::endl;
+
+
+        out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
         out << "! Level of iteration report"
                "\t! -1.0 = CSV export format\n"
@@ -151,6 +160,11 @@ void SimplexParameterHandler::initParameters()
     //Pricing
     m_values["pricing_type"] = Parameter("pricing_type", DefaultParameters::PRICING_TYPE);
 
+    //Ratiotest
+    m_values["nonlinear_dual_phaseI_function"] = Parameter("nonlinear_dual_phaseI_function",
+                                                           DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
+    m_values["nonlinear_dual_phaseII_function"] = Parameter("nonlinear_dual_phaseII_function",
+                                                           DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
     //Global
     m_values["debug_level"] = Parameter("debug_level", DefaultParameters::DEBUG_LEVEL);
     m_values["iteration_limit"] = Parameter("iteration_limit", DefaultParameters::ITERATION_LIMIT);

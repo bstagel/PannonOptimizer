@@ -12,6 +12,11 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
+static const double nonlinearDualPhaseIFunction =
+        SimplexParameterHandler::getInstance().getParameterValue("nonlinear_dual_phaseI_function");
+static const double nonlinearDualPhaseIIFunction =
+        SimplexParameterHandler::getInstance().getParameterValue("nonlinear_dual_phaseII_function");
+
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
                              const IndexList<>& reducedCostFeasibilities,
@@ -76,7 +81,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
     LPINFO("PHASE1 RATIO TEST");
     m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount());
 
-    Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
+    //Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     m_objectiveFunctionPhase1 = phaseIObjectiveValue;
 
 //determining t>=0 or t<=0 cases
@@ -101,7 +106,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
         unsigned int variableIndex = 0;
         Variable::VARIABLE_TYPE typeOfIthVariable;
         OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
-        Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("pivot_threshold");
+        //Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("pivot_threshold");
 
     //t>=0 case
 
@@ -326,14 +331,22 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
 
     unsigned int iterationCounter = 0,length = breakpoints.size();
 
-    //TODO: KEZELNI KELL HA NINCS TORESPONT
+
+
+//using traditional one step method
+
+    if (nonlinearDualPhaseIFunction == 0.0) {
+        //TODO: KEZELNI KELL HA NINCS TORESPONT
 //    LPERROR("breakpoints "<<breakpoints);
-    getNextElement(&breakpoints,length);
-//    LPERROR("breakpoints "<<breakpoints);
-    iterationCounter++;
-    getNextElement(&breakpoints,length-1);
-//    LPERROR("breakpoints "<<breakpoints);
-    //TODO: Ez itt nem length-1?
+        getNextElement(&breakpoints,length);
+    //    LPERROR("breakpoints "<<breakpoints);
+        iterationCounter++;
+        getNextElement(&breakpoints,length-1);
+    //    LPERROR("breakpoints "<<breakpoints);
+        //TODO: Ez itt nem length-1?
+
+//using piecewise linear function
+    } else {
 //    while (functionSlope > 0 && iterationCounter < length-1) {
 //        iterationCounter++;
 //        getNextElement(&breakpoints,length-iterationCounter);
@@ -342,6 +355,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
 //        breakpoints[length-1-iterationCounter].functionValue = m_objectiveFunctionPhase1;
 //        functionSlope -= Numerical::fabs(alpha[breakpoints[length-1-iterationCounter].index]);
 //    }
+    }
 
 
 //    LPERROR("breakpoints[length-iterationCounter-1].value "<<breakpoints[length-iterationCounter-1].value);
@@ -602,29 +616,52 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
 //determining primal,dual steplength incoming variable
 
-    if (!transform) {
-        unsigned int iterationCounter = 0, length = breakpoints.size(),id = 0;
-        getNextElement(&breakpoints,length);
-        while (!transform && functionSlope > 0 && iterationCounter < length-1) {
-            iterationCounter++;
-            getNextElement(&breakpoints,length-iterationCounter);
-            id = length-1-iterationCounter;
-            m_objectiveFunctionPhase2 += functionSlope * (breakpoints[id].value-breakpoints[id+1].value);
-            breakpoints[id].functionValue = m_objectiveFunctionPhase2;
-            previousSlope = functionSlope;
-            functionSlope -= Numerical::fabs(alpha[breakpoints[id].index]) *
-                    Numerical::fabs(m_model.getVariable(breakpoints[id].index).getUpperBound()-
-                m_model.getVariable(breakpoints[id].index).getLowerBound());
-            m_boundflips.push_back(breakpoints[length-1-iterationCounter].index);
-            if (Numerical::fabs(functionSlope) == Numerical::Infinity) {
-                transform = true;
+    //using traditional one step method
+    if ( nonlinearDualPhaseIIFunction == 0.0) {
+
+        if (!transform) {
+            unsigned int length = breakpoints.size();
+            getNextElement(&breakpoints,length);
+            if (functionSlope > 0) {
+                getNextElement(&breakpoints,length-1);
+                m_objectiveFunctionPhase2 += functionSlope * (breakpoints[length-1].value-breakpoints[length].value);
+                breakpoints[length-1].functionValue = m_objectiveFunctionPhase2;
+                m_boundflips.push_back(breakpoints[length-1].index);
             }
-        };
-        if (tPositive) {
-            m_primalSteplength =- previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
-        } else{
-            m_primalSteplength = previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
+            if (tPositive) {
+                m_primalSteplength =- functionSlope / alpha[breakpoints[length-1].index];
+            } else{
+                m_primalSteplength = functionSlope / alpha[breakpoints[length-1].index];
+            }
+            m_incomingVariableIndex = breakpoints[length-1].index;
+            m_dualSteplength = tPositive ? breakpoints[length-1].value : - breakpoints[length-1].value;
         }
+
+    //using piecewise linear function
+    } else {
+        if (!transform) {
+            unsigned int iterationCounter = 0, length = breakpoints.size(),id = 0;
+            getNextElement(&breakpoints,length);
+            while (!transform && functionSlope > 0 && iterationCounter < length-1) {
+                iterationCounter++;
+                getNextElement(&breakpoints,length-iterationCounter);
+                id = length-1-iterationCounter;
+                m_objectiveFunctionPhase2 += functionSlope * (breakpoints[id].value-breakpoints[id+1].value);
+                breakpoints[id].functionValue = m_objectiveFunctionPhase2;
+                previousSlope = functionSlope;
+                functionSlope -= Numerical::fabs(alpha[breakpoints[id].index]) *
+                        Numerical::fabs(m_model.getVariable(breakpoints[id].index).getUpperBound()-
+                    m_model.getVariable(breakpoints[id].index).getLowerBound());
+                m_boundflips.push_back(breakpoints[length-1-iterationCounter].index);
+                if (Numerical::fabs(functionSlope) == Numerical::Infinity) {
+                    transform = true;
+                }
+            };
+            if (tPositive) {
+                m_primalSteplength =- previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
+            } else{
+                m_primalSteplength = previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
+            }
         m_incomingVariableIndex = breakpoints[length-1-iterationCounter].index;
         m_dualSteplength = tPositive ? breakpoints[length-1-iterationCounter].value : - breakpoints[length-1-iterationCounter].value;
 
@@ -706,6 +743,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 //            m_incomingVariableIndex = breakpoints[nextAlphaId].index;
 //            m_dualSteplength = breakpoints[nextAlphaId].value;
 //        }
+        }
     }
 }
 

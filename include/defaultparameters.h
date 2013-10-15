@@ -32,6 +32,9 @@ public:
     static const double PIVOT_THRESHOLD;
     //Pricing
     static const double PRICING_TYPE;
+    //Ratiotest
+    static const double NONLINEAR_DUAL_PHASEI_FUNCTION;
+    static const double NONLINEAR_DUAL_PHASEII_FUNCTION;
     //Global
     static const double DEBUG_LEVEL;
     static const double ITERATION_LIMIT;

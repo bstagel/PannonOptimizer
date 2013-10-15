@@ -10,6 +10,7 @@
 #include <simplex/simplex.h>
 #include <simplex/primalpricing.h>
 #include <simplex/primalupdater.h>
+#include <simplex/primalratiotest.h>
 
 class PrimalSimplex: public Simplex
 {
@@ -18,6 +19,8 @@ public:
 
 private:
     PrimalPricing * m_pricing;
+
+    PrimalRatiotest * m_ratiotest;
 
     PrimalUpdater * m_updater;
 

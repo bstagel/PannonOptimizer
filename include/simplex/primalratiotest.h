@@ -26,6 +26,9 @@ public:
 
     inline Numerical::Double getObjectiveFunctionPhase2()const{return m_objectiveFunctionPhase2;}
 
+    void performRatiotestPhase1();
+    void performRatiotestPhase2();
+
 private:
     const SimplexModel& m_model;
     const IndexList<>& m_variableFeasibilities;

@@ -8,6 +8,7 @@
 
 PrimalSimplex::PrimalSimplex():
     m_pricing(0),
+    m_ratiotest(0),
     m_updater(0)
 {
 
@@ -21,6 +22,9 @@ void PrimalSimplex::initModules() {
     PrimalPricingFactory * pricingFactory = new PrimalDantzigPricingFactory;
 
     m_pricing = pricingFactory->createPrimalPricing();
+    m_ratiotest = new PrimalRatiotest(*m_simplexModel,
+                                      m_variableFeasibilities,
+                                      m_variableStates);
 
     m_updater = new PrimalUpdater;
     m_updater->setPricingUpdater( pricingFactory->createPrimalPricingUpdater() );
@@ -34,6 +38,9 @@ void PrimalSimplex::releaseModules() {
 
     delete m_pricing;
     m_pricing = 0;
+
+    delete m_ratiotest;
+    m_ratiotest = 0;
 
     delete m_updater;
     m_updater = 0;
