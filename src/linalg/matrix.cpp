@@ -298,15 +298,15 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
 {
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
-    std::vector<bool> inserted(vector.length(), false);
+    std::vector<char> inserted(vector.length(), 0);
     Vector::NonzeroIterator iterator = vector.beginNonzero();
     Vector::NonzeroIterator iteratorEnd = vector.endNonzero();
     for (; iterator < iteratorEnd; iterator++) {
         columnWise[ iterator.getIndex() ]->insertElement(index, *iterator);
         inserted[ iterator.getIndex() ] = true;
     }
-    std::vector<bool>::const_iterator insertIter = inserted.begin();
-    const std::vector<bool>::const_iterator insertIterEnd = inserted.end();
+    std::vector<char>::const_iterator insertIter = inserted.begin();
+    const std::vector<char>::const_iterator insertIterEnd = inserted.end();
     unsigned int insertIndex = 0;
     for (; insertIter < insertIterEnd; insertIter++, insertIndex++) {
         if (*insertIter == false) {

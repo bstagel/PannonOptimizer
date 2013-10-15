@@ -50,12 +50,12 @@ void Basis::copyBasis(bool buildIndexLists) {
     m_rowCounts.resize(rowCount, 0);
     m_rows.resize(rowCount, Vector(rowCount));
 
-    std::vector<bool> headChecker(rowCount + columnCount, false);
+    std::vector<char> headChecker(rowCount + columnCount, 0);
     m_basisNewHead.resize(rowCount, -1);
     //Copy the active submatrix
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
-        if (headChecker.at(*it) == false) {
-            headChecker.at(*it) = true;
+        if (headChecker.at(*it) == 0) {
+            headChecker.at(*it) = 1;
         } else {
             //TODO: throw exception here
             //TODO: Ennek az esetnek a kezelese vmiert nem jo
@@ -141,7 +141,7 @@ void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
 
 void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
-    std::vector<bool> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
+    std::vector<char> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
     //First mark the positions of the given basis head
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = true;
@@ -162,7 +162,7 @@ void Basis::setNewHead() {
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
     //are aout of the basis, these must be marked as nonbasic and their states must be updated too.
-    for (std::vector<bool>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
+    for (std::vector<char>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);
             if (variable.getType() == Variable::FREE) {

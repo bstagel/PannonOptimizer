@@ -32,7 +32,7 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_mmGraphOut = new std::vector<std::vector<int> >();
     m_mmGraphIn = new std::vector<std::vector<int> >();
     m_stack = new std::vector<PathNode>();
-    m_orderedIndex = new std::vector<bool>();
+    m_orderedIndex = new std::vector<char>();
     m_mmBlocks = new std::vector<int>();
     m_rowSwapHash = new std::vector<int>();
     m_columnSwapHash = new std::vector<int>();
@@ -503,8 +503,8 @@ void PfiBasis::invertR() throw (NumericalException) {
                 m_columnCounts.at(columnindex) = -1;
                 m_rowCounts.at(rowindex) = -1;
 #ifndef NDEBUG
-                printCounts();
-                DEVINFO(D::PFIMAKER, m_rowCountIndexList);
+//                printCounts();
+//                DEVINFO(D::PFIMAKER, m_rowCountIndexList);
 #endif //!NDEBUG
                 rNum++;
             }
@@ -562,8 +562,8 @@ void PfiBasis::findC() {
             m_columnCounts.at(columnindex) = -1;
 
 #ifndef NDEBUG
-            printCounts();
-            DEVINFO(D::PFIMAKER, m_columnCountIndexList);
+//            printCounts();
+//            DEVINFO(D::PFIMAKER, m_columnCountIndexList);
 #endif //!NDEBUG
             cNum++;
         }
@@ -624,7 +624,7 @@ void PfiBasis::invertM() throw (NumericalException) {
                         m_rows.at(it - m_rowCounts.begin()).set(columnindex, 0);
                     }
 #ifndef NDEBUG
-                    printCounts();
+//                    printCounts();
 #endif //!NDEBUG
                     mNum++;
                 }
@@ -841,6 +841,7 @@ void PfiBasis::buildMM() {
     m_columnSwapHash->resize(mmSize, -1);
     m_columnSwapLog->resize(mmSize, -1);
     m_orderedIndex->resize(mmSize, false);
+
     for (int i = 0; i < mmSize; i++) {
         m_rowSwapHash->at(i) = i;
         m_columnSwapHash->at(i) = i;
@@ -997,7 +998,7 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
     }
     Vector::NonzeroIterator vectorIt = m_mmColumns->at(columnIndex).beginNonzero();
     Vector::NonzeroIterator vectorItend = m_mmColumns->at(columnIndex).endNonzero();
-    for (; vectorIt < vectorItend; it++) {
+    for (; vectorIt < vectorItend; vectorIt++) {
         bool contains = false;
         for (std::vector<int>::iterator it = searchedRows.begin(); it < searchedRows.end(); it++) {
             if (*it == (int) vectorIt.getIndex()) {
@@ -1014,6 +1015,7 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
             return searchResult;
         }
     }
+    DEVINFO(D::PFIMAKER, "Searching ended in column " << columnIndex);
     return -1;
 }
 
@@ -1037,7 +1039,7 @@ void PfiBasis::createGraph() {
 
 void PfiBasis::tarjan() {
     DEVINFO(D::PFIMAKER, "Tarjan begin");
-    for (std::vector<bool>::iterator it = m_orderedIndex->begin(); it < m_orderedIndex->end(); it++) {
+    for (std::vector<char>::iterator it = m_orderedIndex->begin(); it < m_orderedIndex->end(); it++) {
         DEVINFO(D::PFIMAKER, "Tarjan step" << it - m_orderedIndex->begin());
         if (*it == false) {
             PathNode node;

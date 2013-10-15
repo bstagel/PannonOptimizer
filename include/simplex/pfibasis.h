@@ -196,7 +196,7 @@ private:
     std::vector<std::vector<int> >* m_mmGraphOut;
     std::vector<std::vector<int> >* m_mmGraphIn;
     std::vector<PathNode>* m_stack;
-    std::vector<bool>* m_orderedIndex;
+    std::vector<char>* m_orderedIndex;
     std::vector<int>* m_mmBlocks;
     std::vector<int>* m_rowSwapHash;
     std::vector<int>* m_columnSwapHash;

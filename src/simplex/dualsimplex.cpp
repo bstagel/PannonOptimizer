@@ -2,6 +2,8 @@
  * @file dualsimplex.cpp
  */
 
+#include <algorithm>
+
 #include <simplex/dualsimplex.h>
 #include <simplex/dualpricingfactory.h>
 #include <simplex/pricing/dualdantzigpricingfactory.h>
@@ -38,7 +40,10 @@ void DualSimplex::initModules() {
                 *m_basis
                 );
     m_updater->setPricingUpdater( pricingUpdater );
-    m_pricing = pricingFactory->createDualPricing( *m_simplexModel, *pricingUpdater );
+    m_pricing = pricingFactory->createDualPricing( *m_simplexModel,
+                                                   *pricingUpdater,
+                                                   m_reducedCosts,
+                                                   m_basisHead);
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
                                                     &m_variableStates,
@@ -148,8 +153,10 @@ void DualSimplex::update()throw (NumericalException) {
     reinvert();
     LPINFO("computeBasicSolution");
     computeBasicSolution();
+
     LPINFO("computeReducedCosts");
     computeReducedCosts();
+
     LPINFO("computeFeasibility");
     computeFeasibility();
 
@@ -175,7 +182,8 @@ void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) th
     m_basis->Btran(rho);
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
-    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, 3);
+    //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
+    m_variableStates.getIterators(&it, &itEnd, Simplex::BASIC, 4);
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){

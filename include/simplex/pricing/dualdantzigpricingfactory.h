@@ -23,8 +23,11 @@ public:
                                                   const std::vector<int> & basisHead,
                                                   const SimplexModel & simplexModel,
                                                   const Basis & basis) const;
+
     DualPricing * createDualPricing(const SimplexModel & model,
-                                    const DualPricingUpdater & updater) const;
+                                    const DualPricingUpdater & updater,
+                                    const Vector& reducedCosts,
+                                    const std::vector<int>& basisHead) const;
 private:
 
 };

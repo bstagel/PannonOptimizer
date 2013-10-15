@@ -1228,7 +1228,7 @@ private:
      */
     void getColumnVector(unsigned int columnIndex, Vector * vector,
                          const HashTable<Column, int, hash_function<Column> > & columnHashTable,
-                         std::vector<bool> * given);
+                         std::vector<char> * given);
 
     /**
      *
