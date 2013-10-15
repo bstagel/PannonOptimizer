@@ -273,7 +273,7 @@ void Simplex::reinvert() throw (NumericalException) {
 
 void Simplex::computeBasicSolution() throw (NumericalException) {
     m_basicVariableValues = m_simplexModel->getRhs();
-    m_objectiveValue = m_simplexModel->getCostConstant();
+    m_objectiveValue = - m_simplexModel->getCostConstant();
 
 
     const unsigned int columnCount = m_simplexModel->getColumnCount();
@@ -372,7 +372,7 @@ void Simplex::transform(int incomingIndex,
 
         //TODO: Az alpha vajon sparse vagy dense?
         Vector alpha(rowCount);
-        if(incomingIndex < columnCount){
+        if(incomingIndex < (int)columnCount){
             alpha = m_simplexModel->getMatrix().column(incomingIndex);
         } else {
             alpha.setNewNonzero(incomingIndex - columnCount, 1);
@@ -382,6 +382,6 @@ void Simplex::transform(int incomingIndex,
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
         m_basis->append(alpha, outgoingIndex, incomingIndex);
-        m_basicVariableValues.set(incomingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
+        m_basicVariableValues.set(outgoingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
     }
 }

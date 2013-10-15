@@ -79,9 +79,13 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                            Numerical::Double phaseIObjectiveValue)
                                            throw (NumericalException){
     LPINFO("PHASE1 RATIO TEST");
-    m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount());
+    //TODO: AZ updatevector szamitasa hibas.
+    m_dualRatiotestUpdater.m_updateVector.clear();
+    //BUG FIXED
+//    m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount());
+    m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount() + m_model.getMatrix().rowCount());
 
-    //Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
+    Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     m_objectiveFunctionPhase1 = phaseIObjectiveValue;
 
 //determining t>=0 or t<=0 cases
@@ -111,8 +115,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
     //t>=0 case
 
         if (tPositive) {
-            LPWARNING("t>=0 case");
-
+            LPWARNING("t>=0");
         //computing ratios in M
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
@@ -122,18 +125,10 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                     currentRatio.index = variableIndex;
                     currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                     currentRatio.functionValue = 0;
-                    LPWARNING("RATIO M ADDED");
-                    LPWARNING("currentRatio.index "<<currentRatio.index);
-                    LPWARNING("currentRatio.value "<<currentRatio.value);
-                    LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
                     if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
                         breakpoints.push_back(currentRatio);
-                        LPWARNING("RATIO SECOND M ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
                     }
                 }
@@ -149,17 +144,9 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                     currentRatio.index = variableIndex;
                     currentRatio.value = m_reducedCosts[variableIndex] / alpha[variableIndex];
                     currentRatio.functionValue = 0;
-                    LPWARNING("RATIO P ADDED");
-                    LPWARNING("currentRatio.index "<<currentRatio.index);
-                    LPWARNING("currentRatio.value "<<currentRatio.value);
-                    LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
                     if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
-                        LPWARNING("RATIO SECOND P ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
                     }
@@ -182,18 +169,10 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                 if (objectiveType == MINIMIZE) {
                     if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] > 0) {
                         breakpoints.push_back(currentRatio);
-                        LPWARNING("RATIO MINIMIZE PLUS ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
                     } else
                     if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] < 0) {
                         breakpoints.push_back(currentRatio);
-                        LPWARNING("RATIO MINIMIZE MINUS ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
                     }
 
@@ -201,18 +180,10 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
 
                 } else {
                     if (typeOfIthVariable == Variable::PLUS && alpha[variableIndex] < 0) {
-                        LPWARNING("RATIO MAXIMIZE PLUS ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
                     } else
                     if (typeOfIthVariable == Variable::MINUS && alpha[variableIndex] > 0) {
-                        LPWARNING("RATIO MAXIMIZE MINUS ADDED");
-                        LPWARNING("currentRatio.index "<<currentRatio.index);
-                        LPWARNING("currentRatio.value "<<currentRatio.value);
-                        LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                         breakpoints.push_back(currentRatio);
                         m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
                     }
@@ -221,18 +192,10 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
         //both cases
 
                 if (typeOfIthVariable == Variable::FREE && alpha[variableIndex] > 0) {
-                    LPWARNING("RATIO FREE PLUS ADDED");
-                    LPWARNING("currentRatio.index "<<currentRatio.index);
-                    LPWARNING("currentRatio.value "<<currentRatio.value);
-                    LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]--;
                 } else
                 if (typeOfIthVariable == Variable::FREE && alpha[variableIndex] < 0) {
-                    LPWARNING("RATIO FREE MINUS ADDED");
-                    LPWARNING("currentRatio.index "<<currentRatio.index);
-                    LPWARNING("currentRatio.value "<<currentRatio.value);
-                    LPWARNING("alpha[variableIndex] "<<alpha[variableIndex]);
                     breakpoints.push_back(currentRatio);
                     m_dualRatiotestUpdater.m_updateVector[variableIndex]++;
                 }
@@ -331,37 +294,34 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
 
     unsigned int iterationCounter = 0,length = breakpoints.size();
 
-
+    //Init the heap with the breakpoint at 0
+    getNextElement(&breakpoints,length);
 
 //using traditional one step method
-
     if (nonlinearDualPhaseIFunction == 0.0) {
         //TODO: KEZELNI KELL HA NINCS TORESPONT
-//    LPERROR("breakpoints "<<breakpoints);
-        getNextElement(&breakpoints,length);
-    //    LPERROR("breakpoints "<<breakpoints);
         iterationCounter++;
         getNextElement(&breakpoints,length-1);
-    //    LPERROR("breakpoints "<<breakpoints);
+        m_objectiveFunctionPhase1 += functionSlope * (breakpoints[length-1].value -
+                breakpoints[length].value);
+        breakpoints[length-1].functionValue = m_objectiveFunctionPhase1;
         //TODO: Ez itt nem length-1?
 
 //using piecewise linear function
     } else {
-//    while (functionSlope > 0 && iterationCounter < length-1) {
-//        iterationCounter++;
-//        getNextElement(&breakpoints,length-iterationCounter);
-//        m_objectiveFunctionPhase1 += functionSlope * (breakpoints[length-1-iterationCounter].value -
-//                breakpoints[length-iterationCounter].value);
-//        breakpoints[length-1-iterationCounter].functionValue = m_objectiveFunctionPhase1;
-//        functionSlope -= Numerical::fabs(alpha[breakpoints[length-1-iterationCounter].index]);
-//    }
+        while (functionSlope > 0 && iterationCounter < length-1) {
+            iterationCounter++;
+            getNextElement(&breakpoints,length-iterationCounter);
+
+            m_objectiveFunctionPhase1 += functionSlope * (breakpoints[length-1-iterationCounter].value -
+                    breakpoints[length-iterationCounter].value);
+            breakpoints[length-1-iterationCounter].functionValue = m_objectiveFunctionPhase1;
+            functionSlope -= Numerical::fabs(alpha[breakpoints[length-1-iterationCounter].index]);
+        }
     }
 
-
-//    LPERROR("breakpoints[length-iterationCounter-1].value "<<breakpoints[length-iterationCounter-1].value);
-//    LPERROR("breakpoints[length-iterationCounter-1].index "<<breakpoints[length-iterationCounter-1].index);
-
     m_dualSteplength = tPositive ? breakpoints[length-iterationCounter-1].value : - breakpoints[length-iterationCounter-1].value;
+
     m_incomingVariableIndex = breakpoints[length-1-iterationCounter].index;
     typeOfIthVariable = m_model.getVariable(outgoingVariableIndex).getType();
 

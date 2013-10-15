@@ -2,8 +2,8 @@
  * @file primalpricing.h
  */
 
-#ifndef PRIMAPRICING_H
-#define	PRIMAPRICING_H
+#ifndef PRIMALPRICING_H
+#define	PRIMALPRICING_H
 
 #include <globals.h>
 
@@ -12,5 +12,5 @@ class PrimalPricing {
 };
 
 
-#endif	/* PRIMAPRICING_H */
+#endif	/* PRIMALPRICING_H */
 

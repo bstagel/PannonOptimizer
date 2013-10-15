@@ -2477,8 +2477,8 @@ void MpsModelBuilder::collectConstraintBounds()
     Vector rhs(rowCount);
     ranges.setSparsityRatio(0.0);
     rhs.setSparsityRatio(0.0);
-    std::vector<bool> rangesGiven(rowCount, false);
-    //std::vector<bool> rhsGiven(rowCount, false);
+    std::vector<char> rangesGiven(rowCount, false);
+    //std::vector<char> rhsGiven(rowCount, false);
     getColumnVector(rhsIndex, &rhs, m_rhs, 0);
 
     getColumnVector(rangesIndex, &ranges, m_ranges, &rangesGiven);
@@ -3143,8 +3143,8 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
     Vector rhs(rowCount);
     ranges.setSparsityRatio(0.0);
     rhs.setSparsityRatio(0.0);
-    std::vector<bool> rangesGiven(rowCount, false);
-    //std::vector<bool> rhsGiven(rowCount, false);
+    std::vector<char> rangesGiven(rowCount, false);
+    //std::vector<char> rhsGiven(rowCount, false);
     getColumnVector(rhsIndex, &rhs, m_rhs, 0);
 
     getColumnVector(rangesIndex, &ranges, m_ranges, &rangesGiven);
@@ -3292,7 +3292,7 @@ char * MpsProblem::saveRows(std::ofstream & ofs, char * actual, char * const buf
 
 void MpsModelBuilder::getColumnVector(unsigned int columnIndex, Vector * vector,
                                       const HashTable<Column, int, hash_function<Column> > & columnHashTable,
-                                      std::vector<bool> * given)
+                                      std::vector<char> * given)
 {
     __UNUSED(columnHashTable);
     if ( &columnHashTable == &m_columns) {

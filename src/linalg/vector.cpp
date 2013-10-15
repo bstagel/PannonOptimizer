@@ -1903,7 +1903,7 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
     //        }
     //    } else {
     for (unsigned int index = 0; index < vector.m_dimension; index++) {
-        os << vector.at(index) << " ";
+        os << "[ " << index << "; " <<  vector.at(index) << "] ";
     }
     os << std::endl;
     //    }

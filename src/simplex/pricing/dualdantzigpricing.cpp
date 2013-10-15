@@ -6,9 +6,13 @@
 #include <simplex/simplex.h>
 
 DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
-                                       const DualPricingUpdater &updater):
+                                       const DualPricingUpdater &updater,
+                                       const Vector & reducedCosts,
+                                       const std::vector<int> & basisHead):
     DualPricing(model, updater),
-    m_updater(dynamic_cast<const DualDantzigPricingUpdater &>(updater))
+    m_updater(dynamic_cast<const DualDantzigPricingUpdater &>(updater)),
+    m_reducedCosts(reducedCosts),
+    m_basisHead(basisHead)
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_updater.m_simplexModel.getRowCount() ];
     clearPhase1ReducedCosts();
@@ -16,7 +20,9 @@ DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
 
 DualDantzigPricing::DualDantzigPricing(const DualDantzigPricing& orig):
     DualPricing(orig),
-    m_updater(orig.m_updater)
+    m_updater(orig.m_updater),
+    m_reducedCosts(orig.m_reducedCosts),
+    m_basisHead(orig.m_basisHead)
 {
     copy(orig);
 }
@@ -52,8 +58,9 @@ void DualDantzigPricing::initPhase1() {
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
         if (index >= variableCount) {
-            Numerical::stableAddTo( m_phase1ReducedCosts[ variableCount - index ], 1 );
+            Numerical::stableAddTo( m_phase1ReducedCosts[ index - variableCount ], 1 );
         } else {
+            //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; columnIter++) {
@@ -69,6 +76,7 @@ void DualDantzigPricing::initPhase1() {
         if (index >= variableCount) {
             Numerical::stableSubFrom( m_phase1ReducedCosts[ variableCount - index ], 1 );
         } else {
+            //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; columnIter++) {
@@ -81,6 +89,7 @@ void DualDantzigPricing::initPhase1() {
         nonzeros += m_phase1ReducedCosts[index] != 0.0;
     }
 
+    //TODO: A temp mire kell kulon?
     Vector temp;
     temp.prepareForData( nonzeros, matrix.rowCount(), 0.0);
     for (index = 0; index < matrix.rowCount(); index++) {
@@ -99,14 +108,22 @@ void DualDantzigPricing::initPhase1() {
 
 unsigned int DualDantzigPricing::performPricingPhase1() {
     initPhase1();
+    //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
     const unsigned int variableCount = m_model.getMatrix().rowCount();
-    Numerical::Double max = m_phase1ReducedCosts[0];
-    unsigned int maxIndex = 0;
+    Numerical::Double max = 0;
+    unsigned int maxIndex = -1;
     unsigned int index;
-    for (index = 1; index < variableCount; index++) {
-        if ( Numerical::fabs(m_phase1ReducedCosts[index]) > max ) {
-            max = Numerical::fabs(m_phase1ReducedCosts[index]);
-            maxIndex = index;
+    for (index = 0; index < variableCount; index++) {
+        unsigned int variableIndex = m_basisHead.at(index);
+        Variable::VARIABLE_TYPE variableType = m_model.getVariable(variableIndex).getType();
+        if ( variableType == Variable::FIXED ||
+             variableType == Variable::BOUNDED ||
+             (variableType == Variable::PLUS && m_phase1ReducedCosts[index] > 0) ||
+             (variableType == Variable::MINUS && m_phase1ReducedCosts[index] < 0)) {
+            if ( Numerical::fabs(m_phase1ReducedCosts[index]) > max ) {
+                max = Numerical::fabs(m_phase1ReducedCosts[index]);
+                maxIndex = index;
+            }
         }
     }
     m_reducedCost = m_phase1ReducedCosts[maxIndex];

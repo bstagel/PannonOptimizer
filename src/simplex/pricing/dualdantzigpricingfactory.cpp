@@ -32,7 +32,9 @@ DualPricingUpdater * DualDantzigPricingFactory::createDualPricingUpdater(const V
 }
 
 DualPricing * DualDantzigPricingFactory::createDualPricing(const SimplexModel & model,
-                                                           const DualPricingUpdater &updater) const
+                                                           const DualPricingUpdater &updater,
+                                                           const Vector& reducedCosts,
+                                                           const std::vector<int>& basisHead) const
 {
-    return new DualDantzigPricing(model, updater);
+    return new DualDantzigPricing(model, updater, reducedCosts, basisHead);
 }
