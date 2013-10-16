@@ -6,7 +6,7 @@
 #include <simplex/simplex.h>
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariableValues,
-                                                     const IndexList<> & variableFeasibilities,
+                                                     IndexList<> * variableFeasibilities,
                                                      const IndexList<> & reducedCostFeasibilities,
                                                      const std::vector<int> & basisHead,
                                                      const SimplexModel & simplexModel,

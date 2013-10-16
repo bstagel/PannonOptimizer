@@ -33,7 +33,7 @@ void DualSimplex::initModules() {
 
     DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater(
                 m_basicVariableValues,
-                m_variableFeasibilities,
+                &m_variableFeasibilities,
                 m_reducedCostFeasibilities,
                 m_basisHead,
                 *m_simplexModel,
@@ -106,9 +106,15 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
     if(!m_feasible){
         LPINFO("PHASE1 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase1();
+        if(m_outgoingIndex == -1){
+            throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
+        }
     } else {
         LPINFO("PHASE2 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase2();
+        if(m_outgoingIndex == -1){
+            throw OptimalException("OPTIMAL SOLUTION found!");
+        }
     }
 }
 
@@ -126,7 +132,8 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
 //    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
 //    LPINFO("transformedRow: "<<alpha);
-//    LPINFO("PHASE I OBJ VAL: "<<m_phaseIObjectiveValue);
+    LPINFO("PHASE I OBJ VAL: "<<m_phaseIObjectiveValue);
+    LPINFO("OBJ VAL: "<<m_objectiveValue);
 
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
@@ -142,22 +149,23 @@ void DualSimplex::update()throw (NumericalException) {
     LPINFO("outgoingIndex: "<<m_outgoingIndex);
     LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
     LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
-
+//LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
     transform(m_incomingIndex, m_outgoingIndex, m_ratiotest->getBoundflips(), m_ratiotest->getPrimalSteplength());
-    //Transform
+//    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
+//    Transform
     //Update objective value
 
     //RECOMPUTE NOW
-    LPINFO("transformed");
-    LPINFO("reinvert");
-    reinvert();
-    LPINFO("computeBasicSolution");
+//    LPINFO("transformed");
+//    LPINFO("reinvert");
+//    reinvert();
+//    LPINFO("computeBasicSolution");
     computeBasicSolution();
 
-    LPINFO("computeReducedCosts");
+//    LPINFO("computeReducedCosts");
     computeReducedCosts();
 
-    LPINFO("computeFeasibility");
+//    LPINFO("computeFeasibility");
     computeFeasibility();
 
     //Do dual specific using the updater

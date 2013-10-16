@@ -16,7 +16,7 @@
 class DualPricingUpdater {
 public:
     DualPricingUpdater(const Vector &basicVariableValues,
-                       const IndexList<> & variableFeasibilities,
+                       IndexList<> * variableFeasibilities,
                        const IndexList<> & reducedCostFeasibilities,
                        const std::vector<int> & basisHead,
                        const SimplexModel & simplexModel,
@@ -30,7 +30,7 @@ protected:
 
     const Vector & m_basicVariableValues;
 
-    const IndexList<> & m_variableFeasibilities;
+    IndexList<> * m_variableFeasibilities;
 
     const IndexList<> & m_reducedCostFeasibilities;
 

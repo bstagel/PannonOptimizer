@@ -115,7 +115,6 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
     //t>=0 case
 
         if (tPositive) {
-            LPWARNING("t>=0");
         //computing ratios in M
             m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
 
@@ -577,8 +576,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 //determining primal,dual steplength incoming variable
 
     //using traditional one step method
+    //TODO: switch-case megfelelobb lenne ide
     if ( nonlinearDualPhaseIIFunction == 0.0) {
-
         if (!transform) {
             unsigned int length = breakpoints.size();
             getNextElement(&breakpoints,length);
@@ -588,6 +587,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 breakpoints[length-1].functionValue = m_objectiveFunctionPhase2;
                 m_boundflips.push_back(breakpoints[length-1].index);
             }
+            //TODO: A PRIMAL STEPLENGTH NEM JO VMIERT
             if (tPositive) {
                 m_primalSteplength =- functionSlope / alpha[breakpoints[length-1].index];
             } else{
@@ -600,28 +600,45 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     //using piecewise linear function
     } else {
         if (!transform) {
+//            LPWARNING("breakpoints: "<<breakpoints);
             unsigned int iterationCounter = 0, length = breakpoints.size(),id = 0;
             getNextElement(&breakpoints,length);
             while (!transform && functionSlope > 0 && iterationCounter < length-1) {
                 iterationCounter++;
                 getNextElement(&breakpoints,length-iterationCounter);
+//                LPWARNING("breakpoints: "<<breakpoints);
                 id = length-1-iterationCounter;
                 m_objectiveFunctionPhase2 += functionSlope * (breakpoints[id].value-breakpoints[id+1].value);
                 breakpoints[id].functionValue = m_objectiveFunctionPhase2;
                 previousSlope = functionSlope;
+
+                const Variable & variable = m_model.getVariable(breakpoints[id].index);
                 functionSlope -= Numerical::fabs(alpha[breakpoints[id].index]) *
-                        Numerical::fabs(m_model.getVariable(breakpoints[id].index).getUpperBound()-
-                    m_model.getVariable(breakpoints[id].index).getLowerBound());
-                m_boundflips.push_back(breakpoints[length-1-iterationCounter].index);
-                if (Numerical::fabs(functionSlope) == Numerical::Infinity) {
+                        Numerical::fabs(variable.getUpperBound() - variable.getLowerBound());
+
+                //TODO: Ennek a whileban a helye
+                if (tPositive) {
+                    m_primalSteplength =- previousSlope / alpha[breakpoints[id].index];
+                } else{
+                    m_primalSteplength = previousSlope / alpha[breakpoints[id].index];
+                }
+
+                //TODO: Ez hianyzott:
+                if(variable.getType() == Variable::BOUNDED){
+                    if((variable.getUpperBound() - variable.getLowerBound()) < m_primalSteplength) {
+                        m_boundflips.push_back(breakpoints[id].index);
+                    } else{
+                        transform = true;
+                    }
+                }
+
+                //TODO: Ez mi akart lenni?
+//                if (Numerical::fabs(functionSlope) == Numerical::Infinity) {
+                if (functionSlope < 0) {
                     transform = true;
                 }
-            };
-            if (tPositive) {
-                m_primalSteplength =- previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
-            } else{
-                m_primalSteplength = previousSlope / alpha[breakpoints[length-1-iterationCounter].index];
             }
+
         m_incomingVariableIndex = breakpoints[length-1-iterationCounter].index;
         m_dualSteplength = tPositive ? breakpoints[length-1-iterationCounter].value : - breakpoints[length-1-iterationCounter].value;
 

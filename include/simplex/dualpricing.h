@@ -18,8 +18,9 @@ public:
     virtual ~DualPricing();
 
     //TODO: EXCEPTIONS
-    virtual unsigned int performPricingPhase1() = 0;
-    virtual unsigned int performPricingPhase2() = 0;
+    //TODO: Joco a visszateres sima int lett az exceptionok helyett
+    virtual int performPricingPhase1() = 0;
+    virtual int performPricingPhase2() = 0;
 
     inline Numerical::Double getReducedCost() const {
         return m_reducedCost;
