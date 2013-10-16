@@ -130,10 +130,10 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //    LPINFO("m_reducedCosts: "<<m_reducedCosts);
 //    LPINFO("m_basisHead: "<<m_basisHead);
 //    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
-//    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
+    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
 //    LPINFO("transformedRow: "<<alpha);
-    LPINFO("PHASE I OBJ VAL: "<<m_phaseIObjectiveValue);
-    LPINFO("OBJ VAL: "<<m_objectiveValue);
+    LPINFO("PHASE I OBJ VAL: "<< setw(19) << setprecision(10) << scientific << m_phaseIObjectiveValue);
+    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
 
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
@@ -147,6 +147,9 @@ void DualSimplex::update()throw (NumericalException) {
 
     LPINFO("incomingIndex: "<<m_incomingIndex);
     LPINFO("outgoingIndex: "<<m_outgoingIndex);
+    if(m_incomingIndex != -1){
+        LPINFO("primalReducedCost: " << m_reducedCosts[m_incomingIndex]);
+    }
     LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
     LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
 //LPINFO("m_basicVariableValues: "<<m_basicVariableValues);

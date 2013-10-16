@@ -102,7 +102,7 @@ void PfiBasis::invert() throw (NumericalException) {
 
     DEVINFO(D::PFIMAKER, "Basis copied");
 
-    printActiveSubmatrix();
+//    printActiveSubmatrix();
 
     //Invert the R, M, C parts separately
     clock_t invertRStart = clock();
@@ -502,10 +502,7 @@ void PfiBasis::invertR() throw (NumericalException) {
                 //Set the column count to zero to represent that which column has been chosen.
                 m_columnCounts.at(columnindex) = -1;
                 m_rowCounts.at(rowindex) = -1;
-#ifndef NDEBUG
-//                printCounts();
-//                DEVINFO(D::PFIMAKER, m_rowCountIndexList);
-#endif //!NDEBUG
+
                 rNum++;
             }
         }
@@ -561,10 +558,6 @@ void PfiBasis::findC() {
             m_rowCounts.at(rowindex) = -1;
             m_columnCounts.at(columnindex) = -1;
 
-#ifndef NDEBUG
-//            printCounts();
-//            DEVINFO(D::PFIMAKER, m_columnCountIndexList);
-#endif //!NDEBUG
             cNum++;
         }
     }
@@ -623,9 +616,7 @@ void PfiBasis::invertM() throw (NumericalException) {
                         m_columnCounts.at(columnindex)--;
                         m_rows.at(it - m_rowCounts.begin()).set(columnindex, 0);
                     }
-#ifndef NDEBUG
-//                    printCounts();
-#endif //!NDEBUG
+
                     mNum++;
                 }
             }
@@ -865,7 +856,7 @@ void PfiBasis::buildMM() {
     }
     DEVINFO(D::PFIMAKER, "Nonzero pattern in MM built");
 #ifndef NDEBUG
-    printMM();
+//    printMM();
 #endif //!NDEBUG
 }
 
@@ -914,7 +905,7 @@ void PfiBasis::findTransversal() {
     }
 #ifndef NDEBUG
     DEVINFO(D::PFIMAKER, "Nonzero pattern with transversal ");
-    printMM();
+//    printMM();
 #endif //!NDEBUG
 }
 
@@ -1033,7 +1024,7 @@ void PfiBasis::createGraph() {
         }
     }
 #ifndef NDEBUG
-    printGraph();
+//    printGraph();
 #endif //!NDEBUG
 }
 
@@ -1054,7 +1045,7 @@ void PfiBasis::tarjan() {
 
 int PfiBasis::searchNode() {
 #ifndef NDEBUG
-    printStack();
+//    printStack();
 #endif //!NDEBUG
     //TODO: std::stack?
     PathNode currentNode = m_stack->back();
@@ -1100,7 +1091,7 @@ int PfiBasis::searchNode() {
                         currentNode.lowest = it->lowest;
                         m_stack->at(stackPosition).lowest = it->lowest;
 #ifndef NDEBUG
-                        printStack();
+//                        printStack();
 #endif //!NDEBUG
                         break;
                     }
@@ -1146,7 +1137,7 @@ int PfiBasis::searchNode() {
             DEVINFO(D::PFIMAKER, "Block " << m_mmBlocks->size() - 1 << " now contains node " << lastIndex);
             m_stack->pop_back();
 #ifndef NDEBUG
-            printStack();
+//            printStack();
 #endif //!NDEBUG
         } while (lastIndex != currentNode.index);
     } else {
@@ -1169,8 +1160,8 @@ void PfiBasis::createBlockTriangular() {
     tarjan();
 
 #ifndef NDEBUG
-    printMM();
-    printBlocks();
+//    printMM();
+//    printBlocks();
 #endif //!NDEBUG
 }
 
