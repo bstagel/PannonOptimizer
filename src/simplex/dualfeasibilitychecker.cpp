@@ -46,8 +46,8 @@ void DualFeasibilityChecker::computeFeasibility(){
 //this function determines M/F/P sets, dual objective function value
 
     //TODO: JOCO _ CLEAR ALL PARTITION
-    m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);
+    m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
     m_reducedCostFeasibilities->clearPartition(Simplex::PLUS);
     *m_phaseIObjectiveValue = 0;
 

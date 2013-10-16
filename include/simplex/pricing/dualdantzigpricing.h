@@ -23,8 +23,8 @@ public:
 
     // TODO: mi van, ha nem talal semmit elso fazisban?
     // nincs feasible megoldas, vagy unbounded?
-    unsigned int performPricingPhase1();
-    unsigned int performPricingPhase2() throw (OptimalException);
+    int performPricingPhase1();
+    int performPricingPhase2();
 private:
 
     const DualDantzigPricingUpdater & m_updater;
@@ -40,6 +40,7 @@ private:
     void release();
 
     void initPhase1();
+    void initPhase2();
 };
 
 #endif	/* DUALDANTZIGPRICING_H */

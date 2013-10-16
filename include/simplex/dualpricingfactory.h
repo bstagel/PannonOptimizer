@@ -18,11 +18,12 @@ public:
     virtual ~DualPricingFactory(){}
 
     virtual DualPricingUpdater * createDualPricingUpdater(const Vector &basicVariableValues,
-                                                          const IndexList<> & variableFeasibilities,
+                                                          IndexList<> * variableFeasibilities,
                                                           const IndexList<> & reducedCostFeasibilities,
                                                           const std::vector<int> & basisHead,
                                                           const SimplexModel & simplexModel,
                                                           const Basis & basis) const = 0;
+
     virtual DualPricing * createDualPricing(const SimplexModel & model,
                                             const DualPricingUpdater & updater,
                                             const Vector& reducedCosts,

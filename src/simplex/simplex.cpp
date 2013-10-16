@@ -100,21 +100,21 @@ void Simplex::solve() {
                 reinversionCounter = 0;
                 LPINFO("reinvert");
                 reinvert();
-                LPINFO("computeBasicSolution");
+//                LPINFO("computeBasicSolution");
                 computeBasicSolution();
-                LPINFO("computeReducedCosts");
+//                LPINFO("computeReducedCosts");
                 computeReducedCosts();
-                LPINFO("computeFeasibility");
+//                LPINFO("computeFeasibility");
                 computeFeasibility();
             }
             try{
-                LPINFO("checkFeasibility");
+//                LPINFO("checkFeasibility");
                 checkFeasibility();
-                LPINFO("price");
+//                LPINFO("price");
                 price();
-                LPINFO("selectPivot");
+//                LPINFO("selectPivot");
                 selectPivot();
-                LPINFO("update");
+//                LPINFO("update");
                 reinversionCounter++;
                 if(reinversionCounter < reinversionFrequency){
                     update();
@@ -163,6 +163,7 @@ void Simplex::solve() {
             }
             catch ( const NumericalException & exception ) {
                    //Check the result with triggering reinversion
+                LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! ");
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -349,6 +350,7 @@ void Simplex::transform(int incomingIndex,
     std::vector<unsigned int>::const_iterator itend = boundflips.end();
     //TODO Atgondolni hogy mit mikor kell ujraszamolni
     for(; it < itend; it++){
+        LPWARNING("BOUNDFLIPPING");
         const Variable& variable = m_simplexModel->getVariable(*it);
         Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
         Vector alpha = m_simplexModel->getMatrix().column(*it);

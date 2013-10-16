@@ -19,6 +19,7 @@ int main(int argc, char** argv)
     MpsModelBuilder builder;
     builder.loadFromFile(argv[1]);
     model.build(builder);
+    LPINFO("variable "<<model.getVariable(15));
 
     simplex->setModel(model);
 
