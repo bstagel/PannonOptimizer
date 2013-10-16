@@ -15,7 +15,7 @@ void SimplexModel::makeComputationalForm()
 {
 
 
-    register unsigned int i, j;
+    register unsigned int i;
 
     const Matrix & matrix = getMatrix();
     const std::vector<Constraint> & constraints = getConstraints();
@@ -31,34 +31,35 @@ void SimplexModel::makeComputationalForm()
     m_rhs.setSparsityRatio(DENSE);
     m_logicalVariables.resize(rowCount);
 
-    for (i=0, j=0; i < rowCount; i++, j++) {
+    for (i=0; i < rowCount; i++) {
 
         switch(constraints.at(i).getType())
         {
         case Constraint::LESS_OR_EQUAL: {
-            m_logicalVariables[j].setLowerBound(0.);
-            m_logicalVariables[j].setUpperBound(Numerical::Infinity);
+            m_logicalVariables[i].setLowerBound(0.);
+            m_logicalVariables[i].setUpperBound(Numerical::Infinity);
+            m_logicalVariables[i].setName(constraints.at(i).getName());
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
 
         case Constraint::GREATER_OR_EQUAL: {
-            m_logicalVariables[j].setLowerBound(-Numerical::Infinity);
-            m_logicalVariables[j].setUpperBound(0.);
+            m_logicalVariables[i].setLowerBound(-Numerical::Infinity);
+            m_logicalVariables[i].setUpperBound(0.);
             m_rhs.set(i, constraints.at(i).getLowerBound());
             break;
         }
 
         case Constraint::RANGE: {
-            m_logicalVariables[j].setLowerBound(0.);
-            m_logicalVariables[j].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
+            m_logicalVariables[i].setLowerBound(0.);
+            m_logicalVariables[i].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
 
         case Constraint::NON_BINDING: {
-            m_logicalVariables[j].setLowerBound(-Numerical::Infinity);
-            m_logicalVariables[j].setUpperBound(Numerical::Infinity);
+            m_logicalVariables[i].setLowerBound(-Numerical::Infinity);
+            m_logicalVariables[i].setUpperBound(Numerical::Infinity);
             m_rhs.set(i, 0.);
             Numerical::Double temp = constraints.at(i).getUpperBound();
             Numerical::Double temp2 = constraints.at(i).getLowerBound();
@@ -73,8 +74,8 @@ void SimplexModel::makeComputationalForm()
         }
 
         case Constraint::EQUALITY: {
-            m_logicalVariables[j].setLowerBound(0.);
-            m_logicalVariables[j].setUpperBound(0.);
+            m_logicalVariables[i].setLowerBound(0.);
+            m_logicalVariables[i].setUpperBound(0.);
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
