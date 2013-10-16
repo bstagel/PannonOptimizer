@@ -724,7 +724,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     }
 }
 
-DualRatiotest::~DualRatiotest(){
+DualRatiotest::~DualRatiotest() {
+
 }
 
 

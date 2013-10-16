@@ -333,6 +333,7 @@ void Simplex::computeReducedCosts() throw (NumericalException) {
         } else {
             reducedCost = -1 * simplexMultiplier.at(i - columnCount);
         }
+        //TODO: A redukalt koltsegek numerikus szemetek lesznek. (pl. adlittle.mps 30. iteracio korul
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
