@@ -32,13 +32,12 @@ void SimplexModel::makeComputationalForm()
     m_logicalVariables.resize(rowCount);
 
     for (i=0; i < rowCount; i++) {
-
+        m_logicalVariables[i].setName(constraints.at(i).getName());
         switch(constraints.at(i).getType())
         {
         case Constraint::LESS_OR_EQUAL: {
             m_logicalVariables[i].setLowerBound(0.);
             m_logicalVariables[i].setUpperBound(Numerical::Infinity);
-            m_logicalVariables[i].setName(constraints.at(i).getName());
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
