@@ -12,12 +12,16 @@
 #include <simplex/simplexmodel.h>
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
+#include <simplex/simplexstates.h>
+//#include <simplex/basisheadio.h>
 
 class StartingBasisFinder;
 class Basis;
+class BasisHeadIO;
 
 class Simplex : public Method
 {
+    friend class BasisHeadIO;
 public:
 
     enum FEASIBILITY
@@ -37,6 +41,7 @@ public:
         VARIABLE_STATE_ENUM_LENGTH
     };
 
+
     Simplex();
     virtual ~Simplex();
 
@@ -53,6 +58,8 @@ public:
 
     void solve();
     void findStartingBasis();
+
+    void saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
 
 protected:
     SimplexModel * m_simplexModel;

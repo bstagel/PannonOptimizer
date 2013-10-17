@@ -10,6 +10,7 @@
 #include <simplex/startingbasisfinder.h>
 #include <simplex/pfibasis.h>
 #include <globals.h>
+#include <simplex/basisheadbas.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -71,6 +72,41 @@ void Simplex::variableAdded()
 
 }
 
+void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
+
+    basisWriter->startWrting(fileName);
+    int variableIndex;
+    unsigned int position = 0;
+    STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
+        variableIndex = *basisHeadIter;
+        Variable variable = m_simplexModel->getVariable(variableIndex);
+        basisWriter->addBasicVariable( variable, position, this->m_basicVariableValues[position] );
+        position++;
+    }
+
+    IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
+    for (; iter != iterEnd; iter++) {
+        variableIndex = iter.getData();
+        Variable variable = m_simplexModel->getVariable(variableIndex);
+        // TODO: itt az erteket nem kell majd atadni
+        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_LB, variable.getLowerBound());
+    }
+
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+    for (; iter != iterEnd; iter++) {
+        variableIndex = iter.getData();
+        Variable variable = m_simplexModel->getVariable(variableIndex);
+        // TODO: itt az erteket nem kell majd atadni
+        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_UB, variable.getUpperBound());
+    }
+
+    basisWriter->finishWriting();
+    if (releaseWriter == true) {
+        delete basisWriter;
+    }
+}
+
 void Simplex::solve() {
     initModules();
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -96,6 +132,10 @@ void Simplex::solve() {
 
         for (iterationIndex = 0;iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; iterationIndex++) {
             LPINFO("\n    Iteration: "<<iterationIndex);
+
+            // ITTEN MENTJUK KI A BAZIST:
+            saveBasis("basis.bas", new BasisHeadBAS, true);
+
             if(reinversionCounter == reinversionFrequency){
                 reinversionCounter = 0;
                 LPINFO("reinvert");
