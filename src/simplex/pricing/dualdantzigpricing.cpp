@@ -135,11 +135,12 @@ int DualDantzigPricing::performPricingPhase1() {
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
     const unsigned int variableCount = m_model.getMatrix().rowCount();
     Numerical::Double max = 0;
-    unsigned int maxIndex = -1;
+    int maxIndex = -1;
     unsigned int index;
     for (index = 0; index < variableCount; index++) {
         unsigned int variableIndex = m_basisHead.at(index);
         Variable::VARIABLE_TYPE variableType = m_model.getVariable(variableIndex).getType();
+        //TODO: Min // Max feladat!
         if ( variableType == Variable::FIXED ||
              variableType == Variable::BOUNDED ||
              (variableType == Variable::PLUS && m_phase1ReducedCosts[index] > 0) ||
@@ -167,7 +168,7 @@ int DualDantzigPricing::performPricingPhase2() {
         rowIndex = (int)iter.getData();
         int variableIndex = m_updater.m_basisHead[rowIndex];
         Numerical::Double difference =  m_updater.m_simplexModel.getVariable(variableIndex).getLowerBound() -
-                m_updater.m_basicVariableValues[rowIndex];
+                m_updater.m_basicVariableValues.at(rowIndex);
         if (difference > max) {
             max = difference;
             phase2Index = rowIndex;
@@ -178,7 +179,7 @@ int DualDantzigPricing::performPricingPhase2() {
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         int variableIndex = m_updater.m_basisHead[rowIndex];
-        Numerical::Double difference = m_updater.m_basicVariableValues[rowIndex] -
+        Numerical::Double difference = m_updater.m_basicVariableValues.at(rowIndex) -
                 m_updater.m_simplexModel.getVariable(variableIndex).getUpperBound();
         if (difference > max) {
             max = difference;

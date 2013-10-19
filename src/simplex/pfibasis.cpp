@@ -201,11 +201,11 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
         }
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-            register Numerical::Double * ptrValue2 = iter->eta->m_data;
-            register Numerical::Double * ptrValue1 = denseVector;
-            register const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+            Numerical::Double * ptrValue2 = iter->eta->m_data;
+            Numerical::Double * ptrValue1 = denseVector;
+            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
             while (ptrValue1 < ptrValueEnd) {
-                register const Numerical::Double value = *ptrValue2;
+                const Numerical::Double value = *ptrValue2;
                 if (value != 0.0) {
                     const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
                     if (*ptrValue1 == 0.0 && val != 0.0) {
@@ -228,10 +228,10 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             denseVector[iter->index] = val;
 
         } else {
-            register Numerical::Double * ptrEta = iter->eta->m_data;
-            register unsigned int * ptrIndex = iter->eta->m_index;
-            register const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-            register const unsigned int pivotPosition = iter->index;
+            Numerical::Double * ptrEta = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_index;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            const unsigned int pivotPosition = iter->index;
             while (ptrIndex < ptrIndexEnd) {
                 Numerical::Double & originalValue = denseVector[*ptrIndex];
                 if (*ptrEta != 0.0) {
@@ -270,9 +270,9 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
         }
     } else {
         vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
-        register Numerical::Double * ptrValue = denseVector;
-        register const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-        register unsigned int index = 0;
+        Numerical::Double * ptrValue = denseVector;
+        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+        unsigned int index = 0;
         while (ptrValue < ptrValueEnd) {
             if (*ptrValue != 0.0) {
                 vector.newNonZero(*ptrValue, index);
@@ -322,12 +322,12 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         unsigned int nonZeros = vector.nonZeros();
         Numerical::Summarizer summarizer;
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-            register Numerical::Double * ptrValue2 = iter->eta->m_data;
-            register Numerical::Double * ptrValue1 = denseVector;
-            register const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+            Numerical::Double * ptrValue2 = iter->eta->m_data;
+            Numerical::Double * ptrValue1 = denseVector;
+            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
             while (ptrValue1 < ptrValueEnd && nonZeros) {
                 //TODO vajon melyik ritkásbb?
-                register const Numerical::Double value = *ptrValue1;
+                const Numerical::Double value = *ptrValue1;
                 if (value != 0.0) {
                     nonZeros--;
                     summarizer.add(value * *ptrValue2);
@@ -336,11 +336,11 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                 ptrValue2++;
             }
         } else {
-            register Numerical::Double * ptrValue = iter->eta->m_data;
-            register unsigned int * ptrIndex = iter->eta->m_index;
-            register const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            Numerical::Double * ptrValue = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_index;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
             while (ptrIndex < ptrIndexEnd && nonZeros) {
-                register const Numerical::Double value = denseVector[*ptrIndex];
+                const Numerical::Double value = denseVector[*ptrIndex];
                 if (value != 0.0) {
                     nonZeros--;
                     summarizer.add(value * *ptrValue);
@@ -379,9 +379,9 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         }
     } else {
         vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
-        register Numerical::Double * ptrValue = denseVector;
-        register const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-        register unsigned int index = 0;
+        Numerical::Double * ptrValue = denseVector;
+        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+        unsigned int index = 0;
         while (ptrValue < ptrValueEnd) {
             if (*ptrValue != 0.0) {
                 vector.newNonZero(*ptrValue, index);

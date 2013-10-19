@@ -166,7 +166,7 @@ public:
  * @param k2
  * @return
  */
-inline bool key_comp(register const char * k1, register const char * k2)
+inline bool key_comp(const char * k1, const char * k2)
 {
     return *((unsigned long long int*) k1) < *((unsigned long long int*) k2);
 }
@@ -324,9 +324,9 @@ private:
  * @param max
  * @return
  */
-inline unsigned int mps_hash(register const char * key, int max)
+inline unsigned int mps_hash(const char * key, int max)
 {
-    register unsigned int num = 0;
+    unsigned int num = 0;
     while (*key) {
         num += *key;
         num += (num << 10);
@@ -1245,21 +1245,21 @@ private:
      * @param msg2
      * @param line
      */
-    const char * parseDouble(const register char * ptr, Numerical::Double * val);
-    //Numerical::Double parseDouble(const register char * str, const register char * & ptr) const;
+    const char * parseDouble(const char * ptr, Numerical::Double * val);
+    //Numerical::Double parseDouble(const char * str, const char * & ptr) const;
     /**
      *
      * @param ptr
      * @param length
      * @return
      */
-    const char * checkEmptyField(const register char * ptr, register int length);
+    const char * checkEmptyField(const char * ptr, int length);
     /**
      *
      * @param ptr
      * @return
      */
-    const char * skipWhiteSpace(const register char * ptr);
+    const char * skipWhiteSpace(const char * ptr);
 
     /**
      *
@@ -1269,8 +1269,8 @@ private:
      * @param errorCode
      * @return
      */
-    const char * copyWord(const register char * ptr, register char * dest,
-                          register int length, MPS_ERROR_TYPE & errorCode);
+    const char * copyWord(const char * ptr, char * dest,
+                          int length, MPS_ERROR_TYPE & errorCode);
 
     /**
      *
@@ -1297,27 +1297,27 @@ private:
      * @param errorCode
      * @return
      */
-    const char * copyName(const register char * ptr, register char * dest,
-                          register int length, MPS_ERROR_TYPE & errorCode);
+    const char * copyName(const char * ptr, char * dest,
+                          int length, MPS_ERROR_TYPE & errorCode);
     /**
      *
      * @param ptr
      * @return
      */
-    const char * goToEndLineOrWord(const register char * ptr);
+    const char * goToEndLineOrWord(const char * ptr);
     /**
      *
      * @param ptr
      * @return
      */
-    const char * goToEndLine(const register char * ptr);
+    const char * goToEndLine(const char * ptr);
     /**
      *
      * @param ptr
      * @param info
      * @return
      */
-    const char * readRowRecord(const register char * ptr, ROW_INFO & info);
+    const char * readRowRecord(const char * ptr, ROW_INFO & info);
     /**
      *
      * @param ptr
@@ -1325,7 +1325,7 @@ private:
      * @param info
      * @return
      */
-    const char * readColumnRecord(const register char * ptr, HashTable<Column, int,
+    const char * readColumnRecord(const char * ptr, HashTable<Column, int,
                                   hash_function<Column> > & columns, ROW_INFO & info,
                                   std::vector<Column*> * indexTable);
 
@@ -1336,7 +1336,7 @@ private:
      * @param info
      * @return
      */
-    const char * readBoundRecord(const register char * ptr, ROW_INFO & info);
+    const char * readBoundRecord(const char * ptr, ROW_INFO & info);
     /**
      *
      * @param ptr
@@ -1344,14 +1344,14 @@ private:
      * @param nextWord
      * @return
      */
-    const char * nextRowType(const register char * ptr, ROW_INFO & info, bool nextRow = true);
+    const char * nextRowType(const char * ptr, ROW_INFO & info, bool nextRow = true);
     /**
      *
      * @param ptr
      * @param info
      * @return
      */
-    const char * readName(const register char * ptr, ROW_INFO & info);
+    const char * readName(const char * ptr, ROW_INFO & info);
 
     /**
      *

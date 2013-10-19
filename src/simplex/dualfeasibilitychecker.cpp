@@ -53,13 +53,6 @@ void DualFeasibilityChecker::computeFeasibility(){
 
     Variable::VARIABLE_TYPE typeOfIthVariable;
     OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
-//    LPINFO("COMPUTE FEAS m_reducedCosts "<<m_reducedCosts);
-//    for(int i=0; i< m_reducedCosts.length();i++){
-//        LPINFO("COMPUTE FEAS m_reducedCost "<<i << " - " <<m_reducedCosts[i]);
-
-//    }
-
-
 
     for(unsigned int variableIndex = 0; variableIndex<m_reducedCosts.length(); variableIndex++){
         //TODO: Mi a helyzet a bazisvaltozokkal?...
@@ -71,35 +64,35 @@ void DualFeasibilityChecker::computeFeasibility(){
             if(objectiveType == MINIMIZE) {
 
 //                for(int i=0; i< m_reducedCosts.length();i++){
-//                    LPINFO("COMPUTE MINIMIZE m_reducedCost "<<variableIndex << " - " <<m_reducedCosts[variableIndex]);
+//                    LPINFO("COMPUTE MINIMIZE m_reducedCost "<<variableIndex << " - " <<m_reducedCosts.at(variableIndex));
 //                }
     //nonbasic variables with M type infeasibility
 
-                if (Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                if (Numerical::lessthan(m_reducedCosts.at(variableIndex), 0,optimalityTolerance) &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
 //                    LPINFO("nonbasic variables with M type infeasibility");
 //                    LPINFO("typeOfIthVariable "<<typeOfIthVariable);
 //                    LPINFO("variableIndex "<<variableIndex);
-//                    LPERROR("m_reducedCosts[variableIndex] "<<m_reducedCosts[variableIndex]);
-                        (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(variableIndex));
+                        (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with P type infeasibility
 
-                if (Numerical::lessthan(0,m_reducedCosts[variableIndex],optimalityTolerance) &&
+                if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), optimalityTolerance) &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
-                        (*m_phaseIObjectiveValue) -= m_reducedCosts[variableIndex];
+                        (*m_phaseIObjectiveValue) -= m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with F type infeasibility
 
-                if (( !Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::PLUS) ||
-                        (Numerical::lessOrEqual(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::MINUS) ||
-                        (Numerical::equal(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::FREE)) {
 //                                        LPINFO("nonbasic variables with F type infeasibility");
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
@@ -111,27 +104,27 @@ void DualFeasibilityChecker::computeFeasibility(){
 
     //nonbasic variables with M type infeasibility
 
-                if (Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                if (Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
-                        (*m_phaseIObjectiveValue) += m_reducedCosts[variableIndex];
+                        (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with P type infeasibility
 
-                if (Numerical::lessthan(0,m_reducedCosts[variableIndex],optimalityTolerance) &&
+                if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), optimalityTolerance) &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
-                        (*m_phaseIObjectiveValue) -= m_reducedCosts[variableIndex];
+                        (*m_phaseIObjectiveValue) -= m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with F type infeasibility
 
-                if (( !Numerical::lessthan(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::MINUS) ||
-                        (Numerical::lessOrEqual(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::PLUS) ||
-                        (Numerical::equal(m_reducedCosts[variableIndex],0,optimalityTolerance) &&
+                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }

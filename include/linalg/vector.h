@@ -253,28 +253,6 @@ public:
      * @param lambda
      */
     void scaleElementBy(unsigned int index, Numerical::Double lambda);
-    /**
-     * Returns with the value of index'th element of vector.
-     *
-     * <table>
-     * <tr align="center">
-     *   <th>vector type</th>
-     *   <th>complexity</th>
-     * </tr>
-     * <tr align="center">
-     *   <td> dense </td>
-     *   <td> O(1) </td>
-     * </tr>
-     * <tr align="center">
-     *   <td> sparse </td>
-     *   <td> O(n) </td>
-     * </tr>
-     * </table>
-     *
-     * @param index The index of the element of we need
-     * @return The index'th element of vector
-     */
-    Numerical::Double operator[](unsigned int index) const;
 
     /**
      * Returns a row vector yield by multiplying vector with a matrix.
@@ -298,7 +276,7 @@ public:
 
     /**
      * Returns the difference vector yield by subtracting another vector from a
-     * vector. TODO what if dimensions are not correct
+     * vector.
      * @param vector The vector subtracted from this vector
      * @return a vector containing the result of subtraction
      */
@@ -306,7 +284,7 @@ public:
 
     /**
      * Returns the sum vector yield by adding another vector to a
-     * vector. TODO what if dimensions are not correct
+     * vector.
      * @param vector The vector added to this vector
      * @return a vector containing the result of adding
      */
@@ -610,7 +588,7 @@ public:
             m_nonZeros = nonZeros;
             m_size = dimension;
             m_sorted = true;
-            register Numerical::Double * ptr = m_data;
+            Numerical::Double * ptr = m_data;
             while (ptr < m_dataEnd) {
                 *ptr = 0;
                 ptr++;

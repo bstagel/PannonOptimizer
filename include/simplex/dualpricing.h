@@ -17,8 +17,6 @@ public:
 
     virtual ~DualPricing();
 
-    //TODO: EXCEPTIONS
-    //TODO: Joco a visszateres sima int lett az exceptionok helyett
     virtual int performPricingPhase1() = 0;
     virtual int performPricingPhase2() = 0;
 

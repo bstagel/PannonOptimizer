@@ -15,7 +15,7 @@ void SimplexModel::makeComputationalForm()
 {
 
 
-    register unsigned int i;
+    unsigned int i;
 
     const Matrix & matrix = getMatrix();
     const std::vector<Constraint> & constraints = getConstraints();
@@ -103,7 +103,7 @@ void SimplexModel::print(std::ostream& out) const
         for(unsigned int j=0; it<end; j++, it++){
             out << (j==0?" ":"+ ") << *it << "*x" << j << " ";
         }
-        out << " + y" << i << " = " << m_rhs[i] <<"\n";
+        out << " + y" << i << " = " << m_rhs.at(i) <<"\n";
     }
     out << "\n";
     for(unsigned int i = 0; i<getStructuralVariables().size();i++){

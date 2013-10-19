@@ -24,8 +24,8 @@ SbfLogical::~SbfLogical()
 
 void SbfLogical::run()
 {
-    register unsigned int i;
-    register unsigned int j;
+    unsigned int i;
+    unsigned int j;
 
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
