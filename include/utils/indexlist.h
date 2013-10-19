@@ -645,42 +645,10 @@ public:
         for (; index <= lastPartitionIndex; index++) {
             borders.insert(m_heads + index);
         }
-        //TODO: Ez bugos
-//        *begin = _Iterator<ATTACHED_TYPE>(beginHead->m_next, borders);
+
         *begin = _Iterator<ATTACHED_TYPE>(beginHead, borders);
         begin->next();
     }
-
-
-    /**
-     * Returns an iterator. When the indexth linked list contains indices,
-     * the iterator refers to the first element of the list, otherwise it
-     * refers to the list head.
-     * <hr>
-     * Complexity: O(1)
-     *
-     * @param index The index of a linked list.
-     * @return Iterator to the first element or header.
-     */
-    /*Iterator begin(unsigned int index) const
-    {
-        Element * head = m_heads + index;
-        return Iterator(); //(head->m_next, 0, 0);
-    }*/
-
-    /**
-     * Returns an iterator refers to the head of the indexth linked list.
-     * <hr>
-     * Complexity: O(1)
-     *
-     * @param index The index of a linked list.
-     * @return Iterator to the header.
-     */
-    /*Iterator end(unsigned int index) const
-    {
-        Element * head = m_heads + index;
-        return Iterator(); //(head, 0, 0);
-    }*/
 
     inline void clearPartition(unsigned int index)
     {

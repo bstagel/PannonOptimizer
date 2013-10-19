@@ -80,7 +80,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
         Variable variable = m_simplexModel->getVariable(variableIndex);
-        basisWriter->addBasicVariable( variable, position, this->m_basicVariableValues[position] );
+        basisWriter->addBasicVariable( variable, position, m_basicVariableValues.at(position) );
         position++;
     }
 

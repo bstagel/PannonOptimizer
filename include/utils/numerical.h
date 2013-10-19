@@ -116,10 +116,10 @@ class Numerical
     static inline bool equals(const Double & a, const Double & b)
     {
         //        return fabs(a - b) < AbsoluteTolerance;
-        register const Double aabs = Numerical::fabs(a);
-        register const Double babs = Numerical::fabs(b);
+        const Double aabs = Numerical::fabs(a);
+        const Double babs = Numerical::fabs(b);
         //Checking infinity
-        register const Numerical::Double bound = (aabs > babs ? aabs : babs) * RelativeTolerance;
+        const Numerical::Double bound = (aabs > babs ? aabs : babs) * RelativeTolerance;
         if (bound == Infinity) {
             return false;
         }
@@ -204,11 +204,11 @@ class Numerical
      * @param value2
      * @return
      */
-    static inline Double stableAdd(register const Double & value1, register const Double & value2)
+    static inline Double stableAdd(const Double & value1, const Double & value2)
     {
-        register const Double value1abs = Numerical::fabs(value1);
-        register const Double value2abs = Numerical::fabs(value2);
-        register const Double result = value1 + value2;
+        const Double value1abs = Numerical::fabs(value1);
+        const Double value2abs = Numerical::fabs(value2);
+        const Double result = value1 + value2;
         if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance > Numerical::fabs(result)) {
             return 0.0;
         }
@@ -222,10 +222,10 @@ class Numerical
      * @param value1
      * @param value2
      */
-    static inline void stableAddTo(register Double & value1, register const Double & value2)
+    static inline void stableAddTo(Double & value1, const Double & value2)
     {
-        register const Double value1abs = Numerical::fabs(value1);
-        register const Double value2abs = Numerical::fabs(value2);
+        const Double value1abs = Numerical::fabs(value1);
+        const Double value2abs = Numerical::fabs(value2);
         value1 += value2;
         if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance > Numerical::fabs(value1)) {
             value1 = 0.0;
@@ -240,11 +240,11 @@ class Numerical
      * @param value2
      * @return
      */
-    static inline Double stableSub(register const Double & value1, register const Double & value2)
+    static inline Double stableSub(const Double & value1, const Double & value2)
     {
-        register const Double value1abs = Numerical::fabs(value1);
-        register const Double value2abs = Numerical::fabs(value2);
-        register const Double result = value1 - value2;
+        const Double value1abs = Numerical::fabs(value1);
+        const Double value2abs = Numerical::fabs(value2);
+        const Double result = value1 - value2;
         if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance > Numerical::fabs(result)) {
             return 0.0;
         }
@@ -259,10 +259,10 @@ class Numerical
      * @param value2
      * @return
      */
-    static inline void stableSubFrom(register Double & value1, register const Double & value2)
+    static inline void stableSubFrom(Double & value1, const Double & value2)
     {
-        register const Double value1abs = Numerical::fabs(value1);
-        register const Double value2abs = Numerical::fabs(value2);
+        const Double value1abs = Numerical::fabs(value1);
+        const Double value2abs = Numerical::fabs(value2);
         value1 -= value2;
         if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance > Numerical::fabs(value1)) {
             value1 = 0.0;

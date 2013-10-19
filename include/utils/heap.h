@@ -98,10 +98,10 @@ public:
         unsigned int from = m_size >> 1;
         const Element * middleElement = m_data + from + 1;
         int i;
-        register Element * leftElement;
-        register Element * rightElement;
-        register Element * actualElement;
-        register Element * maxElement;
+        Element * leftElement;
+        Element * rightElement;
+        Element * actualElement;
+        Element * maxElement;
         switch (m_size) {
             case 2:
                 if (m_data[1].m_key < m_data[2].m_key) {
@@ -223,9 +223,9 @@ public:
         //count++;
 
         m_size++;
-        register Element * actualElement = m_data + m_size;
-        register unsigned int index = m_size >> 1;
-        register Element * parentElement = m_data + (index);
+        Element * actualElement = m_data + m_size;
+        unsigned int index = m_size >> 1;
+        Element * parentElement = m_data + (index);
         //        if (count == 4) {
         //            cout << "size: " << m_size << endl;
         //            cout << "index: " << index << endl;
@@ -288,10 +288,10 @@ public:
         // call heapify
         //        LPINFO("index: " << index);
         index++;
-        register Element * leftElement;
-        register Element * rightElement;
-        register Element * actualElement;
-        register Element * maxElement;
+        Element * leftElement;
+        Element * rightElement;
+        Element * actualElement;
+        Element * maxElement;
         Element * endElement = m_data + m_size;
         actualElement = m_data + index;
         actualElement->m_key = minKey;
@@ -414,10 +414,10 @@ public:
         //            cout << "bal gyerek: " << m_data[index * 2 ].m_key << endl;
         //            cout << "jobb gyerek: " << m_data[index * 2 + 1].m_key << endl;
         //        }
-        register Element * leftElement;
-        register Element * rightElement;
-        register Element * actualElement;
-        register Element * maxElement;
+        Element * leftElement;
+        Element * rightElement;
+        Element * actualElement;
+        Element * maxElement;
         Element * endElement = m_data + m_size;
         actualElement = m_data + index;
         actualElement->m_key = key;

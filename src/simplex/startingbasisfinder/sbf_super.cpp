@@ -63,9 +63,9 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
 
 //bool SbfSuper::testTriangularity()
 //{
-//    register unsigned int i;    // index variable
-//    register unsigned int j;    // index variable
-//    register unsigned int k;    // index variable
+//    unsigned int i;    // index variable
+//    unsigned int j;    // index variable
+//    unsigned int k;    // index variable
 
 //    vector< intpair > pivots;  // pivot positions
 
@@ -133,7 +133,7 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
 
 //     DEVINFO(D::SBF_SUPER, "Column calculating done");
 
-//    register bool change = true;
+//    bool change = true;
 //    /* Loop: while change exists and basis size is not reached */
 //    while (change == true) {
 

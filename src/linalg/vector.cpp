@@ -162,9 +162,9 @@ Vector::Vector(const Vector& original, Numerical::Double lambda)
         }
     }
     m_dataEnd = m_data + m_size;
-    register Numerical::Double * actualData = m_data;
-    register Numerical::Double * originalData = original.m_data;
-    register const Numerical::Double * end = original.m_dataEnd;
+    Numerical::Double * actualData = m_data;
+    Numerical::Double * originalData = original.m_data;
+    const Numerical::Double * end = original.m_dataEnd;
     for (; originalData < end; originalData++, actualData++) {
         *actualData = *originalData * lambda;
     }
@@ -421,8 +421,8 @@ void Vector::change(unsigned int index, Numerical::Double value)
 void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
 {
     if (m_vectorType == DENSE_VECTOR) {
-        register unsigned int index = 0;
-        register Numerical::Double * dataPtr = m_data;
+        unsigned int index = 0;
+        Numerical::Double * dataPtr = m_data;
         for (; index < m_size; index++, dataPtr++) {
             if (*dataPtr != 0.0) {
                 *dataPtr *= lambdas[index];
@@ -433,8 +433,8 @@ void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
         }
     } else {
         // TODO: lekezelni azt, mikor 0-val szorzunk be
-        register Numerical::Double * dataPtr = m_data;
-        register unsigned int * indexPtr = m_index;
+        Numerical::Double * dataPtr = m_data;
+        unsigned int * indexPtr = m_index;
         Numerical::Double * lastData = m_dataEnd - 1;
         unsigned int * lastIndex = m_index + m_size - 1;
 
@@ -521,11 +521,6 @@ void Vector::setNewNonzero(unsigned int index, Numerical::Double value)
         }
     }
     CHECK;
-}
-
-Numerical::Double Vector::operator[](unsigned int index) const {
-    CHECK;
-    return at(index);
 }
 
 Vector Vector::operator*(const Matrix& matrix) const
@@ -622,19 +617,19 @@ unsigned int Vector::maxIndex() const
     }
     if (m_vectorType == DENSE_VECTOR) {
         CHECK;
-        register Numerical::Double * ptr = m_dataEnd - 1;
-        register unsigned int index = m_dimension - 1;
+        Numerical::Double * ptr = m_dataEnd - 1;
+        unsigned int index = m_dimension - 1;
         while (*ptr == 0.0) {
             ptr--;
             index--;
         }
         return index;
     } else {
-        register const unsigned int * indexPtr = m_index;
-        register const unsigned int * const indexPtrEnd = m_index + m_size;
-        register unsigned int maxIndex = 0;
+        const unsigned int * indexPtr = m_index;
+        const unsigned int * const indexPtrEnd = m_index + m_size;
+        unsigned int maxIndex = 0;
         while (indexPtr < indexPtrEnd) {
-            register unsigned int actual = *indexPtr;
+            unsigned int actual = *indexPtr;
             if (actual > maxIndex) {
                 maxIndex = actual;
             }
@@ -664,7 +659,7 @@ Vector & Vector::scaleBy(Numerical::Double lambda)
                     m_dataEnd = 0;
                 }
             } else {
-                register Numerical::Double * ptr = m_data;
+                Numerical::Double * ptr = m_data;
                 while (ptr < m_dataEnd) {
                     *ptr = 0;
                     ptr++;
@@ -676,7 +671,7 @@ Vector & Vector::scaleBy(Numerical::Double lambda)
             m_dataEnd = m_data;
         }
     } else {
-        register Numerical::Double * ptr = m_data;
+        Numerical::Double * ptr = m_data;
         while (ptr < m_dataEnd) {
             *ptr *= lambda;
             ptr++;
@@ -688,10 +683,10 @@ Vector & Vector::scaleBy(Numerical::Double lambda)
 
 Numerical::Double Vector::euclidNorm() const
 {
-    register Numerical::Double result = 0.0;
-    register Numerical::Double * dataPtr = m_data;
+    Numerical::Double result = 0.0;
+    Numerical::Double * dataPtr = m_data;
     for (; dataPtr < m_dataEnd; dataPtr++) {
-        register const Numerical::Double value = *dataPtr;
+        const Numerical::Double value = *dataPtr;
         result += value * value;
     }
     return Numerical::sqrt(result);
@@ -716,10 +711,10 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         Numerical::Double positive = 0.0;
         Numerical::Double negative = 0.0;
 
-        register unsigned int * index1 = m_index;
-        register unsigned int * index2 = vector.m_index;
-        register const unsigned int * endIndex1 = m_index + m_nonZeros;
-        register const unsigned int * endIndex2 = vector.m_index + vector.m_nonZeros;
+        unsigned int * index1 = m_index;
+        unsigned int * index2 = vector.m_index;
+        const unsigned int * endIndex1 = m_index + m_nonZeros;
+        const unsigned int * endIndex2 = vector.m_index + vector.m_nonZeros;
 
         //LPERROR(*this << vector);
 
@@ -754,9 +749,9 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
 #endif
     Numerical::Double temp;
     if (m_vectorType == DENSE_VECTOR && vector.m_vectorType == DENSE_VECTOR) {
-        register const Numerical::Double * ptr1 = m_data;
-        register const Numerical::Double * ptr2 = vector.m_data;
-        register const Numerical::Double * end = m_dataEnd;
+        const Numerical::Double * ptr1 = m_data;
+        const Numerical::Double * ptr2 = vector.m_data;
+        const Numerical::Double * end = m_dataEnd;
         Numerical::Double result = 0.0;
         while (ptr1 < end) {
             temp = *ptr1 * *ptr2;
@@ -791,7 +786,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     unsigned int * index;
     unsigned int size;
     bool needScatter;
-    register Numerical::Double * denseVector = sm_fullLengthVector;
+    Numerical::Double * denseVector = sm_fullLengthVector;
     unsigned int * origIndex = 0;
     unsigned int origSize = 0;
     // when both of them are sparse, it has to be converted to dense
@@ -832,9 +827,9 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
 
     Numerical::Double result = 0.0;
 
-    register const Numerical::Double * ptrSparse = data;
-    register const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
-    register const unsigned int * ptrIndex = index;
+    const Numerical::Double * ptrSparse = data;
+    const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
+    const unsigned int * ptrIndex = index;
 
     while (ptrSparse < ptrSparseEnd) {
 
@@ -897,9 +892,9 @@ Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)
 void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector)
 {
 
-    register Numerical::Double * ptr1 = m_data;
-    register const Numerical::Double * ptr2 = vector.m_data;
-    register const Numerical::Double * end = m_dataEnd;
+    Numerical::Double * ptr1 = m_data;
+    const Numerical::Double * ptr2 = vector.m_data;
+    const Numerical::Double * end = m_dataEnd;
     //    int nonZeros1 = 0; // DO NOT DELETE YET!!!
     //    int nonZeros2 = 0; // DO NOT DELETE YET!!!
     while (ptr1 < end) {
@@ -934,9 +929,9 @@ void Vector::addDenseToSparse(Numerical::Double lambda, const Vector & vector)
 
 void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector)
 {
-    register const Numerical::Double * ptrData = vector.m_data;
-    register const Numerical::Double * const ptrDataEnd = vector.m_dataEnd;
-    register const unsigned int * ptrIndex = vector.m_index;
+    const Numerical::Double * ptrData = vector.m_data;
+    const Numerical::Double * const ptrDataEnd = vector.m_dataEnd;
+    const unsigned int * ptrIndex = vector.m_index;
     while (ptrData < ptrDataEnd) {
         Numerical::Double & data = m_data[ *ptrIndex ];
         if (data == 0.0) {
@@ -962,9 +957,9 @@ void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector)
     m_sorted = false;
     scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
 
-    register Numerical::Double * denseVector = sm_fullLengthVector;
-    register Numerical::Double * ptrActualVector = m_data;
-    register unsigned int * ptrIndex = m_index;
+    Numerical::Double * denseVector = sm_fullLengthVector;
+    Numerical::Double * ptrActualVector = m_data;
+    unsigned int * ptrIndex = m_index;
     while (ptrActualVector < m_dataEnd) {
         if (denseVector[ *ptrIndex ] != 0.0) {
 
@@ -1045,11 +1040,11 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     //    const Numerical::Double pivotValue = denseVector[ pivot ];
     //
     //    if (eta.m_vectorType == Vector::DENSE_VECTOR) {
-    //        register Numerical::Double * ptrValue2 = eta.m_data;
-    //        register Numerical::Double * ptrValue1 = denseVector;
-    //        register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
+    //        Numerical::Double * ptrValue2 = eta.m_data;
+    //        Numerical::Double * ptrValue1 = denseVector;
+    //        const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
     //        while (ptrValue1 < ptrValueEnd) {
-    //            register const Numerical::Double value = *ptrValue2;
+    //            const Numerical::Double value = *ptrValue2;
     //            if (value != 0.0) {
     //                const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
     //                if (*ptrValue1 == 0.0 && val != 0.0) {
@@ -1072,10 +1067,10 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     //        denseVector[pivot] = val;
     //
     //    } else {
-    //        register Numerical::Double * ptrEta = eta.m_data;
-    //        register unsigned int * ptrIndex = eta.m_index;
-    //        register const unsigned int * ptrIndexEnd = ptrIndex + eta.m_size;
-    //        register const unsigned int pivotPosition = pivot;
+    //        Numerical::Double * ptrEta = eta.m_data;
+    //        unsigned int * ptrIndex = eta.m_index;
+    //        const unsigned int * ptrIndexEnd = ptrIndex + eta.m_size;
+    //        const unsigned int pivotPosition = pivot;
     //        while (ptrIndex < ptrIndexEnd) {
     //            Numerical::Double & originalValue = denseVector[*ptrIndex];
     //            if (*ptrEta != 0.0) {
@@ -1114,9 +1109,9 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     //        }
     //    } else {
     //        prepareForData(m_nonZeros, m_dimension, false);
-    //        register Numerical::Double * ptrValue = denseVector;
-    //        register const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
-    //        register unsigned int index = 0;
+    //        Numerical::Double * ptrValue = denseVector;
+    //        const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
+    //        unsigned int index = 0;
     //        while (ptrValue < ptrValueEnd) {
     //            if (*ptrValue != 0.0) {
     //                newNonZero(*ptrValue, index);
@@ -1140,8 +1135,8 @@ void Vector::removeElement(unsigned int index)
     bool minus = false;
     if (m_vectorType == DENSE_VECTOR) {
         minus = m_data[index] != 0.0;
-        register Numerical::Double * ptrData1 = m_data + index;
-        register const Numerical::Double * ptrData2 = ptrData1 + 1;
+        Numerical::Double * ptrData1 = m_data + index;
+        const Numerical::Double * ptrData2 = ptrData1 + 1;
         while (ptrData2 < m_dataEnd) {
             *ptrData1 = *ptrData2;
             ptrData1++;
@@ -1151,8 +1146,8 @@ void Vector::removeElement(unsigned int index)
         m_dataEnd--;
     } else {
         m_sorted = false;
-        register unsigned int * indexPtr = m_index;
-        register const unsigned int * const indexEnd = m_index + m_size;
+        unsigned int * indexPtr = m_index;
+        const unsigned int * const indexEnd = m_index + m_size;
         int index2 = -1;
         while (indexPtr < indexEnd) {
             if (*indexPtr > index) {
@@ -1187,8 +1182,6 @@ void Vector::removeElement(unsigned int index)
     CHECK;
 }
 
-// TODO: az index-edik ele szur be, ha ez az N. elem, akkor a vegere
-
 void Vector::insertElement(unsigned int index, Numerical::Double value)
 {
     if (index == m_dimension) {
@@ -1203,9 +1196,9 @@ void Vector::insertElement(unsigned int index, Numerical::Double value)
             sub = 1;
         }
 
-        register Numerical::Double * ptrData1 = m_data + m_size - sub;
-        register const Numerical::Double * ptrData2 = ptrData1 - 1;
-        register Numerical::Double * const stop = m_data + index;
+        Numerical::Double * ptrData1 = m_data + m_size - sub;
+        const Numerical::Double * ptrData2 = ptrData1 - 1;
+        Numerical::Double * const stop = m_data + index;
         while (ptrData2 >= stop) {
             *ptrData1 = *ptrData2;
             ptrData1--;
@@ -1223,8 +1216,8 @@ void Vector::insertElement(unsigned int index, Numerical::Double value)
         m_sorted = true;
     } else {
         m_sorted = false;
-        register unsigned int * indexPtr = m_index;
-        register const unsigned int * const indexEnd = m_index + m_size;
+        unsigned int * indexPtr = m_index;
+        const unsigned int * const indexEnd = m_index + m_size;
         while (indexPtr < indexEnd) {
             if (*indexPtr >= index) {
                 (*indexPtr)++;
@@ -1298,7 +1291,6 @@ Vector & Vector::operator=(const Vector & vector)
     if (this == &vector) {
         return *this;
     }
-    //TODO: Ezt atgondolni, hogy biztos jo-e igy
     bool reallocate = false;
     if(m_size!=vector.m_size ){
         freeData(m_data);
@@ -1323,10 +1315,10 @@ void Vector::sortElements() const
     // calculating number of steps in different sorting algoirthms
 
     //bool sorted = true;
-    register unsigned int *minPtr = m_index;
-    register unsigned int *maxPtr = m_index;
-    register unsigned int * actual = m_index;
-    const register unsigned int * end = m_index + m_nonZeros;
+    unsigned int *minPtr = m_index;
+    unsigned int *maxPtr = m_index;
+    unsigned int * actual = m_index;
+    const unsigned int * end = m_index + m_nonZeros;
     for (; actual < end; actual++) {
         if (*actual < *minPtr) {
             minPtr = actual;
@@ -1375,7 +1367,7 @@ void Vector::countingSort() const
     const unsigned int shift = bitCount == 16 ? 4 : (bitCount == 32 ? 5 : 6);
     const unsigned int arraySize = m_dimension / bitCount + 1;
     unsigned long mask = bitCount == 16 ? 0xf : (bitCount == 32 ? 0x1f : 0x3f);
-    register unsigned long * actualBits = sm_countingSortBitVector;
+    unsigned long * actualBits = sm_countingSortBitVector;
     const unsigned long * endBits = sm_countingSortBitVector + arraySize;
 
     if (sm_countingSortBitVectorLength < arraySize) {
@@ -1400,13 +1392,13 @@ void Vector::countingSort() const
 
     unsigned int max = 0;
     unsigned int min = 0;
-    register unsigned int * actual = m_index;
-    const register unsigned int * end = m_index + m_nonZeros;
+    unsigned int * actual = m_index;
+    const unsigned int * end = m_index + m_nonZeros;
 
     for (; actual < end; actual++) {
         //originalIndices[*actual] = actual - m_index;
-        const register unsigned int index = *actual >> shift;
-        const register unsigned int bitIndex = *actual & mask;
+        const unsigned int index = *actual >> shift;
+        const unsigned int bitIndex = *actual & mask;
         sm_countingSortBitVector[index] |= 1UL << bitIndex;
         if (max < index) {
             max = index;
@@ -1421,9 +1413,9 @@ void Vector::countingSort() const
     unsigned int position = 0;
     const unsigned long * endBits2 = sm_countingSortBitVector + max + 1;
     for (; actualBits < endBits2; actualBits++, position += bitCount) {
-        register unsigned int index = 0;
+        unsigned int index = 0;
         mask = 0x1;
-        const register unsigned long actualElement = *actualBits;
+        const unsigned long actualElement = *actualBits;
         do {
 
             if (actualElement & mask) {
@@ -1445,8 +1437,8 @@ void Vector::countingSort() const
 void Vector::heapSort() const
 {
     Heap<unsigned int, Numerical::Double> heap(m_nonZeros);
-    register unsigned int * actualIndex = m_index;
-    register Numerical::Double * actualData = m_data;
+    unsigned int * actualIndex = m_index;
+    Numerical::Double * actualData = m_data;
     heap.startBuild();
     for (; actualData < m_dataEnd; actualData++, actualIndex++) {
         heap.addForBuild(*actualIndex, *actualData);
@@ -1465,12 +1457,12 @@ void Vector::heapSort() const
 
 void Vector::selectionSort() const
 {
-    register unsigned int * actual = m_index;
+    unsigned int * actual = m_index;
     const unsigned int * end1 = m_index + m_nonZeros - 1;
     const unsigned int * end2 = end1 + 1;
     for (; actual < end1; actual++) {
-        register unsigned int * minPtr = actual;
-        register unsigned int * actual2 = actual + 1;
+        unsigned int * minPtr = actual;
+        unsigned int * actual2 = actual + 1;
         for (; actual2 < end2; actual2++) {
             if (*actual2 < *minPtr) {
                 minPtr = actual2;
@@ -1478,12 +1470,12 @@ void Vector::selectionSort() const
         }
 
         // swap of indices
-        register unsigned int tempIndex = *minPtr;
+        unsigned int tempIndex = *minPtr;
         *minPtr = *actual;
         *actual = tempIndex;
 
         // swap of values
-        register Numerical::Double tempValue = m_data[ minPtr - m_index ];
+        Numerical::Double tempValue = m_data[ minPtr - m_index ];
         m_data[ minPtr - m_index ] = m_data[ actual - m_index ];
         m_data[ actual - m_index ] = tempValue;
     }
@@ -1494,10 +1486,10 @@ void Vector::insertionSort() const
     if (m_nonZeros < 2) {
         return;
     }
-    register unsigned int * actualIndex;
-    register unsigned int * previousIndex;
-    register Numerical::Double * actualData;
-    register Numerical::Double * previousData;
+    unsigned int * actualIndex;
+    unsigned int * previousIndex;
+    Numerical::Double * actualData;
+    Numerical::Double * previousData;
     unsigned int index = 1;
     for (; index < m_nonZeros; index++) {
         actualIndex = m_index + index;
@@ -1536,7 +1528,7 @@ void Vector::resizeDense(unsigned int size, unsigned int elbowroom)
     m_data = temp;
     m_dataEnd = m_data + size;
     // a maradekot le kell nullazni
-    register Numerical::Double * ptr = m_data + m_size;
+    Numerical::Double * ptr = m_data + m_size;
     while (ptr < m_dataEnd) {
         *ptr = 0.0;
         ptr++;
@@ -1580,8 +1572,8 @@ void Vector::resizeSparse(unsigned int capacity)
 
 Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const
 {
-    register unsigned int * indexPtr = m_index;
-    register const unsigned int * const indexPtrEnd = m_index + m_size;
+    unsigned int * indexPtr = m_index;
+    const unsigned int * const indexPtrEnd = m_index + m_size;
     while (indexPtr < indexPtrEnd && *indexPtr != index) {
         indexPtr++;
     }
@@ -1598,9 +1590,9 @@ Numerical::Double * Vector::getElementSparseBinary(unsigned int index) const
     if (m_nonZeros == 0) {
         return 0;
     }
-    register unsigned int * middle;
-    register int min = 0;
-    register int max = m_nonZeros - 1;
+    unsigned int * middle;
+    int min = 0;
+    int max = m_nonZeros - 1;
     do {
         middle = m_index + ((min + max) >> 1);
         if (index > *middle) {
@@ -1658,23 +1650,18 @@ void Vector::removeElementSparse(unsigned int index)
 }
 
 unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-    unsigned int * indexVector, unsigned int denseLength,
-    bool setZero)
+    unsigned int * indexVector, unsigned int denseLength)
 {
     // a denseVector-bol kigyujti a nem nulla elemeket a sparseVector-ba
     // es az indexeket az indexVector-ba
-    register unsigned int index = 0;
-    register Numerical::Double * ptrDense = denseVector;
-    register Numerical::Double * ptrSparse = sparseVector;
-    register unsigned int * ptrIndex = indexVector;
+    unsigned int index = 0;
+    Numerical::Double * ptrDense = denseVector;
+    Numerical::Double * ptrSparse = sparseVector;
+    unsigned int * ptrIndex = indexVector;
     while (index < denseLength) {
         if (*ptrDense != 0.0) {
             *ptrIndex = index;
             *ptrSparse = *ptrDense;
-            // setting to zero is NECESSARY!
-            //TODO: Ez sojha nincs hasznalva, ki kellene venni
-            if (setZero)
-                *ptrDense = 0.0;
             ptrIndex++;
             ptrSparse++;
         }
@@ -1684,6 +1671,7 @@ unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double *
     return ptrIndex - indexVector;
 }
 
+//TODO: Parameterlista egyszerusitese a sima scatter alapjan, itt meg a gathernel
 Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
     Numerical::Double * sparseVector, unsigned int * index,
     unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot)
@@ -1693,8 +1681,8 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
     if (denseLength < sparseMaxIndex) {
         delete [] denseVector;
         denseVector = allocateData(sparseMaxIndex + 1);
-        register Numerical::Double * ptrDense = denseVector;
-        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
+        Numerical::Double * ptrDense = denseVector;
+        const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
         while (ptrDense < ptrDenseEnd) {
             *ptrDense = 0.0;
             ptrDense++;
@@ -1704,10 +1692,10 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
     if (sparseVector == 0) {
         return 0;
     }
-    register Numerical::Double * ptrSparse = sparseVector;
-    register const unsigned int * ptrIndex = index;
-    register const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
-    register Numerical::Double * ptrDense = denseVector;
+    Numerical::Double * ptrSparse = sparseVector;
+    const unsigned int * ptrIndex = index;
+    const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
+    Numerical::Double * ptrDense = denseVector;
 
     while (ptrSparse < ptrSparseEnd) {
         if (*ptrIndex == pivot) {
@@ -1727,8 +1715,8 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
     if (denseLength < sparseVector.m_dimension) {
         delete [] denseVector;
         denseVector = allocateData(sparseVector.m_dimension + 1);
-        register Numerical::Double * ptrDense = denseVector;
-        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseVector.m_dimension + 1;
+        Numerical::Double * ptrDense = denseVector;
+        const Numerical::Double * const ptrDenseEnd = denseVector + sparseVector.m_dimension + 1;
         while (ptrDense < ptrDenseEnd) {
             *ptrDense = 0.0;
             ptrDense++;
@@ -1738,10 +1726,10 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
     if (sparseVector.m_data == 0) {
         return;
     }
-    register const Numerical::Double * ptrSparse = sparseVector.m_data;
-    register const unsigned int * ptrIndex = sparseVector.m_index;
-    register const Numerical::Double * const ptrSparseEnd = sparseVector.m_data + sparseVector.m_size;
-    register Numerical::Double * ptrDense = denseVector;
+    const Numerical::Double * ptrSparse = sparseVector.m_data;
+    const unsigned int * ptrIndex = sparseVector.m_index;
+    const Numerical::Double * const ptrSparseEnd = sparseVector.m_data + sparseVector.m_size;
+    Numerical::Double * ptrDense = denseVector;
     while (ptrSparse < ptrSparseEnd) {
         //LPINFO("*ptrIndex: " << *ptrIndex);
         ptrDense[ *ptrIndex ] = *ptrSparse;
@@ -1759,8 +1747,8 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 //    if (denseLength < sparseMaxIndex) {
 //        delete [] denseVector;
 //        denseVector = allocateData(sparseMaxIndex + 1);
-//        register Numerical::Double * ptrDense = denseVector;
-//        register const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
+//        Numerical::Double * ptrDense = denseVector;
+//        const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
 //        while (ptrDense < ptrDenseEnd) {
 //            *ptrDense = 0.0;
 //            ptrDense++;
@@ -1770,10 +1758,10 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 //    if (sparseVector == 0) {
 //        return;
 //    }
-//    register const Numerical::Double * ptrSparse = sparseVector;
-//    register const unsigned int * ptrIndex = index;
-//    register const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
-//    register Numerical::Double * ptrDense = denseVector;
+//    const Numerical::Double * ptrSparse = sparseVector;
+//    const unsigned int * ptrIndex = index;
+//    const Numerical::Double * const ptrSparseEnd = sparseVector + sparseLength;
+//    Numerical::Double * ptrDense = denseVector;
 //    while (ptrSparse < ptrSparseEnd) {
 //        //LPINFO("*ptrIndex: " << *ptrIndex);
 //        ptrDense[ *ptrIndex ] = *ptrSparse;
@@ -1786,8 +1774,8 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 void Vector::clearFullLenghtVector(Numerical::Double * denseVector,
     unsigned int * sparseIndex, unsigned int sparseLength)
 {
-    register const unsigned int * ptrIndex = sparseIndex;
-    register const unsigned int * const ptrIndexEnd = sparseIndex + sparseLength;
+    const unsigned int * ptrIndex = sparseIndex;
+    const unsigned int * const ptrIndexEnd = sparseIndex + sparseLength;
     while (ptrIndex < ptrIndexEnd) {
         denseVector[ *ptrIndex ] = 0.0;
         ptrIndex++;
@@ -1799,7 +1787,7 @@ void Vector::denseToSparse()
     m_capacity = m_nonZeros + ELBOWROOM;
     m_index = allocateIndex(m_capacity);
     Numerical::Double * temp = allocateData(m_capacity);
-    gather(m_data, temp, m_index, m_size, false);
+    gather(m_data, temp, m_index, m_size);
     m_sorted = true;
     m_size = m_nonZeros;
     freeData(m_data);
@@ -1814,8 +1802,8 @@ void Vector::sparseToDense()
     m_sorted = true;
     m_capacity = m_dimension + ELBOWROOM;
     Numerical::Double * temp = allocateData(m_capacity);
-    register Numerical::Double * ptr = temp;
-    register const Numerical::Double * const end = temp + m_dimension;
+    Numerical::Double * ptr = temp;
+    const Numerical::Double * const end = temp + m_dimension;
     while (ptr < end) {
         *ptr = 0.0;
         ptr++;

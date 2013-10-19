@@ -7,8 +7,6 @@
 #include <lp/constraint.h>
 #include <vector>
 
-enum Simplex::VARIABLE_STATE;
-
 class BasisHeadIO {
 public:
     BasisHeadIO() {}

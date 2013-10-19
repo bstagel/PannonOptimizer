@@ -21,8 +21,6 @@ public:
     DualDantzigPricing(const DualDantzigPricing& orig);
     virtual ~DualDantzigPricing();
 
-    // TODO: mi van, ha nem talal semmit elso fazisban?
-    // nincs feasible megoldas, vagy unbounded?
     int performPricingPhase1();
     int performPricingPhase2();
 private:

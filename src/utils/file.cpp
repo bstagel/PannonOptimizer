@@ -74,17 +74,17 @@ const char * File::nextBlock(const char * ptr)
         int diff = m_end - m_ptr;
 
         //memcpy(m_buffer, m_ptr, diff);
-        register unsigned int * target = (unsigned int*) m_buffer;
-        register const unsigned int * const end = (unsigned int*) target + diff / sizeof (unsigned int);
-        register unsigned int * source = (unsigned int*) m_ptr;
+        unsigned int * target = (unsigned int*) m_buffer;
+        const unsigned int * const end = (unsigned int*) target + diff / sizeof (unsigned int);
+        unsigned int * source = (unsigned int*) m_ptr;
         while (target < end) {
             *target = *source;
             target++;
             source++;
         }
-        register char * target2 = (char*) target;
-        register const char * const end2 = (char*) target + diff % sizeof (unsigned int);
-        register char * source2 = (char*) source;
+        char * target2 = (char*) target;
+        const char * const end2 = (char*) target + diff % sizeof (unsigned int);
+        char * source2 = (char*) source;
         while (target2 < end2) {
             *target2 = *source2;
             target2++;

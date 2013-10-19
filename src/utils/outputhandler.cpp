@@ -2,7 +2,6 @@
  * @file outputhandler.cpp
  */
 
-//TODO: A szinek visszakerultek a debug.h-ba hogy forduljon a DEVELOPMENT mode
 #include <debug.h>
 #include <utils/outputhandler.h>
 #include <iostream>

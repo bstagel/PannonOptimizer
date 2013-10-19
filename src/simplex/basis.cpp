@@ -57,7 +57,7 @@ void Basis::copyBasis(bool buildIndexLists) {
         if (headChecker.at(*it) == 0) {
             headChecker.at(*it) = 1;
         } else {
-            //TODO: throw exception here
+            //TODO: throw exception here, DEBUG MODE ONLY
             //TODO: Ennek az esetnek a kezelese vmiert nem jo
             LPWARNING("Duplicate index in basis head: " << *it);
         }
@@ -151,10 +151,7 @@ void Basis::setNewHead() {
     //Set the basic variables state and remove their traces from the pattern vector
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         nonbasic.at(*it) = false;
-        if (m_variableStates->where(*it) >= Simplex::VARIABLE_STATE_ENUM_LENGTH){
-            LPERROR("A varible is not in variablestates!")
-            //TODO exception
-        } else if(m_variableStates->where(*it) != Simplex::BASIC) {
+        if(m_variableStates->where(*it) != Simplex::BASIC) {
             m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
         } else {
             m_variableStates->setAttachedData(*it, &(m_basicVariableValues.at(it - m_basisHead->begin())));

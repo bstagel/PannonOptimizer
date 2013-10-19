@@ -148,7 +148,7 @@ void DualSimplex::update()throw (NumericalException) {
     LPINFO("incomingIndex: "<<m_incomingIndex);
     LPINFO("outgoingIndex: "<<m_outgoingIndex);
     if(m_incomingIndex != -1){
-        LPINFO("primalReducedCost: " << m_reducedCosts[m_incomingIndex]);
+        LPINFO("primalReducedCost: " << m_reducedCosts.at(m_incomingIndex));
     }
     LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
     LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());

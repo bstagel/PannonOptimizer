@@ -41,7 +41,7 @@ std::string MpsModelBuilder::nameToString(Name name) {
     return std::string(str);
 }
 
-inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Numerical::Double * val)
+inline const char * MpsModelBuilder::parseDouble(const char * ptr, Numerical::Double * val)
 {
 
     enum NUMBER_PART
@@ -55,7 +55,7 @@ inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Nume
     Numerical::Double refValue = atof(ptr);
 #endif
     unsigned int index = 0;
-    register char ch = *ptr;
+    char ch = *ptr;
     bool negExponent = false;
     bool negMantissa = ch == '-';
     if (negMantissa || ch == '+') {
@@ -63,12 +63,12 @@ inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Nume
         ch = *ptr;
         index++;
     }
-    register long long int mul = 1;
-    //register Numerical::Double mulchg = 10.0;
-    register int exponent1 = 0;
-    register int exponent2 = 0;
-    register long long int mantissa = 0;
-    //register unsigned long long int fraction = 0;
+    long long int mul = 1;
+    //Numerical::Double mulchg = 10.0;
+    int exponent1 = 0;
+    int exponent2 = 0;
+    long long int mantissa = 0;
+    //unsigned long long int fraction = 0;
     bool invalidNumber = false;
 
     while (ch > ' ' && index < (FIELD_3_END - FIELD_3_START + 1) && !invalidNumber) {
@@ -131,7 +131,7 @@ inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Nume
     if (negMantissa) {
         mantissa = -mantissa;
     }
-    register int finalExponent = exponent2 - exponent1;
+    int finalExponent = exponent2 - exponent1;
 
     //if (m_line == 257643) {
     //    std::cout << "eleje" << std::endl;
@@ -144,7 +144,7 @@ inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Nume
     //    LPINFO("mul: " << mul);
 
     if (finalExponent > 0) {
-        register Numerical::Double result = mantissa;
+        Numerical::Double result = mantissa;
         mul = 1;
         while (finalExponent >= 16) {
             finalExponent -= 16;
@@ -186,7 +186,7 @@ inline const char * MpsModelBuilder::parseDouble(const register char * ptr, Nume
         result *= mul;
         *val = result;
     } else if (finalExponent < 0) {
-        register Numerical::Double result = mantissa;
+        Numerical::Double result = mantissa;
         mul = 1;
         while (finalExponent <= -16) {
             finalExponent += 16;
@@ -304,7 +304,7 @@ struct mps_column
     std::map<unsigned int, Numerical::Double> _coeffs;
 };
 
-//inline bool key_comp(register const char * k1, register const char * k2) {
+//inline bool key_comp(const char * k1, const char * k2) {
 //    return *((unsigned long long int*) k1) < *((unsigned long long int*) k2);
 //    //return strcmp(k1, k2) == 1;
 //}
@@ -425,7 +425,7 @@ MpsModelBuilder::~MpsModelBuilder()
     ReleaseHashKeyProducer(m_hkp);
 }
 
-const char * MpsModelBuilder::checkEmptyField(const register char * ptr, register int length)
+const char * MpsModelBuilder::checkEmptyField(const char * ptr, int length)
 {
     while (*ptr == ' ' && length > 1) {
         ptr++;
@@ -437,7 +437,7 @@ const char * MpsModelBuilder::checkEmptyField(const register char * ptr, registe
     return ptr;
 }
 
-inline const char * MpsModelBuilder::skipWhiteSpace(const register char * ptr)
+inline const char * MpsModelBuilder::skipWhiteSpace(const char * ptr)
 {
     while (*ptr <= ' ') {
         ptr++;
@@ -447,7 +447,7 @@ inline const char * MpsModelBuilder::skipWhiteSpace(const register char * ptr)
     return ptr;
 }
 
-inline const char * MpsModelBuilder::goToEndLineOrWord(const register char * ptr)
+inline const char * MpsModelBuilder::goToEndLineOrWord(const char * ptr)
 {
     int offset = 0;
     //const unsigned int * intPtr = (const unsigned int*) ptr;
@@ -478,7 +478,7 @@ inline const char * MpsModelBuilder::goToEndLineOrWord(const register char * ptr
     return ptr;
 }
 
-const char * MpsModelBuilder::goToEndLine(const register char * ptr)
+const char * MpsModelBuilder::goToEndLine(const char * ptr)
 {
     int offset = 0;
     while (*ptr != '\n' && *ptr != '\0') {
@@ -497,11 +497,11 @@ const char * MpsModelBuilder::goToEndLine(const register char * ptr)
     return ptr;
 }
 
-inline const char * MpsModelBuilder::copyWord(const register char * ptr, register char * dest,
-                                              register int length, MPS_ERROR_TYPE & errorCode)
+inline const char * MpsModelBuilder::copyWord(const char * ptr, char * dest,
+                                              int length, MPS_ERROR_TYPE & errorCode)
 {
     errorCode = MPS_NO_ERROR;
-    register int len = 0;
+    int len = 0;
     *dest = 0;
     char * originalDest = dest;
 
@@ -647,7 +647,7 @@ const char * MpsModelBuilder::copyId(const char * ptr,
     dest = 0;
     char * originalDest = reinterpret_cast<char*>(&dest);
     char * destPtr = originalDest;
-    //    register unsigned int hashCode = 0;
+    //    unsigned int hashCode = 0;
     int len = 0;
     //    int end = index + MPS_NAME_LENGTH + 1;
     //std::cout << "|" << std::endl;
@@ -729,10 +729,10 @@ const char * MpsModelBuilder::copyId(const char * ptr,
     return ptr;
 }
 
-const char * MpsModelBuilder::copyName(const register char * ptr, register char * dest,
-                                       register int length, MPS_ERROR_TYPE & errorCode)
+const char * MpsModelBuilder::copyName(const char * ptr, char * dest,
+                                       int length, MPS_ERROR_TYPE & errorCode)
 {
-    register int len = 0;
+    int len = 0;
     char * originalDest = dest;
     *dest = 0;
     int end = -1;
@@ -1035,7 +1035,7 @@ void MpsModelBuilder::missingEndataSection()
                                                   "missing ENDATA section", MpsErrorData::MPS_ERROR).getData());
 }
 
-const char * MpsModelBuilder::nextRowType(const register char * ptr, ROW_INFO & info, bool)
+const char * MpsModelBuilder::nextRowType(const char * ptr, ROW_INFO & info, bool)
 {
     char word[MAX_ROW_WITH];
     MPS_ERROR_TYPE errorCode;
@@ -1138,7 +1138,7 @@ const char * MpsModelBuilder::nextRowType(const register char * ptr, ROW_INFO & 
     return ptr;
 }
 
-const char * MpsModelBuilder::readName(const register char * ptr, ROW_INFO & info)
+const char * MpsModelBuilder::readName(const char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     char name[61];
@@ -1177,7 +1177,7 @@ const char * MpsModelBuilder::readName(const register char * ptr, ROW_INFO & inf
 // egy sor rekordot dolgoz fel, ptr a 0. karakteren all, amirol feltetelezhetjuk hogy szokoz
 // a beolvasas vegen a kovetkezo rekord elejere allitja a ptr-t
 
-inline const char * MpsModelBuilder::readRowRecord(const register char * ptr, ROW_INFO & info)
+inline const char * MpsModelBuilder::readRowRecord(const char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     /*if (*ptr == '*') {
@@ -1190,7 +1190,7 @@ inline const char * MpsModelBuilder::readRowRecord(const register char * ptr, RO
     if (*ptr == ' ') {
         info = NO_INFO;
         Row row;
-        register int index = 0;
+        int index = 0;
         unsigned int hashCode1 = 0;
         unsigned int hashCode2 = 0;
 
@@ -1417,7 +1417,7 @@ const char * MpsModelBuilder::fastReadColumnRecord(const char * ptr,
     return ptr;
 }
 
-inline const char * MpsModelBuilder::readColumnRecord(const register char * ptr,
+inline const char * MpsModelBuilder::readColumnRecord(const char * ptr,
                                                       HashTable<Column, int, hash_function<Column> > & columns, ROW_INFO & info,
                                                       std::vector<Column*> * indexTable)
 {
@@ -1799,13 +1799,13 @@ void MpsModelBuilder::initBoundTypeMap() {
 
 }
 
-inline const char * MpsModelBuilder::readBoundRecord(const register char * ptr, ROW_INFO & info)
+inline const char * MpsModelBuilder::readBoundRecord(const char * ptr, ROW_INFO & info)
 {
     initTooLongRecordSensor(ptr);
     if (*ptr == ' ') {
         MPS_ERROR_TYPE errorCode;
         info = NO_INFO;
-        register int index = 0;
+        int index = 0;
         /*************************-
          * reading bound type
          ************************/
@@ -1927,6 +1927,7 @@ inline const char * MpsModelBuilder::readBoundRecord(const register char * ptr, 
 
         static Timer timer;
         static int _counter = 0;
+        __UNUSED(_counter);
         //timer.start();
         int * colIdPtr = m_columns.getValue(col, columnHashCode1, columnHashCode2);
         /*timer.stop();
@@ -2263,6 +2264,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
     m_actualColumn = 0;
     m_actualColumnNonzeros = 0;
     bool wellFormedRecord;
+    __UNUSED(wellFormedRecord);
     try {
         m_file.openForRead(filename, BUFF_SIZE, MPS_RECORD_SIZE);
         ROW_INFO info;

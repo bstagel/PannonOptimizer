@@ -233,7 +233,7 @@ public:
      * @param x Column index.
      * @param value The new value of the element.
      */
-    void set(unsigned int y, unsigned int x, Numerical::Double value); // TODO: indexek cserejenek atgondolasa
+    void set(unsigned int y, unsigned int x, Numerical::Double value);
 
     /**
      * Returns the value of the element in row y and column x.
@@ -330,7 +330,6 @@ public:
 
     /**
      * Creates a diagonal matrix from given vector.
-     * TODO: constructor?
      *
      * @param diagonal
      */
@@ -338,9 +337,7 @@ public:
 
     /**
      * Creates a matrix from the row vector.
-     * 
-     * TODO: constructor?
-     * 
+     *
      * @param row A row vector.
      * @return A row matrix.
      */
@@ -348,8 +345,6 @@ public:
 
     /**
      * Creates a matrix from the column vector.
-     * 
-     * TODO: constructor?
      * 
      * @param column A column vector.
      * @return A column matrix.

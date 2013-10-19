@@ -243,8 +243,8 @@ void Matrix::removeVector(Vector ** & columnWise, unsigned int & columnCount,
 {
     m_fastColumnScaling = false;
     // minden oszlop index-edik sorabol el kell tavolitani egy elemet
-    register Vector ** vector1 = columnWise;
-    register Vector ** vector2 = columnWise + columnCount;
+    Vector ** vector1 = columnWise;
+    Vector ** vector2 = columnWise + columnCount;
 
     while (vector1 < vector2) {
         (*vector1)->removeElement(index);
@@ -290,8 +290,6 @@ void Matrix::removeColumn(unsigned int index)
         removeVector(m_rowWise, m_rowCount, m_columnWise, m_columnCount, index);
     }
 }
-
-// TODO: ha a vegere szurunk be, akkor insertElement helyett append-et kell meghivni!
 
 void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
     unsigned int & rowCount, unsigned int index, const Vector & vector)
@@ -439,8 +437,8 @@ Numerical::Double Matrix::get(unsigned int y, unsigned int x) const
 void Matrix::scale(Numerical::Double lambda)
 {
     m_fastColumnScaling = false;
-    register Vector ** vector1 = m_columnWise;
-    register Vector ** vector2 = m_columnWise + m_columnCount;
+    Vector ** vector1 = m_columnWise;
+    Vector ** vector2 = m_columnWise + m_columnCount;
     while (vector1 < vector2) {
         (*vector1)->scaleBy(lambda);
         vector1++;
@@ -467,8 +465,8 @@ void Matrix::startRowScaling()
 
 void Matrix::finishColumnScaling()
 {
-    register Vector ** vector1 = m_rowWise;
-    register Vector ** vector2 = m_rowWise + m_rowCount;
+    Vector ** vector1 = m_rowWise;
+    Vector ** vector2 = m_rowWise + m_rowCount;
     while (vector1 < vector2) {
         (*vector1)->scaleByLambdas(m_multipliers);
         vector1++;
@@ -478,8 +476,8 @@ void Matrix::finishColumnScaling()
 
 void Matrix::finishRowScaling()
 {
-    register Vector ** vector1 = m_columnWise;
-    register Vector ** vector2 = m_columnWise + m_columnCount;
+    Vector ** vector1 = m_columnWise;
+    Vector ** vector2 = m_columnWise + m_columnCount;
     while (vector1 < vector2) {
         (*vector1)->scaleByLambdas(m_multipliers);
         vector1++;
@@ -493,8 +491,8 @@ void Matrix::scaleRow(unsigned int index, Numerical::Double lambda)
     if (m_fastRowScaling == true) {
         m_multipliers[index] = lambda;
     } else {
-        register Vector ** vector1 = m_columnWise;
-        register Vector ** vector2 = m_columnWise + m_columnCount;
+        Vector ** vector1 = m_columnWise;
+        Vector ** vector2 = m_columnWise + m_columnCount;
         while (vector1 < vector2) {
             (*vector1)->scaleElementBy(index, lambda);
             vector1++;
@@ -511,8 +509,8 @@ void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda)
         }
         m_multipliers[index] = lambda;
     } else {
-        register Vector ** vector1 = m_rowWise;
-        register Vector ** vector2 = m_rowWise + m_rowCount;
+        Vector ** vector1 = m_rowWise;
+        Vector ** vector2 = m_rowWise + m_rowCount;
         while (vector1 < vector2) {
             (*vector1)->scaleElementBy(index, lambda);
             vector1++;
