@@ -107,6 +107,21 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     }
 }
 
+void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
+    const unsigned int variableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
+    basisReader->startReading(fileName, variableCount);
+    unsigned int index;
+    for (index = 0; index < variableCount; index++) {
+        basisReader->addVariable(m_simplexModel->getVariable(index));
+    }
+
+    basisReader->finishReading(&m_basisHead, &m_variableStates);
+
+    if (releaseReader) {
+        delete basisReader;
+    }
+}
+
 void Simplex::solve() {
     initModules();
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -118,6 +133,8 @@ void Simplex::solve() {
     unsigned int reinversionFrequency = simplexParameters.getParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     Timer timer;
+
+    //loadBasis("basis.bas", new BasisHeadBAS, true);
 
     try {
         timer.start();

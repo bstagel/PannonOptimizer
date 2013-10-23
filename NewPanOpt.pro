@@ -83,10 +83,11 @@ HEADERS += include/debug.h \
            include/simplex/primalfeasibilitychecker.h \
            include/simplex/primalratiotestupdater.h \
            include/utils/colors.h \
-    include/utils/platform.h \
-    include/simplex/basisheadio.h \
-    include/simplex/basisheadbas.h \
-    include/simplex/simplexstates.h
+           include/utils/platform.h \
+           include/simplex/basisheadio.h \
+           include/simplex/basisheadbas.h \
+           include/simplex/simplexstates.h \
+           include/utils/hashtable.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -131,7 +132,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/primalratiotest.cpp \
            src/simplex/primalfeasibilitychecker.cpp \
            src/simplex/primalratiotestupdater.cpp \
-    src/globals.cpp \
-    src/simplex/basisheadbas.cpp
+           src/globals.cpp \
+           src/simplex/basisheadbas.cpp \
+           src/utils/hashtable.cpp
 
 OBJECTS_DIR = .o

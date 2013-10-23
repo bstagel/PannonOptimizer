@@ -61,6 +61,8 @@ public:
 
     void saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
 
+    void loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
+
 protected:
     SimplexModel * m_simplexModel;
 
