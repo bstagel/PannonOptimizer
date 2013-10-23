@@ -5,6 +5,7 @@
 #include <simplex/simplex.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
+#include <utils/indexlist.h>
 #include <vector>
 
 class BasisHeadIO {
@@ -23,6 +24,14 @@ public:
                                      Simplex::VARIABLE_STATE state,
                                      Numerical::Double value) = 0;
     virtual void finishWriting() = 0;
+
+    virtual void startReading(const char * fileName,
+                              unsigned int variableCount) = 0;
+
+    virtual void addVariable(const Variable & variable) = 0;
+
+    virtual void finishReading(std::vector<int> * basisHead,
+                               IndexList<const Numerical::Double*> * variableStates) = 0;
 
 };
 

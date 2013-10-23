@@ -835,7 +835,7 @@ protected:
      * @param setZero
      */
     static unsigned int gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-        unsigned int * index, unsigned int denseLength, bool setZero);
+        unsigned int * index, unsigned int denseLength);
 
 
     // sparse -> dense
