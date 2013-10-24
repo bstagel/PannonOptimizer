@@ -13,12 +13,12 @@ class LinalgParameterHandler : public ParameterHandler
     friend class LinalgParameterHandlerTestSuite;
 
 public:
-    static ParameterHandler & getInstance();
+    THREAD_STATIC_DECL ParameterHandler & getInstance();
     void writeParameterFile();
 
 private:
 
-    static const char * sm_filename;
+    THREAD_STATIC_DECL const char * sm_filename;
 
     LinalgParameterHandler();
     LinalgParameterHandler(const LinalgParameterHandler &){}

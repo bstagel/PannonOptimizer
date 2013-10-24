@@ -7,6 +7,7 @@
 
 //using namespace std;
 #include <utils/platform.h>
+#include <utils/thread.h>
 #include <utils/memoryman.h>
 #include <climits>
 #include <float.h>

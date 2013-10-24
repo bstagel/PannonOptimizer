@@ -9,7 +9,7 @@
 
 #include <simplex/simplexparameterhandler.h>
 
-int PfiBasis::m_inversionCount = 0;
+THREAD_STATIC_DEF int PfiBasis::m_inversionCount = 0;
 
 PfiBasis::PfiBasis(const SimplexModel& model,
                    std::vector<int>* basisHead,

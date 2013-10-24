@@ -3940,6 +3940,10 @@ void VectorTestSuite::reInit()
             myVect.m_dimension * SPARSITY_RATIO);
         TEST_ASSERT(myVect.m_sparsityThreshold == testSparsityThreshold1);
         TEST_ASSERT(myVect.m_nonZeros == 0);
+        if (myVect.m_sparsityRatio != SPARSITY_RATIO) {
+            LPERROR(myVect.m_sparsityRatio << " vs " << SPARSITY_RATIO);
+            exit(0);
+        }
         TEST_ASSERT(myVect.m_sparsityRatio == SPARSITY_RATIO);
         TEST_ASSERT(myVect.sm_fullLenghtReferenceCounter == 1);
 

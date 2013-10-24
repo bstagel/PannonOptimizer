@@ -46,7 +46,7 @@ public:
 class OutputHandler
 {
 public:
-    static OutputHandler & getInstance();
+    THREAD_STATIC_DECL OutputHandler & getInstance();
     void setMessageHandler(GeneralMessageHandler * handler);
     void setWarningHandler(GeneralMessageHandler * handler);
     void setErrorHandler(GeneralMessageHandler * handler);

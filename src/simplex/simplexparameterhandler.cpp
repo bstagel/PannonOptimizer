@@ -9,7 +9,7 @@
 
 #include <defaultparameters.h>
 
-const char * SimplexParameterHandler::sm_filename = "simplex.PAR";
+THREAD_STATIC_DEF const char * SimplexParameterHandler::sm_filename = "simplex.PAR";
 
 SimplexParameterHandler::SimplexParameterHandler()
 {
@@ -19,7 +19,7 @@ SimplexParameterHandler::SimplexParameterHandler()
 ParameterHandler& SimplexParameterHandler::getInstance()
 {
     static SimplexParameterHandler s_instance;
-    static bool s_init = false;
+    THREAD_STATIC_DECL bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
         s_instance.readParameterFile(sm_filename);

@@ -67,7 +67,7 @@ public:
      */
     enum VECTOR_TYPE
     {
-        SPARSE_VECTOR, DENSE_VECTOR
+        SPARSE_VECTOR, DENSE_VECTOR, DEFAULT_VECTOR_TYPE
     };
 
     class CommonIterator;
@@ -89,7 +89,7 @@ public:
      *
      * @param dimension Describes the dimension of vector
      */
-    explicit Vector(unsigned int dimension = 0);
+    explicit Vector(unsigned int dimension = 0, VECTOR_TYPE type = DEFAULT_VECTOR_TYPE);
 
     explicit Vector(void *, void *, void *);
     /**
@@ -562,9 +562,13 @@ public:
     {
         delete [] m_data;
         delete [] m_index;
-        if (ratio == -1) {
+        /*if (ratio == -1) {
             m_sparsityRatio = SPARSITY_RATIO;
         } else {
+            m_sparsityRatio = ratio;
+        }*/
+
+        if (ratio >= 0.0) {
             m_sparsityRatio = ratio;
         }
 
@@ -708,24 +712,24 @@ protected:
     /**
      * Temporary vector for linear time dot product and add operations.
      */
-    static Numerical::Double * sm_fullLengthVector;
+    THREAD_STATIC_DECL Numerical::Double * sm_fullLengthVector;
     /**
      * Describes the size of sm_fullLengthVector. The sm_fullLengthVector is
      * not released after dot product or add operations, because memory allocation
      * is time consuming. When an operation needs biger array, it allocates
      * a new vector.
      */
-    static unsigned int sm_fullLengthVectorLenght;
+    THREAD_STATIC_DECL unsigned int sm_fullLengthVectorLenght;
     /**
      * Describes how many Vector type objects exists. It is important for
      * releasing sm_fullLengthVector. When this variable is zero, the program
      * releases sm_fullLengthVector automatically.
      */
-    static unsigned int sm_fullLenghtReferenceCounter;
+    THREAD_STATIC_DECL unsigned int sm_fullLenghtReferenceCounter;
 
-    static unsigned long * sm_countingSortBitVector;
+    THREAD_STATIC_DECL unsigned long * sm_countingSortBitVector;
 
-    static unsigned int sm_countingSortBitVectorLength;
+    THREAD_STATIC_DECL unsigned int sm_countingSortBitVectorLength;
 
     void init(unsigned int dimension);
 

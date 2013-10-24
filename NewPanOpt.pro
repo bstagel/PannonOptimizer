@@ -11,11 +11,11 @@ TARGET = NewPanOpt
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -pthread
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -pthread -Wextra -Wall
 }
 
 #Includes
@@ -87,7 +87,8 @@ HEADERS += include/debug.h \
            include/simplex/basisheadio.h \
            include/simplex/basisheadbas.h \
            include/simplex/simplexstates.h \
-           include/utils/hashtable.h
+           include/utils/hashtable.h \
+    include/utils/thread.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
