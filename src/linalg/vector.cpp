@@ -17,15 +17,16 @@
 
 unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getParameterValue("elbowroom");
 Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getParameterValue("sparsity_ratio");
-Numerical::Double * Vector::sm_fullLengthVector = 0;
-unsigned int Vector::sm_fullLengthVectorLenght = 0;
-unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
-unsigned long * Vector::sm_countingSortBitVector = 0;
-unsigned int Vector::sm_countingSortBitVectorLength = 0;
+THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
+THREAD_STATIC_DEF unsigned int Vector::sm_fullLengthVectorLenght = 0;
+THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
+THREAD_STATIC_DEF unsigned long * Vector::sm_countingSortBitVector = 0;
+THREAD_STATIC_DEF unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
-Vector::Vector(unsigned int dimension)
+Vector::Vector(unsigned int dimension, VECTOR_TYPE type)
 {
     sm_fullLenghtReferenceCounter++;
+    m_vectorType = type;
     init(dimension);
     CHECK;
 }
@@ -91,7 +92,18 @@ void Vector::init(unsigned int dimension)
     m_index = 0;
     m_nonZeros = 0;
     m_capacity = ELBOWROOM; //capacity;
-    m_sparsityRatio = SPARSITY_RATIO;
+    switch (m_vectorType) {
+    case DEFAULT_VECTOR_TYPE:
+        m_sparsityRatio = SPARSITY_RATIO;
+        break;
+    case SPARSE_VECTOR:
+        m_sparsityRatio = 2.0;
+        break;
+    case DENSE_VECTOR:
+        m_sparsityRatio = 0.0;
+        break;
+    }
+
     m_dimension = dimension;
     m_sorted = true;
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
@@ -213,7 +225,7 @@ void Vector::fill(Numerical::Double value)
         return;
     }
 
-    if (this->m_sparsityThreshold == 0.0) {
+    if (m_sparsityThreshold == 0.0) {
         Numerical::Double * ptr = m_data;
         for (; ptr < m_dataEnd; ptr++) {
             *ptr = value;
@@ -702,11 +714,6 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
         m_sorted && vector.m_sorted) {
-        //        static unsigned int _counter = 0;
-        //        _counter++;
-        //        if (_counter % 10000 == 0) {
-        //            LPERROR(_counter);
-        //        }
 
         Numerical::Double positive = 0.0;
         Numerical::Double negative = 0.0;
@@ -1927,7 +1934,7 @@ Vector operator*(Numerical::Double m, const Vector& v)
 
 void Vector::swap(Vector * vector1, Vector * vector2) {
     // new and delete are too slow
-    static char buffer[sizeof(Vector)];
+    THREAD_STATIC_DECL char buffer[sizeof(Vector)];
     memcpy(buffer, vector1, sizeof(Vector));
     memcpy(vector1, vector2, sizeof(Vector));
     memcpy(vector2, buffer, sizeof(Vector));

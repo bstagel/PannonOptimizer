@@ -219,7 +219,7 @@ public:
     
     void insert(const K & key, const T & data, bool debug = false)
     {
-        //        static int count = 0;
+        //        THREAD_STATIC_DECL int count = 0;
         //count++;
 
         m_size++;
@@ -280,7 +280,7 @@ public:
 
     void remove(unsigned int index)
     {
-//        static int counter = 0;
+//        THREAD_STATIC_DECL int counter = 0;
 //        counter++;
 
         const K minKey = numeric_limits<K>::min();

@@ -13,12 +13,12 @@ class SimplexParameterHandler : public ParameterHandler
     friend class SimplexParameterHandlerTestSuite;
 
 public:
-    static ParameterHandler & getInstance();
+    THREAD_STATIC_DECL ParameterHandler & getInstance();
     void writeParameterFile();
 
 private:
 
-    static const char * sm_filename;
+    THREAD_STATIC_DECL const char * sm_filename;
 
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}

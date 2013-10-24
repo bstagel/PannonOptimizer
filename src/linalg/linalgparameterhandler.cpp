@@ -10,7 +10,7 @@
 
 #include <cstdio>
 
-const char * LinalgParameterHandler::sm_filename = "linalg.PAR";
+THREAD_STATIC_DEF const char * LinalgParameterHandler::sm_filename = "linalg.PAR";
 
 LinalgParameterHandler::LinalgParameterHandler()
 {
@@ -20,7 +20,7 @@ LinalgParameterHandler::LinalgParameterHandler()
 ParameterHandler& LinalgParameterHandler::getInstance()
 {
     static LinalgParameterHandler s_instance;
-    static bool s_init = false;
+    THREAD_STATIC_DECL bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
         s_instance.readParameterFile(sm_filename);
