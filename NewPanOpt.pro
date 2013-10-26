@@ -88,7 +88,10 @@ HEADERS += include/debug.h \
            include/simplex/basisheadbas.h \
            include/simplex/simplexstates.h \
            include/utils/hashtable.h \
-    include/utils/thread.h
+    include/utils/thread.h \
+    include/utils/iterationreport.h \
+    include/utils/iterationreportprovider.h \
+    include/utils/iterationreportfield.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -135,6 +138,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/primalratiotestupdater.cpp \
            src/globals.cpp \
            src/simplex/basisheadbas.cpp \
-           src/utils/hashtable.cpp
+           src/utils/hashtable.cpp \
+    src/utils/iterationreport.cpp
 
 OBJECTS_DIR = .o

@@ -11,14 +11,168 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
+const static char * INCOMING_NAME = "incoming";
+const static char * OUTGOING_NAME = "outgoing";
+const static char * PHASE_NAME = "phase";
+const static char * PHASE_1_STRING = "phase-1";
+const static char * PHASE_2_STRING = "phase-2";
+const static char * PHASE_UNKNOWN_STRING = "unknown";
+const static char * PHASE_1_OBJ_VAL_STRING = "dual infeasibility";
+const static char * OBJ_VAL_STRING = "objective value";
+const static char * PRIMAL_REDUCED_COST_STRING = "primal reduced cost";
+const static char * PRIMAL_THETA_STRING = "primal theta";
+const static char * DUAL_THETA_STRING = "dual theta";
+
 DualSimplex::DualSimplex():
     m_pricing(0),
     m_updater(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
-    m_feasible(false)
+    m_feasible(false),
+    m_phaseName(PHASE_UNKNOWN_STRING)
 {
 
+}
+
+// Interface of the iteration report provider:
+std::vector<IterationReportField> DualSimplex::getIterationReportFields(
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    std::vector<IterationReportField> result = Simplex::getIterationReportFields(type);
+
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+    {
+        IterationReportField incomingField(INCOMING_NAME, 10, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_INT, *this);
+        result.push_back(incomingField);
+
+        IterationReportField outgoingField(OUTGOING_NAME, 10, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_INT, *this);
+        result.push_back(outgoingField);
+
+        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               -1, IterationReportField::IRF_FIXED);
+        result.push_back(primalReducedCostField);
+
+        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               -1, IterationReportField::IRF_FIXED);
+        result.push_back(primalThetaField);
+
+        IterationReportField dualThetaField(DUAL_THETA_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               -1, IterationReportField::IRF_FIXED);
+        result.push_back(dualThetaField);
+
+        IterationReportField phase1ObjValField(PHASE_1_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC);
+        result.push_back(phase1ObjValField);
+
+        IterationReportField objValField(OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC);
+        result.push_back(objValField);
+
+        IterationReportField phaseField(PHASE_NAME, 7, 1, IterationReportField::IRF_RIGHT,
+                                        IterationReportField::IRF_STRING, *this);
+        result.push_back(phaseField);
+    }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+
+    return result;
+}
+
+std::string DualSimplex::getIterationReportString( const std::string & name,
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+        if (name == PHASE_NAME) {
+            return m_phaseName;
+        }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+    return Simplex::getIterationReportString(name, type);
+}
+
+int DualSimplex::getIterationReportInteger(const std::string & name,
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+        if (name == INCOMING_NAME) {
+            return m_incomingIndex;
+        } else if (name == OUTGOING_NAME) {
+            return m_outgoingIndex;
+        }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+    return Simplex::getIterationReportInteger(name, type);
+}
+
+double DualSimplex::getIterationReportFloat(const std::string & name,
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+        if (name == PHASE_1_OBJ_VAL_STRING) {
+            return m_phaseIObjectiveValue;
+        } else if (name == OBJ_VAL_STRING) {
+            return m_objectiveValue;
+        } else if (name == PRIMAL_REDUCED_COST_STRING) {
+            return m_primalReducedCost;
+        } else if (name == PRIMAL_THETA_STRING) {
+            return m_primalTheta;
+        } else if (name == DUAL_THETA_STRING) {
+            return m_dualTheta;
+        }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+    return Simplex::getIterationReportFloat(name, type);
+}
+
+bool DualSimplex::getIterationReportBool(const std::string & name,
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+    return Simplex::getIterationReportBool(name, type);    return false;
 }
 
 void DualSimplex::initModules() {
@@ -62,6 +216,8 @@ void DualSimplex::initModules() {
 
     delete pricingFactory;
     pricingFactory = 0;
+
+    //registerIntoIterationReport(*this);
 }
 
 void DualSimplex::releaseModules() {
@@ -104,13 +260,15 @@ void DualSimplex::checkFeasibility() throw (OptimizationResultException, Numeric
 
 void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
     if(!m_feasible){
-        LPINFO("PHASE1 PRICE");
+        m_phaseName = PHASE_1_STRING;
+        //LPINFO("PHASE1 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase1();
         if(m_outgoingIndex == -1){
             throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
         }
     } else {
-        LPINFO("PHASE2 PRICE");
+        m_phaseName = PHASE_2_STRING;
+        //LPINFO("PHASE2 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase2();
         if(m_outgoingIndex == -1){
             throw OptimalException("OPTIMAL SOLUTION found!");
@@ -130,10 +288,10 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //    LPINFO("m_reducedCosts: "<<m_reducedCosts);
 //    LPINFO("m_basisHead: "<<m_basisHead);
 //    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
-    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
+//    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
 //    LPINFO("transformedRow: "<<alpha);
-    LPINFO("PHASE I OBJ VAL: "<< setw(19) << setprecision(10) << scientific << m_phaseIObjectiveValue);
-    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
+//    LPINFO("PHASE I OBJ VAL: "<< setw(19) << setprecision(10) << scientific << m_phaseIObjectiveValue);
+//    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
 
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
@@ -145,13 +303,18 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 
 void DualSimplex::update()throw (NumericalException) {
 
-    LPINFO("incomingIndex: "<<m_incomingIndex);
-    LPINFO("outgoingIndex: "<<m_outgoingIndex);
+  //  LPINFO("incomingIndex: "<<m_incomingIndex);
+  //  LPINFO("outgoingIndex: "<<m_outgoingIndex);
     if(m_incomingIndex != -1){
-        LPINFO("primalReducedCost: " << m_reducedCosts.at(m_incomingIndex));
+        //LPINFO("primalReducedCost: " << m_reducedCosts.at(m_incomingIndex));
+        m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
+    } else {
+        m_primalReducedCost = std::numeric_limits<double>::signaling_NaN();
     }
-    LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
-    LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
+    //LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
+    //LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
+    m_primalTheta = m_ratiotest->getPrimalSteplength();
+    m_dualTheta = m_ratiotest->getDualSteplength();
 //LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
     transform(m_incomingIndex, m_outgoingIndex, m_ratiotest->getBoundflips(), m_ratiotest->getPrimalSteplength());
 //    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);

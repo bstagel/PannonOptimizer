@@ -14,6 +14,8 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
+const static char * ITERATION_INDEX_NAME = "iteration";
+
 Simplex::Simplex():
     m_simplexModel(NULL),
     m_variableStates(0,0),
@@ -25,7 +27,8 @@ Simplex::Simplex():
     m_phaseIObjectiveValue(0),
     m_baseChanged(false),
     m_startingBasisFinder(NULL),
-    m_basis(NULL)
+    m_basis(NULL),
+    m_iterationIndex(0)
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
@@ -38,6 +41,72 @@ Simplex::~Simplex() {
         delete m_simplexModel;
         m_simplexModel = 0;
     }
+}
+
+std::vector<IterationReportField> Simplex::getIterationReportFields(
+        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    std::vector<IterationReportField> result;
+
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+    {
+        IterationReportField iterationField(ITERATION_INDEX_NAME, 10, 2, IterationReportField::IRF_CENTER,
+                                    IterationReportField::IRF_INT, *this);
+        result.push_back(iterationField);
+    }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+
+    return result;
+}
+
+std::string Simplex::getIterationReportString(const std::string & name,
+                                                      enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    __UNUSED(name);
+    __UNUSED(type);
+    return std::string("");
+}
+
+int Simplex::getIterationReportInteger(const std::string & name,
+                                       enum ITERATION_REPORT_FIELD_TYPE & type) const {
+
+    switch (type) {
+    case IterationReportProvider::IRF_START:
+        break;
+
+    case IterationReportProvider::IRF_ITERATION:
+        if (name == ITERATION_INDEX_NAME) {
+            return m_iterationIndex;
+        }
+        break;
+
+    case IterationReportProvider::IRF_SOLUTION:
+        break;
+
+    }
+
+    return 0;
+}
+
+double Simplex::getIterationReportFloat(const std::string & name,
+                                        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    __UNUSED(name);
+    __UNUSED(type);
+    return 0.0;
+}
+
+bool Simplex::getIterationReportBool(const std::string & name,
+                                     enum ITERATION_REPORT_FIELD_TYPE & type) const {
+    __UNUSED(name);
+    __UNUSED(type);
+    return false;
 }
 
 void Simplex::setModel(const Model &model) {
@@ -122,10 +191,16 @@ void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool r
     }
 }
 
+void Simplex::registerIntoIterationReport(const IterationReportProvider & provider) {
+    m_iterationReport.addProviderForStart(provider);
+    m_iterationReport.addProviderForIteration(provider);
+    m_iterationReport.addProviderForSolution(provider);
+}
+
 void Simplex::solve() {
     initModules();
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
-    unsigned int iterationIndex;
+
     const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
     const double timeLimit = simplexParameters.getParameterValue("time_limit");
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
@@ -133,6 +208,15 @@ void Simplex::solve() {
     unsigned int reinversionFrequency = simplexParameters.getParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     Timer timer;
+
+//    registerIntoIterationReport(*this);
+    m_iterationReport.addProviderForStart(*this);
+    m_iterationReport.addProviderForIteration(*this);
+    m_iterationReport.addProviderForSolution(*this);
+
+
+    m_iterationReport.createStartReport();
+    m_iterationReport.writeStartReport();
 
     //loadBasis("basis.bas", new BasisHeadBAS, true);
 
@@ -147,8 +231,8 @@ void Simplex::solve() {
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
 
-        for (iterationIndex = 0;iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; iterationIndex++) {
-            LPINFO("\n    Iteration: "<<iterationIndex);
+        for (m_iterationIndex = 0; m_iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; m_iterationIndex++) {
+            //LPINFO("\n    Iteration: "<<iterationIndex);
 
             // ITTEN MENTJUK KI A BAZIST:
             saveBasis("basis.bas", new BasisHeadBAS, true);
@@ -157,28 +241,28 @@ void Simplex::solve() {
                 reinversionCounter = 0;
                 LPINFO("reinvert");
                 reinvert();
-//                LPINFO("computeBasicSolution");
+                //                LPINFO("computeBasicSolution");
                 computeBasicSolution();
-//                LPINFO("computeReducedCosts");
+                //                LPINFO("computeReducedCosts");
                 computeReducedCosts();
-//                LPINFO("computeFeasibility");
+                //                LPINFO("computeFeasibility");
                 computeFeasibility();
             }
             try{
-//                LPINFO("checkFeasibility");
+                //                LPINFO("checkFeasibility");
                 checkFeasibility();
-//                LPINFO("price");
+                //                LPINFO("price");
                 price();
-//                LPINFO("selectPivot");
+                //                LPINFO("selectPivot");
                 selectPivot();
-//                LPINFO("update");
+                //                LPINFO("update");
                 reinversionCounter++;
                 if(reinversionCounter < reinversionFrequency){
                     update();
                 }
             }
             catch ( const OptimalException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -187,7 +271,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const PrimalInfeasibleException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -195,7 +279,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const DualInfeasibleException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -203,7 +287,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const PrimalUnboundedException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -211,7 +295,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const DualUnboundedException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 if(reinversionCounter == 0){
                     throw exception;
                 } else {
@@ -219,7 +303,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const NumericalException & exception ) {
-                   //Check the result with triggering reinversion
+                //Check the result with triggering reinversion
                 LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! ");
                 if(reinversionCounter == 0){
                     throw exception;
@@ -227,8 +311,13 @@ void Simplex::solve() {
                     reinversionCounter = reinversionFrequency;
                 }
             }
+            m_iterationReport.createIterationReport();
+            m_iterationReport.writeIterationReport();
         }
+        // TODO: ez a stop sosem fog vegrehajtodni, ha
+        // akarmilyen exceptionnel lepunk ki!
         timer.stop();
+
 
     } catch ( const OptimalException & exception ) {
         LPINFO("OPTIMAL SOLUTION found! ");
@@ -353,7 +442,7 @@ void Simplex::computeBasicSolution() throw (NumericalException) {
         }
     }
 
-//    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
+    //    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
     m_basis->Ftran(m_basicVariableValues);
 
     m_variableStates.getIterators(&it, &itend, Simplex::BASIC);
@@ -386,11 +475,10 @@ void Simplex::computeReducedCosts() throw (NumericalException) {
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
-            reducedCost = costVector.at(i) - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
+            reducedCost = Numerical::stableSub(costVector.at(i), simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
         } else {
             reducedCost = -1 * simplexMultiplier.at(i - columnCount);
         }
-        //TODO: A redukalt koltsegek numerikus szemetek lesznek. (pl. adlittle.mps 30. iteracio korul
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
@@ -403,7 +491,7 @@ void Simplex::transform(int incomingIndex,
                         Numerical::Double primalTheta) {
 
     //Todo update the solution properly
-//    Numerical::Double boundflipTheta = 0.0;
+    //    Numerical::Double boundflipTheta = 0.0;
     std::vector<unsigned int>::const_iterator it = boundflips.begin();
     std::vector<unsigned int>::const_iterator itend = boundflips.end();
     //TODO Atgondolni hogy mit mikor kell ujraszamolni
