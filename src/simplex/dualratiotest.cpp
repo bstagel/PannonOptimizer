@@ -78,7 +78,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue)
                                            throw (NumericalException){
-    LPINFO("PHASE1 RATIO TEST");
+    //LPINFO("PHASE1 RATIO TEST");
     //TODO: AZ updatevector szamitasa hibas.
     m_dualRatiotestUpdater.m_updateVector.clear();
     //BUG FIXED
@@ -428,7 +428,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                            const Vector& alpha,
                                            Numerical::Double objectiveFunction)
                                            throw (DualUnboundedException, NumericalException){
-    LPINFO("PHASE2 RATIO TEST");
+    //LPINFO("PHASE2 RATIO TEST");
     std::vector<BreakPoint> breakpoints;
     Numerical::Double functionSlope = 0;
     Numerical::Double previousSlope = 0;

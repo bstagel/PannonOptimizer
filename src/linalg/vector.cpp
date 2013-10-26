@@ -744,7 +744,6 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
                 index2++;
             }
         }
-
         return Numerical::stableAdd(negative, positive);
 
     }

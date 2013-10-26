@@ -13,13 +13,15 @@
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
 #include <simplex/simplexstates.h>
+#include <utils/iterationreport.h>
+#include <utils/iterationreportprovider.h>
 //#include <simplex/basisheadio.h>
 
 class StartingBasisFinder;
 class Basis;
 class BasisHeadIO;
 
-class Simplex : public Method
+class Simplex : public Method, public IterationReportProvider
 {
     friend class BasisHeadIO;
 public:
@@ -63,6 +65,21 @@ public:
 
     void loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
 
+    // Interface of the iteration report provider
+    std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    std::string getIterationReportString(const std::string & name,
+                                                 enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    int getIterationReportInteger(const std::string & name,
+                                  enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    double getIterationReportFloat(const std::string & name,
+                                   enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    bool getIterationReportBool(const std::string & name,
+                                enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
 protected:
     SimplexModel * m_simplexModel;
 
@@ -81,6 +98,8 @@ protected:
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
     Basis* m_basis;
+
+    IterationReport m_iterationReport;
 
     void constraintAdded();
     void variableAdded();
@@ -101,6 +120,11 @@ protected:
                    int outgoingIndex,
                    const std::vector<unsigned int>& boundflips,
                    Numerical::Double primalTheta);
+
+    void registerIntoIterationReport(const IterationReportProvider & provider);
+
+private:
+    unsigned int m_iterationIndex;
 };
 
 #endif /* SIMPLEX_H */

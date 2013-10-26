@@ -14,6 +14,8 @@
 #include <simplex/dualfeasibilitychecker.h>
 #include <simplex/dualratiotest.h>
 #include <simplex/dualratiotestupdater.h>
+#include <utils/iterationreportprovider.h>
+#include <utils/iterationreport.h>
 
 class DualSimplex: public Simplex
 {
@@ -32,6 +34,11 @@ private:
     bool m_feasible;
     int m_incomingIndex;
     int m_outgoingIndex;
+    Numerical::Double m_primalReducedCost;
+    Numerical::Double m_primalTheta;
+    Numerical::Double m_dualTheta;
+
+    const char * m_phaseName;
 
     void initModules();
     void releaseModules();
@@ -43,6 +50,25 @@ private:
     virtual void update()throw (NumericalException);
 
     void computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw (NumericalException);
+
+    void registerIntoIterationReport(IterationReport * iterationReport) const;
+
+    // Interface of the iteration report provider:
+    std::vector<IterationReportField> getIterationReportFields(
+            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    std::string getIterationReportString( const std::string & name,
+            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    int getIterationReportInteger(const std::string & name,
+            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    double getIterationReportFloat(const std::string & name,
+            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    bool getIterationReportBool(const std::string & name,
+            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
 };
 
 #endif /* DUALSIMPLEX_H */
