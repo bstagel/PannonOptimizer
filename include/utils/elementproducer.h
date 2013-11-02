@@ -8,6 +8,9 @@
 
 #include <globals.h>
 
+/**
+ *
+ */
 template <class T, int N>
 class ElementProducer
 {
@@ -124,11 +127,8 @@ public:
             return m_head->m_elements;
         } else {
             if (m_actual->m_index >= N) {
-                //std::cout<<"uj lista lefoglalasa"<<std::endl;
-                //cin.get();
-                m_actual->m_next = new ElementList; // (ElementList*) malloc(sizeof (ElementList));
+                m_actual->m_next = new ElementList;
                 m_actual = m_actual->m_next;
-                //memset(hkp._actual->_keys, 0, MPS_KEY_SIZE * KEY_COUNT);
                 m_actual->m_index = 0;
                 m_actual->m_next = 0;
             }
