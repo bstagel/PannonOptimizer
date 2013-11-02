@@ -31,6 +31,11 @@
     _CONTAINER_TYPE::const_iterator CONCAT(_ITERATOR, End) = _CONTAINER.end(); \
     for (; _ITERATOR != CONCAT(_ITERATOR, End); _ITERATOR++)
 
+#define STL_FOREACH_MODIFY(_CONTAINER_TYPE, _CONTAINER, _ITERATOR) \
+    _CONTAINER_TYPE::iterator _ITERATOR = _CONTAINER.begin(); \
+    _CONTAINER_TYPE::iterator CONCAT(_ITERATOR, End) = _CONTAINER.end(); \
+    for (; _ITERATOR != CONCAT(_ITERATOR, End); _ITERATOR++)
+
 extern const double ZERO;
 extern const double INVALID;
 

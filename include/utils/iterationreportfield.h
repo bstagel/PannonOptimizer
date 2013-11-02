@@ -39,7 +39,7 @@ public:
         m_debugLevel(debugLevel),
         m_align(align),
         m_type(type),
-        m_provider(provider),
+        m_provider(&provider),
         m_precision(precision),
         m_floatFormat(floatFormat)
     {
@@ -67,7 +67,7 @@ public:
     }
 
     const IterationReportProvider & getProvider() const {
-        return m_provider;
+        return *m_provider;
     }
 
     int getPrecision() const {
@@ -85,7 +85,7 @@ private:
     unsigned int m_debugLevel;
     ITERATION_REPORT_FIELD_ALIGNMENT m_align;
     ITERATION_REPORT_FIELD_TYPE m_type;
-    const IterationReportProvider & m_provider;
+    const IterationReportProvider * m_provider;
     int m_precision;
     ITERATION_REPORT_FLOAT_FORMAT m_floatFormat;
 };
