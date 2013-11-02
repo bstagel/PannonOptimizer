@@ -13,6 +13,10 @@ public:
 
     IterationReport();
 
+    IterationReport(const IterationReport & orig);
+
+    IterationReport & operator=(const IterationReport & orig);
+
     virtual ~IterationReport();
 
     void addProviderForIteration(const IterationReportProvider & provider);
@@ -23,15 +27,15 @@ public:
 
     void createStartReport();
 
-    void writeStartReport();
+    void writeStartReport() const;
 
     void createIterationReport();
 
-    void writeIterationReport();
+    void writeIterationReport() const;
 
     void createSolutionReport();
 
-    void writeSolutionReport();
+    void writeSolutionReport() const;
 
 private:
 
@@ -57,6 +61,20 @@ private:
     void addFields(const IterationReportProvider & provider,
                     std::vector<IterationReportField> * fields,
                     enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type);
+
+    void getRow(const std::vector<IterationReportField> & fields,
+                std::vector< Entry > * row,
+                IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
+
+    void writeSimpleTable(const std::vector<IterationReportField> & fields,
+                          const std::vector< Entry > & row,
+                          IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
+
+    std::string getContent(const Entry & entry, const IterationReportField & field) const;
+
+    void copy(const IterationReport & orig);
+
+    void clear();
 };
 
 #endif // ITERATIONREPORT_H
