@@ -28,6 +28,7 @@ const double DefaultParameters::PIVOT_THRESHOLD = 0.01;
 //Pricing
 const double DefaultParameters::PRICING_TYPE = 0.0;
 //Ratiotest
+const double DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1.0;
 const double DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 1.0;
 const double DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 1.0;
 //Global

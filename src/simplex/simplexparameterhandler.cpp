@@ -107,6 +107,9 @@ void SimplexParameterHandler::writeParameterFile()
         out << std::fixed << std::endl;
         out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
 
+        out << "! Use the piecewise linear concave function in primal phase I." << std::endl;
+        out << "\t" << "nonlinear_primal_phaseI_function = " << m_values["nonlinear_primal_phaseI_function"].getValue() << std::endl;
+
         out << "! Use the piecewise linear concave function in dual phase I." << std::endl;
         out << "\t" << "nonlinear_dual_phaseI_function = " << m_values["nonlinear_dual_phaseI_function"].getValue() << std::endl;
         out << "! Use the piecewise linear concave function in dual phase II." << std::endl;
@@ -161,6 +164,8 @@ void SimplexParameterHandler::initParameters()
     m_values["pricing_type"] = Parameter("pricing_type", DefaultParameters::PRICING_TYPE);
 
     //Ratiotest
+    m_values["nonlinear_primal_phaseI_function"] = Parameter("nonlinear_primal_phaseI_function",
+                                                           DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION);
     m_values["nonlinear_dual_phaseI_function"] = Parameter("nonlinear_dual_phaseI_function",
                                                            DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
     m_values["nonlinear_dual_phaseII_function"] = Parameter("nonlinear_dual_phaseII_function",

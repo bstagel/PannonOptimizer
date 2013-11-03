@@ -33,6 +33,7 @@ public:
     //Pricing
     static const double PRICING_TYPE;
     //Ratiotest
+    static const double NONLINEAR_PRIMAL_PHASEI_FUNCTION;
     static const double NONLINEAR_DUAL_PHASEI_FUNCTION;
     static const double NONLINEAR_DUAL_PHASEII_FUNCTION;
     //Global
