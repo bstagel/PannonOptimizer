@@ -8,10 +8,9 @@ static const Numerical::Double feasibilityTolerance =
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
                                                    IndexList<const Numerical::Double *> * variableStates,
                                                    IndexList<> * variableFeasibilities,
-                                                   Numerical::Double * phaseIReducedcost,
                                                    Numerical::Double * phaseIObjectiveValue):
     m_model(model),m_variableStates(variableStates),m_variableFeasibilities(variableFeasibilities),
-    m_phaseIReducedcost(phaseIReducedcost),m_phaseIObjectiveValue(phaseIObjectiveValue)
+    m_phaseIObjectiveValue(phaseIObjectiveValue)
 {
 
 }
@@ -47,7 +46,9 @@ void PrimalFeasibilityChecker::computeFeasibilities(){
     Numerical::Double ubOfIthVariable = 0;
     Numerical::Double valueOfIthVariable = 0;
 
-    for(unsigned int variableIndex = 0; variableIndex < m_model.getColumnCount(); variableIndex++){
+  //TODO: bejárás nem hatékony
+    for(unsigned int variableIndex = 0; variableIndex <
+        (m_model.getColumnCount() + m_model.getRowCount()); variableIndex++){
         if (m_variableStates->where(variableIndex) == Simplex::BASIC) {
             lbOfIthVariable = m_model.getVariable(variableIndex).getLowerBound();
             ubOfIthVariable = m_model.getVariable(variableIndex).getUpperBound();

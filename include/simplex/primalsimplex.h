@@ -24,6 +24,10 @@ private:
 
     PrimalUpdater * m_updater;
 
+    PrimalFeasibilityChecker * m_feasibilityChecker;
+
+    bool m_feasible;
+
     void initModules();
     void releaseModules();
 

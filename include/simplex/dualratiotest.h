@@ -42,9 +42,9 @@ public:
 
     inline Numerical::Double getDualSteplength()const{return m_dualSteplength;}
 
-    inline Numerical::Double getObjectiveFunctionPhase1()const{return m_objectiveFunctionPhase1;}
+    inline Numerical::Double getObjectiveFunctionPhase1()const{return m_phaseIObjectiveValue;}
 
-    inline Numerical::Double getObjectiveFunctionPhase2()const{return m_objectiveFunctionPhase2;}
+    inline Numerical::Double getObjectiveFunctionPhase2()const{return m_phaseIIObjectiveValue;}
 
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
@@ -69,10 +69,9 @@ private:
     int m_incomingVariableIndex;
     Numerical::Double m_dualSteplength;
     Numerical::Double m_primalSteplength;
-    Numerical::Double m_objectiveFunctionPhase1;
-    Numerical::Double m_objectiveFunctionPhase2;
+    Numerical::Double m_phaseIObjectiveValue;
+    Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
-    std::vector <BreakPoint> breakpoints;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
