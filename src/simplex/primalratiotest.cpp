@@ -155,19 +155,15 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
             variableIndex = m_basishead.at(basisIndex);
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
           //F->P
-            if (alpha.at(basisIndex) < 0 && (
-                (typeOfIthVariable == Variable::MINUS) ||
-                (typeOfIthVariable == Variable::FIXED) ||
-                (typeOfIthVariable == Variable::BOUNDED) )) {
+            if (alpha.at(basisIndex) < 0 &&
+                    m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
                     currentRatio.index = variableIndex;
                     currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
                     breakpoints.push_back(currentRatio);
           //F->M
-            } else if (alpha.at(basisIndex) > 0 && (
-                        (typeOfIthVariable == Variable::PLUS) ||
-                        (typeOfIthVariable == Variable::FIXED) ||
-                        (typeOfIthVariable == Variable::BOUNDED) )) {
+            } else if (alpha.at(basisIndex) > 0 &&
+                       m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
                     currentRatio.index = variableIndex;
                     currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
@@ -226,19 +222,15 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
                 variableIndex = m_basishead.at(basisIndex);
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
               //F->P
-                if (alpha.at(basisIndex) > 0 && (
-                    (typeOfIthVariable == Variable::MINUS) ||
-                    (typeOfIthVariable == Variable::FIXED) ||
-                    (typeOfIthVariable == Variable::BOUNDED) )) {
+                if (alpha.at(basisIndex) > 0 &&
+                        m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
                         currentRatio.index = variableIndex;
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         breakpoints.push_back(currentRatio);
               //F->M
-                } else if (alpha.at(basisIndex) < 0 && (
-                            (typeOfIthVariable == Variable::PLUS) ||
-                            (typeOfIthVariable == Variable::FIXED) ||
-                            (typeOfIthVariable == Variable::BOUNDED) )) {
+                } else if (alpha.at(basisIndex) < 0 &&
+                           m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
                         currentRatio.index = variableIndex;
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
@@ -303,7 +295,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
             m_primalSteplength = breakpoints[length-1-iterationCounter].value;
 
-            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex);
+            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex) / alpha.at(m_outgoingVariableIndex);
 
       //boundflip
         } else {
@@ -311,7 +303,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
             m_outgoingVariableIndex = -1;
 
-            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex);
+            m_dualSteplength = 0;
 
             m_primalSteplength = breakpoints[length-1-iterationCounter].value -
                     Numerical::fabs(m_model.getVariable(incomingVariableIndex).getUpperBound()-
@@ -403,7 +395,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
 
             m_primalSteplength = breakpoints.at(length-1).value;
 
-            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex);
+            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex) / alpha.at(m_outgoingVariableIndex);
       //boundflip
         } else {
             m_boundflips.at(incomingVariableIndex) = 1;
@@ -413,7 +405,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
             m_primalSteplength = (m_model.getVariable(incomingVariableIndex).getUpperBound() -
                                   m_model.getVariable(incomingVariableIndex).getLowerBound());
 
-            m_dualSteplength = m_reducedcosts.at(incomingVariableIndex);
+            m_dualSteplength = 0;
         }
   //no breakpoints found
     } else{

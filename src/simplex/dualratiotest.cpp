@@ -159,9 +159,11 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
             for (; it!=endit; it++){
                 variableIndex = it.getData();
                 typeOfIthVariable = m_model.getVariable(variableIndex).getType();
-                currentRatio.index = variableIndex;
-                currentRatio.value = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
-                currentRatio.functionValue = 0;
+                if ( alpha.at(variableIndex) != 0 ) {
+                    currentRatio.index = variableIndex;
+                    currentRatio.value = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+                    currentRatio.functionValue = 0;
+                }
 
         //min problem
 
@@ -247,9 +249,11 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                 for (; it!=endit; it++) {
                     variableIndex = it.getData();
                     typeOfIthVariable = m_model.getVariable(variableIndex).getType();
-                    currentRatio.index = variableIndex;
-                    currentRatio.value = Numerical::fabs(m_reducedCosts.at(variableIndex) / alpha.at(variableIndex));
-                    currentRatio.functionValue = 0;
+                    if (alpha.at(variableIndex) != 0 ) {
+                        currentRatio.index = variableIndex;
+                        currentRatio.value = Numerical::fabs(m_reducedCosts.at(variableIndex) / alpha.at(variableIndex));
+                        currentRatio.functionValue = 0;
+                    }
 
         //min problem
 
