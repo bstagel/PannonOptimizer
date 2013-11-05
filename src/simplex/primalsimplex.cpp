@@ -29,6 +29,7 @@ void PrimalSimplex::initModules() {
     m_pricing = pricingFactory->createPrimalPricing();
     m_ratiotest = new PrimalRatiotest(*m_simplexModel,
                                       m_basicVariableValues,
+                                      m_basisHead,
                                       m_variableFeasibilities,
                                       m_variableStates,
                                       m_reducedCosts);

@@ -98,7 +98,7 @@ void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
                                  IndexList<const Numerical::Double*> * variableStates) {
     basisHead->resize(basisHead->size(), -1);
     variableStates->init( m_hashTable.getCount(), Simplex::VARIABLE_STATE_ENUM_LENGTH );
-    int index;
+    unsigned int index;
     for (index = 0; index < m_hashTable.getCount(); index++) {
         variableStates->insert( Simplex::NONBASIC_FREE, index );
     }
