@@ -75,6 +75,9 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 //    m_primalRatiotestUpdater.m_updateVector.clear();
 //    m_primalRatiotestUpdater.m_updateVector.reserve(
 //                m_model.getColumnCount() + m_model.getRowCount());
+    #ifdef NDEBUG
+    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
+    #endif
 
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     m_phaseIObjectiveValue = phaseIObjectiveValue;
@@ -275,7 +278,6 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
                 breakpoints.at(length-1-iterationCounter).functionValue = m_phaseIObjectiveValue;
               //ratio defined by the bound of the incoming variable
               //TODO: nem hatékony
-              //TODO: .at() fv bejárás sparse vector esetében-> nem hatékony
                 if (breakpoints.at(length-1-iterationCounter).index == -1 ) {
                     functionSlope--;
                 } else{
@@ -318,6 +320,10 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
 void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                                              const Vector &alpha){
+    #ifdef NDEBUG
+    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
+    #endif
+
     BreakPoint currentBreakpoint;
     std::vector<BreakPoint> breakpoints;
     breakpoints.reserve(alpha.length()*2);

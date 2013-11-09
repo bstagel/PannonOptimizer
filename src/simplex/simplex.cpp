@@ -142,7 +142,6 @@ void Simplex::variableAdded()
 }
 
 void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
-
     basisWriter->startWrting(fileName);
     int variableIndex;
     unsigned int position = 0;
@@ -171,6 +170,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     }
 
     basisWriter->finishWriting();
+
     if (releaseWriter == true) {
         delete basisWriter;
     }
@@ -199,6 +199,7 @@ void Simplex::registerIntoIterationReport(const IterationReportProvider & provid
 
 void Simplex::solve() {
     initModules();
+
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
@@ -230,9 +231,8 @@ void Simplex::solve() {
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
-
         for (m_iterationIndex = 0; m_iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; m_iterationIndex++) {
-            //LPINFO("\n    Iteration: "<<iterationIndex);
+            //LPINFO("\n    Iteration: "<<m_iterationIndex);
 
             // ITTEN MENTJUK KI A BAZIST:
             saveBasis("basis.bas", new BasisHeadBAS, true);
@@ -317,7 +317,6 @@ void Simplex::solve() {
         // TODO: ez a stop sosem fog vegrehajtodni, ha
         // akarmilyen exceptionnel lepunk ki!
         timer.stop();
-
 
     } catch ( const OptimalException & exception ) {
         LPINFO("OPTIMAL SOLUTION found! ");
