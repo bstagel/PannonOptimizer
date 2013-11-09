@@ -22,7 +22,6 @@ int main(int argc, char** argv)
     LPINFO("variable "<<model.getVariable(15));
 
     simplex->setModel(model);
-
     simplex->solve();
 
     //Release

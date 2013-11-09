@@ -44,6 +44,7 @@ void BasisHeadBAS::finishWriting() {
     m_outputFile << "NAME          " << m_info << std::endl;
 
     unsigned int nonbasicIndex = 0;
+
     STL_FOREACH(std::vector<BasicVariable>, m_basicVariables, basicIter) {
         m_outputFile << " ";
         if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ) {
@@ -54,6 +55,9 @@ void BasisHeadBAS::finishWriting() {
                             basicIter->m_variable.getName() << "  ";
         } else {
             // TODO: exception
+            LPERROR("finishWriting():\n"<<
+                    "nonbasicIndex: "<<nonbasicIndex<<"\n"
+                    "m_nonBasicVariables[nonbasicIndex].m_state: BASIC\n");
         }
         m_outputFile << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
                         m_nonBasicVariables[nonbasicIndex].m_variable.getName() << std::endl;
