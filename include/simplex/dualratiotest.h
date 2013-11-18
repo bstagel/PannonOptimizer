@@ -15,6 +15,7 @@
 class Model;
 
 class DualRatiotest{
+    friend class DualRatiotestTestSuite;
 
     struct BreakPoint{
         int index;
@@ -48,6 +49,14 @@ public:
 
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
+    void generateBreakpointsPhase1(const Vector& alpha,
+                                   Numerical::Double phaseIReducedCost,
+                                   Numerical::Double phaseIObjectiveValue);
+
+    void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
+                                   const Vector& alpha,
+                                   Numerical::Double phaseIIObjectiveValue);
+
     void performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
@@ -56,7 +65,7 @@ public:
 
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
-                                Numerical::Double objectiveFunction)
+                                Numerical::Double phaseIIObjectiveValue)
                                 throw (NumericalException, DualUnboundedException);
 
 private:
@@ -64,6 +73,8 @@ private:
     const Vector& m_reducedCosts;
     const IndexList<>& m_reducedCostFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
+    bool m_tPositive;
+    bool m_transform;
 
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     int m_incomingVariableIndex;
@@ -72,6 +83,7 @@ private:
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
+    std::vector <BreakPoint> m_breakpoints;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);

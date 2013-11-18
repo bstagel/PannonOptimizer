@@ -19,6 +19,7 @@
 class Model : public AbstractModel
 {
     friend class ModelTestSuite;
+    friend class DualRatiotestTestSuite;
 public:
 
     Model();

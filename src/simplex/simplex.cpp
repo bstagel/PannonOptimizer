@@ -494,8 +494,9 @@ void Simplex::transform(int incomingIndex,
     std::vector<unsigned int>::const_iterator it = boundflips.begin();
     std::vector<unsigned int>::const_iterator itend = boundflips.end();
     //TODO Atgondolni hogy mit mikor kell ujraszamolni
+
     for(; it < itend; it++){
-        LPWARNING("BOUNDFLIPPING");
+        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
         Vector alpha = m_simplexModel->getMatrix().column(*it);

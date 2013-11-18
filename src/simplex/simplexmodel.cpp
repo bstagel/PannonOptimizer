@@ -14,13 +14,13 @@ SimplexModel::SimplexModel(const Model & model):
 void SimplexModel::makeComputationalForm()
 {
 
-
     unsigned int i;
 
     const Matrix & matrix = getMatrix();
     const std::vector<Constraint> & constraints = getConstraints();
 
     const unsigned int rowCount = matrix.rowCount();
+
 //    const unsigned int columnCount = matrix.columnCount();
 //    const unsigned int variablesSize = rowCount + columnCount;
 

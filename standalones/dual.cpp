@@ -13,7 +13,7 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    //Init
+     //Init
     Simplex* simplex = new DualSimplex();
     Model model;
     MpsModelBuilder builder;

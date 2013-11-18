@@ -12,8 +12,7 @@
 #include <framework/unittest.h>
 #include <lp/constraint.h>
 
-class ConstraintTestSuite : public UnitTest
-{
+class ConstraintTestSuite : public UnitTest{
 public:
 
     ConstraintTestSuite(const char * name);
