@@ -54,7 +54,7 @@ void DualFeasibilityChecker::computeFeasibility(){
     Variable::VARIABLE_TYPE typeOfIthVariable;
     OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
 
-    for(unsigned int variableIndex = 0; variableIndex<m_reducedCosts.length(); variableIndex++){
+    for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         //TODO: Mi a helyzet a bazisvaltozokkal?...
         if (m_variableStates->where(variableIndex) != Simplex::BASIC) {
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
