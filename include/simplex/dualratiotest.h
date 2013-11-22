@@ -27,6 +27,9 @@ class DualRatiotest{
             os << "(" << breakpoint.index << "; " << breakpoint.value << "; " << breakpoint.functionValue << ")";
             return os;
         }
+        bool operator !=(const BreakPoint& other){
+            return !( (other.index==index)&&(other.value==value)&&(other.functionValue==functionValue) );
+        }
     };
 
 public:
@@ -48,14 +51,6 @@ public:
     inline Numerical::Double getObjectiveFunctionPhase2()const{return m_phaseIIObjectiveValue;}
 
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
-
-    void generateBreakpointsPhase1(const Vector& alpha,
-                                   Numerical::Double phaseIReducedCost,
-                                   Numerical::Double phaseIObjectiveValue);
-
-    void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
-                                   const Vector& alpha,
-                                   Numerical::Double phaseIIObjectiveValue);
 
     void performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
@@ -87,6 +82,12 @@ private:
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
+    void generateBreakpointsPhase1(const Vector& alpha,
+                                   Numerical::Double phaseIReducedCost,
+                                   Numerical::Double phaseIObjectiveValue);
 
+    void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
+                                   const Vector& alpha,
+                                   Numerical::Double phaseIIObjectiveValue);
 };
 #endif // DUAL_RATIOTEST_H
