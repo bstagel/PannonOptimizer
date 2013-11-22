@@ -293,13 +293,10 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue)
                                            throw (NumericalException){
-
     generateBreakpointsPhase1(alpha,phaseIReducedCost,phaseIObjectiveValue);
 
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     Variable::VARIABLE_TYPE typeOfIthVariable;
-//dual steplength, incoming variable
-
     unsigned int iterationCounter = 0,length = m_breakpoints.size();
 
     //Init the heap with the breakpoint at 0
@@ -311,13 +308,11 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
         switch (num) {
       //using traditional one step method
           case 0:
-            //TODO: KEZELNI KELL HA NINCS TORESPONT
             iterationCounter++;
             getNextElement(&m_breakpoints,length-1);
             m_phaseIObjectiveValue += functionSlope * (m_breakpoints[length-1].value -
                     m_breakpoints[length].value);
             m_breakpoints[length-1].functionValue = m_phaseIObjectiveValue;
-            //TODO: Ez itt nem length-1?
           break;
       //using piecewise linear function
           case 1:
@@ -337,7 +332,7 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
         //determining primal steplength
 
             valueOfOutgoingVariable = *(m_variableStates.getAttachedData(outgoingVariableIndex));
-//TODO:mivel osztjuk el? milyen alfa???
+
             if(m_incomingVariableIndex != -1){
                 if (typeOfIthVariable == Variable::FIXED) {
                     m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
