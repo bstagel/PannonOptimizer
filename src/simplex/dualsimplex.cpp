@@ -92,88 +92,45 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     return result;
 }
 
-std::string DualSimplex::getIterationReportString( const std::string & name,
-        enum ITERATION_REPORT_FIELD_TYPE & type) const {
+ReportEntry DualSimplex::getIterationReportEntry(const string &name,
+                                                         ITERATION_REPORT_FIELD_TYPE &type) const {
+    ReportEntry reply;
+    reply.m_integer = 0;
+
     switch (type) {
     case IterationReportProvider::IRF_START:
         break;
 
     case IterationReportProvider::IRF_ITERATION:
         if (name == PHASE_NAME) {
-            return m_phaseName;
-        }
-        break;
-
-    case IterationReportProvider::IRF_SOLUTION:
-        break;
-
-    }
-    return Simplex::getIterationReportString(name, type);
-}
-
-int DualSimplex::getIterationReportInteger(const std::string & name,
-        enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    switch (type) {
-    case IterationReportProvider::IRF_START:
-        break;
-
-    case IterationReportProvider::IRF_ITERATION:
-        if (name == INCOMING_NAME) {
-            return m_incomingIndex;
+            reply.m_string = new std::string(m_phaseName);
+        } else if (name == INCOMING_NAME) {
+            reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {
-            return m_outgoingIndex;
-        }
-        break;
-
-    case IterationReportProvider::IRF_SOLUTION:
-        break;
-
-    }
-    return Simplex::getIterationReportInteger(name, type);
-}
-
-double DualSimplex::getIterationReportFloat(const std::string & name,
-        enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    switch (type) {
-    case IterationReportProvider::IRF_START:
-        break;
-
-    case IterationReportProvider::IRF_ITERATION:
-        if (name == PHASE_1_OBJ_VAL_STRING) {
-            return m_phaseIObjectiveValue;
+            reply.m_integer = m_outgoingIndex;
+        } else if (name == PHASE_1_OBJ_VAL_STRING) {
+            reply.m_float = m_phaseIObjectiveValue;
         } else if (name == OBJ_VAL_STRING) {
-            return m_objectiveValue;
+            reply.m_float = m_objectiveValue;
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
-            return m_primalReducedCost;
+            reply.m_float = m_primalReducedCost;
         } else if (name == PRIMAL_THETA_STRING) {
-            return m_primalTheta;
+            reply.m_float = m_primalTheta;
         } else if (name == DUAL_THETA_STRING) {
-            return m_dualTheta;
+            reply.m_float = m_dualTheta;
+        } else {
+            break;
         }
-        break;
+        return reply;
 
     case IterationReportProvider::IRF_SOLUTION:
         break;
 
     }
-    return Simplex::getIterationReportFloat(name, type);
+
+    return Simplex::getIterationReportEntry(name, type);
 }
 
-bool DualSimplex::getIterationReportBool(const std::string & name,
-        enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    switch (type) {
-    case IterationReportProvider::IRF_START:
-        break;
-
-    case IterationReportProvider::IRF_ITERATION:
-        break;
-
-    case IterationReportProvider::IRF_SOLUTION:
-        break;
-
-    }
-    return Simplex::getIterationReportBool(name, type);    return false;
-}
 
 void DualSimplex::initModules() {
     Simplex::initModules();

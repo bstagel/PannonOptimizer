@@ -1,6 +1,5 @@
 /**
  * @file   dualdantzigpricingfactory.h
- * Author: smidla
  */
 
 #ifndef DUALDANTZIGPRICINGFACTORY_H

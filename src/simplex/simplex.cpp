@@ -67,23 +67,17 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     return result;
 }
 
-std::string Simplex::getIterationReportString(const std::string & name,
-                                                      enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    __UNUSED(name);
-    __UNUSED(type);
-    return std::string("");
-}
-
-int Simplex::getIterationReportInteger(const std::string & name,
-                                       enum ITERATION_REPORT_FIELD_TYPE & type) const {
-
+ReportEntry Simplex::getIterationReportEntry(const string &name,
+                                                     ITERATION_REPORT_FIELD_TYPE &type) const {
+    ReportEntry reply;
+    reply.m_integer = 0;
     switch (type) {
     case IterationReportProvider::IRF_START:
         break;
 
     case IterationReportProvider::IRF_ITERATION:
         if (name == ITERATION_INDEX_NAME) {
-            return m_iterationIndex;
+            reply.m_integer = m_iterationIndex;
         }
         break;
 
@@ -92,21 +86,7 @@ int Simplex::getIterationReportInteger(const std::string & name,
 
     }
 
-    return 0;
-}
-
-double Simplex::getIterationReportFloat(const std::string & name,
-                                        enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    __UNUSED(name);
-    __UNUSED(type);
-    return 0.0;
-}
-
-bool Simplex::getIterationReportBool(const std::string & name,
-                                     enum ITERATION_REPORT_FIELD_TYPE & type) const {
-    __UNUSED(name);
-    __UNUSED(type);
-    return false;
+    return reply;
 }
 
 void Simplex::setModel(const Model &model) {
@@ -232,8 +212,6 @@ void Simplex::solve() {
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
         for (m_iterationIndex = 0; m_iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; m_iterationIndex++) {
-            //LPINFO("\n    Iteration: "<<m_iterationIndex);
-
             // ITTEN MENTJUK KI A BAZIST:
             saveBasis("basis.bas", new BasisHeadBAS, true);
 
@@ -241,21 +219,14 @@ void Simplex::solve() {
                 reinversionCounter = 0;
                 LPINFO("reinvert");
                 reinvert();
-                //                LPINFO("computeBasicSolution");
                 computeBasicSolution();
-                //                LPINFO("computeReducedCosts");
                 computeReducedCosts();
-                //                LPINFO("computeFeasibility");
                 computeFeasibility();
             }
             try{
-                //                LPINFO("checkFeasibility");
                 checkFeasibility();
-                //                LPINFO("price");
                 price();
-                //                LPINFO("selectPivot");
                 selectPivot();
-                //                LPINFO("update");
                 reinversionCounter++;
                 if(reinversionCounter < reinversionFrequency){
                     update();

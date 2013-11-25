@@ -117,34 +117,21 @@ void IterationReport::addProviderForSolution(
 }
 
 void IterationReport::getRow(const std::vector<IterationReportField> & fields,
-            std::vector< Entry > * row,
+            std::vector< ReportEntry > * row,
             enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     row->clear();
     STL_FOREACH(std::vector<IterationReportField>,
                 fields, fieldIter) {
         IterationReportField field = *fieldIter;
-        Entry newEntry;
+        ReportEntry newEntry;
         std::string name = field.getName();
-        switch ( field.getType() ) {
-        case IterationReportField::IRF_BOOL:
-            newEntry.m_bool = field.getProvider().getIterationReportBool(name, type);
-            break;
-        case IterationReportField::IRF_FLOAT:
-            newEntry.m_float = field.getProvider().getIterationReportFloat(name, type);
-            break;
-        case IterationReportField::IRF_INT:
-            newEntry.m_integer = field.getProvider().getIterationReportInteger(name, type);
-            break;
-        case IterationReportField::IRF_STRING:
-            newEntry.m_string = new std::string(field.getProvider().getIterationReportString(name, type));
-            break;
-        }
+        newEntry = field.getProvider().getIterationReportEntry(name, type);
 
         row->push_back(newEntry);
     }
 }
 
-std::string IterationReport::getContent(const Entry & entry, const IterationReportField & field) const {
+std::string IterationReport::getContent(const ReportEntry & entry, const IterationReportField & field) const {
     std::ostringstream entryString;
     switch ( field.getType() ) {
     case IterationReportField::IRF_BOOL:
@@ -178,7 +165,7 @@ std::string IterationReport::getContent(const Entry & entry, const IterationRepo
 }
 
 void IterationReport::writeSimpleTable(const std::vector<IterationReportField> & fields,
-                      const std::vector< Entry > & row,
+                      const std::vector< ReportEntry > & row,
                       IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     if (type == IterationReportProvider::IRF_START) {
         LPINFO("***** STARTING REPORT *****");
@@ -201,7 +188,7 @@ void IterationReport::writeStartReport() const {
 }
 
 void IterationReport::createIterationReport() {
-    std::vector<Entry> newRow;
+    std::vector<ReportEntry> newRow;
     getRow(m_iterationFields, &newRow, IterationReportProvider::IRF_ITERATION);
     m_iterationTable.push_back(newRow);
 }
@@ -245,13 +232,13 @@ void IterationReport::writeIterationReport() const {
     }
 
     std::ostringstream row;
-    const std::vector<Entry> & lastRow = m_iterationTable[ m_iterationTable.size() - 1 ];
+    const std::vector<ReportEntry> & lastRow = m_iterationTable[ m_iterationTable.size() - 1 ];
 
     unsigned int index;
     for (index = 0; index < lastRow.size(); index++) {
         std::ostringstream entryString;
         IterationReportField field = m_iterationFields[index];
-        const Entry & newEntry = lastRow[index];
+        const ReportEntry & newEntry = lastRow[index];
 
         entryString << getContent(newEntry, field);
 
