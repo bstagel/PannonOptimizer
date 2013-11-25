@@ -1,3 +1,7 @@
+/**
+ * @file basis.h
+ */
+
 #ifndef BASIS_H
 #define BASIS_H
 
@@ -11,12 +15,31 @@ class SimplexModel;
 #include <utils/exceptions.h>
 #include <utils/indexlist.h>
 
+/**
+ * A struct describing an ETM %Matrix.
+ * This structure represents an Elementary Transformation %Matrix (ETM).
+ * Az ETM is such a matrix that differs from the unit matrix in only one column.
+ * This struct is used throughout the inversion process and the FTRAN and BTRAN
+ * operations. Az ETM is a $m \times m$ matrix.
+ */
 struct ETM
 {
+    /**
+     * Eta vector.
+     * The nontrivial column of the ETM is the eta column. This is a pointer of
+     * that vector, it is allocated dynamically .
+     */
     Vector* eta;
-    int index;
+
+    /**
+     * Index of the nontrivial column.
+     */
+    unsigned int index;
 };
 
+/**
+ * @brief The Basis class
+ */
 class Basis {
 public:
 

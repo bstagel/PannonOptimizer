@@ -91,7 +91,8 @@ HEADERS += include/debug.h \
     include/utils/thread.h \
     include/utils/iterationreport.h \
     include/utils/iterationreportprovider.h \
-    include/utils/iterationreportfield.h
+    include/utils/iterationreportfield.h \
+    include/utils/reportentry.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

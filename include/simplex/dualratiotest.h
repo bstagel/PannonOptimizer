@@ -2,8 +2,8 @@
  * @file dualratiotest.h
  */
 
-#ifndef DUAL_RATIOTEST_H
-#define DUAL_RATIOTEST_H
+#ifndef DUALRATIOTEST_H
+#define DUALRATIOTEST_H
 
 #include <vector>
 #include <linalg/vector.h>
@@ -90,4 +90,4 @@ private:
                                    const Vector& alpha,
                                    Numerical::Double phaseIIObjectiveValue);
 };
-#endif // DUAL_RATIOTEST_H
+#endif // DUALRATIOTEST_H

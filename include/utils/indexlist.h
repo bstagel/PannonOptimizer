@@ -14,6 +14,8 @@
 #include <typeinfo>
 using namespace std;
 
+struct unused { int operator*() const {return 0;}};
+
 /**
  * The class stores double linked lists of indices.
  * Each linked list has a header. The next and previous element
@@ -22,10 +24,7 @@ using namespace std;
  * element of first element is the header also.
  *
  */
-
-namespace detail { struct unused { int operator*() const {return 0;}}; }
-
-template <class ATTACHED_TYPE = detail::unused>
+template <class ATTACHED_TYPE = unused>
 class IndexList
 {
     friend class IndexListTestSuite;

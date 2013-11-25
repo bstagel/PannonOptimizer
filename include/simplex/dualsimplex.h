@@ -57,17 +57,8 @@ private:
     std::vector<IterationReportField> getIterationReportFields(
             enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
-    std::string getIterationReportString( const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    int getIterationReportInteger(const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    double getIterationReportFloat(const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    bool getIterationReportBool(const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const;
+    ReportEntry getIterationReportEntry(const std::string & name,
+                                  enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
 };
 

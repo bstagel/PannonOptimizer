@@ -3,6 +3,7 @@
 
 #include <globals.h>
 #include <utils/iterationreportfield.h>
+#include <utils/reportentry.h>
 #include <vector>
 #include <string>
 
@@ -18,19 +19,7 @@ public:
     virtual std::vector<IterationReportField> getIterationReportFields(
             enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
 
-    virtual std::string getIterationReportString(
-            const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
-
-    virtual int getIterationReportInteger(
-            const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
-
-    virtual double getIterationReportFloat(
-            const std::string & name,
-            enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
-
-    virtual bool getIterationReportBool(
+    virtual ReportEntry getIterationReportEntry(
             const std::string & name,
             enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
 
