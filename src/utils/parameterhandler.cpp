@@ -40,7 +40,6 @@ void ParameterHandler::readParameterFile(const char * filename)
 
 void ParameterHandler::loadValuesFromFile(std::ifstream &in)
 {
-    printf(">>> %s\n", __FUNCTION__);
     try {
         std::string line;
         std::vector<std::string> tokens;

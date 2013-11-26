@@ -3,6 +3,10 @@
 #include <debug.h>
 #include <sstream>
 #include <iomanip>
+#include <simplex/simplexparameterhandler.h>
+
+static const double debugLevel =
+        SimplexParameterHandler::getInstance().getParameterValue("debug_level");
 
 IterationReport::IterationReport() {
 
@@ -18,6 +22,7 @@ IterationReport & IterationReport::operator=(const IterationReport & orig) {
     }
     clear();
     copy(orig);
+    return *this;
 }
 
 IterationReport::~IterationReport() {
@@ -202,6 +207,10 @@ void IterationReport::writeIterationReport() const {
         std::ostringstream headerString;
         unsigned int index = 0;
         STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, fieldsIter) {
+            //TODO: JOCO Ezt igy kene?
+//            if(debugLevel  < fieldsIter->getDebugLevel() ){
+//                continue;
+//            }
             // TODO: ezt az igazitosdit majd kiszedni fuggvenyekbe, baromi hulyen
             // jon ki, hogy kicsit lejjebb is kb ugyanez a kod van
             unsigned int width = fieldsIter->getName().length();
