@@ -32,13 +32,25 @@ public:
 
     void createIterationReport();
 
-    void writeIterationReport() const;
+    void writeIterationReport();
 
     void createSolutionReport();
 
     void writeSolutionReport() const;
 
+    void setDebugLevel(int level);
+
+    int getDebugLevel() const;
+
 private:
+
+    enum LAST_OUTPUT_EVENT {
+        IR_NONE,
+        IR_HEADER,
+        IR_ROW
+    };
+
+    LAST_OUTPUT_EVENT m_lastOutputEvent;
 
     std::vector<IterationReportField> m_startFields;
 
@@ -51,6 +63,12 @@ private:
     std::vector< ReportEntry > m_startTable;
 
     std::vector< ReportEntry > m_solutionTable;
+
+    bool m_refreshHeader;
+
+    int m_debugLevel;
+
+    void showHeader();
 
     void addFields(const IterationReportProvider & provider,
                     std::vector<IterationReportField> * fields,

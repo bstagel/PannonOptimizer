@@ -9,7 +9,9 @@ static const double debugLevel =
         SimplexParameterHandler::getInstance().getParameterValue("debug_level");
 
 IterationReport::IterationReport() {
-
+    m_refreshHeader = true;
+    m_debugLevel = 0;
+    m_lastOutputEvent = IR_NONE;
 }
 
 IterationReport::IterationReport(const IterationReport & orig) {
@@ -36,6 +38,9 @@ void IterationReport::copy(const IterationReport & orig) {
     m_iterationTable = orig.m_iterationTable;
     m_startTable = orig.m_startTable;
     m_solutionTable = orig.m_solutionTable;
+    m_refreshHeader = orig.m_refreshHeader;
+    m_debugLevel = orig.m_debugLevel;
+    m_lastOutputEvent = orig.m_lastOutputEvent;
 
     unsigned int columnIndex = 0;
     unsigned int index = 0;
@@ -95,6 +100,20 @@ void IterationReport::clear() {
     }*/
 }
 
+void IterationReport::setDebugLevel(int level) {
+    if (m_debugLevel == level) {
+        return;
+    }
+    m_debugLevel = level;
+    if (m_lastOutputEvent != IR_NONE) {
+        showHeader();
+    }
+}
+
+int IterationReport::getDebugLevel() const {
+    return m_debugLevel;
+}
+
 void IterationReport::addFields( const IterationReportProvider & provider,
                                  std::vector<IterationReportField> * fields,
                                  enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) {
@@ -122,8 +141,8 @@ void IterationReport::addProviderForSolution(
 }
 
 void IterationReport::getRow(const std::vector<IterationReportField> & fields,
-            std::vector< ReportEntry > * row,
-            enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
+                             std::vector< ReportEntry > * row,
+                             enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     row->clear();
     STL_FOREACH(std::vector<IterationReportField>,
                 fields, fieldIter) {
@@ -170,8 +189,8 @@ std::string IterationReport::getContent(const ReportEntry & entry, const Iterati
 }
 
 void IterationReport::writeSimpleTable(const std::vector<IterationReportField> & fields,
-                      const std::vector< ReportEntry > & row,
-                      IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
+                                       const std::vector< ReportEntry > & row,
+                                       IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     if (type == IterationReportProvider::IRF_START) {
         LPINFO("***** STARTING REPORT *****");
     } else if (type == IterationReportProvider::IRF_SOLUTION) {
@@ -198,55 +217,64 @@ void IterationReport::createIterationReport() {
     m_iterationTable.push_back(newRow);
 }
 
-void IterationReport::writeIterationReport() const {
+void IterationReport::showHeader() {
+    m_lastOutputEvent = IR_HEADER;
+    std::ostringstream headerString;
+    unsigned int index = 0;
+    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, fieldsIter) {
+        if(m_debugLevel  < fieldsIter->getDebugLevel() ){
+            continue;
+        }
+        // TODO: ezt az igazitosdit majd kiszedni fuggvenyekbe, baromi hulyen
+        // jon ki, hogy kicsit lejjebb is kb ugyanez a kod van
+        unsigned int width = fieldsIter->getName().length();
+        if (width < fieldsIter->getWidth()) {
+            unsigned int spaceCount = fieldsIter->getWidth() - width;
+
+            switch ( fieldsIter->getAlignment() ) {
+            case IterationReportField::IRF_CENTER:
+                headerString << std::string(spaceCount / 2, ' ') << fieldsIter->getName() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
+                break;
+            case IterationReportField::IRF_LEFT:
+                headerString << fieldsIter->getName() << std::string(spaceCount, ' ');
+                break;
+            case IterationReportField::IRF_RIGHT:
+                headerString << std::string(spaceCount, ' ') << fieldsIter->getName();
+                break;
+            }
+
+        } else {
+            headerString << fieldsIter->getName();
+        }
+        if (index < m_iterationFields.size() - 1) {
+            headerString << "|";
+        }
+        index++;
+    }
+    LPINFO(headerString.str());
+}
+
+void IterationReport::writeIterationReport() {
     if (m_iterationTable.size() == 0) {
         return;
     }
 
     if (m_iterationTable.size() == 1) {
-        std::ostringstream headerString;
-        unsigned int index = 0;
-        STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, fieldsIter) {
-            //TODO: JOCO Ezt igy kene?
-//            if(debugLevel  < fieldsIter->getDebugLevel() ){
-//                continue;
-//            }
-            // TODO: ezt az igazitosdit majd kiszedni fuggvenyekbe, baromi hulyen
-            // jon ki, hogy kicsit lejjebb is kb ugyanez a kod van
-            unsigned int width = fieldsIter->getName().length();
-            if (width < fieldsIter->getWidth()) {
-                unsigned int spaceCount = fieldsIter->getWidth() - width;
-
-                switch ( fieldsIter->getAlignment() ) {
-                case IterationReportField::IRF_CENTER:
-                    headerString << std::string(spaceCount / 2, ' ') << fieldsIter->getName() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
-                    break;
-                case IterationReportField::IRF_LEFT:
-                    headerString << fieldsIter->getName() << std::string(spaceCount, ' ');
-                    break;
-                case IterationReportField::IRF_RIGHT:
-                    headerString << std::string(spaceCount, ' ') << fieldsIter->getName();
-                    break;
-                }
-
-            } else {
-                headerString << fieldsIter->getName();
-            }
-            if (index < m_iterationFields.size() - 1) {
-                headerString << "|";
-            }
-            index++;
-        }
-        LPINFO(headerString.str());
+        showHeader();
     }
 
     std::ostringstream row;
     const std::vector<ReportEntry> & lastRow = m_iterationTable[ m_iterationTable.size() - 1 ];
 
     unsigned int index;
+    unsigned int fieldCounter = 0;
     for (index = 0; index < lastRow.size(); index++) {
         std::ostringstream entryString;
         IterationReportField field = m_iterationFields[index];
+        if (m_debugLevel < field.getDebugLevel()) {
+            continue;
+        }
+        fieldCounter++;
         const ReportEntry & newEntry = lastRow[index];
 
         entryString << getContent(newEntry, field);
@@ -277,7 +305,10 @@ void IterationReport::writeIterationReport() const {
             row << "|";
         }
     }
-    LPINFO(row.str());
+    if (fieldCounter > 0) {
+        LPINFO(row.str());
+    }
+    m_lastOutputEvent = IR_ROW;
 }
 
 void IterationReport::createSolutionReport() {

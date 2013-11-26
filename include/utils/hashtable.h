@@ -3,7 +3,6 @@
 
 #include <globals.h>
 #include <vector>
-#include <iostream>
 
 extern const unsigned int hashTableSizes[];
 extern const unsigned int hashTableSizesSize;
@@ -20,9 +19,7 @@ public:
     }
 
     void setSize(unsigned int size) {
-        //std::cout << "SIZE: " << size << endl;
         size *= 1.1;
-        //std::cout << "SIZE: " << size << endl;
         unsigned int start = 0;
         unsigned int end = hashTableSizesSize - 1;
         unsigned int index = (start + end) >> 1;
@@ -35,8 +32,6 @@ public:
             index = (start + end) >> 1;
         }
         size = hashTableSizes[index + 1];
-        //std::cout << "SIZE: " << size << endl;
-        //std::cin.get();
         m_table.clear();
         m_table.resize(size);
     }
@@ -49,7 +44,6 @@ public:
 
     bool addUnique(const TYPE & value) {
         unsigned int hash = HASH_FUNCTION::getHash(value) % m_table.size();
-        //std::cout << "\tHASH: " << hash << std::endl;
         typename std::vector<TYPE>::const_iterator iter = m_table[hash].begin();
         typename std::vector<TYPE>::const_iterator iterEnd = m_table[hash].end();
         while (iter < iterEnd && *iter != value) {
