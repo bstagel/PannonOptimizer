@@ -28,7 +28,7 @@ public:
 
     IterationReportField(const std::string & name,
                          unsigned int width,
-                         unsigned int debugLevel,
+                         int debugLevel,
                          ITERATION_REPORT_FIELD_ALIGNMENT align,
                          ITERATION_REPORT_FIELD_TYPE type,
                          const IterationReportProvider & provider,
@@ -54,7 +54,7 @@ public:
         return m_width;
     }
 
-    unsigned int getDebugLevel() const {
+    int getDebugLevel() const {
         return m_debugLevel;
     }
 
@@ -82,7 +82,7 @@ private:
     std::string m_name;
     unsigned int m_width;
 
-    unsigned int m_debugLevel;
+    int m_debugLevel;
     ITERATION_REPORT_FIELD_ALIGNMENT m_align;
     ITERATION_REPORT_FIELD_TYPE m_type;
     const IterationReportProvider * m_provider;

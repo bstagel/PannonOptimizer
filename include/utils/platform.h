@@ -1,5 +1,23 @@
+/**
+ * @file platform.h
+ *
+ * This file contains macros which identifies the current platform.
+ */
+
 #ifndef PLATFORM_H
 #define PLATFORM_H
+
+/**
+ * @def WIN32
+ *
+ * This macro is defined if the source is compiled into Windows platforms.
+ */
+
+/**
+ * @def UNIX
+ *
+ * This macro is defined if the source is compiled into Unix compatible platforms.
+ */
 
 #ifdef _WIN32
 #ifndef WIN32

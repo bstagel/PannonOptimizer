@@ -196,9 +196,12 @@ void Simplex::solve() {
     m_iterationReport.addProviderForSolution(*this);
 
 
+    m_iterationReport.setDebugLevel(3);
+
     m_iterationReport.createStartReport();
     m_iterationReport.writeStartReport();
 
+    LPINFO("-----------------------------------");
     //loadBasis("basis.bas", new BasisHeadBAS, true);
 
     try {
@@ -213,7 +216,7 @@ void Simplex::solve() {
 
         for (m_iterationIndex = 0; m_iterationIndex < iterationLimit && timer.getTotalElapsed() < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
-            saveBasis("basis.bas", new BasisHeadBAS, true);
+            //saveBasis("basis.bas", new BasisHeadBAS, true);
 
             if(reinversionCounter == reinversionFrequency){
                 reinversionCounter = 0;
@@ -281,6 +284,9 @@ void Simplex::solve() {
                 } else {
                     reinversionCounter = reinversionFrequency;
                 }
+            }
+            if ((m_iterationIndex + 1) % 20 == 0) {
+                m_iterationReport.setDebugLevel( m_iterationReport.getDebugLevel() - 1 );
             }
             m_iterationReport.createIterationReport();
             m_iterationReport.writeIterationReport();
