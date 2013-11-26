@@ -45,25 +45,25 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField incomingField(INCOMING_NAME, 10, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField incomingField(INCOMING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
                                     IterationReportField::IRF_INT, *this);
         result.push_back(incomingField);
 
-        IterationReportField outgoingField(OUTGOING_NAME, 10, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField outgoingField(OUTGOING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
                                     IterationReportField::IRF_INT, *this);
         result.push_back(outgoingField);
 
-        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 20, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(primalReducedCostField);
 
-        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 19, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(primalThetaField);
 
-        IterationReportField dualThetaField(DUAL_THETA_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField dualThetaField(DUAL_THETA_STRING, 19, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(dualThetaField);

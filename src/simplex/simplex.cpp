@@ -53,7 +53,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField iterationField(ITERATION_INDEX_NAME, 10, 2, IterationReportField::IRF_CENTER,
+        IterationReportField iterationField(ITERATION_INDEX_NAME, 10, 1, IterationReportField::IRF_CENTER,
                                     IterationReportField::IRF_INT, *this);
         result.push_back(iterationField);
     }
