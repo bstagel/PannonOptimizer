@@ -36,6 +36,12 @@
     _CONTAINER_TYPE::iterator CONCAT(_ITERATOR, End) = _CONTAINER.end(); \
     for (; _ITERATOR != CONCAT(_ITERATOR, End); _ITERATOR++)
 
+#ifdef WIN32
+    #define PATH_SEPARATOR '\\'
+#else
+    #define PATH_SEPARATOR '/'
+#endif
+
 extern const double ZERO;
 extern const double INVALID;
 

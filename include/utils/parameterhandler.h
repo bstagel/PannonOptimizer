@@ -23,12 +23,11 @@ public:
 
     virtual void readParameterFile(const char * filename);
     virtual void writeParameterFile() = 0;
-
+    virtual void initParameters() = 0;
 
 protected:
     std::map<std::string, Parameter> m_values;
 
-    virtual void initParameters() = 0;
     void loadValuesFromFile(std::ifstream& in);
 
     std::vector<std::string> tokenizer(std::string& line);

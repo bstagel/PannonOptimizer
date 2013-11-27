@@ -15,6 +15,7 @@ class SimplexParameterHandler : public ParameterHandler
 public:
     THREAD_STATIC_DECL ParameterHandler & getInstance();
     void writeParameterFile();
+    void initParameters();
 
 private:
 
@@ -22,7 +23,6 @@ private:
 
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}
-    void initParameters();
 };
 
 #endif // SIMPLEXPARAMETERHANDLER_H
