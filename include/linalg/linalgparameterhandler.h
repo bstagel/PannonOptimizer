@@ -15,6 +15,7 @@ class LinalgParameterHandler : public ParameterHandler
 public:
     THREAD_STATIC_DECL ParameterHandler & getInstance();
     void writeParameterFile();
+    void initParameters();
 
 private:
 
@@ -22,7 +23,6 @@ private:
 
     LinalgParameterHandler();
     LinalgParameterHandler(const LinalgParameterHandler &){}
-    void initParameters();
 };
 
 #endif // LINALGPARAMETERHANDLER_H

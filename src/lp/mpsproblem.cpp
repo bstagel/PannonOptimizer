@@ -2454,6 +2454,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
     } catch (const File::FileNotFoundException & error) {
         LPERROR("File not found: " << filename);
         delete [] m_actualColumnNonzeros;
+        m_actualColumnNonzeros = 0;
         return;
     } catch (const FatalErrorException & error) {
         LPERROR(error.getError());
@@ -2610,16 +2611,11 @@ void MpsModelBuilder::collectVariableBounds()
 {
     m_variables.resize(getColumnCount());
 
-    LPINFO("size: " << m_columnIndexTable.size() );
-    LPINFO("size: " << m_rowIndexTable.size() );
-
     unsigned int index;
     std::vector<Numerical::Double>::const_iterator upperIter = m_columnUpper.begin();
     std::vector<Numerical::Double>::const_iterator lowerIter = m_columnLower.begin();
     std::vector<Numerical::Double>::const_iterator upperIterEnd = m_columnUpper.end();
-    std::ofstream ofs("names.txt");
     for (index = 0; upperIter < upperIterEnd; index++, upperIter++, lowerIter++) {
-        ofs << m_columnIndexTable[index]->m_name << std::endl;
         m_variables[ index ].setLowerBound(*lowerIter);
         m_variables[ index ].setUpperBound(*upperIter);
         char name[9];
@@ -2627,7 +2623,6 @@ void MpsModelBuilder::collectVariableBounds()
         name[8] = 0;
         m_variables[ index ].setName(name);
     }
-    ofs.close();;
 }
 
 /*void MpsProblem::saveToFile(const char * filename, const Model & model)
