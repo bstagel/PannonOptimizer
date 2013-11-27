@@ -78,7 +78,7 @@ void DualDantzigPricing::initPhase1() {
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
         if (index >= variableCount) {
-            Numerical::stableSubFrom( m_phase1ReducedCosts[ variableCount - index ], 1 );
+            Numerical::stableSubFrom( m_phase1ReducedCosts[ index - variableCount ], 1 );
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();

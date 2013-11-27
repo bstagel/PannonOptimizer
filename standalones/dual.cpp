@@ -124,6 +124,7 @@ int main(int argc, char** argv)
             if(argc < 3 ){
                 printMissingOperandError(argv);
             } else {
+                solve(argv[2]);
                 std::string path(argv[2]);
                 if(isDir(path)){
                     std::cout << "FILE argument - OK";
