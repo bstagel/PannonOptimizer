@@ -10,11 +10,11 @@
 
 #include <cstdio>
 
-THREAD_STATIC_DEF const char * LinalgParameterHandler::sm_filename = "linalg.PAR";
+THREAD_STATIC_DEF const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
 
 LinalgParameterHandler::LinalgParameterHandler()
 {
-
+    m_filename = sm_defaultFilename;
 }
 
 ParameterHandler& LinalgParameterHandler::getInstance()
@@ -23,7 +23,7 @@ ParameterHandler& LinalgParameterHandler::getInstance()
     THREAD_STATIC_DECL bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
-        s_instance.readParameterFile(sm_filename);
+        s_instance.readParameterFile(sm_defaultFilename);
         s_init = true;
     }
     return s_instance;
@@ -32,7 +32,9 @@ ParameterHandler& LinalgParameterHandler::getInstance()
 void LinalgParameterHandler::writeParameterFile()
 {
     try {
-        std::ofstream out(sm_filename);
+        std::cout <<"m_filename;";
+        std::ofstream out(m_filename);
+        std::cout <<m_filename;
 
         if (!out.is_open()) throw -1;
 
@@ -55,7 +57,7 @@ void LinalgParameterHandler::writeParameterFile()
         out.close();
     }
     catch(int) {
-        std::cerr << "Parameter file can not be written: " << sm_filename << std::endl;
+        std::cerr << "Parameter file can not be written: " << m_filename << std::endl;
     }
 }
 

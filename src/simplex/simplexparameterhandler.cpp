@@ -9,11 +9,11 @@
 
 #include <defaultparameters.h>
 
-THREAD_STATIC_DEF const char * SimplexParameterHandler::sm_filename = "simplex.PAR";
+THREAD_STATIC_DEF const char * SimplexParameterHandler::sm_defaultFilename = "simplex.PAR";
 
 SimplexParameterHandler::SimplexParameterHandler()
 {
-
+    m_filename = sm_defaultFilename;
 }
 
 ParameterHandler& SimplexParameterHandler::getInstance()
@@ -22,15 +22,15 @@ ParameterHandler& SimplexParameterHandler::getInstance()
     THREAD_STATIC_DECL bool s_init = false;
     if(!s_init) {
         s_instance.initParameters();
-        s_instance.readParameterFile(sm_filename);
+        s_instance.readParameterFile(sm_defaultFilename);
         s_init = true;
     }
     return s_instance;
 }
 
-void SimplexParameterHandler::writeParameterFile()
-{try {
-        std::ofstream out(sm_filename);
+void SimplexParameterHandler::writeParameterFile(){
+    try {
+        std::ofstream out(m_filename);
         if (!out.is_open()) throw -1;
 
         out << "!!! Simplex parameter file for the Pannon Optimizer !!!" << std::endl;
@@ -136,7 +136,7 @@ void SimplexParameterHandler::writeParameterFile()
         out.close();
     }
     catch(int) {
-        std::cerr << "Parameter file can not be written: " << sm_filename;
+        std::cerr << "Parameter file can not be written: " << m_filename;
     }
 }
 

@@ -18,14 +18,21 @@ class ParameterHandler{
 public:
     virtual ~ParameterHandler();
 
-    inline double getParameterValue(const std::string& name){return m_values.at(name).getValue();}
+    inline bool hasParameter(const std::string& name) const {return m_values.count(name)>0;}
+    inline double getParameterValue(const std::string& name) const {return m_values.at(name).getValue();}
     inline void setParameterValue(const std::string name, const double value){m_values[name] = Parameter(name,value);}
 
     virtual void readParameterFile(const char * filename);
     virtual void writeParameterFile() = 0;
     virtual void initParameters() = 0;
 
+    inline std::string getFileName() const {return m_filename;}
+    inline void setFileName(std::string filename) {m_filename = filename;}
+
 protected:
+
+    std::string m_filename;
+
     std::map<std::string, Parameter> m_values;
 
     void loadValuesFromFile(std::ifstream& in);
