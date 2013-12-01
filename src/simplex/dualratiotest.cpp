@@ -9,7 +9,6 @@
 #include <simplex/simplex.h>
 #include <globals.h>
 #include <simplex/simplexparameterhandler.h>
-
 #include <utils/thirdparty/prettyprint.h>
 
 static const double nonlinearDualPhaseIFunction =
@@ -26,6 +25,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_reducedCosts(reducedCosts),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_variableStates(variableStates),
+    m_tPositive(false),
     m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
@@ -288,22 +288,134 @@ void DualRatiotest::generateBreakpointsPhase1(const Vector& alpha,
     }
 }
 
+void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
+                                          unsigned int& iterationCounter,
+                                          Numerical::Double& functionSlope)
+{
+    unsigned int length = m_breakpoints.size();
+    while (functionSlope > 0 && iterationCounter < length-1) {
+        iterationCounter++;
+        getNextElement(&m_breakpoints,length-iterationCounter);
+
+        m_phaseIObjectiveValue += functionSlope * (m_breakpoints.at(length-1-iterationCounter).value -
+                m_breakpoints[length-iterationCounter].value);
+        m_breakpoints.at(length-1-iterationCounter).functionValue = m_phaseIObjectiveValue;
+//        LPINFO("s: "<<functionSlope<<" f: "<<m_phaseIObjectiveValue<<
+//               " "<<m_breakpoints.at(length-1-iterationCounter));
+        functionSlope -= Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index));
+    }
+    m_dualSteplength = m_tPositive ? m_breakpoints[length-iterationCounter-1].value : - m_breakpoints[length-iterationCounter-1].value;
+    m_incomingVariableIndex = m_breakpoints.at(length-1-iterationCounter).index;
+}
+
+void DualRatiotest::useNumericalThreshold(unsigned int iterationCounter,
+                                          const Vector& alpha,
+                                          Numerical::Double& functionSlope)
+{
+    unsigned int length = m_breakpoints.size();
+    unsigned int alphaId = length-1-iterationCounter;
+    Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("e_pivot");
+
+    LPWARNING("BAD NUMERICAL VALUE, ACTIVATING THRESHOLD for "<<alpha.at(m_breakpoints.at(alphaId).index));
+    unsigned int prevAlphaId = alphaId, nextAlphaId = alphaId;
+    unsigned int prevIterationCounter = 0, nextIterationCounter = 0;
+    Numerical::Double prevObjValue = m_phaseIObjectiveValue, nextObjValue = m_phaseIObjectiveValue;
+    if (iterationCounter - prevIterationCounter > 0) {
+        prevAlphaId++;
+        prevIterationCounter++;
+        prevObjValue = m_breakpoints[prevAlphaId].functionValue;
+//        LPINFO("pf: "<<prevObjValue<<" "<<m_breakpoints[prevAlphaId]);
+    }
+    if (iterationCounter != length-1) {
+        nextAlphaId--;
+        nextIterationCounter++;
+        nextObjValue = m_breakpoints[nextAlphaId].functionValue;
+//        LPINFO("nf: "<<nextObjValue<<" "<<m_breakpoints[nextAlphaId]);
+    }
+    bool prevIsBetter = nextObjValue > prevObjValue ? false : true;
+    bool step = true;
+
+    while (step &&( prevIsBetter ?
+           (Numerical::fabs(alpha.at(m_breakpoints.at(prevAlphaId).index)) <= pivotThreshold) :
+          (Numerical::fabs(alpha.at(m_breakpoints.at(nextAlphaId).index)) <= pivotThreshold))) {
+//        LPINFO("alpha_p: " << alpha.at(m_breakpoints.at(prevAlphaId).index) <<
+//               " alpha_n: " << alpha.at(m_breakpoints.at(prevAlphaId).index) );
+        step = false;
+        if (prevIsBetter) {
+            if (iterationCounter - prevIterationCounter > 0) {
+                LPWARNING("prev iteration"); //<< " f: " << prevObjValue << " ic: " <<
+//                          prevIterationCounter << " " <<m_breakpoints[prevAlphaId] <<
+//                          alpha.at(m_breakpoints[prevAlphaId].index));
+                prevAlphaId++;
+                prevIterationCounter++;
+                prevObjValue = m_breakpoints[prevAlphaId].functionValue;
+                step = true;
+            } else if ( prevObjValue != -Numerical::Infinity) {
+                LPWARNING("prev = -inf");
+                prevObjValue = -Numerical::Infinity;
+                step = true;
+            }
+        } else {
+            if (iterationCounter + nextIterationCounter < length -1 && nextObjValue != -Numerical::Infinity) {
+                nextAlphaId--;
+                nextIterationCounter++;
+                getNextElement(&m_breakpoints, length - (iterationCounter+nextIterationCounter));
+//                LPINFO("f: "<<nextObjValue<<"s: "<<functionSlope<<" n: "<<m_breakpoints[length-1-(iterationCounter + nextIterationCounter)]<<
+//                       " p: "<< m_breakpoints[length-(iterationCounter + nextIterationCounter)]);
+                nextObjValue += functionSlope * (m_breakpoints[length-1-(iterationCounter + nextIterationCounter)].value -
+                        m_breakpoints[length-(iterationCounter + nextIterationCounter)].value);
+                functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[nextAlphaId].index));
+                LPWARNING("next iteration");// << " f: " << nextObjValue << " ic: " <<
+//                          nextIterationCounter << " " <<m_breakpoints[nextAlphaId] <<
+//                          alpha.at(m_breakpoints[nextAlphaId].index)<<" ");
+                if (m_breakpoints[length-1].functionValue > nextObjValue) {
+                    nextObjValue = -Numerical::Infinity;
+                }
+                step = true;
+            } else if( nextObjValue != -Numerical::Infinity) {
+                LPWARNING("next = -inf");
+                nextObjValue = -Numerical::Infinity;
+                step = true;
+            }
+        }
+//        LPINFO("p: "<<prevObjValue<<" n: "<<nextObjValue);
+        prevIsBetter = nextObjValue > prevObjValue? false : true;
+    }
+
+    if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
+        m_incomingVariableIndex = -1;
+        m_dualSteplength = 0.0;
+        m_phaseIObjectiveValue = m_breakpoints[length-1].functionValue;
+        //throw Exception?
+    } else if (prevIsBetter) {
+        m_phaseIObjectiveValue = m_breakpoints[prevAlphaId].functionValue;
+        m_incomingVariableIndex = m_breakpoints[prevAlphaId].index;
+        m_dualSteplength = m_breakpoints[prevAlphaId].value;
+    } else {
+        m_phaseIObjectiveValue = m_breakpoints[nextAlphaId].functionValue;
+        m_incomingVariableIndex = m_breakpoints[nextAlphaId].index;
+        m_dualSteplength = m_breakpoints[nextAlphaId].value;
+    }
+    LPWARNING(" prev iterations: " << prevIterationCounter);
+    LPWARNING(" next iterations: " << nextIterationCounter);
+    LPWARNING(" f: "<<m_phaseIObjectiveValue);
+}
+
 void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
                                            const Vector& alpha,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue)
                                            throw (NumericalException){
+
     generateBreakpointsPhase1(alpha,phaseIReducedCost,phaseIObjectiveValue);
 
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
-    Variable::VARIABLE_TYPE typeOfIthVariable;
     unsigned int iterationCounter = 0,length = m_breakpoints.size();
 
     //Init the heap with the breakpoint at 0
     getNextElement(&m_breakpoints,length);
 
     if (m_breakpoints.size() > 1) {
-        Numerical::Double valueOfOutgoingVariable;
         int num = (int)nonlinearDualPhaseIFunction;
         switch (num) {
       //using traditional one step method
@@ -316,165 +428,52 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
           break;
       //using piecewise linear function
           case 1:
-            while (functionSlope > 0 && iterationCounter < length-1) {
-                iterationCounter++;
-                getNextElement(&m_breakpoints,length-iterationCounter);
-
-                m_phaseIObjectiveValue += functionSlope * (m_breakpoints.at(length-1-iterationCounter).value -
-                        m_breakpoints[length-iterationCounter].value);
-                m_breakpoints.at(length-1-iterationCounter).functionValue = m_phaseIObjectiveValue;
-                functionSlope -= Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index));
-            }
-            m_dualSteplength = m_tPositive ? m_breakpoints[length-iterationCounter-1].value : - m_breakpoints[length-iterationCounter-1].value;
-            m_incomingVariableIndex = m_breakpoints.at(length-1-iterationCounter).index;
-            typeOfIthVariable = m_model.getVariable(outgoingVariableIndex).getType();
-
-        //determining primal steplength
-
-            valueOfOutgoingVariable = *(m_variableStates.getAttachedData(outgoingVariableIndex));
-
-            if(m_incomingVariableIndex != -1){
-                if (typeOfIthVariable == Variable::FIXED) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::BOUNDED) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::PLUS) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::FREE) {
-                    m_primalSteplength = valueOfOutgoingVariable / alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::MINUS) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getUpperBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-            } else {
-                m_primalSteplength = 0;
-            }
-            break;
+            computeFunctionPhase1(alpha, iterationCounter, functionSlope);
+          break;
+      //using piecewise linear function with numerical threshold
         case 2:
-        //case 1 begin
-            while (functionSlope > 0 && iterationCounter < length-1) {
-                iterationCounter++;
-                getNextElement(&m_breakpoints,length-iterationCounter);
-
-                m_phaseIObjectiveValue += functionSlope * (m_breakpoints.at(length-1-iterationCounter).value -
-                        m_breakpoints[length-iterationCounter].value);
-                m_breakpoints.at(length-1-iterationCounter).functionValue = m_phaseIObjectiveValue;
-                functionSlope -= Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index));
-            }
-            m_dualSteplength = m_tPositive ? m_breakpoints[length-iterationCounter-1].value : - m_breakpoints[length-iterationCounter-1].value;
-            m_incomingVariableIndex = m_breakpoints.at(length-1-iterationCounter).index;
-
-            typeOfIthVariable = m_model.getVariable(outgoingVariableIndex).getType();
-            valueOfOutgoingVariable = *(m_variableStates.getAttachedData(outgoingVariableIndex));
-
-            if(m_incomingVariableIndex != -1){
-                if (typeOfIthVariable == Variable::FIXED) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::BOUNDED) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::PLUS) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::FREE) {
-                    m_primalSteplength = valueOfOutgoingVariable / alpha.at(m_incomingVariableIndex);
-                }
-                else if (typeOfIthVariable == Variable::MINUS) {
-                    m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getUpperBound()) /
-                            alpha.at(m_incomingVariableIndex);
-                }
-            } else {
-                m_primalSteplength = 0;
-            }
-        //case 1 end
-
-        //numerical threshold
-            unsigned int alphaId = length-1-iterationCounter;
-            unsigned int prevAlphaId = alphaId, nextAlphaId = alphaId;
-            unsigned int prevIterationCounter = 0, nextIterationCounter = 0;
-            Numerical::Double prevObjValue = m_phaseIObjectiveValue, nextObjValue = m_phaseIObjectiveValue;
             Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("e_pivot");
 
-            if (Numerical::fabs(alpha.at(m_breakpoints.at(alphaId).index)) <= pivotThreshold) {
-                LPWARNING("BAD NUMERICAL VALUE, ACTIVATING THRESHOLD for "<<alpha.at(m_breakpoints.at(alphaId).index));
-                if (iterationCounter - prevIterationCounter > 0) {
-                    prevAlphaId++;
-                    prevIterationCounter++;
-                    prevObjValue=m_breakpoints[prevAlphaId].functionValue;
-                }
-                if (iterationCounter + nextIterationCounter < length-1) {
-                    nextAlphaId--;
-                    nextIterationCounter++;
-                    getNextElement(&m_breakpoints, length - (iterationCounter+nextIterationCounter));
-                    nextObjValue += functionSlope * (m_breakpoints[length-1-(iterationCounter + nextIterationCounter)].value -
-                            m_breakpoints[length-(iterationCounter + nextIterationCounter)].value);
-                    m_breakpoints.at(nextAlphaId).functionValue = nextObjValue;
-                    functionSlope -= Numerical::fabs(alpha.at(m_breakpoints.at(nextAlphaId).index));
-                }
-            }
-
-            bool prevIsBetter = nextObjValue > prevObjValue ? false : true;
-            bool step = true;
-
-            while (step && prevIsBetter ? (Numerical::fabs(alpha.at(m_breakpoints.at(prevAlphaId).index)) <= pivotThreshold) :
-                  (Numerical::fabs(alpha.at(m_breakpoints.at(nextAlphaId).index)) <= pivotThreshold)) {
-                step = false;
-                if (prevIsBetter) {
-                    if (iterationCounter - prevIterationCounter > 0) {
-                        prevAlphaId++;
-                        prevIterationCounter++;
-                        prevObjValue=m_breakpoints[prevAlphaId].functionValue;
-                        step = true;
-                    } else if ( prevObjValue != -Numerical::Infinity) {
-                        prevObjValue = -Numerical::Infinity;
-                        step = true;
-                    }
-                } else {
-                    if (iterationCounter + nextIterationCounter < length -1 && nextObjValue != -Numerical::Infinity) {
-                        nextAlphaId--;
-                        nextIterationCounter++;
-                        getNextElement(&m_breakpoints, length - (iterationCounter+nextIterationCounter));
-                        nextObjValue += functionSlope * (m_breakpoints[length-1-(iterationCounter + nextIterationCounter)].value -
-                                m_breakpoints[length-(iterationCounter + nextIterationCounter)].value);
-                        functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[nextAlphaId].index));
-                        if (m_breakpoints[length-1].functionValue > nextObjValue) {
-                            nextObjValue = -Numerical::Infinity;
-                        }
-                        step = true;
-                    } else if( nextObjValue != -Numerical::Infinity) {
-                        nextObjValue = -Numerical::Infinity;
-                        step = true;
-                    }
-                }
-                prevIsBetter = nextObjValue > prevObjValue? false : true;
-            }
-
-            if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
-                m_incomingVariableIndex=m_breakpoints[alphaId].index;
-                m_dualSteplength = m_breakpoints[alphaId].value;
-            } else if (prevIsBetter) {
-                m_incomingVariableIndex = m_breakpoints[prevAlphaId].index;
-                m_dualSteplength = m_breakpoints[prevAlphaId].value;
-            } else {
-                m_incomingVariableIndex = m_breakpoints[nextAlphaId].index;
-                m_dualSteplength = m_breakpoints[nextAlphaId].value;
+            computeFunctionPhase1(alpha, iterationCounter, functionSlope);
+            if(Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index)) <= pivotThreshold){
+                useNumericalThreshold(iterationCounter, alpha, functionSlope);
             }
         break;
         }
-    //no breakpoints found
+    //no breakpoints found, exception?
     } else{
+        m_incomingVariableIndex = -1;
+        m_dualSteplength = 0;
+        m_primalSteplength = 0;
+    }
 
+    //determining primal steplength
+
+    Variable::VARIABLE_TYPE typeOfIthVariable = m_model.getVariable(outgoingVariableIndex).getType();
+    Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(outgoingVariableIndex));
+
+    if(m_incomingVariableIndex != -1){
+        if (typeOfIthVariable == Variable::FIXED) {
+            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
+                    alpha.at(m_incomingVariableIndex);
+        }
+        else if (typeOfIthVariable == Variable::BOUNDED) {
+            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
+                    alpha.at(m_incomingVariableIndex);
+        }
+        else if (typeOfIthVariable == Variable::PLUS) {
+            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
+                    alpha.at(m_incomingVariableIndex);
+        }
+        else if (typeOfIthVariable == Variable::FREE) {
+            m_primalSteplength = valueOfOutgoingVariable / alpha.at(m_incomingVariableIndex);
+        }
+        else if (typeOfIthVariable == Variable::MINUS) {
+            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getUpperBound()) /
+                    alpha.at(m_incomingVariableIndex);
+        }
+    } else {
+        m_primalSteplength = 0;
     }
 }
 
