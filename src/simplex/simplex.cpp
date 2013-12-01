@@ -220,7 +220,6 @@ void Simplex::solve() {
 
             if(reinversionCounter == reinversionFrequency){
                 reinversionCounter = 0;
-                LPINFO("reinvert");
                 reinvert();
                 computeBasicSolution();
                 computeReducedCosts();
@@ -284,9 +283,6 @@ void Simplex::solve() {
                 } else {
                     reinversionCounter = reinversionFrequency;
                 }
-            }
-            if ((m_iterationIndex + 1) % 20 == 0) {
-                m_iterationReport.setDebugLevel( m_iterationReport.getDebugLevel() - 1 );
             }
             m_iterationReport.createIterationReport();
             m_iterationReport.writeIterationReport();

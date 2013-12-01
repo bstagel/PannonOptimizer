@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <sys/stat.h>
 #include <dirent.h>
 
@@ -49,12 +50,13 @@ void printHelp() {
                  "Algorithm specific parameters can be given in the .PAR parameter files. \n"<<
                  "If these files not exist, use the `-p` argument to generate them. \n"<<
                  "\n"<<
-                 "  -a, --algorithm \t Specifies the solution algorithm (`primal` or `dual`(default)) .\n"<<
-                 "  -d, --directory \t Solve every MPS file listed in the FILE directory.\n"<<
-                 "  -f, --file      \t Solve an MPS file.\n"<<
+                 "   -a, --algorithm \t Specifies the solution algorithm (`primal` or `dual`(default)) .\n"<<
+                 "   -d, --directory \t Solve every MPS file listed in the FILE directory.\n"<<
+                 "   -f, --file      \t Solve an MPS file.\n"<<
                  "  -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
-                 "  -p, --parameter-file \t Generate the default parameter files.\n"<<
-                 "  -h, --help      \t Displays this help.\n"<<
+                 "   -p, --parameter-file \t Generate the default parameter files.\n"<<
+                 "   -o, --output    \t Redirect the solver output to a file.\n"<<
+                 "   -h, --help      \t Displays this help.\n"<<
                  "\n";
 }
 
@@ -158,8 +160,15 @@ void solveFileList(std::string fileListPath, ALGORITHM algorithm) {
     }
 }
 
+void redirectOutput(std::string path) {
+    OutputHandler::getInstance().disableAllColors();
+    freopen(path.c_str(), "w", stderr);
+}
+
 int main(int argc, char** argv) {
     setbuf(stdout, 0);
+
+    std::vector<std::pair<std::string, std::string> > solvables;
 
     ALGORITHM algorithm = DUAL;
 
@@ -193,7 +202,7 @@ int main(int argc, char** argv) {
                 } else {
                     std::string path(argv[i+1]);
                     if(isDir(path)){
-                        solveDir(path, algorithm);
+                        solvables.push_back(std::pair<std::string, std::string>(std::string("d"),path));
                         i++;
                     } else {
                         printInvalidOperandError(argv, i, i+1);
@@ -207,7 +216,7 @@ int main(int argc, char** argv) {
                 } else {
                     std::string path(argv[i+1]);
                     if(isFile(path)){
-                        solve(path, algorithm);
+                        solvables.push_back(std::pair<std::string, std::string>(std::string("f"),path));
                         i++;
                     } else {
                         printInvalidOperandError(argv, i, i+1);
@@ -221,7 +230,7 @@ int main(int argc, char** argv) {
                 } else {
                     std::string path(argv[i+1]);
                     if(isFile(path)){
-                        solveFileList(path, algorithm);
+                        solvables.push_back(std::pair<std::string, std::string>(std::string("fl"),path));
                         i++;
                     } else {
                         printInvalidOperandError(argv, i, i+1);
@@ -230,6 +239,15 @@ int main(int argc, char** argv) {
                 }
             } else if(arg.compare("-p") == 0 || arg.compare("--parameter-file") == 0){
                 generateParameterFiles();
+            } else if(arg.compare("-o") == 0 || arg.compare("--output") == 0){
+                if(argc < i+2 ){
+                    printMissingOperandError(argv);
+                    break;
+                } else {
+                    std::string path(argv[i+1]);
+                    redirectOutput(path);
+                    i++;
+                }
             } else {
                 printInvalidOptionError(argv, i);
                 break;
@@ -237,6 +255,15 @@ int main(int argc, char** argv) {
         }
     }
 
+    for(unsigned int i=0; i<solvables.size(); i++){
+        if(solvables.at(i).first.compare("d") == 0){
+            solveDir(solvables.at(i).second, algorithm);
+        } else if(solvables.at(i).first.compare("f") == 0){
+            solve(solvables.at(i).second, algorithm);
+        } else if(solvables.at(i).first.compare("fl") == 0){
+            solveFileList(solvables.at(i).second, algorithm);
+        }
+    }
 
     return EXIT_SUCCESS;
 }

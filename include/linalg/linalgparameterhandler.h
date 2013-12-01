@@ -18,8 +18,7 @@ public:
     void initParameters();
 
 private:
-
-    THREAD_STATIC_DECL const char * sm_filename;
+    THREAD_STATIC_DECL const char * sm_defaultFilename;
 
     LinalgParameterHandler();
     LinalgParameterHandler(const LinalgParameterHandler &){}

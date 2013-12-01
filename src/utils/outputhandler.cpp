@@ -34,17 +34,19 @@ void MessageHandler::addMessage(const std::string & message) {
     }
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
-    if ( getenv("ECLIPSE") ) {
+    if ( getenv("ECLIPSE") || m_colors == false) {
         std::cerr << "[INFO   ] " << message << std::endl;
     } else {
-        SetConsoleTextAttribute(hConsole, 25);
-        std::cerr << "[";
-        SetConsoleTextAttribute(hConsole, 31);
-        std::cerr << "INFO   ";
-        SetConsoleTextAttribute(hConsole, 25);
-        std::cerr << "]";
-        SetConsoleTextAttribute(hConsole, 7);
-        std::cerr << " " << message << std::endl;
+        if(m_colors){
+            SetConsoleTextAttribute(hConsole, 25);
+            std::cerr << "[";
+            SetConsoleTextAttribute(hConsole, 31);
+            std::cerr << "INFO   ";
+            SetConsoleTextAttribute(hConsole, 25);
+            std::cerr << "]";
+            SetConsoleTextAttribute(hConsole, 7);
+            std::cerr << " " << message << std::endl;
+        }
     }
 #endif
 }
@@ -58,7 +60,7 @@ void WarningHandler::addMessage(const std::string & message) {
     }
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
-    if ( getenv("ECLIPSE") ) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr << "[WARNING] " << message << std::endl;
     } else {
         SetConsoleTextAttribute(hConsole, 110);
@@ -82,7 +84,7 @@ void ErrorHandler::addMessage(const std::string & message) {
     }
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
-    if ( getenv("ECLIPSE") ) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr << "[ERROR  ] " << message << std::endl;
     } else {
         SetConsoleTextAttribute(hConsole, 76);
@@ -112,7 +114,7 @@ void DebugHandler::addMessage(const std::string & message,
     }
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
-    if ( getenv("ECLIPSE") ) {
+    if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr << "[" << file << ":"  << std::setw(5) << file << "] " << message << std::endl;
     } else {
         SetConsoleTextAttribute(hConsole, 93);
