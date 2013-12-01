@@ -85,7 +85,12 @@ private:
     void generateBreakpointsPhase1(const Vector& alpha,
                                    Numerical::Double phaseIReducedCost,
                                    Numerical::Double phaseIObjectiveValue);
-
+    void computeFunctionPhase1(const Vector& alpha,
+                               unsigned int& iterationCounter,
+                               Numerical::Double& functionSlope);
+    void useNumericalThreshold(unsigned int iterationCounter,
+                               const Vector& alpha,
+                               Numerical::Double& functionSlope);
     void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
                                    const Vector& alpha,
                                    Numerical::Double phaseIIObjectiveValue);

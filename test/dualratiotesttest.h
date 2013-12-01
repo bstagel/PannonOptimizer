@@ -1,5 +1,5 @@
-#ifndef DUALRATIOTEST_H
-#define DUALRATIOTEST_H
+#ifndef DUALRATIOTESTTEST_H
+#define DUALRATIOTESTTEST_H
 
 #include <framework/tester.h>
 #include <framework/unittest.h>
@@ -15,16 +15,21 @@ private:
                       Numerical::Double lb,
                       Numerical::Double ub);
     void  initTestDefines();
-
+//phase 1 tests
     void testStagelPh1();
     void testMaros1Ph1();
     void testMaros2Ph1();
     void testStagelCf3Ph1();
 
+    void testNum1Ph1();
+    void testNum2Ph1();
+    void testNum3Ph1();
+    void testNum4Ph1();
+//phase 2 tests
     void testStagelPh2();
     void testMaros1Ph2();
     void testMaros2Ph2();
     void testStagelCf3Ph2();
 };
 
-#endif // DUALRATIOTEST_H
+#endif // DUALRATIOTESTTEST_H

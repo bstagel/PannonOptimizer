@@ -108,11 +108,21 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
 
         out << "! Use the piecewise linear concave function in primal phase I." << std::endl;
+        out << "! 0.0 = Traditional one step method" <<std::endl;
+        out << "! 1.0 = Piecewise linear function" <<std::endl;
+        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
         out << "\t" << "nonlinear_primal_phaseI_function = " << m_values["nonlinear_primal_phaseI_function"].getValue() << std::endl;
 
         out << "! Use the piecewise linear concave function in dual phase I." << std::endl;
+        out << "! 0.0 = Traditional one step method" <<std::endl;
+        out << "! 1.0 = Piecewise linear function" <<std::endl;
+        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
+
         out << "\t" << "nonlinear_dual_phaseI_function = " << m_values["nonlinear_dual_phaseI_function"].getValue() << std::endl;
         out << "! Use the piecewise linear concave function in dual phase II." << std::endl;
+        out << "! 0.0 = Traditional one step method" <<std::endl;
+        out << "! 1.0 = Piecewise linear function" <<std::endl;
+        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
         out << "\t" << "nonlinear_dual_phaseII_function = " << m_values["nonlinear_dual_phaseII_function"].getValue() << std::endl;
 
 
