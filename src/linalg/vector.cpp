@@ -1896,9 +1896,9 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
     //            os << vector.m_data[index] << " ";
     //        }
     //    } else {
-    for (unsigned int index = 0; index < vector.m_dimension; index++) {
-        os << "[ " << index << "; " <<  vector.at(index) << "] ";
-    }
+//    for (unsigned int index = 0; index < vector.m_dimension; index++) {
+//        os << "[ " << index << "; " <<  vector.at(index) << "] ";
+//    }
     os << std::endl;
     //    }
 

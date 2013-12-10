@@ -76,7 +76,7 @@ void DualRatiotest::getNextElement(std::vector<BreakPoint>* breakpoints, unsigne
 void DualRatiotest::generateBreakpointsPhase1(const Vector& alpha,
                                               Numerical::Double phaseIReducedCost,
                                               Numerical::Double phaseIObjectiveValue){
-    #ifdef NDEBUG
+    #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
