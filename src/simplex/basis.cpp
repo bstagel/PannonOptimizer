@@ -210,6 +210,11 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition) throw (Numeric
                 eta->newNonZero(1 / atPivot, pivotPosition);
             } else {
                 eta->newNonZero(-(*it) / atPivot, it.getIndex());
+//                if(Numerical::fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){
+//                    LPERROR("INVERSION ERROR!: "<<"atPivot: "<<atPivot);
+//                    LPERROR("INVERSION ERROR!: "<<"(*it): "<<(*it));
+//                    LPERROR("INVERSION ERROR!: "<<"index: "<<it.getIndex()<< " value: "<<Numerical::fabs(-(*it) / atPivot));
+//                }
             }
         }
         DEVINFO(D::PFIMAKER, "Eta vector created with pivot " << pivotPosition);

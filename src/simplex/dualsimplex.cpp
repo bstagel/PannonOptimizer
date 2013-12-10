@@ -14,12 +14,12 @@
 const static char * INCOMING_NAME = "incoming";
 const static char * OUTGOING_NAME = "outgoing";
 const static char * PHASE_NAME = "phase";
-const static char * PHASE_1_STRING = "phase-1";
-const static char * PHASE_2_STRING = "phase-2";
+const static char * PHASE_1_STRING = "ph-1";
+const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PHASE_1_OBJ_VAL_STRING = "dual infeasibility";
 const static char * OBJ_VAL_STRING = "objective value";
-const static char * PRIMAL_REDUCED_COST_STRING = "primal reduced cost";
+const static char * PRIMAL_REDUCED_COST_STRING = "reduced cost";
 const static char * PRIMAL_THETA_STRING = "primal theta";
 const static char * DUAL_THETA_STRING = "dual theta";
 
@@ -53,17 +53,17 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                     IterationReportField::IRF_INT, *this);
         result.push_back(outgoingField);
 
-        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 20, 3, IterationReportField::IRF_RIGHT,
+        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(primalReducedCostField);
 
-        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 19, 3, IterationReportField::IRF_RIGHT,
+        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(primalThetaField);
 
-        IterationReportField dualThetaField(DUAL_THETA_STRING, 19, 3, IterationReportField::IRF_RIGHT,
+        IterationReportField dualThetaField(DUAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED);
         result.push_back(dualThetaField);
@@ -78,7 +78,7 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                10, IterationReportField::IRF_SCIENTIFIC);
         result.push_back(objValField);
 
-        IterationReportField phaseField(PHASE_NAME, 7, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField phaseField(PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
                                         IterationReportField::IRF_STRING, *this);
         result.push_back(phaseField);
     }
@@ -238,6 +238,7 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
     unsigned int columCount = m_simplexModel->getColumnCount();
 
     Vector alpha(rowCount + columCount);
+    alpha.setSparsityRatio(DENSE);
     computeTransformedRow(&alpha, m_outgoingIndex);
 
 

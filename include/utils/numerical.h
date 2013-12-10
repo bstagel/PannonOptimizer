@@ -48,7 +48,7 @@ class Numerical
 
         inline double getResult() const
         {
-            return m_negpos[0] + m_negpos[1];
+            return stableAdd(m_negpos[0], m_negpos[1]);
         }
 
         inline void clear()
@@ -209,7 +209,11 @@ class Numerical
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         const Double result = value1 + value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance > Numerical::fabs(result)) {
+        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+            return 0.0;
+        }
+        else if(Numerical::fabs(result)<AbsoluteTolerance){
+//            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
             return 0.0;
         }
         return result;
@@ -227,7 +231,11 @@ class Numerical
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         value1 += value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance > Numerical::fabs(value1)) {
+        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(value1)) {
+            value1 = 0.0;
+        }
+        else if(Numerical::fabs(value1)<AbsoluteTolerance){
+//            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
             value1 = 0.0;
         }
     }
@@ -245,7 +253,11 @@ class Numerical
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         const Double result = value1 - value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance > Numerical::fabs(result)) {
+        if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance >= Numerical::fabs(result)) {
+            return 0.0;
+        }
+        else if(Numerical::fabs(result)<AbsoluteTolerance){
+//            LPWARNING("stableSub RESULT IS BAAAD: "<<std::scientific<<result);
             return 0.0;
         }
         return result;
@@ -264,7 +276,11 @@ class Numerical
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         value1 -= value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance > Numerical::fabs(value1)) {
+        if ((value1abs > value2abs ? value1abs : value2abs) * Numerical::RelativeTolerance >= Numerical::fabs(value1)) {
+            value1 = 0.0;
+        }
+        else if(Numerical::fabs(value1)<AbsoluteTolerance){
+//            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
             value1 = 0.0;
         }
     }

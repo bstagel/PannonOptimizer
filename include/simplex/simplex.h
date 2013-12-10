@@ -15,6 +15,7 @@
 #include <simplex/simplexstates.h>
 #include <utils/iterationreport.h>
 #include <utils/iterationreportprovider.h>
+#include <utils/timer.h>
 //#include <simplex/basisheadio.h>
 
 class StartingBasisFinder;
@@ -86,6 +87,9 @@ protected:
     Numerical::Double m_phaseIObjectiveValue;
 
     bool m_baseChanged;
+    bool m_freshBasis;
+    int m_debugLevel;
+    Timer m_timer;
 
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
@@ -114,6 +118,12 @@ protected:
                    Numerical::Double primalTheta);
 
     void registerIntoIterationReport(const IterationReportProvider & provider);
+
+    bool checkPfiWithFtran();
+    bool checkPfiWithBtran();
+    bool checkPfiWithReducedCost();
+    bool checkAlphaValue(int rowIndex, int columnIndex, double& columnAlpha, double& rowAlpha);
+    bool checkTheta(int rowIndex, int columnIndex, Numerical::Double theta);
 
 private:
     unsigned int m_iterationIndex;

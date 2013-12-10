@@ -22,10 +22,13 @@ public:
     void start();
     void stop();
 
-    //Returns seconds with microsec accuracy
-    double getTotalElapsed();
-    double getLastElapsed();
-    double getAverageElapsed();
+    //Returns seconds with microsec accuracy, the timer must be stopped before
+    double getTotalElapsed() const;
+    double getLastElapsed() const;
+    double getAverageElapsed() const;
+
+    //Return the actual time if the timer is running
+    double getRunningTime() const;
 
 private:
     bool m_started;

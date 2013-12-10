@@ -75,7 +75,7 @@ void Timer::stop()
 #endif
 }
 
-double Timer::getLastElapsed()
+double Timer::getLastElapsed() const
 {
 #ifdef WIN32
     return (m_lastElapsed.QuadPart * (1000000.0 / m_frequency.QuadPart));
@@ -84,7 +84,7 @@ double Timer::getLastElapsed()
 #endif
 }
 
-double Timer::getTotalElapsed()
+double Timer::getTotalElapsed() const
 {
 #ifdef WIN32
     return (m_totalElapsed.QuadPart * (1000000.0 / m_frequency.QuadPart));
@@ -93,11 +93,31 @@ double Timer::getTotalElapsed()
 #endif
 }
 
-double Timer::getAverageElapsed()
+double Timer::getAverageElapsed() const
 {
 #ifdef WIN32
     return (m_averageElapsed.QuadPart * (1000000.0 / m_frequency.QuadPart));
 #else
     return ((m_averageElapsed.tv_sec * 1000000.0) + m_averageElapsed.tv_usec) * 0.000001;
 #endif
+}
+
+double Timer::getRunningTime() const
+{
+    if(m_started){
+#ifdef WIN32
+    LARGE_INTEGER actual;
+    QueryPerformanceCounter(&actual);
+    return (actual.QuadPart-m_start.QuadPart) * (1000000.0 / m_frequency.QuadPart);
+#else
+    gettimeofday(&m_end, NULL);
+
+    unsigned long long int startTime = m_start.tv_sec * 1000000 + m_start.tv_usec;
+    unsigned long long int endTime = m_end.tv_sec * 1000000 + m_end.tv_usec;
+    unsigned long long int diffTime = endTime - startTime;
+    return diffTime/1000000;
+#endif
+    } else {
+        return 0;
+    }
 }
