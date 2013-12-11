@@ -42,8 +42,6 @@ public:
 
     inline int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
 
-    inline Numerical::Double getPrimalSteplength()const{return m_primalSteplength;}
-
     inline Numerical::Double getDualSteplength()const{return m_dualSteplength;}
 
     inline Numerical::Double getObjectiveFunctionPhase1()const{return m_phaseIObjectiveValue;}
@@ -74,7 +72,6 @@ private:
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     int m_incomingVariableIndex;
     Numerical::Double m_dualSteplength;
-    Numerical::Double m_primalSteplength;
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;

@@ -106,6 +106,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     unsigned int variableIndex = 0;
     unsigned int basisIndex = 0;
     Variable::VARIABLE_TYPE typeOfIthVariable;
+    __UNUSED(typeOfIthVariable) //To avoid a warning
 
   //t>=0 case
     if (tPositive) {

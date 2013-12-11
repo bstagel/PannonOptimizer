@@ -158,6 +158,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (
         LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
         LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
         LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
+        m_basis->pop_back();
         cerr.unsetf(ios_base::floatfield);
         throw NumericalException("NUMERICAL problem");
     }
@@ -321,6 +322,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     for (; iter != iterEnd; iter++) {
         unsigned int nonZeros = vector.nonZeros();
         Numerical::Summarizer summarizer;
+
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
             Numerical::Double * ptrValue2 = iter->eta->m_data;
             Numerical::Double * ptrValue1 = denseVector;
@@ -350,10 +352,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
             }
         }
 
-        Numerical::Double dotProduct = Numerical::stableAdd(summarizer.getData()[0], summarizer.getData()[1]);
-        if (Numerical::fabs(dotProduct) < Numerical::AbsoluteTolerance) {
-            dotProduct = 0.0;
-        }
+        Numerical::Double dotProduct = summarizer.getResult();
+
         const int pivot = iter->index;
         if (denseVector[pivot] != 0.0 && dotProduct == 0.0) {
             vector.m_nonZeros--;

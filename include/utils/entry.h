@@ -1,11 +1,11 @@
-#ifndef REPORTENTRY_H
-#define REPORTENTRY_H
+#ifndef ENTRY_H
+#define ENTRY_H
 
-union ReportEntry {
+union Entry {
     std::string * m_string;
     int m_integer;
     double m_float;
     bool m_bool;
 };
 
-#endif // REPORTENTRY_H
+#endif // ENTRY_H

@@ -29,7 +29,6 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
-    m_primalSteplength(0),
     m_phaseIObjectiveValue(0),
     m_phaseIIObjectiveValue(0)
 {
@@ -444,36 +443,6 @@ void DualRatiotest::performRatiotestPhase1(unsigned int outgoingVariableIndex,
     } else{
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0;
-        m_primalSteplength = 0;
-    }
-
-    //determining primal steplength
-
-    Variable::VARIABLE_TYPE typeOfIthVariable = m_model.getVariable(outgoingVariableIndex).getType();
-    Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(outgoingVariableIndex));
-
-    if(m_incomingVariableIndex != -1){
-        if (typeOfIthVariable == Variable::FIXED) {
-            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                    alpha.at(m_incomingVariableIndex);
-        }
-        else if (typeOfIthVariable == Variable::BOUNDED) {
-            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                    alpha.at(m_incomingVariableIndex);
-        }
-        else if (typeOfIthVariable == Variable::PLUS) {
-            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getLowerBound()) /
-                    alpha.at(m_incomingVariableIndex);
-        }
-        else if (typeOfIthVariable == Variable::FREE) {
-            m_primalSteplength = valueOfOutgoingVariable / alpha.at(m_incomingVariableIndex);
-        }
-        else if (typeOfIthVariable == Variable::MINUS) {
-            m_primalSteplength = (valueOfOutgoingVariable - m_model.getVariable(outgoingVariableIndex).getUpperBound()) /
-                    alpha.at(m_incomingVariableIndex);
-        }
-    } else {
-        m_primalSteplength = 0;
     }
 }
 
@@ -645,6 +614,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
 //determining primal,dual steplength incoming variable
 
+    Numerical::Double primalSteplength;
+
     int num =(int)nonlinearDualPhaseIIFunction;
     switch (num) {
     //using traditional one step method
@@ -658,11 +629,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 m_breakpoints[length-1].functionValue = m_phaseIIObjectiveValue;
                 m_boundflips.push_back(m_breakpoints[length-1].index);
             }
-            //TODO: A PRIMAL STEPLENGTH NEM JO VMIERT
             if (m_tPositive) {
-                m_primalSteplength =- functionSlope / alpha.at(m_breakpoints[length-1].index);
+                primalSteplength =- functionSlope / alpha.at(m_breakpoints[length-1].index);
             } else{
-                m_primalSteplength = functionSlope / alpha.at(m_breakpoints[length-1].index);
+                primalSteplength = functionSlope / alpha.at(m_breakpoints[length-1].index);
             }
             m_incomingVariableIndex = m_breakpoints[length-1].index;
             m_dualSteplength = m_tPositive ? m_breakpoints[length-1].value : - m_breakpoints[length-1].value;
@@ -688,13 +658,13 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                         Numerical::fabs(variable.getUpperBound() - variable.getLowerBound());
 
                 if (m_tPositive) {
-                    m_primalSteplength =- previousSlope / alpha.at(m_breakpoints[id].index);
+                    primalSteplength =- previousSlope / alpha.at(m_breakpoints[id].index);
                 } else{
-                    m_primalSteplength = previousSlope / alpha.at(m_breakpoints[id].index);
+                    primalSteplength = previousSlope / alpha.at(m_breakpoints[id].index);
                 }
 
                 if(variable.getType() == Variable::BOUNDED){
-                    if((variable.getUpperBound() - variable.getLowerBound()) < m_primalSteplength) {
+                    if((variable.getUpperBound() - variable.getLowerBound()) < primalSteplength) {
                         m_boundflips.push_back(m_breakpoints[id].index);
                     } else{
                         m_transform = true;

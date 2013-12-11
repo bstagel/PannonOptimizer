@@ -22,7 +22,8 @@ CONFIG(debug, debug|release) {
 
 #Includes
 INCLUDEPATH += . \
-               include/
+               include/ \
+               include/utils/thirdparty/
 
 #Input
 HEADERS += include/debug.h \
@@ -94,7 +95,7 @@ HEADERS += include/debug.h \
     include/utils/iterationreport.h \
     include/utils/iterationreportprovider.h \
     include/utils/iterationreportfield.h \
-    include/utils/reportentry.h
+    include/utils/entry.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

@@ -5,7 +5,7 @@
 #include <defaultparameters.h>
 
 //Linalg Parameters
-const double DefaultParameters::E_ABSOLUTE = 1.0E-14;
+const double DefaultParameters::E_ABSOLUTE = 1.0E-12;
 const double DefaultParameters::E_RELATIVE = 1.0E-10;
 const double DefaultParameters::SPARSITY_RATIO = 0.05;
 const double DefaultParameters::ELBOWROOM = 5;
@@ -15,7 +15,7 @@ const double DefaultParameters::ELBOWROOM = 5;
 const double DefaultParameters::E_PIVOT = 1.0E-06;
 const double DefaultParameters::E_HARRIS = 1.0E-06;
 const double DefaultParameters::E_FEASIBILITY = 1.0E-08;
-const double DefaultParameters::E_OPTIMALITY = 1.0E-06;
+const double DefaultParameters::E_OPTIMALITY = 1.0E-08;
 //Starting procedures
 const double DefaultParameters::PRESOLVE= 0.0;
 const double DefaultParameters::SCALING = 0.0;

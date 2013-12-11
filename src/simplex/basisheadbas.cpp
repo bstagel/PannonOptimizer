@@ -6,6 +6,8 @@
 #define BAS_RECORD_SIZE 80
 #define MPS_NAME_LENGTH 8
 
+#include <float.h>
+
 void BasisHeadBAS::startWrting(const char * fileName) {
     if (m_outputFile.is_open() == true) {
         m_outputFile.close();
