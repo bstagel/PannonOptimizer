@@ -22,7 +22,7 @@ void BasisHeadBAS::addInfo(const char * info) {
     m_info = std::string(info);
 }
 
-void BasisHeadBAS::addBasicVariable(const Variable & variable,
+void BasisHeadBAS::addBasicVariable(const Variable *variable,
                                     unsigned int basisPosition,
                                     Numerical::Double value) {
     BasicVariable basicVariable;
@@ -32,13 +32,14 @@ void BasisHeadBAS::addBasicVariable(const Variable & variable,
     __UNUSED(value);
 }
 
-void BasisHeadBAS::addNonbasicVariable(const Variable & variable,
+void BasisHeadBAS::addNonbasicVariable(const Variable * variable,
                                        Simplex::VARIABLE_STATE state,
                                        Numerical::Double value) {
     NonBasicVariable nonbasicVariable;
-    nonbasicVariable.m_variable = &variable;
+    nonbasicVariable.m_variable = variable;
     nonbasicVariable.m_state = state;
     m_nonBasicVariables.push_back(nonbasicVariable);
+
     __UNUSED(value);
 }
 
@@ -51,16 +52,17 @@ void BasisHeadBAS::finishWriting() {
         m_outputFile << " ";
         if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ) {
             m_outputFile << "XL " << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
-                            basicIter->m_variable.getName() << "  ";
+                            basicIter->m_variable->getName() << "  ";
         } else if (m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_UB) {
             m_outputFile << "XU " << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
-                            basicIter->m_variable.getName() << "  ";
+                            basicIter->m_variable->getName() << "  ";
         } else {
             // TODO: exception
             LPERROR("finishWriting():\n"<<
                     "nonbasicIndex: "<<nonbasicIndex<<"\n"
                     "m_nonBasicVariables[nonbasicIndex].m_state: BASIC\n");
         }
+
         m_outputFile << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
                         m_nonBasicVariables[nonbasicIndex].m_variable->getName() << std::endl;
         nonbasicIndex++;
@@ -109,10 +111,6 @@ void BasisHeadBAS::getNamedVariable(const char * name, VariableIndex * index) {
 
 void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
                                  IndexList<const Numerical::Double*> * variableStates) {
-    //if (basisHead->size() !=  )
-    //LPWARNING( "basis head size: " << basisHead->size() );
-    //std::cin.get();
-    //basisHead->resize(basisHead->size(), -1);
 
     variableStates->init( m_hashTable.getCount(), Simplex::VARIABLE_STATE_ENUM_LENGTH );
     unsigned int index;
@@ -146,11 +144,13 @@ void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
                     getNamedVariable(line.substr(14, 8).c_str(), &name2 );
                     //name1.m_name = line.substr(4, 8);
                     //name2.m_name = line.substr(14, 8);
+
                     // XL ...166    ...119
                     const VariableIndex * ptr = m_hashTable.get(name1);
 
                     if (ptr != 0) {
                         (*basisHead)[ basisIndex++ ] = ptr->m_index;
+
                         variableStates->remove( ptr->m_index );
                         variableStates->insert( Simplex::BASIC, ptr->m_index );
                     } else {

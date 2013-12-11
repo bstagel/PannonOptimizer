@@ -451,7 +451,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     unsigned int position = 0;
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
-        Variable variable = m_simplexModel->getVariable(variableIndex);
+        const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         basisWriter->addBasicVariable( variable, position, m_basicVariableValues.at(position) );
         position++;
     }
@@ -460,17 +460,17 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
     for (; iter != iterEnd; iter++) {
         variableIndex = iter.getData();
-        Variable variable = m_simplexModel->getVariable(variableIndex);
+        const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
-        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_LB, variable.getLowerBound());
+        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_LB, variable->getLowerBound());
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
     for (; iter != iterEnd; iter++) {
         variableIndex = iter.getData();
-        Variable variable = m_simplexModel->getVariable(variableIndex);
+        const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
-        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_UB, variable.getUpperBound());
+        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_UB, variable->getUpperBound());
     }
 
     basisWriter->finishWriting();
@@ -519,7 +519,6 @@ void Simplex::solve() {
     m_iterationReport.writeStartReport();
 
     LPINFO("-----------------------------------");
-//    loadBasis("basis.bas", new BasisHeadBAS, true);
 
     try {
         m_solveTimer.start();
@@ -530,11 +529,13 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-
+        loadBasis("basis.bas", new BasisHeadBAS, true);
+        //exit(1);
+        saveBasis("basis2.bas", new BasisHeadBAS, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
 //            if(m_iterationIndex == 10)
-//                saveBasis("basis.bas", new BasisHeadBAS, true);
+      //        saveBasis("basis.bas", new BasisHeadBAS, true);
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;

@@ -6,6 +6,7 @@
 #include <utils/hashtable.h>
 #include <fstream>
 #include <string>
+#include <cstring>
 
 #include <iostream>
 
@@ -19,10 +20,10 @@ public:
 
     void addInfo(const char * info);
 
-    void addBasicVariable(const Variable & variable,
+    void addBasicVariable(const Variable * variable,
                           unsigned int basisPosition,
                           Numerical::Double value);
-    void addNonbasicVariable(const Variable & variable,
+    void addNonbasicVariable(const Variable *variable,
                              Simplex::VARIABLE_STATE state,
                              Numerical::Double value);
     void finishWriting();
@@ -41,7 +42,7 @@ private:
     std::ifstream m_inputFile;
 
     struct BasicVariable {
-        Variable m_variable;
+        const Variable * m_variable;
         unsigned int m_basisPosition;
     };
 
@@ -54,7 +55,11 @@ private:
         const Variable * m_variable;
         unsigned int m_index;
         bool operator != (const VariableIndex & vi) const {
-            return m_variable->getName() != vi.m_variable->getName();
+            return strcmp(m_variable->getName(), vi.m_variable->getName()) != 0;
+        }
+        friend std::ostream & operator << (std::ostream & os, const VariableIndex & id) {
+            os << id.m_variable->getName() << " ";
+            return os;
         }
     };
 
