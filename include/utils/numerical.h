@@ -13,55 +13,55 @@
 #include <iostream>
 #include <debug.h>
 
-#include <qd/qd_real.h>
+//#include <qd/qd_real.h>
 
 class Numerical
 {
     public:
-    class QD_Summarizer
-    {
-        qd_real m_negpos[2];
+//    class QD_Summarizer
+//    {
+//        qd_real m_negpos[2];
 
-        union Number
-        {
-            double m_num;
-            unsigned long long int m_bits;
-        } m_number;
+//        union Number
+//        {
+//            double m_num;
+//            unsigned long long int m_bits;
+//        } m_number;
 
-    public:
+//    public:
 
-        QD_Summarizer()
-        {
-            m_negpos[0] = 0.0;
-            m_negpos[1] = 0.0;
-        }
-
-        inline void add(const double & v)
-        {
-            m_number.m_num = v;
-            *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
-            /*if (v < 0.0) {
-                m_negpos[0] += v;
-            } else {
-                m_negpos[1] += v;
-            }*/
-        }
-
-        inline double getResult() const
-        {
-            return stableAdd(m_negpos[0], m_negpos[1]);
-        }
-
-        inline void clear()
-        {
-            m_negpos[0] = 0.0;
-            m_negpos[1] = 0.0;
-        }
-
-//        inline const double * getData() const {
-//            return m_negpos;
+//        QD_Summarizer()
+//        {
+//            m_negpos[0] = 0.0;
+//            m_negpos[1] = 0.0;
 //        }
-    };
+
+//        inline void add(const double & v)
+//        {
+//            m_number.m_num = v;
+//            *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
+//            /*if (v < 0.0) {
+//                m_negpos[0] += v;
+//            } else {
+//                m_negpos[1] += v;
+//            }*/
+//        }
+
+//        inline double getResult() const
+//        {
+//            return stableAdd(m_negpos[0], m_negpos[1]);
+//        }
+
+//        inline void clear()
+//        {
+//            m_negpos[0] = 0.0;
+//            m_negpos[1] = 0.0;
+//        }
+
+////        inline const double * getData() const {
+////            return m_negpos;
+////        }
+//    };
 
     class Summarizer
     {
@@ -266,24 +266,24 @@ class Numerical
         return result;
     }
 
-    static inline Double stableAdd(const qd_real & value1, const qd_real & value2)
-    {
-        const qd_real value1abs = value1.is_positive()?value1:-value1;
-        const qd_real value2abs = value2.is_positive()?value2:-value2;
-        const qd_real result = value1 + value2;
-        const qd_real resultabs = result.is_positive()?result:-result;
-//        LPINFO("result_before: "<<to_double(result));
-        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= resultabs) {
-            return 0.0;
-        }
-        else if(resultabs<AbsoluteTolerance){
-////            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
-            return 0.0;
-        }
-//        LPINFO("result: "<<result);
-//        LPINFO("to_double(result): "<<to_double(result));
-        return to_double(result);
-    }
+//    static inline Double stableAdd(const qd_real & value1, const qd_real & value2)
+//    {
+//        const qd_real value1abs = value1.is_positive()?value1:-value1;
+//        const qd_real value2abs = value2.is_positive()?value2:-value2;
+//        const qd_real result = value1 + value2;
+//        const qd_real resultabs = result.is_positive()?result:-result;
+////        LPINFO("result_before: "<<to_double(result));
+//        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= resultabs) {
+//            return 0.0;
+//        }
+//        else if(resultabs<AbsoluteTolerance){
+//////            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
+//            return 0.0;
+//        }
+////        LPINFO("result: "<<result);
+////        LPINFO("to_double(result): "<<to_double(result));
+//        return to_double(result);
+//    }
     /**
      * Numerical stable add operation. Ensures that when the first operand
      * is negative of second one, the result will be zero.
