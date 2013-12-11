@@ -12,8 +12,8 @@
 #include <simplex/basisheadbas.h>
 
 #include <utils/thirdparty/prettyprint.h>
-#include <qd/qd_real.h>
-#include <qd/fpu.h>
+//#include <qd/qd_real.h>
+//#include <qd/fpu.h>
 
 #include <algorithm>
 
