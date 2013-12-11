@@ -92,9 +92,9 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     return result;
 }
 
-ReportEntry DualSimplex::getIterationReportEntry(const string &name,
+Entry DualSimplex::getIterationEntry(const string &name,
                                                          ITERATION_REPORT_FIELD_TYPE &type) const {
-    ReportEntry reply;
+    Entry reply;
     reply.m_integer = 0;
 
     switch (type) {
@@ -128,7 +128,7 @@ ReportEntry DualSimplex::getIterationReportEntry(const string &name,
 
     }
 
-    return Simplex::getIterationReportEntry(name, type);
+    return Simplex::getIterationEntry(name, type);
 }
 
 
@@ -241,7 +241,6 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
     alpha.setSparsityRatio(DENSE);
     computeTransformedRow(&alpha, m_outgoingIndex);
 
-
 //    LPINFO("m_reducedCostFeasibilities: "<<m_reducedCostFeasibilities);
 //    LPINFO("m_reducedCosts: "<<m_reducedCosts);
 //    LPINFO("m_basisHead: "<<m_basisHead);
@@ -257,39 +256,68 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
         m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
     }
     m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
+
+    m_dualTheta = m_ratiotest->getDualSteplength();
 }
 
 void DualSimplex::update()throw (NumericalException) {
 
-  //  LPINFO("incomingIndex: "<<m_incomingIndex);
-  //  LPINFO("outgoingIndex: "<<m_outgoingIndex);
     if(m_incomingIndex != -1){
-        //LPINFO("primalReducedCost: " << m_reducedCosts.at(m_incomingIndex));
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
         m_primalReducedCost = std::numeric_limits<double>::signaling_NaN();
     }
-    //LPINFO("primalTheta: "<<m_ratiotest->getPrimalSteplength());
-    //LPINFO("dualTheta: "<<m_ratiotest->getDualSteplength());
-    m_primalTheta = m_ratiotest->getPrimalSteplength();
-    m_dualTheta = m_ratiotest->getDualSteplength();
-//LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
-    transform(m_incomingIndex, m_outgoingIndex, m_ratiotest->getBoundflips(), m_ratiotest->getPrimalSteplength());
-//    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
-//    Transform
-    //Update objective value
 
-    //RECOMPUTE NOW
-//    LPINFO("transformed");
-//    LPINFO("reinvert");
-//    reinvert();
-//    LPINFO("computeBasicSolution");
-    computeBasicSolution();
 
-//    LPINFO("computeReducedCosts");
+    //Todo update the solution properly
+    //    Numerical::Double boundflipTheta = 0.0;
+    std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
+    std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
+
+    for(; it < itend; it++){
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        const Variable& variable = m_simplexModel->getVariable(*it);
+        Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
+        //Alpha is not available, since we are in the dual
+        Vector alpha = m_simplexModel->getMatrix().column(*it);
+        m_basis->Ftran(alpha);
+        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+        } else {
+            LPERROR("Boundflipping variable in the basis (or superbasic)!");
+            //TODO Throw some exception here
+        }
+    }
+
+    if(m_outgoingIndex != -1 && m_incomingIndex != -1){
+        //Save whether the basis is to be changed
+        m_baseChanged = true;
+
+        unsigned int rowCount = m_simplexModel->getRowCount();
+        unsigned int columnCount = m_simplexModel->getColumnCount();
+
+        Vector alpha(rowCount);
+        if(m_incomingIndex < (int)columnCount){
+            alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+        } else {
+            alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
+        }
+        m_basis->Ftran(alpha);
+        m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
+        m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
+
+        //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
+
+        m_basis->append(alpha, m_outgoingIndex, m_incomingIndex);
+        m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+    }
+
+//    computeBasicSolution();
+
     computeReducedCosts();
 
-//    LPINFO("computeFeasibility");
     computeFeasibility();
 
     //Do dual specific using the updater
@@ -324,4 +352,30 @@ void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) th
             alpha->set(columnIndex, rho.at(columnIndex - columnCount));
         }
     }
+}
+
+Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex){
+    Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
+    Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
+
+    if (typeOfIthVariable == Variable::FIXED) {
+        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
+                alpha.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::BOUNDED) {
+        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
+                alpha.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::PLUS) {
+        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
+                alpha.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::FREE) {
+        return valueOfOutgoingVariable / alpha.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::MINUS) {
+        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
+                alpha.at(rowIndex);
+    }
+    return 0;
 }

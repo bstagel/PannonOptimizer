@@ -50,6 +50,7 @@ private:
     virtual void update()throw (NumericalException);
 
     void computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw (NumericalException);
+    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex);
 
     void registerIntoIterationReport(IterationReport * iterationReport) const;
 
@@ -57,8 +58,8 @@ private:
     std::vector<IterationReportField> getIterationReportFields(
             enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
-    ReportEntry getIterationReportEntry(const std::string & name,
-                                  enum ITERATION_REPORT_FIELD_TYPE & type) const;
+    Entry getIterationEntry(const std::string & name,
+                            enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
 };
 

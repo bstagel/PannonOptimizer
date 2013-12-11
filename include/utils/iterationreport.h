@@ -6,7 +6,7 @@
 #include <vector>
 #include <utils/iterationreportfield.h>
 #include <utils/iterationreportprovider.h>
-#include <utils/reportentry.h>
+#include <utils/entry.h>
 
 class IterationReport {
 
@@ -58,11 +58,11 @@ private:
 
     std::vector<IterationReportField> m_solutionFields;
 
-    std::vector< std::vector< ReportEntry > > m_iterationTable;
+    std::vector< std::vector< Entry > > m_iterationTable;
 
-    std::vector< ReportEntry > m_startTable;
+    std::vector< Entry > m_startTable;
 
-    std::vector< ReportEntry > m_solutionTable;
+    std::vector< Entry > m_solutionTable;
 
     bool m_refreshHeader;
 
@@ -75,14 +75,14 @@ private:
                     enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type);
 
     void getRow(const std::vector<IterationReportField> & fields,
-                std::vector< ReportEntry > * row,
+                std::vector< Entry > * row,
                 IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
 
     void writeSimpleTable(const std::vector<IterationReportField> & fields,
-                          const std::vector< ReportEntry > & row,
+                          const std::vector< Entry > & row,
                           IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
 
-    std::string getContent(const ReportEntry & reportEntry, const IterationReportField & field) const;
+    std::string getContent(const Entry & entry, const IterationReportField & field) const;
 
     void copy(const IterationReport & orig);
 

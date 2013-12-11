@@ -1,7 +1,8 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-#include <utils/platform.h>
+#include <globals.h>
+
 
 /*
  * Use COLORFLAGS macro to define the colors of the output.
@@ -37,7 +38,7 @@
 
 #if COLORFLAGS == WINDOWSCOLOR
 #include <windows.h>
-static HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
+static const HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
 #endif
 
 // Define colors

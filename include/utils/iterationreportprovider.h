@@ -3,7 +3,7 @@
 
 #include <globals.h>
 #include <utils/iterationreportfield.h>
-#include <utils/reportentry.h>
+#include <utils/entry.h>
 #include <vector>
 #include <string>
 
@@ -19,7 +19,7 @@ public:
     virtual std::vector<IterationReportField> getIterationReportFields(
             enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
 
-    virtual ReportEntry getIterationReportEntry(
+    virtual Entry getIterationEntry(
             const std::string & name,
             enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
 

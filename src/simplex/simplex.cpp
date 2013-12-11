@@ -12,6 +12,8 @@
 #include <simplex/basisheadbas.h>
 
 #include <utils/thirdparty/prettyprint.h>
+#include <qd/qd_real.h>
+#include <qd/fpu.h>
 
 #include <algorithm>
 
@@ -19,6 +21,16 @@ const static char * ITERATION_INDEX_NAME = "iteration";
 const static char * ITERATION_TIME_NAME = "time";
 const static char * ITERATION_INVERSION_NAME = "inv";
 
+const static char * SOLUTION_ITERATION_NAME = "Total iterations";
+const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
+const static char * SOLUTION_INVERSION_TIMER_NAME = "Inversion time";
+const static char * SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME = "Compute basic solution time";
+const static char * SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME = "Compute reduced costs time";
+const static char * SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME = "Compute feasibility time";
+const static char * SOLUTION_CHECK_FEASIBILITY_TIMER_NAME = "Check feasibility time";
+const static char * SOLUTION_PRICE_TIMER_NAME = "Pricing time";
+const static char * SOLUTION_SELECT_PIVOT_TIMER_NAME = "Pivot selection time";
+const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
 
 bool Simplex::checkPfiWithFtran(){
     std::vector<int> unitVectors;
@@ -191,7 +203,8 @@ bool Simplex::checkAlphaValue(int rowIndex, int columnIndex, double& columnAlpha
     }
 }
 
-bool Simplex::checkTheta(int rowIndex, int columnIndex, Numerical::Double theta){
+bool Simplex::checkPrimalTheta(int rowIndex, int columnIndex,
+                               Numerical::Double& thetaFromCol, Numerical::Double& thetaFromRow){
     Numerical::Double pivotFromCol;
     Numerical::Double pivotFromRow;
 
@@ -200,56 +213,53 @@ bool Simplex::checkTheta(int rowIndex, int columnIndex, Numerical::Double theta)
     Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
     Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
 
-    Numerical::Double computedFromCol;
-    Numerical::Double computedFromRow;
+    Numerical::Double computedFromCol = 0;
+    Numerical::Double computedFromRow = 0;
     if (typeOfIthVariable == Variable::FIXED) {
         computedFromCol = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromCol;
         computedFromRow = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromRow;
-        LPINFO("TYPE FIXED");
     }
     else if (typeOfIthVariable == Variable::BOUNDED) {
         computedFromCol = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromCol;
         computedFromRow = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromRow;
-        LPINFO("TYPE BOUNDED");
     }
     else if (typeOfIthVariable == Variable::PLUS) {
         computedFromCol = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromCol;
         computedFromRow = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromRow;
-        LPINFO("TYPE PLUS");
     }
     else if (typeOfIthVariable == Variable::FREE) {
         computedFromCol = valueOfOutgoingVariable / pivotFromCol;
         computedFromRow = valueOfOutgoingVariable  / pivotFromRow;
-        LPINFO("TYPE FREE");
     }
     else if (typeOfIthVariable == Variable::MINUS) {
         computedFromCol = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
                 pivotFromCol;
         computedFromRow = (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 pivotFromRow;
-        LPINFO("TYPE MINUS");
     }
 
-    LPINFO("Theta value: get: "<<theta);
-    LPINFO("Theta value: computedFromCol: "<<computedFromCol);
-    LPINFO("Theta value: computedFromRow: "<<computedFromRow);
-    LPINFO("Theta value diffFromCol: "<<Numerical::fabs(theta - computedFromCol));
-    LPINFO("Theta value diffFromRow: "<<Numerical::fabs(theta - computedFromRow));
-    if(theta != computedFromRow){
+//    LPINFO("Theta value: get: "<<theta);
+//    LPINFO("Theta value: computedFromCol: "<<computedFromCol);
+//    LPINFO("Theta value: computedFromRow: "<<computedFromRow);
+//    LPINFO("Theta value diffFromCol: "<<Numerical::fabs(theta - computedFromCol));
+//    LPINFO("Theta value diffFromRow: "<<Numerical::fabs(theta - computedFromRow));
+    thetaFromCol = computedFromCol;
+    thetaFromRow = computedFromRow;
+    if(!Numerical::isZero(computedFromCol - computedFromRow)){
         LPWARNING("THETA ERROR!");
-        exit(-1);
         return false;
     } else {
         return true;
     }
 }
 
+//---------------------------------------------------------
 
 Simplex::Simplex():
     m_simplexModel(NULL),
@@ -268,6 +278,8 @@ Simplex::Simplex():
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
+
+//    fpu_fix_start(&m_old_cw);
 }
 
 Simplex::~Simplex() {
@@ -277,6 +289,7 @@ Simplex::~Simplex() {
         delete m_simplexModel;
         m_simplexModel = 0;
     }
+//    fpu_fix_end(&m_old_cw);
 }
 
 std::vector<IterationReportField> Simplex::getIterationReportFields(
@@ -303,13 +316,45 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
-        IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
+        IterationReportField iterationField(SOLUTION_ITERATION_NAME, 20, 1, IterationReportField::IRF_RIGHT,
                                     IterationReportField::IRF_INT, *this);
         result.push_back(iterationField);
-        IterationReportField timeField(ITERATION_TIME_NAME, 10, 1, IterationReportField::IRF_RIGHT,
+        IterationReportField solveTimerField(SOLUTION_SOLVE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
                                     IterationReportField::IRF_FLOAT, *this,
                                     4, IterationReportField::IRF_FIXED);
-        result.push_back(timeField);
+        result.push_back(solveTimerField);
+        IterationReportField inversionTimerField(SOLUTION_INVERSION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(inversionTimerField);
+        IterationReportField computeBasicSolutionTimerField(SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(computeBasicSolutionTimerField);
+        IterationReportField computeReducedCostsField(SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(computeReducedCostsField);
+        IterationReportField computeFeasibilityTimerField(SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(computeFeasibilityTimerField);
+        IterationReportField checkFeasibilityTimerField(SOLUTION_CHECK_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(checkFeasibilityTimerField);
+        IterationReportField priceTimerField(SOLUTION_PRICE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(priceTimerField);
+        IterationReportField selectpivotTimerField(SOLUTION_SELECT_PIVOT_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(selectpivotTimerField);
+        IterationReportField updateTimerField(SOLUTION_UPDATE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                    IterationReportField::IRF_FLOAT, *this,
+                                    4, IterationReportField::IRF_FIXED);
+        result.push_back(updateTimerField);
         break;
 
     }
@@ -317,9 +362,9 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     return result;
 }
 
-ReportEntry Simplex::getIterationReportEntry(const string &name,
+Entry Simplex::getIterationEntry(const string &name,
                                                      ITERATION_REPORT_FIELD_TYPE &type) const {
-    ReportEntry reply;
+    Entry reply;
     reply.m_integer = 0;
     switch (type) {
     case IterationReportProvider::IRF_START:
@@ -329,7 +374,7 @@ ReportEntry Simplex::getIterationReportEntry(const string &name,
         if (name == ITERATION_INDEX_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == ITERATION_TIME_NAME) {
-            reply.m_float = m_timer.getRunningTime()/1000000;
+            reply.m_float = m_solveTimer.getRunningTime()/1000000;
         } else if (name == ITERATION_INVERSION_NAME) {
             if(m_freshBasis){
                 reply.m_string = new std::string("*I*");
@@ -340,10 +385,26 @@ ReportEntry Simplex::getIterationReportEntry(const string &name,
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
-        if (name == ITERATION_INDEX_NAME) {
+        if (name == SOLUTION_ITERATION_NAME) {
             reply.m_integer = m_iterationIndex;
-        } else if (name == ITERATION_TIME_NAME) {
-            reply.m_float = m_timer.getRunningTime()/1000000;
+        } else if (name == SOLUTION_SOLVE_TIMER_NAME) {
+            reply.m_float = m_solveTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_INVERSION_TIMER_NAME) {
+            reply.m_float = m_inversionTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME) {
+            reply.m_float = m_computeBasicSolutionTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME) {
+            reply.m_float = m_computeReducedCostsTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME) {
+            reply.m_float = m_computeFeasibilityTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_CHECK_FEASIBILITY_TIMER_NAME) {
+            reply.m_float = m_checkFeasibilityTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_PRICE_TIMER_NAME) {
+            reply.m_float = m_priceTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_SELECT_PIVOT_TIMER_NAME) {
+            reply.m_float = m_selectPivotTimer.getTotalElapsed()/1000000;
+        } else if (name == SOLUTION_UPDATE_TIMER_NAME) {
+            reply.m_float = m_updateTimer.getTotalElapsed()/1000000;
         }
         break;
 
@@ -461,7 +522,7 @@ void Simplex::solve() {
 //    loadBasis("basis.bas", new BasisHeadBAS, true);
 
     try {
-        m_timer.start();
+        m_solveTimer.start();
         m_basicVariableValues.prepareForData(m_simplexModel->getRhs().nonZeros(), m_basicVariableValues.length(), DENSE);
         Vector::NonzeroIterator it = m_simplexModel->getRhs().beginNonzero();
         Vector::NonzeroIterator itend = m_simplexModel->getRhs().endNonzero();
@@ -470,7 +531,7 @@ void Simplex::solve() {
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
 
-        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_timer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
+        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
 //            if(m_iterationIndex == 10)
 //                saveBasis("basis.bas", new BasisHeadBAS, true);
@@ -478,25 +539,41 @@ void Simplex::solve() {
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
                 reinversionCounter = 0;
+                m_inversionTimer.start();
                 reinvert();
+                m_inversionTimer.stop();
+                m_computeBasicSolutionTimer.start();
                 computeBasicSolution();
+                m_computeBasicSolutionTimer.stop();
+                m_computeReducedCostsTimer.start();
                 computeReducedCosts();
+                m_computeReducedCostsTimer.stop();
+                m_computeFeasibilityTimer.start();
                 computeFeasibility();
+                m_computeFeasibilityTimer.stop();
             }
             try{
-//                if(m_iterationIndex>520){
+//                if(m_iterationIndex>820){
 //                    checkPfiWithFtran();
 //                    checkPfiWithBtran();
 //                    checkPfiWithReducedCost();
 //                }
 
+                m_checkFeasibilityTimer.start();
                 checkFeasibility();
+                m_checkFeasibilityTimer.stop();
+                m_priceTimer.start();
                 price();
+                m_priceTimer.stop();
+                m_selectPivotTimer.start();
                 selectPivot();
+                m_selectPivotTimer.stop();
+                m_updateTimer.start();
                 //Do not use the update formulas before reinversion
                 if(reinversionCounter+1 < reinversionFrequency){
                     update();
                 }
+                m_updateTimer.stop();
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
@@ -508,7 +585,7 @@ void Simplex::solve() {
             catch ( const OptimalException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
-                    m_timer.stop();
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
 //                    LPINFO("TRIGGERING REINVERSION TO CHECK OPTIMALITY! ");
@@ -519,7 +596,7 @@ void Simplex::solve() {
             catch ( const PrimalInfeasibleException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
-                    m_timer.stop();
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
                     reinversionCounter = reinversionFrequency;
@@ -529,7 +606,7 @@ void Simplex::solve() {
             catch ( const DualInfeasibleException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
-                    m_timer.stop();
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
                     reinversionCounter = reinversionFrequency;
@@ -539,7 +616,7 @@ void Simplex::solve() {
             catch ( const PrimalUnboundedException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
-                    m_timer.stop();
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
                     reinversionCounter = reinversionFrequency;
@@ -549,7 +626,7 @@ void Simplex::solve() {
             catch ( const DualUnboundedException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
-                    m_timer.stop();
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
                     reinversionCounter = reinversionFrequency;
@@ -734,62 +811,5 @@ void Simplex::computeReducedCosts() throw (NumericalException) {
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
-    }
-}
-
-void Simplex::transform(int incomingIndex,
-                        int outgoingIndex,
-                        const std::vector<unsigned int>& boundflips,
-                        Numerical::Double primalTheta) {
-
-    //Todo update the solution properly
-    //    Numerical::Double boundflipTheta = 0.0;
-    std::vector<unsigned int>::const_iterator it = boundflips.begin();
-    std::vector<unsigned int>::const_iterator itend = boundflips.end();
-    //TODO Atgondolni hogy mit mikor kell ujraszamolni
-
-    for(; it < itend; it++){
-        LPWARNING("BOUNDFLIPPING at: "<<*it);
-        const Variable& variable = m_simplexModel->getVariable(*it);
-        Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
-        Vector alpha = m_simplexModel->getMatrix().column(*it);
-        m_basis->Ftran(alpha);
-        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
-        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
-        } else {
-            LPERROR("Boundflipping variable in the basis (or superbasic)!");
-            //TODO Throw some exception here
-        }
-    }
-
-    if(outgoingIndex != -1 && incomingIndex != -1){
-        //Save whether the basis is to be changed
-        m_baseChanged = true;
-
-        unsigned int rowCount = m_simplexModel->getRowCount();
-        unsigned int columnCount = m_simplexModel->getColumnCount();
-
-//        double dummy1, dummy2;
-//        checkAlphaValue(outgoingIndex,incomingIndex, dummy1, dummy2);
-        checkTheta(outgoingIndex,incomingIndex, primalTheta);
-
-        //TODO: Az alpha vajon sparse vagy dense?
-        Vector alpha(rowCount);
-        if(incomingIndex < (int)columnCount){
-            alpha = m_simplexModel->getMatrix().column(incomingIndex);
-        } else {
-            alpha.setNewNonzero(incomingIndex - columnCount, 1);
-        }
-        m_basis->Ftran(alpha);
-        m_basicVariableValues.addVector(-1 * primalTheta, alpha);
-
-
-
-
-        //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-        m_basis->append(alpha, outgoingIndex, incomingIndex);
-        m_basicVariableValues.set(outgoingIndex, *(m_variableStates.getAttachedData(incomingIndex)) + primalTheta);
     }
 }

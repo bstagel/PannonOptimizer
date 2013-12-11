@@ -21,7 +21,7 @@ enum ALGORITHM {
 
 void solve(std::string filename, ALGORITHM algorithm) {
     //Init
-    Simplex* simplex;
+    Simplex* simplex = NULL;
     //TODO: Csinal maganak parameter fajlt, akkor is ha nem fut le
      if(algorithm == PRIMAL){
         simplex = new PrimalSimplex();

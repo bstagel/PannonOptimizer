@@ -711,12 +711,10 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         return 0.0;
     }
 
+    Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
         m_sorted && vector.m_sorted) {
-
-        Numerical::Double positive = 0.0;
-        Numerical::Double negative = 0.0;
 
         unsigned int * index1 = m_index;
         unsigned int * index2 = vector.m_index;
@@ -735,57 +733,26 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
             } else {
                 Numerical::Double value = m_data[ index1 - m_index ] *
                     vector.m_data[ index2 - vector.m_index ];
-                if (value > 0.0) {
-                    positive += value;
-                } else {
-                    negative += value;
-                }
+                summarizer.add(value);
                 index1++;
                 index2++;
             }
         }
-        return Numerical::stableAdd(negative, positive);
+        return summarizer.getResult();
 
     }
-#ifdef SUPERACCUMLATOR
-    Numerical::SuperAccumlator & superAccumlator = Numerical::getSuperAccumlator(Numerical::DOT_PRODUCT);
-#else
-    Numerical::Double positive = 0.0;
-    Numerical::Double negative = 0.0;
-#endif
     Numerical::Double temp;
     if (m_vectorType == DENSE_VECTOR && vector.m_vectorType == DENSE_VECTOR) {
         const Numerical::Double * ptr1 = m_data;
         const Numerical::Double * ptr2 = vector.m_data;
         const Numerical::Double * end = m_dataEnd;
-        Numerical::Double result = 0.0;
         while (ptr1 < end) {
             temp = *ptr1 * *ptr2;
-#ifdef SUPERACCUMLATOR
-            superAccumlator.add(temp);
-#else
-            if (temp < 0.0) {
-                negative += temp;
-            } else {
-                positive += temp;
-            }
-#endif
-            //result += *ptr1 * *ptr2;
+            summarizer.add(temp);
             ptr1++;
             ptr2++;
         }
-#ifdef SUPERACCUMLATOR
-        result = superAccumlator.getSum();
-#else
-        result = Numerical::stableAdd(negative, positive);
-
-#endif
-
-        CHECK;
-        if (Numerical::fabs(result) < Numerical::AbsoluteTolerance) {
-            result = 0.0;
-        }
-        return result;
+        return summarizer.getResult();
     }
 
     Numerical::Double * data;
@@ -831,7 +798,6 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         }
     }
 
-    Numerical::Double result = 0.0;
 
     const Numerical::Double * ptrSparse = data;
     const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
@@ -840,15 +806,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     while (ptrSparse < ptrSparseEnd) {
 
         temp = denseVector[ *ptrIndex ] * *ptrSparse;
-#ifdef SUPERACCUMLATOR
-        superAccumlator.add(temp);
-#else
-        if (temp < 0.0) {
-            negative += temp;
-        } else {
-            positive += temp;
-        }
-#endif
+        summarizer.add(temp);
         if (needScatter) {
             // denseVector[ *ptrIndex ] = 0.0;
         }
@@ -858,17 +816,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
-#ifdef SUPERACCUMLATOR
-    result = superAccumlator.getSum();
-#else
-    result = Numerical::stableAdd(negative, positive);
-#endif
-    CHECK;
-
-    if (Numerical::fabs(result) < Numerical::AbsoluteTolerance) {
-        result = 0.0;
-    }
-    return result;
+    return summarizer.getResult();
 }
 
 Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)

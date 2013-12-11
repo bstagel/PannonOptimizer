@@ -69,8 +69,8 @@ public:
     // Interface of the iteration report provider
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
-    ReportEntry getIterationReportEntry(const std::string & name,
-                                  enum ITERATION_REPORT_FIELD_TYPE & type) const;
+    Entry getIterationEntry(const std::string & name,
+                            enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
 
 protected:
@@ -89,7 +89,19 @@ protected:
     bool m_baseChanged;
     bool m_freshBasis;
     int m_debugLevel;
-    Timer m_timer;
+
+    Timer m_solveTimer;
+    Timer m_inversionTimer;
+    Timer m_computeBasicSolutionTimer;
+    Timer m_computeReducedCostsTimer;
+    Timer m_computeFeasibilityTimer;
+    Timer m_checkFeasibilityTimer;
+    Timer m_priceTimer;
+    Timer m_selectPivotTimer;
+    Timer m_updateTimer;
+
+    //FPU fix
+    unsigned int m_old_cw;
 
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
@@ -115,7 +127,7 @@ protected:
     void transform(int incomingIndex,
                    int outgoingIndex,
                    const std::vector<unsigned int>& boundflips,
-                   Numerical::Double primalTheta);
+                   Numerical::Double* primalTheta);
 
     void registerIntoIterationReport(const IterationReportProvider & provider);
 
@@ -123,7 +135,8 @@ protected:
     bool checkPfiWithBtran();
     bool checkPfiWithReducedCost();
     bool checkAlphaValue(int rowIndex, int columnIndex, double& columnAlpha, double& rowAlpha);
-    bool checkTheta(int rowIndex, int columnIndex, Numerical::Double theta);
+    bool checkPrimalTheta(int rowIndex, int columnIndex,
+                          Numerical::Double& thetaFromCol, Numerical::Double& thetaFromRow);
 
 private:
     unsigned int m_iterationIndex;
