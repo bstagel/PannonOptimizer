@@ -17,10 +17,10 @@ public:
 
     virtual void addInfo(const char * info) = 0;
 
-    virtual void addBasicVariable(const Variable & variable,
+    virtual void addBasicVariable(const Variable * variable,
                                   unsigned int basisPosition,
                                   Numerical::Double value) = 0;
-    virtual void addNonbasicVariable(const Variable & variable,
+    virtual void addNonbasicVariable(const Variable * variable,
                                      Simplex::VARIABLE_STATE state,
                                      Numerical::Double value) = 0;
     virtual void finishWriting() = 0;
