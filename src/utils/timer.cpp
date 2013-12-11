@@ -110,10 +110,11 @@ double Timer::getRunningTime() const
     QueryPerformanceCounter(&actual);
     return (actual.QuadPart-m_start.QuadPart) * (1000000.0 / m_frequency.QuadPart);
 #else
-    gettimeofday(&m_end, NULL);
+    timeval actual;
+    gettimeofday(&actual, NULL);
 
     unsigned long long int startTime = m_start.tv_sec * 1000000 + m_start.tv_usec;
-    unsigned long long int endTime = m_end.tv_sec * 1000000 + m_end.tv_usec;
+    unsigned long long int endTime = actual.tv_sec * 1000000 + actual.tv_usec;
     unsigned long long int diffTime = endTime - startTime;
     return diffTime/1000000;
 #endif

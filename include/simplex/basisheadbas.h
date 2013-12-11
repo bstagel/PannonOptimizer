@@ -46,15 +46,15 @@ private:
     };
 
     struct NonBasicVariable {
-        Variable m_variable;
+        const Variable * m_variable;
         Simplex::VARIABLE_STATE m_state;
     };
 
     struct VariableIndex {
-        std::string m_name;
+        const Variable * m_variable;
         unsigned int m_index;
         bool operator != (const VariableIndex & vi) const {
-            return m_name != vi.m_name;
+            return m_variable->getName() != vi.m_variable->getName();
         }
     };
 
@@ -62,9 +62,9 @@ private:
     public:
         static unsigned int getHash(const VariableIndex & vi) {
             unsigned int bits = 0;
-            const unsigned int length = vi.m_name.length();
+            const unsigned int length = strlen(vi.m_variable->getName());
             unsigned int index;
-            const unsigned int * ptr32 = reinterpret_cast<const unsigned int*>(vi.m_name.data());
+            const unsigned int * ptr32 = reinterpret_cast<const unsigned int*>(vi.m_variable->getName());
             const unsigned int step = sizeof(unsigned int);
             //std::cout << "name: \"" << vi.m_name << std::endl;
             for (index = 0; index < length / step; index++) {
@@ -73,7 +73,7 @@ private:
                 ptr32++;
             }
             //std::cout << std::endl << std::hex << bits << std::endl;
-            const unsigned char * ptr8 = reinterpret_cast<const unsigned char *>(vi.m_name.data() + step * index);
+            const unsigned char * ptr8 = reinterpret_cast<const unsigned char *>(vi.m_variable->getName() + step * index);
             index *= step;
             unsigned long long int littleBits = 0;
             unsigned int shift = 0;
@@ -89,6 +89,8 @@ private:
             return bits;
         }
     };
+
+    void getNamedVariable(const char * name, VariableIndex *index);
 
     std::vector<BasicVariable> m_basicVariables;
 
