@@ -529,9 +529,9 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-        loadBasis("basis.bas", new BasisHeadBAS, true);
+//        loadBasis("basis.bas", new BasisHeadBAS, true);
         //exit(1);
-        saveBasis("basis2.bas", new BasisHeadBAS, true);
+//        saveBasis("basis2.bas", new BasisHeadBAS, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
 //            if(m_iterationIndex == 10)
@@ -570,10 +570,11 @@ void Simplex::solve() {
                 selectPivot();
                 m_selectPivotTimer.stop();
                 m_updateTimer.start();
-                //Do not use the update formulas before reinversion
-                if(reinversionCounter+1 < reinversionFrequency){
-                    update();
-                }
+                //TODO: Do not use the update formulas before reinversion
+                //TODO: UGY NEM JO AHOGY VOLT, az append is az update-be van!
+//                if(reinversionCounter+1 < reinversionFrequency){
+                update();
+//                }
                 m_updateTimer.stop();
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){

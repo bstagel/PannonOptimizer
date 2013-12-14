@@ -72,9 +72,7 @@ public:
 
     class CommonIterator;
     class Iterator;
-    class ConstIterator;
     class NonzeroIterator;
-    class ConstNonzeroIterator;
 
 #include <linalg/vector_iterator.h>
 
@@ -626,6 +624,8 @@ public:
     }
 
     void sortElements() const;
+
+    inline bool isSorted() {return m_sorted;}
 
     void scaleByLambdas(const std::vector<Numerical::Double> & lambdas);
 

@@ -314,7 +314,7 @@ void DualSimplex::update()throw (NumericalException) {
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
     }
 
-//    computeBasicSolution();
+    computeBasicSolution();
 
     computeReducedCosts();
 
