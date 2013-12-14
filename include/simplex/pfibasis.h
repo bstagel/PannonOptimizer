@@ -166,7 +166,7 @@ private:
      * of the nontriangular part. The pointers for these sumbatrix columns are
      * collected in this vector.
      */
-    std::vector<Vector*>* m_cColumns;
+    std::vector<const Vector*>* m_cColumns;
 
     /**
      * For each C column the corresponding pivot index (row index) is stored here.
@@ -221,6 +221,11 @@ private:
     clock_t cl_transversal, cl_createBlockTriangular, cl_pivot, cl_updateColumns;
     clock_t cl_invertR, cl_invertM, cl_invertC;
 
+    void copyBasis(bool buildIndexLists = true);
+
+    void buildRowCountIndexLists(int size, int maxRowCount);
+    void buildColumnCountIndexLists(int size, int maxColumnCount);
+
     void invertR() throw (NumericalException);
     void findC();
     void invertM() throw (NumericalException);
@@ -238,7 +243,7 @@ private:
     int searchNode();
     void createBlockTriangular();
     void updateColumns(unsigned int rowindex,unsigned int columnindex);
-    bool nontriangularCheck(int& rowindex, Vector* currentColumn, int blockNum);
+    bool nontriangularCheck(int& rowindex, const Vector *currentColumn, int blockNum);
 
     void printCounts() const;
     void printMM() const;

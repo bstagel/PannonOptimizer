@@ -28,117 +28,6 @@ Basis::~Basis()
 
 }
 
-void Basis::copyBasis(bool buildIndexLists) {
-    DEVINFO(D::PFIMAKER, "Copy the basis");
-    unsigned int columnCount = m_model.getColumnCount();
-    unsigned int rowCount = m_model.getRowCount();
-
-    //Reinit data structures
-    m_columns.clear();
-    m_columnCounts.clear();
-    m_columnCountIndexList.init(0,0);
-    m_columnsHash.clear();
-    m_rows.clear();
-    m_rowCounts.clear();
-    m_rowCountIndexList.init(0,0);
-
-    //Containers to be resized directly
-    m_columns.reserve(rowCount);
-    m_columnCounts.resize(rowCount,0);
-    m_columnsHash.reserve(rowCount);
-    m_rowCounts.clear();
-    m_rowCounts.resize(rowCount, 0);
-    m_rows.resize(rowCount, Vector(rowCount));
-
-    std::vector<char> headChecker(rowCount + columnCount, 0);
-    m_basisNewHead.resize(rowCount, -1);
-    //Copy the active submatrix
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
-        if (headChecker.at(*it) == 0) {
-            headChecker.at(*it) = 1;
-        } else {
-            //TODO: throw exception here, DEBUG MODE ONLY
-            //TODO: Ennek az esetnek a kezelese vmiert nem jo
-            LPWARNING("Duplicate index in basis head: " << *it);
-        }
-        if (*it >= (int) columnCount) {
-            DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
-            //Collect the logical columns
-            Vector logical(rowCount);
-            logical.setNewNonzero(*it - columnCount,1);
-            m_columns.push_back(logical);
-            m_columnsHash.push_back(*it);
-            m_basisNonzeros++;
-        } else {
-            DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
-            //The submatrix is the active submatrix needed for inversion
-            m_columns.push_back(m_model.getMatrix().column(*it));
-            m_columnsHash.push_back(*it);
-            m_basisNonzeros += m_columns.back().nonZeros();
-        }
-    }
-    //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
-    unsigned int maxRowCount = 0;
-    unsigned int maxColumnCount = 0;
-    for (std::vector<Vector>::iterator it = m_columns.begin(); it < m_columns.end(); it++) {
-        m_columnCounts.at(it - m_columns.begin()) = it->nonZeros();
-        if (maxColumnCount < it->nonZeros()) {
-            maxColumnCount = it->nonZeros();
-        }
-        Vector::NonzeroIterator vectorIt = it->beginNonzero();
-        Vector::NonzeroIterator vectorItEnd = it->endNonzero();
-        for (; vectorIt < vectorItEnd; vectorIt++) {
-            m_rowCounts.at(vectorIt.getIndex())++;
-            m_rows.at(vectorIt.getIndex()).setNewNonzero(it - m_columns.begin(), *vectorIt);
-        }
-    }
-
-    if(buildIndexLists){
-        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
-            if (maxRowCount < (unsigned int) *it) {
-                maxRowCount = *it;
-            }
-        }
-        buildRowCountIndexLists(maxRowCount);
-        buildColumnCountIndexLists(maxColumnCount);
-    }
-
-#ifndef NDEBUG
-    printActiveSubmatrix();
-#endif
-}
-
-
-void Basis::buildRowCountIndexLists(unsigned int maxRowCount) {
-    m_rowCountIndexList.init(m_rows.size(), maxRowCount+1);
-    if(maxRowCount>0){
-        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
-            if (*it >= 0) {
-                m_rowCountIndexList.insert(*it, it - m_rowCounts.begin());
-            }
-        }
-    }
-    DEVINFO(D::PFIMAKER, "Row links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_rowCountIndexList);
-#endif
-}
-
-void Basis::buildColumnCountIndexLists(unsigned int maxColumnCount) {
-    m_columnCountIndexList.init(m_columns.size(), maxColumnCount+1);
-    if(maxColumnCount>0){
-        for (std::vector<int>::iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); it++) {
-            if (*it >= 0) {
-                m_columnCountIndexList.insert(*it, it - m_columnCounts.begin());
-            }
-        }
-    }
-    DEVINFO(D::PFIMAKER, "Column links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_columnCountIndexList);
-#endif
-}
-
 void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
     std::vector<char> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
@@ -225,19 +114,11 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition) throw (Numeric
 void Basis::printActiveSubmatrix() const
 {
 #ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, "Active submatrix pattern by rows");
-    for (std::vector<Vector>::const_iterator it = m_rows.begin(); it < m_rows.end(); it++) {
-        std::string s;
-        for (int i = 0; i < (int) it->length(); i++) {
-            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
-        }
-        DEVINFO(D::PFIMAKER, s);
-    }
     DEVINFO(D::PFIMAKER, "Active submatrix pattern by columns");
-    for (int i = 0; i < (int) m_rows.size(); i++) {
+    for (int i = 0; i < (int) m_basicColumns.size(); i++) {
         std::string s;
-        for (std::vector<Vector>::const_iterator it = m_columns.begin(); it < m_columns.end(); it++) {
-            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
+        for (std::vector<const Vector*>::const_iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); it++) {
+            s += Numerical::equals((*it)->at(i), 0) ? "-" : "X";
         }
         DEVINFO(D::PFIMAKER, s);
     }

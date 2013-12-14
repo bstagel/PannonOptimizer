@@ -9,6 +9,7 @@ class SimplexModel;
 
 #include <globals.h>
 #include <vector>
+#include <list>
 
 #include <linalg/vector.h>
 
@@ -86,6 +87,14 @@ protected:
 
     std::vector<int> m_basisNewHead;
 
+    std::vector<const Vector*> m_basicColumns;
+    std::vector<Vector*> m_basicColumnCopies;
+    /**
+     * Stores the original variable indices for each column in the submatrix.
+     */
+    std::vector<int> m_basicColumnIndices;
+    std::vector<std::list<int> > m_basicNonzeroIndices;
+
     /**
      * Stores the active submatrix of used for the inversion (columnwise).
      * The dimension of the submatrix is m*k , where k is the number of struxtural variables
@@ -110,17 +119,6 @@ protected:
     IndexList<> m_columnCountIndexList;
 
     /**
-     * Stores the original variable indices for each column in the submatrix.
-     */
-    std::vector<int> m_columnsHash;
-
-
-    /**
-     * Rowwise representation of the submatrix.
-     */
-    std::vector<Vector> m_rows;
-
-    /**
      * The vector of the row counts (r_i).
      * The row count represents the number of nonzeros in a row. A row count of
      * an  inactive row (used or logical) is -1, the row count of a row of the
@@ -140,11 +138,6 @@ protected:
     bool m_isFresh;
     unsigned int m_basisNonzeros, m_invertedNonzeros, m_inverseNonzeros;
     clock_t cl_inversion;
-
-    void copyBasis(bool buildIndexLists = true);
-
-    void buildRowCountIndexLists(unsigned int maxRowCount);
-    void buildColumnCountIndexLists(unsigned int maxColumnCount);
 
     void setNewHead();
     void checkSingularity();
