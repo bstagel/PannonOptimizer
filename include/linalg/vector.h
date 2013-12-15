@@ -471,6 +471,12 @@ public:
     void append(Numerical::Double value);
 
     /**
+     * @brief appendVector
+     * @param vector
+     */
+    void appendVector(const Vector & vector);
+
+    /**
      *
      * @param dimension
      * @param capacity
