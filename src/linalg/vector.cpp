@@ -1240,6 +1240,16 @@ void Vector::append(Numerical::Double value)
     CHECK;
 }
 
+void Vector::appendVector(const Vector & vector) {
+    int index = m_dimension;
+    resize( m_dimension + vector.m_dimension );
+    Vector::NonzeroIterator iter = vector.beginNonzero();
+    Vector::NonzeroIterator iterEnd = vector.endNonzero();
+    for (; iter != iterEnd; iter++) {
+        setNewNonzero( index + iter.getIndex(), *iter );
+    }
+}
+
 Vector & Vector::operator=(const Vector & vector)
 {
     if (this == &vector) {
