@@ -30,6 +30,7 @@ void Scaler::scale(Matrix *matrix, const char * name) {
 }
 
 void Scaler::benichou(Matrix * matrix, const char *name) {
+    __UNUSED(name);
     const unsigned int nonZeros = matrix->nonZeros();
     const unsigned int rowCount = matrix->rowCount();
     const unsigned int columnCount = matrix->columnCount();
@@ -45,13 +46,8 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     variances.push_back(variance);
     LPINFO("Variance: " << variance);
 
-    std::ofstream ofs("benichou.csv", std::ios_base::app);
-    if ( ofs.is_open() ) {
-        LPINFO("Megnyitva");
-    } else {
-        LPERROR("Hiba a megnyitaskor");
-    }
-    ofs << name << ";";
+    //std::ofstream ofs("benichou.csv", std::ios_base::app);
+    //ofs << name << ";";
 
     Timer timer;
     timer.start();
@@ -132,12 +128,12 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     LPINFO("Variance: " << variance);
 
     timer.stop();
-    ofs << timer.getLastElapsed() << ";" << variances.size() << ";";
+    /*ofs << timer.getLastElapsed() << ";" << variances.size() << ";";
     for (index = 0; index < variances.size(); index++) {
         ofs << variances[index] << ";";
     }
     ofs << std::endl;
-    ofs.close();
+    ofs.close();*/
    // matrix->show();
 }
 
