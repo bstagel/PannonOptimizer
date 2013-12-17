@@ -624,6 +624,14 @@ void Matrix::show() const
         }
         std::cout << std::endl;
     }
+    /*std::cout << "column wise: " << std::endl;
+    for (i = 0; i < m_rowCount; i++) {
+        for (j = 0; j < m_columnCount; j++) {
+            std::cout.width(10);
+            std::cout << m_columnWise[j]->at(i);
+        }
+        std::cout << std::endl;
+    }*/
 }
 
 unsigned int Matrix::nonZeros() const
@@ -943,4 +951,22 @@ int Matrix::gaussianElimination(bool gaussianJordan)
     }
 
     return swapCount;
+}
+
+Numerical::Double Matrix::scaleRowAndGetResults(unsigned int rowIndex,
+                                        const std::vector<Numerical::Double> & multipliers,
+                                        Numerical::Double lambda,
+                                        Numerical::Double * squareSumPtr,
+                                        Numerical::Double * minPtr,
+                                        Numerical::Double * maxPtr) {
+    return m_rowWise[rowIndex]->scaleAndGetResults(multipliers, lambda, squareSumPtr, minPtr, maxPtr);
+}
+
+Numerical::Double Matrix::scaleColumnAndGetResults(unsigned int columnIndex,
+                                           const std::vector<Numerical::Double> & multipliers,
+                                           Numerical::Double lambda,
+                                           Numerical::Double * squareSumPtr,
+                                           Numerical::Double * minPtr,
+                                           Numerical::Double * maxPtr) {
+    return m_columnWise[columnIndex]->scaleAndGetResults(multipliers, lambda, squareSumPtr, minPtr, maxPtr);
 }

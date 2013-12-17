@@ -95,7 +95,8 @@ HEADERS += include/debug.h \
     include/utils/iterationreport.h \
     include/utils/iterationreportprovider.h \
     include/utils/iterationreportfield.h \
-    include/utils/entry.h
+    include/utils/entry.h \
+    include/lp/scaler.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -143,6 +144,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/globals.cpp \
            src/simplex/basisheadbas.cpp \
            src/utils/hashtable.cpp \
-    src/utils/iterationreport.cpp
+    src/utils/iterationreport.cpp \
+    src/lp/scaler.cpp
 
 OBJECTS_DIR = .o

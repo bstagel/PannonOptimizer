@@ -15,6 +15,7 @@
 #include <lp/abstractmodel.h>
 #include <linalg/vector.h>
 #include <linalg/matrix.h>
+#include <lp/scaler.h>
 
 class Model : public AbstractModel
 {
@@ -44,6 +45,8 @@ public:
     virtual void addConstraint(const Constraint & constraint, const Vector & row);
     
     virtual void print(std::ostream& out = std::cout) const;
+
+    void scale();
 
 protected:
     Matrix m_matrix;
