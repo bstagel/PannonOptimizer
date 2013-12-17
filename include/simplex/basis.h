@@ -87,6 +87,12 @@ protected:
 
     std::vector<int> m_basisNewHead;
 
+    /**
+     * Stores the active submatrix of used for the inversion (columnwise).
+     * The dimension of the submatrix is m*k , where k is the number of struxtural variables
+     * in the basis head. The rows of logical are also contained here. The logical rows
+     * are omitted by setting the appropriate row counts to -1.
+     */
     std::vector<const Vector*> m_basicColumns;
     std::vector<Vector*> m_basicColumnCopies;
     /**
@@ -95,13 +101,6 @@ protected:
     std::vector<int> m_basicColumnIndices;
     std::vector<std::list<int> > m_basicNonzeroIndices;
 
-    /**
-     * Stores the active submatrix of used for the inversion (columnwise).
-     * The dimension of the submatrix is m*k , where k is the number of struxtural variables
-     * in the basis head. The rows of logical are also contained here. The logical rows
-     * are omitted by setting the appropriate row counts to -1.
-     */
-    std::vector<Vector> m_columns;
 
     /**
      * The vector of the column counts (c_i).
@@ -136,7 +135,7 @@ protected:
 
 
     bool m_isFresh;
-    unsigned int m_basisNonzeros, m_invertedNonzeros, m_inverseNonzeros;
+    unsigned int m_basisNonzeros, m_inverseNonzeros;
     clock_t cl_inversion;
 
     void setNewHead();

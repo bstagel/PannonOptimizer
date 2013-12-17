@@ -216,7 +216,7 @@ private:
     Numerical::Double threshold;
 
     //Clocks for time measurement of the functional units
-    clock_t cl_copy, cl_linkBuild;
+    clock_t cl_copy;
     //Profiling
     clock_t cl_transversal, cl_createBlockTriangular, cl_pivot, cl_updateColumns;
     clock_t cl_invertR, cl_invertM, cl_invertC;
