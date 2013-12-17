@@ -66,33 +66,25 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
         Numerical::Double min;
         Numerical::Double max;
 
-        // sor szerint
-        //LPINFO("-------------------------------------------");
-        //matrix->show();
+        // rowwise
         for (index = 0; index < rowCount; index++) {
             matrix->scaleRowAndGetResults(index, columnMultipliers,
                                           rowMultipliers[index],
                                           &squareTemp, &min, &max);
             m_rowMultipliers[index] *= rowMultipliers[index];
         }
-       // matrix->show();
-       // LPINFO("-------------------------------------------");
         for (index = 0; index < columnCount; index++) {
             matrix->scaleColumnAndGetResults(index, rowMultipliers,
                                              1,
                                              &squareTemp, &min, &max);
             columnMultipliers[index] = roundPowerOf2(1.0 / Numerical::sqrt(min * max));
-          //  LPINFO(m_columnMultipliers[index]);
         }
-        //matrix->show();
-        //LPINFO("-------------------------------------------");
 
         for (index = 0; index < rowCount; index++) {
             rowMultipliers[index] = 1;
         }
 
-
-        // oszlop szerint
+        // columnwise
         for (index = 0; index < columnCount; index++) {
              matrix->scaleColumnAndGetResults(index, rowMultipliers,
                                              columnMultipliers[index],
@@ -108,18 +100,37 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
             rowMultipliers[index] = roundPowerOf2(1.0 / Numerical::sqrt(min * max));
 
         }
-        //matrix->show();
-        //exit(1);
         for (index = 0; index < columnCount; index++) {
             columnMultipliers[index] = 1;
         }
-        // sor szerinti variancia szamolas
-        //variance = getVarianceBenichou(matrix);
         variance = (squareSum - (absSum * absSum) / nonZeros) / nonZeros;
         variances.push_back(variance);
         LPINFO("Variance: " << variance);
         stepCount++;
     }
+
+    for (index = 0; index < rowCount; index++) {
+        Numerical::Double multiplier = roundPowerOf2(1.0 / matrix->row(index).absMaxElement());
+        rowMultipliers[index] = multiplier;
+        matrix->scaleOnlyRowwise(index, multiplier);
+        m_rowMultipliers[index] *= multiplier;
+    }
+    for (index = 0; index < columnCount; index++) {
+        matrix->scaleOnlyColumnwiseLambdas(index, rowMultipliers);
+        Numerical::Double multiplier = roundPowerOf2(1.0 / matrix->column(index).absMaxElement());
+        columnMultipliers[index] = multiplier;
+        matrix->scaleOnlyColumnwise(index, multiplier);
+        m_columnMultipliers[index] *= multiplier;
+    }
+
+    for (index = 0; index < rowCount; index++) {
+        matrix->scaleOnlyRowwiseLambdas(index, columnMultipliers);
+    }
+
+    variance = getVarianceBenichou(matrix, &rowMultipliers);
+    variances.push_back(variance);
+    LPINFO("Variance: " << variance);
+
     timer.stop();
     ofs << timer.getLastElapsed() << ";" << variances.size() << ";";
     for (index = 0; index < variances.size(); index++) {
@@ -127,8 +138,7 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     }
     ofs << std::endl;
     ofs.close();
-  //  matrix->show();
-
+   // matrix->show();
 }
 
 Numerical::Double Scaler::getVarianceBenichou(Matrix * matrix,

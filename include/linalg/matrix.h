@@ -268,6 +268,39 @@ public:
      */
     void scaleColumn(unsigned int index, Numerical::Double lambda);
 
+    // TODO: a kovetkezo 4 fuggvenyhez tesztelot irni
+    /**
+     * Scales the elements of the intex'th row. It multiplies only in
+     * the rowwise form.
+     *
+     * @param lambda The function scales by this value.
+     */
+    void scaleOnlyRowwise(unsigned int index, Numerical::Double lambda);
+
+    /**
+     * Scales the elements of the intex'th row. It multiplies only in
+     * the rowwise form.
+     *
+     * @param lambdas The function scales with the elements of this vector.
+     */
+    void scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas);
+
+    /**
+     * Scales the elements of the intex'th column. It multiplies only in
+     * the columnwise form.
+     *
+     * @param lambda The function scales by this value.
+     */
+    void scaleOnlyColumnwise(unsigned int index, Numerical::Double lambda);
+
+    /**
+     * Scales the elements of the intex'th column. It multiplies only in
+     * the columnwise form.
+     *
+     * @param lambdas The function scales with the elements of this vector.
+     */
+    void scaleOnlyColumnwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas);
+
     /**
      * Replaces a zero value in row y and column x in the matrix.
      * Assumes that the original element is zero.

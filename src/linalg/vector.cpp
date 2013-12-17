@@ -432,6 +432,10 @@ void Vector::change(unsigned int index, Numerical::Double value)
 
 void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
 {
+    // TODO: tesztelni mindenhol azt az esetet, mikor ures a vektor
+    if (m_nonZeros == 0) {
+        return;
+    }
     if (m_vectorType == DENSE_VECTOR) {
         unsigned int index = 0;
         Numerical::Double * dataPtr = m_data;
