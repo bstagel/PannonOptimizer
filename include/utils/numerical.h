@@ -252,12 +252,18 @@ class Numerical
      */
     static inline Double stableAdd(const Double & value1, const Double & value2)
     {
+//        if(value1 * value2 > 0){
+//            return value1 + value2;
+//        }
+//        *((unsigned long long int*)&num) = (0x7FFFFFFFFFFFFFFFULL & *((unsigned long long int*)(&num)));
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         const Double result = value1 + value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+        if ((value1abs + value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+//        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
             return 0.0;
         }
+
         else if(Numerical::fabs(result)<AbsoluteTolerance){
 //            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
             return 0.0;

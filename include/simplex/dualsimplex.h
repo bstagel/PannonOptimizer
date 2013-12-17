@@ -49,7 +49,7 @@ private:
     virtual void selectPivot() throw (OptimizationResultException, NumericalException);
     virtual void update()throw (NumericalException);
 
-    void computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw (NumericalException);
+    void computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw (NumericalException);
     Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex);
 
     void registerIntoIterationReport(IterationReport * iterationReport) const;

@@ -83,7 +83,6 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     unsigned int rowCount = m_model.getRowCount();
 
     //Reinit data structures
-    m_columns.clear();
     m_columnCounts.clear();
     m_columnCountIndexList.init(0,0);
     m_rowCounts.clear();
@@ -100,7 +99,6 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     m_basicNonzeroIndices.resize(rowCount);
     //NEW//
 
-    m_columns.reserve(rowCount);
     m_columnCounts.reserve(rowCount);
     m_rowCounts.clear();
     m_rowCounts.resize(rowCount, 0);
@@ -126,14 +124,11 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
             //Ignore logical columns from the inverse
             m_rowCounts.at(*it-columnCount) = -1;
             m_basisNewHead.at(*it-columnCount) = *it;
-            m_basisNonzeros++;
         } else {
             DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
             //The submatrix is the active submatrix needed for inversion
             m_basicColumns.push_back(&(m_model.getMatrix().column(*it)));
             m_basicColumnIndices.push_back(*it);
-            //IGNORE//
-            m_columns.push_back(m_model.getMatrix().column(*it));
             //IGNORE//
             m_columnCounts.push_back(m_basicColumns.back()->nonZeros());
             m_basisNonzeros += m_basicColumns.back()->nonZeros();
@@ -224,7 +219,6 @@ void PfiBasis::invert() throw (NumericalException) {
 
     m_basisNonzeros = 0;
     m_inverseNonzeros = 0;
-    m_invertedNonzeros = 0;
 
     //Copy the basis for computation
     clock_t copyStart = clock();
@@ -585,12 +579,6 @@ void PfiBasis::pivot(const Vector& column, int pivotRow) throw (NumericalExcepti
     clock_t pivotStart = clock();
 
     ETM newEtm;
-    m_invertedNonzeros += column.nonZeros();
-    //TODO: Ez az osszeszamolas itt bibis!
-    if (column.nonZeros() == 1 && *(column.beginNonzero()) == 1) {
-        m_inverseNonzeros++;
-        return;
-    }
     newEtm.eta = createEta(column, pivotRow);
     newEtm.index = pivotRow;
     m_inverseNonzeros += newEtm.eta->nonZeros();
@@ -699,6 +687,70 @@ void PfiBasis::invertM() throw (NumericalException) {
     DEVINFO(D::PFIMAKER, "Organize the M part and invert the columns");
     unsigned int mNum = 0;
     switch (nontriangularMethod) {
+    case SEARCH:{
+            //containsOne represents the exit variable
+            bool containsOne;
+            containsOne = true;
+            while (containsOne) {
+                containsOne = false;
+                for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+                    if (*it > 0) {
+                        DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
+                        int rowindex = it - m_rowCounts.begin();
+                        int columnindex = m_basicNonzeroIndices.at(rowindex).front();
+                        const Vector* currentColumn = m_basicColumns.at(columnindex);
+                        if (nontriangularCheck(rowindex, currentColumn, -1)) {
+                            //Invert the chosen M column
+                            DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
+                            pivot(*currentColumn, rowindex);
+                            containsOne = true;
+                            m_basisNewHead.at(rowindex) = m_basicColumnIndices.at(columnindex);
+                            //Update the remaining columns
+                            updateColumns(rowindex, columnindex);
+                            //Update the row lists and row counts
+                            Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
+                            Vector::NonzeroIterator vectorItend = currentColumn->endNonzero();
+                            for (; vectorIt < vectorItend; vectorIt++) {
+                                if (m_rowCounts.at(vectorIt.getIndex()) >= 0) {
+                                    m_rowCounts.at(vectorIt.getIndex())--;
+                                    m_basicNonzeroIndices.at(vectorIt.getIndex()).remove(columnindex);
+                                }
+                            }
+                            //Update the column counts too
+                            std::list<int>::iterator listIt = m_basicNonzeroIndices.at(rowindex).begin();
+                            std::list<int>::iterator listItend = m_basicNonzeroIndices.at(rowindex).end();
+                            for (; listIt != listItend; listIt++) {
+                                int index = *listIt;
+                                if (m_columnCounts.at(index) > -1) {
+                                    m_columnCounts.at(index)--;
+                                }
+                            }
+                            //Set the column and row count to zero to represent that which column and row has been chosen.
+                            m_rowCounts.at(rowindex) = -1;
+                            m_columnCounts.at(columnindex) = -1;
+                        } else {
+                            LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
+                            //Update the row lists and row counts
+                            Vector::NonzeroIterator it = currentColumn->beginNonzero();
+                            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                            for (; it < itend; it++) {
+                                int index = it.getIndex();
+                                //If the row of the iterated element is still active
+                                if (m_rowCounts.at(index) > -1) {
+                                    m_rowCounts.at(index)--;
+                                    m_basicNonzeroIndices.at(index).remove(columnindex);
+                                }
+                            }
+                            //Set the column count to zero to represent that which column is unstable.
+                            m_columnCounts.at(columnindex) = -1;
+                        }
+                        mNum++;
+                    }
+                }
+            }
+            break;
+
+    }
     case BLOCK_TRIANGULAR:{
         clock_t createBlockTriangularStart = clock();
         createBlockTriangular();
@@ -1498,9 +1550,8 @@ void PfiBasis::printStatistics() const {
     }
     LPINFO("Nonzero statistics: ");
     LPINFO("Nonzeros in the basis: " << m_basisNonzeros);
-    LPINFO("Nonzeros in the inverted part of the basis: " << m_invertedNonzeros);
     LPINFO("Nonzeros in the inverse: " << m_inverseNonzeros);
-    LPINFO("Fill in amount: " << ((Numerical::Double)m_inverseNonzeros / (Numerical::Double)m_invertedNonzeros)*100 - 100 << "% )");
+    LPINFO("Fill in amount: " << ((Numerical::Double)m_inverseNonzeros / (Numerical::Double)m_basisNonzeros)*100 - 100 << "% )");
     LPINFO("Inversion time statistics: ");
     LPINFO("Total inversion time: " << ((Numerical::Double) (cl_inversion) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
     LPINFO("Active submatrix copy: " << ((Numerical::Double) (cl_copy) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
@@ -1509,8 +1560,6 @@ void PfiBasis::printStatistics() const {
     LPINFO("Create block triangular time:"<<(Numerical::Double) (cl_createBlockTriangular) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
     LPINFO("Pivot time:"<<(Numerical::Double) (cl_pivot) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
     LPINFO("Update columns time:"<<(Numerical::Double) (cl_updateColumns) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
-
-    LPINFO("Link building: " << ((Numerical::Double) (cl_linkBuild) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
 
     LPINFO("R part inversion: " << ((Numerical::Double) (cl_invertR) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
     LPINFO("M part inversion: " << ((Numerical::Double) (cl_invertM) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");

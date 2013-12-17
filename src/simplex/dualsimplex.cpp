@@ -203,7 +203,6 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() throw (NumericalException) {
-    //meghivod
     m_feasibilityChecker->computeFeasibility();
 }
 
@@ -234,12 +233,9 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
 }
 
 void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
-    unsigned int rowCount = m_simplexModel->getRowCount();
-    unsigned int columCount = m_simplexModel->getColumnCount();
 
-    Vector alpha(rowCount + columCount);
-    alpha.setSparsityRatio(DENSE);
-    computeTransformedRow(&alpha, m_outgoingIndex);
+    Vector* alpha;
+    computeTransformedRow(alpha, m_outgoingIndex);
 
 //    LPINFO("m_reducedCostFeasibilities: "<<m_reducedCostFeasibilities);
 //    LPINFO("m_reducedCosts: "<<m_reducedCosts);
@@ -251,13 +247,15 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
 
     if(!m_feasible){
-        m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
+        m_ratiotest->performRatiotestPhase1(m_basisHead[m_outgoingIndex], *alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
     } else {
-        m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
+        m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
     }
     m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
 
     m_dualTheta = m_ratiotest->getDualSteplength();
+
+    delete alpha;
 }
 
 void DualSimplex::update()throw (NumericalException) {
@@ -265,6 +263,8 @@ void DualSimplex::update()throw (NumericalException) {
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
+        //TODO: Bad incoming index, reinvert
+        throw NumericalException("Invalid incoming index");
         m_primalReducedCost = std::numeric_limits<double>::signaling_NaN();
     }
 
@@ -297,7 +297,6 @@ void DualSimplex::update()throw (NumericalException) {
 
         unsigned int rowCount = m_simplexModel->getRowCount();
         unsigned int columnCount = m_simplexModel->getColumnCount();
-
         Vector alpha(rowCount);
         if(m_incomingIndex < (int)columnCount){
             alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
@@ -305,16 +304,18 @@ void DualSimplex::update()throw (NumericalException) {
             alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
         }
         m_basis->Ftran(alpha);
+
         m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
-
+        m_objectiveValue += m_primalReducedCost * m_primalTheta;
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
 
         m_basis->append(alpha, m_outgoingIndex, m_incomingIndex);
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
     }
 
-    computeBasicSolution();
+
+//    computeBasicSolution();
 
     computeReducedCosts();
 
@@ -324,7 +325,7 @@ void DualSimplex::update()throw (NumericalException) {
 //    m_updater->update();
 }
 
-void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) throw(NumericalException) {
+void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw(NumericalException) {
 
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
@@ -334,12 +335,23 @@ void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) th
         throw NumericalException("Invalid row index, the transformed row cannot be computed");
     }
 
-    //TODO:Nem lenne jobb konstruktorban megadni hogy dense?
+
     Vector rho(rowCount); //Row of the inverse of the basis
     rho.setSparsityRatio(DENSE);
     rho.setNewNonzero(rowIndex, 1);
-
     m_basis->Btran(rho);
+
+//    alpha = new Vector(columnCount);
+//    alpha->setSparsityRatio(DENSE);
+//    Vector::NonzeroIterator it = rho.beginNonzero();
+//    Vector::NonzeroIterator itend = rho.endNonzero();
+//    for(; it != itend; it++){
+//        alpha->addVector(*it,m_simplexModel->getMatrix().row(it.getIndex()));
+//    }
+//    alpha->appendVector(rho);
+
+    alpha = new Vector(rowCount + columnCount);
+    alpha->setSparsityRatio(DENSE);
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
     //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
@@ -352,6 +364,18 @@ void DualSimplex::computeTransformedRow(Vector* alpha, unsigned int rowIndex) th
             alpha->set(columnIndex, rho.at(columnIndex - columnCount));
         }
     }
+
+//    LPINFO("rho: "<<rho);
+//    LPINFO("alpha: "<<*alpha);
+//    LPINFO("alpha2: "<<alpha2);
+
+//    Numerical::Double x1,x2;
+//    for(int i=0; i<alpha->length();i++){
+//        if(alpha->at(i) != alpha2.at(i)){
+//            checkAlphaValue(rowIndex,i,x1,x2);
+//            LPINFO("ALPHA: "<<alpha->at(i)<<" - "<<alpha2.at(i) << " col: "<<x1);
+//        }
+//    }
 }
 
 Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex){

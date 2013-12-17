@@ -192,9 +192,9 @@ bool Simplex::checkAlphaValue(int rowIndex, int columnIndex, double& columnAlpha
 
     columnAlpha = column.at(rowIndex);
     rowAlpha = row.at(columnIndex);
-    LPINFO("Alpha value: row based: "<<row.at(columnIndex));
-    LPINFO("Alpha value: column based: "<<column.at(rowIndex));
-    LPINFO("Alpha value diff: "<<Numerical::fabs(column.at(rowIndex)- row.at(columnIndex)));
+//    LPINFO("Alpha value: row based: "<<row.at(columnIndex));
+//    LPINFO("Alpha value: column based: "<<column.at(rowIndex));
+//    LPINFO("Alpha value diff: "<<Numerical::fabs(column.at(rowIndex)- row.at(columnIndex)));
     if(!Numerical::isZero(column.at(rowIndex)- row.at(columnIndex))){
         LPWARNING("ALPHA ERROR!");
         return false;
@@ -529,13 +529,11 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-//        loadBasis("basis.bas", new BasisHeadBAS, true);
-        //exit(1);
-//        saveBasis("basis2.bas", new BasisHeadBAS, true);
+//        loadBasis("basis_cycle_1230.bas", new BasisHeadBAS, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
-//            if(m_iterationIndex == 10)
-      //        saveBasis("basis.bas", new BasisHeadBAS, true);
+//            if(m_iterationIndex == 1230)
+//              saveBasis("basis_cycle_1230.bas", new BasisHeadBAS, true);
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
@@ -554,7 +552,8 @@ void Simplex::solve() {
                 m_computeFeasibilityTimer.stop();
             }
             try{
-//                if(m_iterationIndex>820){
+//                if(m_iterationIndex>2687){
+//                saveBasis("basis2687.bas", new BasisHeadBAS, true);
 //                    checkPfiWithFtran();
 //                    checkPfiWithBtran();
 //                    checkPfiWithReducedCost();
