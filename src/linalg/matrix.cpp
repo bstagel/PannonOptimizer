@@ -518,6 +518,22 @@ void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda)
     }
 }
 
+void Matrix::scaleOnlyRowwise(unsigned int index, Numerical::Double lambda) {
+    m_rowWise[index]->scaleBy(lambda);
+}
+
+void Matrix::scaleOnlyColumnwise(unsigned int index, Numerical::Double lambda) {
+    m_columnWise[index]->scaleBy(lambda);
+}
+
+void Matrix::scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas) {
+    m_rowWise[index]->scaleByLambdas(lambdas);
+}
+
+void Matrix::scaleOnlyColumnwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas) {
+    m_columnWise[index]->scaleByLambdas(lambdas);
+}
+
 void Matrix::invert()
 {
     if (m_isDiagonal == true) {
@@ -624,14 +640,14 @@ void Matrix::show() const
         }
         std::cout << std::endl;
     }
-    /*std::cout << "column wise: " << std::endl;
+    std::cout << "column wise: " << std::endl;
     for (i = 0; i < m_rowCount; i++) {
         for (j = 0; j < m_columnCount; j++) {
             std::cout.width(10);
             std::cout << m_columnWise[j]->at(i);
         }
         std::cout << std::endl;
-    }*/
+    }
 }
 
 unsigned int Matrix::nonZeros() const
