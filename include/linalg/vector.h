@@ -78,7 +78,7 @@ public:
 
     /**
      * This constructor initializes a vector, with dimension given by parameter.
-     * When the sparsity threshold is higher than the number of nonzeros, the 
+     * When the sparsity threshold is higher than the number of nonzeros, the
      * vector will be sparse vector, and m_data array is initialized for size
      * ELBOWROOM. Logically, the vector contains dimension piece of zeros.
      * Increases sm_fullLenghtReferenceCounter for garbage collector mechanism.
@@ -128,7 +128,7 @@ public:
 
     /**
      * Fills the vector with the value.
-     * 
+     *
      * @param value The new value of every components in the vector.
      */
     void fill(Numerical::Double value);
@@ -136,7 +136,7 @@ public:
     /**
      * Resizes the vector. When the new length is greater than the
      * old dimension size, the old elements will remain.
-     * 
+     *
      * @param length
      */
     void resize(unsigned int length);
@@ -144,7 +144,31 @@ public:
     /**
      * Returns the maximal absolute value of the elements.
      */
-    Numerical::Double absMaxElement();
+    Numerical::Double absMaxElement() const;
+
+    /**
+     * @brief absMaxSums
+     * @param squareSum
+     * @return
+     */
+    Numerical::Double absMaxSums(Numerical::Double * squareSumPtr) const;
+
+    /**
+     * @brief absMaxSumsAndMinMax
+     * @param squareSumPtr
+     * @param minPtr
+     * @param maxPtr
+     * @return
+     */
+    Numerical::Double absMaxSumsAndMinMax(Numerical::Double * squareSumPtr,
+                                          Numerical::Double * minPtr,
+                                          Numerical::Double * maxPtr) const;
+
+    Numerical::Double scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
+                                         Numerical::Double lambda,
+                                         Numerical::Double * squareSumPtr,
+                                         Numerical::Double * minPtr,
+                                         Numerical::Double * maxPtr);
 
     /**
      * The function set logically the index'th element of vector for value.
@@ -240,13 +264,13 @@ public:
     /*
      * Similar to the set, but it assumes that the index-th element of vector
      * is not zero.
-     * 
+     *
      * @param index The function changes the index'th element of vector
      * @param value The new value of the index'th element of vector
      */
     void change(unsigned int index, Numerical::Double value);
     /**
-     * 
+     *
      * @param index
      * @param lambda
      */
@@ -437,7 +461,7 @@ public:
      * The function performs the next operation:
      * a = a + lambda * b,
      * whele a, and b are Vector type objects.
-     * 
+     *
      * @param lambda Multiplier of parameter vector
      * @param vector The function adds this vector to the other vector
      * @return The function returns with the reference of modified vector
@@ -543,19 +567,19 @@ public:
             return endNonzero();
         }
         return NonzeroIterator(m_data, m_dataEnd, m_data, m_index,
-            m_data < m_dataEnd);
+                               m_data < m_dataEnd);
     }
 
     inline Iterator end() const
     {
         return Iterator(m_data, m_dataEnd, m_dataEnd,
-            m_index ? m_index + m_size : 0);
+                        m_index ? m_index + m_size : 0);
     }
 
     inline NonzeroIterator endNonzero() const
     {
         return NonzeroIterator(m_data, m_dataEnd, m_dataEnd,
-            m_index ? m_index + m_size : 0, false);
+                               m_index ? m_index + m_size : 0, false);
     }
 
     /**
@@ -845,7 +869,7 @@ protected:
      * @param setZero
      */
     static unsigned int gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-        unsigned int * index, unsigned int denseLength);
+                               unsigned int * index, unsigned int denseLength);
 
 
     // sparse -> dense
@@ -855,20 +879,20 @@ protected:
      * @param sparseVector
      */
     static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-        const Vector& sparseVector);
+                        const Vector& sparseVector);
 
-//    // sparse -> dense
-//    /**
-//     * @param denseVector
-//     * @param denseLength
-//     * @param sparseVector
-//     * @param index
-//     * @param sparseLength
-//     * @param sparseMaxIndex
-//     */
-//    static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-//        Numerical::Double * sparseVector, unsigned int * index,
-//        unsigned int sparseLength, unsigned int sparseMaxIndex);
+    //    // sparse -> dense
+    //    /**
+    //     * @param denseVector
+    //     * @param denseLength
+    //     * @param sparseVector
+    //     * @param index
+    //     * @param sparseLength
+    //     * @param sparseMaxIndex
+    //     */
+    //    static void scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
+    //        Numerical::Double * sparseVector, unsigned int * index,
+    //        unsigned int sparseLength, unsigned int sparseMaxIndex);
 
     // sparse -> dense
     /**
@@ -881,8 +905,8 @@ protected:
      * @param pivot
      */
     static Numerical::Double * scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
-        Numerical::Double * sparseVector, unsigned int * index,
-        unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot);
+                                                Numerical::Double * sparseVector, unsigned int * index,
+                                                unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot);
 
 
     /**
@@ -891,7 +915,7 @@ protected:
      * @param sparseLength
      */
     static void clearFullLenghtVector(Numerical::Double * denseVector,
-        unsigned int * sparseIndex, unsigned int sparseLength);
+                                      unsigned int * sparseIndex, unsigned int sparseLength);
 
 #undef IN_VECTOR
 };

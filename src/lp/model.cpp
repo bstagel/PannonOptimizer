@@ -128,3 +128,35 @@ void Model::addConstraint(const Constraint & constraint, const Vector & row)
     m_constraints.push_back(constraint);
     m_matrix.appendRow(row);
 }
+
+void Model::scale() {
+    Numerical::Double lowerBound;
+    Numerical::Double upperBound;
+
+    Scaler scaler;
+    scaler.scale( &m_matrix, m_name.c_str() );
+
+    const std::vector<Numerical::Double> & rowMultipliers = scaler.getRowMultipliers();
+
+    const std::vector<Numerical::Double> & columnMultipliers = scaler.getColumnMultipliers();
+
+    std::vector<Numerical::Double>::const_iterator mulIter = rowMultipliers.begin();
+    std::vector<Constraint>::iterator constraintIter = m_constraints.begin();
+    std::vector<Constraint>::iterator constraintIterEnd = m_constraints.end();
+    for (; constraintIter < constraintIterEnd; constraintIter++, mulIter++) {
+        lowerBound = constraintIter->getLowerBound() * *mulIter;
+        upperBound = constraintIter->getUpperBound() * *mulIter;
+        constraintIter->setBounds(lowerBound, upperBound);
+    }
+
+    mulIter = columnMultipliers.begin();
+    std::vector<Variable>::iterator variableIter = m_variables.begin();
+    std::vector<Variable>::iterator variableIterEnd = m_variables.end();
+    unsigned int index = 0;
+    for (; variableIter < variableIterEnd; variableIter++, mulIter++, index++) {
+        lowerBound = variableIter->getLowerBound() / *mulIter;
+        upperBound = variableIter->getUpperBound() / *mulIter;
+        variableIter->setBounds(lowerBound, upperBound);
+        m_costVector.set( index, m_costVector.at(index) * *mulIter );
+    }
+}

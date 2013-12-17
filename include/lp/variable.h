@@ -274,6 +274,20 @@ public:
                                                                    InvalidBoundsException);
 
     /**
+     * Sets the lower and upper bound of the constraint. If
+     * the bounds are invalid, the function throws a
+     * Variable::InvalidLowerBoundException, Variable::InvalidUpperBoundException or
+     * Variable::InvalidBoundsException.
+     * @param lowerBound
+     * @param upperBound
+     */
+    inline void setBounds(Numerical::Double lowerBound,
+                          Numerical::Double upperBound)
+    throw (InvalidLowerBoundException,
+           InvalidUpperBoundException,
+           InvalidBoundsException);
+
+    /**
      * Returns with the type of the variable.
      *
      * @return The type of the variable.
@@ -440,6 +454,17 @@ inline const Numerical::Double& Variable::getUpperBound() const
 inline void Variable::setUpperBound(Numerical::Double upperBound) throw (InvalidUpperBoundException,
                                                                          InvalidBoundsException)
 {
+    m_upperBound = upperBound;
+    check();
+    adjustType();
+}
+
+inline void Variable::setBounds(Numerical::Double lowerBound,
+                                Numerical::Double upperBound)
+throw (InvalidLowerBoundException,
+       InvalidUpperBoundException,
+       InvalidBoundsException) {
+    m_lowerBound = lowerBound;
     m_upperBound = upperBound;
     check();
     adjustType();

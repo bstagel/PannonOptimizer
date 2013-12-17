@@ -714,7 +714,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
-        m_sorted && vector.m_sorted) {
+            m_sorted && vector.m_sorted) {
 
         unsigned int * index1 = m_index;
         unsigned int * index2 = vector.m_index;
@@ -732,7 +732,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
                 index1++;
             } else {
                 Numerical::Double value = m_data[ index1 - m_index ] *
-                    vector.m_data[ index2 - vector.m_index ];
+                        vector.m_data[ index2 - vector.m_index ];
                 summarizer.add(value);
                 index1++;
                 index2++;
@@ -1312,16 +1312,16 @@ void Vector::sortElements() const
     }
 
     switch (sortingAlgorithm) {
-        case 0:
-            insertionSort();
-            //selectionSort();
-            break;
-        case 1:
-            countingSort();
-            break;
-        case 2:
-            heapSort();
-            break;
+    case 0:
+        insertionSort();
+        //selectionSort();
+        break;
+    case 1:
+        countingSort();
+        break;
+    case 2:
+        heapSort();
+        break;
     }
 }
 
@@ -1614,7 +1614,7 @@ void Vector::removeElementSparse(unsigned int index)
 }
 
 unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
-    unsigned int * indexVector, unsigned int denseLength)
+                            unsigned int * indexVector, unsigned int denseLength)
 {
     // a denseVector-bol kigyujti a nem nulla elemeket a sparseVector-ba
     // es az indexeket az indexVector-ba
@@ -1637,8 +1637,8 @@ unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double *
 
 //TODO: Parameterlista egyszerusitese a sima scatter alapjan, itt meg a gathernel
 Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, unsigned int & denseLength,
-    Numerical::Double * sparseVector, unsigned int * index,
-    unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot)
+                                             Numerical::Double * sparseVector, unsigned int * index,
+                                             unsigned int sparseLength, unsigned int sparseMaxIndex, unsigned int pivot)
 {
     // sparse -> dense
     Numerical::Double * res = 0;
@@ -1673,7 +1673,7 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
 }
 
 void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLength,
-    const Vector& sparseVector)
+                     const Vector& sparseVector)
 {
     // sparse -> dense
     if (denseLength < sparseVector.m_dimension) {
@@ -1736,7 +1736,7 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 //}
 
 void Vector::clearFullLenghtVector(Numerical::Double * denseVector,
-    unsigned int * sparseIndex, unsigned int sparseLength)
+                                   unsigned int * sparseIndex, unsigned int sparseLength)
 {
     const unsigned int * ptrIndex = sparseIndex;
     const unsigned int * const ptrIndexEnd = sparseIndex + sparseLength;
@@ -1826,7 +1826,7 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
 #ifndef NODEBUG
     os << "data members:" << std::endl;
     os << "\tm_vectorType: " << (vector.m_vectorType == Vector::DENSE_VECTOR ?
-        "DENSE_VECTOR" : "SPARSE_VECTOR") << std::endl;
+                                     "DENSE_VECTOR" : "SPARSE_VECTOR") << std::endl;
     os << "\tm_size: " << vector.m_size << std::endl;
     os << "\tm_dimension: " << vector.m_dimension << std::endl;
     os << "\tm_capacity: " << vector.m_capacity << std::endl;
@@ -1854,9 +1854,9 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
     //            os << vector.m_data[index] << " ";
     //        }
     //    } else {
-//    for (unsigned int index = 0; index < vector.m_dimension; index++) {
-//        os << "[ " << index << "; " <<  vector.at(index) << "] ";
-//    }
+    //    for (unsigned int index = 0; index < vector.m_dimension; index++) {
+    //        os << "[ " << index << "; " <<  vector.at(index) << "] ";
+    //    }
     os << std::endl;
     //    }
 
@@ -1864,22 +1864,133 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
     return os;
 }
 
-Numerical::Double Vector::absMaxElement()
+Numerical::Double Vector::absMaxElement() const
 {
     Numerical::Double result = 0;
-    if (nonZeros() > 0) {
-        result = *beginNonzero();
-        for (Vector::NonzeroIterator it = beginNonzero(); it < endNonzero(); it++) {
-            if (*it > 0) {
-                if (*it > result)
-                    result = (*it);
-            } else {
-                if (-(*it) > result)
-                    result = -(*it);
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        for (; dataPtr < m_dataEnd; dataPtr++) {
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            if (absValue > result) {
+                result = absValue;
             }
         }
     }
     return result;
+}
+
+Numerical::Double Vector::scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
+                                             Numerical::Double lambda,
+                                             Numerical::Double * squareSumPtr,
+                                             Numerical::Double * minPtr,
+                                             Numerical::Double * maxPtr) {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    Numerical::Double min = Numerical::Infinity;
+    Numerical::Double max = 0;
+    if (m_nonZeros > 0) {
+        Numerical::Double * dataPtr = m_data;
+        if ( m_index != 0 ) {
+            const unsigned int * indexPtr = m_index;
+            for (; dataPtr < m_dataEnd; dataPtr++, indexPtr++) {
+                *dataPtr *= lambda * multipliers[*indexPtr];
+                const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+                absSum += absValue;
+                squareSum += absValue * absValue;
+                if (min > absValue) {
+                    min = absValue;
+                }
+                if (max < absValue) {
+                    max = absValue;
+                }
+            }
+        } else {
+            unsigned int index = 0;
+
+            for (; dataPtr < m_dataEnd; dataPtr++, index++) {
+                if (*dataPtr == 0.0) {
+                    continue;
+                }
+                *dataPtr *= lambda * multipliers[index];
+
+                const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+                absSum += absValue;
+                squareSum += absValue * absValue;
+
+                if (min > absValue) {
+                    min = absValue;
+                }
+                if (max < absValue) {
+                    max = absValue;
+                }
+
+            }
+        }
+    }
+    *squareSumPtr = squareSum;
+    *minPtr = min;
+    *maxPtr = max;
+    return absSum;
+
+}
+
+Numerical::Double Vector::absMaxSumsAndMinMax(Numerical::Double * squareSumPtr,
+                                              Numerical::Double * minPtr,
+                                              Numerical::Double * maxPtr) const {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    Numerical::Double min = Numerical::Infinity;
+    Numerical::Double max = 0;
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        if (m_index != 0) {
+            for (; dataPtr < m_dataEnd; dataPtr++) {
+                const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+                absSum += absValue;
+                squareSum += absValue * absValue;
+                if (min > absValue) {
+                    min = absValue;
+                }
+                if (max < absValue) {
+                    max = absValue;
+                }
+            }
+        } else {
+            for (; dataPtr < m_dataEnd; dataPtr++) {
+                if (*dataPtr == 0.0) {
+                    continue;
+                }
+                const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+                absSum += absValue;
+                squareSum += absValue * absValue;
+                if (min > absValue) {
+                    min = absValue;
+                }
+                if (max < absValue) {
+                    max = absValue;
+                }
+            }
+        }
+    }
+    *squareSumPtr = squareSum;
+    *minPtr = min;
+    *maxPtr = max;
+    return absSum;
+}
+
+Numerical::Double Vector::absMaxSums(Numerical::Double * squareSumPtr) const {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        for (; dataPtr < m_dataEnd; dataPtr++) {
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            absSum += absValue;
+            squareSum += absValue * absValue;
+        }
+    }
+    *squareSumPtr = squareSum;
+    return absSum;
 }
 
 Vector operator*(Numerical::Double m, const Vector& v)
