@@ -32,7 +32,7 @@ void NodeFile::Node::getNodes(const std::string & name, std::vector<Node>::const
                               std::vector<Node>::const_iterator * endIterator) const {
     std::map<std::string, std::vector<Node> >::const_iterator nodeIter = m_nodes.find(name);
     if (nodeIter == m_nodes.end()) {
-        throw PanOptException("Invalid node name: " + name);
+        throw PanOptException("Missing node: " + name);
     }
     *beginIterator = nodeIter->second.begin();
     *endIterator = nodeIter->second.end();
@@ -41,7 +41,7 @@ void NodeFile::Node::getNodes(const std::string & name, std::vector<Node>::const
 const std::string & NodeFile::Node::getValue(const std::string & name) const {
     std::map<std::string, std::string>::const_iterator iter = m_values.find(name);
     if (iter == m_values.end()) {
-        throw PanOptException("Invalid value name: " + name);
+        throw PanOptException("Missing value: " + name);
     }
     return iter->second;
 }
@@ -51,7 +51,7 @@ void NodeFile::Node::getArray(const std::string & name,
                               std::map<unsigned int, std::string>::const_iterator * endIterator) const {
     std::map<std::string, std::map<unsigned int, std::string> >::const_iterator arrayIter = m_arrays.find(name);
     if (arrayIter == m_arrays.end()) {
-        throw PanOptException("Invalid array name: " + name);
+        throw PanOptException("Missing array: " + name);
     }
     *beginIterator = arrayIter->second.begin();
     *endIterator = arrayIter->second.end();

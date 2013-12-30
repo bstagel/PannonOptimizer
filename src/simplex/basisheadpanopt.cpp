@@ -217,7 +217,7 @@ void BasisHeadPanOpt::finishReading() {
 
     // checking the model
     if (modelNode.getValue(NAME_STR) != ("\"" + m_modelPtr->getName() + "\"") ) {
-        throw PanOptException("Invalid model name: " + modelNode.getValue(NAME_STR));
+        throw PanOptException("Missing Model node! ");
     }
     std::string countStr = modelNode.getValue(CONSTRAINT_COUNT_STR);
     if ( NodeFile::Node::checkInteger(countStr) == false ) {
