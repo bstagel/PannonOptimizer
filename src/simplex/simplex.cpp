@@ -10,6 +10,7 @@
 #include <simplex/pfibasis.h>
 #include <globals.h>
 #include <simplex/basisheadbas.h>
+#include <simplex/basisheadpanopt.h>
 
 #include <utils/thirdparty/prettyprint.h>
 //#include <qd/qd_real.h>
@@ -446,13 +447,13 @@ void Simplex::variableAdded()
 }
 
 void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
-    basisWriter->startWrting(fileName);
+    basisWriter->startWrting(fileName, m_simplexModel->getModel() );
     int variableIndex;
     unsigned int position = 0;
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
-        basisWriter->addBasicVariable( variable, position, m_basicVariableValues.at(position) );
+        basisWriter->addBasicVariable( variable, position, variableIndex, m_basicVariableValues.at(position) );
         position++;
     }
 
@@ -462,7 +463,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
-        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_LB, variable->getLowerBound());
+        basisWriter->addNonbasicVariable(variable, variableIndex, Simplex::NONBASIC_AT_LB, variable->getLowerBound());
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
@@ -470,7 +471,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
-        basisWriter->addNonbasicVariable(variable, Simplex::NONBASIC_AT_UB, variable->getUpperBound());
+        basisWriter->addNonbasicVariable(variable, variableIndex, Simplex::NONBASIC_AT_UB, variable->getUpperBound());
     }
 
     basisWriter->finishWriting();
@@ -482,13 +483,15 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
 
 void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
     const unsigned int variableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-    basisReader->startReading(fileName, variableCount);
+    basisReader->setBasisHead(&m_basisHead);
+    basisReader->setVariableStateList(&m_variableStates);
+    basisReader->startReading(fileName, m_simplexModel->getModel());
     unsigned int index;
     for (index = 0; index < variableCount; index++) {
         basisReader->addVariable(m_simplexModel->getVariable(index));
     }
 
-    basisReader->finishReading(&m_basisHead, &m_variableStates);
+    basisReader->finishReading();
 
     if (releaseReader) {
         delete basisReader;
@@ -529,11 +532,12 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-//        loadBasis("basis_cycle_1230.bas", new BasisHeadBAS, true);
+        loadBasis("basis2.bas", new BasisHeadPanOpt, true);
+//        loadBasis("basis_cycle_1230.bas", new BasisHeadPanOpt, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
 //            if(m_iterationIndex == 1230)
-//              saveBasis("basis_cycle_1230.bas", new BasisHeadBAS, true);
+//              saveBasis("basis_cycle_1230.bas", new BasisHeadPanOpt, true);
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
@@ -661,6 +665,10 @@ void Simplex::solve() {
         LPERROR("The problem is DUAL UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
         LPERROR("Numerical error!");
+    } catch ( const SyntaxErrorException & exception ) {
+        exception.show();
+    } catch ( const PanOptException & exception ) {
+        LPERROR( exception.getMessage() );
     } catch ( const std::bad_alloc & exception ) {
         LPERROR("STL bad alloc exception: " << exception.what() );
     } catch ( const std::bad_cast & exception ) {
