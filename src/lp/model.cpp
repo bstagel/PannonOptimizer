@@ -3,6 +3,7 @@
  */
 
 #include <lp/model.h>
+#include <utils/sha1.h>
 
 Model::Model()
 {
@@ -144,6 +145,8 @@ void Model::scale() {
     std::vector<Constraint>::iterator constraintIter = m_constraints.begin();
     std::vector<Constraint>::iterator constraintIterEnd = m_constraints.end();
     for (; constraintIter < constraintIterEnd; constraintIter++, mulIter++) {
+        double r1 = rand() % 100000 / 10000000000.0;
+        double r2 = rand() % 100000 / 10000000000.0;
         lowerBound = constraintIter->getLowerBound() * *mulIter;
         upperBound = constraintIter->getUpperBound() * *mulIter;
         constraintIter->setBounds(lowerBound, upperBound);
@@ -159,4 +162,89 @@ void Model::scale() {
         variableIter->setBounds(lowerBound, upperBound);
         m_costVector.set( index, m_costVector.at(index) * *mulIter );
     }
+
+    // TODO: ezt majd okosabban kellene, jobb ha a scaler mondja meg
+    m_history.push_back("Scaler: Benichou");
+}
+
+std::string Model::getHash() const {
+    if (m_hash.size() > 0) {
+        return m_hash;
+    }
+
+    SHA1Generator generator;
+    generator.start();
+
+    generator.addString( m_name );
+    unsigned int intTemp;
+    intTemp = m_matrix.rowCount();
+    generator.addBuffer(&intTemp, sizeof(intTemp));
+    intTemp = m_matrix.columnCount();
+    generator.addBuffer(&intTemp, sizeof(intTemp));
+    if ( m_objectiveType == MINIMIZE ) {
+        intTemp = 0;
+    } else {
+        intTemp = 1;
+    }
+    generator.addBuffer(&intTemp, sizeof(intTemp));
+
+    Numerical::Double doubleTemp;
+    doubleTemp = this->m_costConstant;
+    generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+
+    // cost vector
+    generator.addString( m_objectiveRowName );
+    intTemp = m_costVector.nonZeros();
+    generator.addBuffer(&intTemp, sizeof(intTemp));
+    Vector::NonzeroIterator nonzIter = m_costVector.beginNonzero();
+    Vector::NonzeroIterator nonzIterEnd = m_costVector.endNonzero();
+    for (; nonzIter != nonzIterEnd; nonzIter++) {
+        intTemp = nonzIter.getIndex();
+        generator.addBuffer(&intTemp, sizeof(intTemp));
+        doubleTemp = *nonzIter;
+        generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+    }
+
+    // variables
+    std::vector<Variable>::const_iterator varIter = m_variables.begin();
+    std::vector<Variable>::const_iterator varIterEnd = m_variables.end();
+    for (; varIter != varIterEnd; varIter++) {
+        generator.addString( varIter->getName() );
+        intTemp = varIter->getType();
+        generator.addBuffer(&intTemp, sizeof(intTemp));
+        doubleTemp = varIter->getLowerBound();
+        generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+        doubleTemp = varIter->getUpperBound();
+        generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+    }
+    // constraints
+    std::vector<Constraint>::const_iterator constrIter = m_constraints.begin();
+    std::vector<Constraint>::const_iterator constrIterEnd = m_constraints.end();
+    for (; constrIter != constrIterEnd; constrIter++) {
+        generator.addString( constrIter->getName() );
+        intTemp = constrIter->getType();
+        generator.addBuffer(&intTemp, sizeof(intTemp));
+        doubleTemp = constrIter->getLowerBound();
+        generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+        doubleTemp = constrIter->getUpperBound();
+        generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+    }
+    // matrix
+    unsigned int rowIndex;
+    for (rowIndex = 0; rowIndex < m_matrix.rowCount(); rowIndex++) {
+        const Vector & row = m_matrix.row(rowIndex);
+        intTemp = row.nonZeros();
+        generator.addBuffer(&intTemp, sizeof(intTemp));
+        nonzIter = row.beginNonzero();
+        nonzIterEnd = row.endNonzero();
+        for (; nonzIter != nonzIterEnd; nonzIter++) {
+            intTemp = nonzIter.getIndex();
+            generator.addBuffer(&intTemp, sizeof(intTemp));
+            doubleTemp = *nonzIter;
+            generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
+        }
+    }
+
+    m_hash = SHA1Generator::convertHashToString( generator.end() );
+    return m_hash;
 }

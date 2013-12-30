@@ -81,7 +81,7 @@ class Numerical
             m_negpos[1] = 0.0;
         }
 
-        inline void add(const double & v)
+        ALWAYS_INLINE void add(const double & v)
         {
             m_number.m_num = v;
             *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
@@ -111,35 +111,35 @@ class Numerical
 
     typedef double Double;
 
-    inline static Double fabs(Double val)
+    ALWAYS_INLINE static Double fabs(Double val)
     {
         return ::fabs(val);
     }
 
-    inline static Double sqrt(Double val)
+    ALWAYS_INLINE static Double sqrt(Double val)
     {
         return ::sqrt(val);
     }
 
-    inline static bool equal(Double value1,Double value2,Double tolerance){
+    ALWAYS_INLINE static bool equal(Double value1,Double value2,Double tolerance){
         if( fabs(value1-value2) <= tolerance ){
             return true;
         }
         return false;
     }
 
-    inline static bool lessthan(Double value1,Double value2,Double tolerance){
+    ALWAYS_INLINE static bool lessthan(Double value1,Double value2,Double tolerance){
         if( value1 + tolerance < value2 ){
             return true;
         }
         return false;
     }
 
-    inline static bool lessOrEqual(Double value1,Double value2,Double tolerance){
+    ALWAYS_INLINE static bool lessOrEqual(Double value1,Double value2,Double tolerance){
         return ( lessthan(value1,value2,tolerance) || equal(value1,value2,tolerance) );
     }
 
-    inline static Double round(double val)
+    ALWAYS_INLINE static Double round(double val)
     {
         return ::round(val);
     }
@@ -181,7 +181,7 @@ class Numerical
      * @param b second argument, assumed being less than a
      * @return true, if a>b, otherwise false
      */
-    static inline bool greater(const Double & a, const Double & b)
+    static ALWAYS_INLINE bool greater(const Double & a, const Double & b)
     {
         return a - b > Numerical::AbsoluteTolerance;
     }
@@ -194,12 +194,12 @@ class Numerical
      * @param b second argument, assumed being greater than a
      * @return true, if a<b, otherwise false
      */
-    static inline bool less(const Double & a, const Double & b)
+    static ALWAYS_INLINE bool less(const Double & a, const Double & b)
     {
         return b - a > Numerical::AbsoluteTolerance;
     }
 
-    static inline bool isZero(const Double & a)
+    static ALWAYS_INLINE bool isZero(const Double & a)
     {
         //return Numerical::fabs(a) < Numerical::epsilon;
         return a < 0.0 ? a > -Numerical::AbsoluteTolerance : a < Numerical::AbsoluteTolerance;

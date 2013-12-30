@@ -7,17 +7,21 @@
 #define	ABSTRACTMODEL_H
 
 #include <globals.h>
-
+#include <string>
 #include <vector>
 
 class Method;
 
 class AbstractModel
 {
-friend class Method;
+    friend class Method;
 
 public:
     virtual ~AbstractModel() {}
+
+    virtual std::string getHash() {
+        return "";
+    }
 
 protected:
     // TODO: ezt a ketto muveletet lehet mutex-el vedette kellene tenni

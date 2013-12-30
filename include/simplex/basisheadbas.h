@@ -16,25 +16,26 @@ public:
 
     ~BasisHeadBAS() {}
 
-    void startWrting(const char * fileName);
+    void startWrting(const char * fileName, const Model & model);
 
     void addInfo(const char * info);
 
     void addBasicVariable(const Variable * variable,
                           unsigned int basisPosition,
+                          unsigned int variableIndex,
                           Numerical::Double value);
     void addNonbasicVariable(const Variable *variable,
+                             unsigned int variableIndex,
                              Simplex::VARIABLE_STATE state,
                              Numerical::Double value);
     void finishWriting();
 
     void startReading(const char * fileName,
-                      unsigned int variableCount);
+                      const Model & model);
 
     void addVariable(const Variable & variable);
 
-    void finishReading(std::vector<int> * basisHead,
-                       IndexList<const Numerical::Double*> * variableStates);
+    void finishReading();
 
 private:
     std::ofstream m_outputFile;

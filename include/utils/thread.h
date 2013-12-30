@@ -4,14 +4,14 @@
 #include <utils/platform.h>
 #include <thread>
 
-#ifdef __GNUC__
+#ifdef GNU_COMPILER
 
 #define THREAD_STATIC_DECL static __thread
 #define THREAD_STATIC_DEF  __thread
 
 #endif
 
-#ifdef __INTEL_COMPILER
+#ifdef INTEL_COMPILER
 
 #ifdef THREAD_STATIC_DECL
 #undef THREAD_STATIC_DECL
