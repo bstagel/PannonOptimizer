@@ -43,6 +43,9 @@ public:
     inline const Numerical::Double & getCostConstant() const {return m_model.getCostConstant();}
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_model.getObjectiveType();}
     inline const std::string & getObjectiveRowname() const {return m_model.getObjectiveRowname();}
+    inline const Model & getModel() const {
+        return m_model;
+    }
 
 private:
     const Model & m_model;

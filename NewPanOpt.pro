@@ -11,7 +11,7 @@ TARGET = NewPanOpt
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -pthread
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -pthread -g
     DESTDIR = ../build-NewPanOpt/release
 }
 CONFIG(debug, debug|release) {
@@ -96,7 +96,14 @@ HEADERS += include/debug.h \
     include/utils/iterationreportprovider.h \
     include/utils/iterationreportfield.h \
     include/utils/entry.h \
-    include/lp/scaler.h
+    include/lp/scaler.h \
+    include/utils/sha1.h \
+    include/lp/panoptstate.h \
+    include/simplex/basisheadpanopt.h \
+    include/utils/datetime.h \
+    include/utils/system.h \
+    include/utils/tokenizer.h \
+    include/utils/nodefile.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -145,6 +152,12 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/basisheadbas.cpp \
            src/utils/hashtable.cpp \
     src/utils/iterationreport.cpp \
-    src/lp/scaler.cpp
+    src/lp/scaler.cpp \
+    src/utils/sha1.cpp \
+    src/simplex/basisheadpanopt.cpp \
+    src/utils/datetime.cpp \
+    src/utils/system.cpp \
+    src/utils/tokenizer.cpp \
+    src/utils/nodefile.cpp
 
 OBJECTS_DIR = .o

@@ -48,6 +48,12 @@ public:
 
     void scale();
 
+    std::string getHash() const;
+
+    const std::vector<std::string> & getHistory() const {
+        return m_history;
+    }
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
@@ -60,6 +66,12 @@ protected:
     OBJECTIVE_TYPE m_objectiveType;
 
     void clear();
+
+    std::vector<std::string> m_history;
+
+    // const getter functions can change this value
+    // reason: it is unnecessary to compute in most cases
+    mutable std::string m_hash;
 
 };
 

@@ -127,6 +127,29 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     variances.push_back(variance);
     LPINFO("Variance: " << variance);
 
+    // ez nem igazan segit, majd ha lesz steepest edge meg devex, akkor ujra
+    // meg kell nezni
+    /*for (index = 0; index < rowCount; index++) {
+        rowMultipliers[index] = roundPowerOf2(1.0 + (rand() % 100000000) /    100000000000.0);
+        matrix->scaleOnlyRowwise(index, rowMultipliers[index]);
+        m_rowMultipliers[index] *= rowMultipliers[index];
+        //LPINFO(rowMultipliers[index]);
+    }
+    for (index = 0; index < columnCount; index++) {
+        matrix->scaleOnlyColumnwiseLambdas(index, rowMultipliers);
+        columnMultipliers[index] = roundPowerOf2(1.0 + (rand() % 100000000) / 100000000000.0);
+        matrix->scaleOnlyColumnwise(index, columnMultipliers[index]);
+        m_columnMultipliers[index] *= columnMultipliers[index];
+
+    }
+    for (index = 0; index < rowCount; index++) {
+        matrix->scaleOnlyRowwiseLambdas(index, columnMultipliers);
+    }*/
+
+    variance = getVarianceBenichou(matrix, &rowMultipliers);
+    variances.push_back(variance);
+    LPINFO("Variance: " << variance);
+
     timer.stop();
     /*ofs << timer.getLastElapsed() << ";" << variances.size() << ";";
     for (index = 0; index < variances.size(); index++) {

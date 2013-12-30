@@ -61,4 +61,18 @@
 #endif
 #endif
 
+#ifdef __GNUC__
+    #define GNU_COMPILER
+#endif
+
+#ifdef __INTEL_COMPILER
+    #define INTEL_COMPILER
+#endif
+
+#ifdef GNU_COMPILER
+    #define ALWAYS_INLINE __attribute__((always_inline))
+#else
+    #define ALWAYS_INLINE inline
+#endif
+
 #endif // PLATFORM_H

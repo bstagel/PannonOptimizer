@@ -5,34 +5,41 @@
 #include <simplex/simplex.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
+#include <lp/panoptstate.h>
 #include <utils/indexlist.h>
 #include <vector>
 
-class BasisHeadIO {
+class BasisHeadIO: public PanOptState {
 public:
-    BasisHeadIO() {}
+    BasisHeadIO() {
+        m_basisHeadPtr = 0;
+        m_variableStatesPtr = 0;
+    }
     virtual ~BasisHeadIO() {}
-
-    virtual void startWrting(const char * fileName) = 0;
-
-    virtual void addInfo(const char * info) = 0;
 
     virtual void addBasicVariable(const Variable * variable,
                                   unsigned int basisPosition,
+                                  unsigned int variableIndex,
                                   Numerical::Double value) = 0;
     virtual void addNonbasicVariable(const Variable * variable,
+                                     unsigned int variableIndex,
                                      Simplex::VARIABLE_STATE state,
                                      Numerical::Double value) = 0;
-    virtual void finishWriting() = 0;
-
-    virtual void startReading(const char * fileName,
-                              unsigned int variableCount) = 0;
 
     virtual void addVariable(const Variable & variable) = 0;
 
-    virtual void finishReading(std::vector<int> * basisHead,
-                               IndexList<const Numerical::Double*> * variableStates) = 0;
+    void setBasisHead(std::vector<int> * basisHead) {
+        m_basisHeadPtr = basisHead;
+    }
 
+    void setVariableStateList(IndexList<const Numerical::Double*> * variableStates) {
+        m_variableStatesPtr = variableStates;
+    }
+
+protected:
+    std::vector<int> * m_basisHeadPtr;
+
+    IndexList<const Numerical::Double*> * m_variableStatesPtr;
 };
 
 #endif // BASISHEADIO_H

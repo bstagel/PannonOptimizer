@@ -18,6 +18,7 @@
 #if __cplusplus > 199711L
     #include <system_error>
 #endif
+#include <debug.h>
 
 /**
  * Base class of all customized exception classes
@@ -104,6 +105,43 @@ public:
     NumericalException(const std::string& message): PanOptException(message) {}
 };
 
+class SyntaxErrorException: public PanOptException {
+public:
+    SyntaxErrorException(const std::string & message,
+                         const std::string & row,
+                         unsigned int rowIndex,
+                         unsigned int columnIndex):
+        PanOptException(message),
+        m_row(row),
+        m_rowIndex(rowIndex),
+        m_columnIndex(columnIndex) {
+
+    }
+
+    const std::string getRow() const {
+        return m_row;
+    }
+
+    unsigned int getRowIndex() const {
+        return m_rowIndex;
+    }
+
+    unsigned int getColumnIndex() const {
+        return m_columnIndex;
+    }
+
+    void show() const {
+        LPERROR(m_rowIndex << ".: " << m_message);
+        LPERROR(m_row);
+        LPERROR(std::string(m_columnIndex, ' ') << "^");
+    }
+protected:
+    std::string m_row;
+
+    unsigned int m_rowIndex;
+
+    unsigned int m_columnIndex;
+};
 
 #endif	/* EXCEPTION_H */
 

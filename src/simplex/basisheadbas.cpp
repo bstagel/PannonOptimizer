@@ -8,7 +8,9 @@
 
 #include <float.h>
 
-void BasisHeadBAS::startWrting(const char * fileName) {
+void BasisHeadBAS::startWrting(const char * fileName,
+                               const Model & model) {
+    __UNUSED(model);
     if (m_outputFile.is_open() == true) {
         m_outputFile.close();
     }
@@ -24,22 +26,25 @@ void BasisHeadBAS::addInfo(const char * info) {
 
 void BasisHeadBAS::addBasicVariable(const Variable *variable,
                                     unsigned int basisPosition,
+                                    unsigned int variableIndex,
                                     Numerical::Double value) {
     BasicVariable basicVariable;
     basicVariable.m_variable = variable;
     basicVariable.m_basisPosition = basisPosition;
     m_basicVariables.push_back(basicVariable);
     __UNUSED(value);
+    __UNUSED(variableIndex);
 }
 
 void BasisHeadBAS::addNonbasicVariable(const Variable * variable,
+                                       unsigned int variableIndex,
                                        Simplex::VARIABLE_STATE state,
                                        Numerical::Double value) {
     NonBasicVariable nonbasicVariable;
     nonbasicVariable.m_variable = variable;
     nonbasicVariable.m_state = state;
     m_nonBasicVariables.push_back(nonbasicVariable);
-
+    __UNUSED(variableIndex);
     __UNUSED(value);
 }
 
@@ -85,12 +90,12 @@ void BasisHeadBAS::finishWriting() {
 }
 
 void BasisHeadBAS::startReading(const char * fileName,
-                                unsigned int variableCount) {
+                                const Model &model) {
     if (m_inputFile.is_open() == true) {
         m_inputFile.close();
     }
     m_inputFile.open(fileName);
-    m_hashTable.setSize(variableCount);
+    m_hashTable.setSize(model.getVariables().size());
 }
 
 void BasisHeadBAS::addVariable(const Variable & variable) {
@@ -109,13 +114,12 @@ void BasisHeadBAS::getNamedVariable(const char * name, VariableIndex * index) {
     index->m_variable = variable;
 }
 
-void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
-                                 IndexList<const Numerical::Double*> * variableStates) {
+void BasisHeadBAS::finishReading() {
 
-    variableStates->init( m_hashTable.getCount(), Simplex::VARIABLE_STATE_ENUM_LENGTH );
+    m_variableStatesPtr->init( m_hashTable.getCount(), Simplex::VARIABLE_STATE_ENUM_LENGTH );
     unsigned int index;
     for (index = 0; index < m_hashTable.getCount(); index++) {
-        variableStates->insert( Simplex::NONBASIC_FREE, index );
+        m_variableStatesPtr->insert( Simplex::NONBASIC_FREE, index );
     }
     std::string line;
     VariableIndex name1, name2;
@@ -149,22 +153,22 @@ void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
                     const VariableIndex * ptr = m_hashTable.get(name1);
 
                     if (ptr != 0) {
-                        (*basisHead)[ basisIndex++ ] = ptr->m_index;
+                        (*m_basisHeadPtr)[ basisIndex++ ] = ptr->m_index;
 
-                        variableStates->remove( ptr->m_index );
-                        variableStates->insert( Simplex::BASIC, ptr->m_index );
+                        m_variableStatesPtr->remove( ptr->m_index );
+                        m_variableStatesPtr->insert( Simplex::BASIC, ptr->m_index );
                     } else {
                         // TODO: exception
                     }
                     ptr = m_hashTable.get(name2);
                     if (ptr != 0) {
 
-                        variableStates->remove( ptr->m_index );
+                        m_variableStatesPtr->remove( ptr->m_index );
                         if (ch2 == 'L') {
-                            variableStates->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
+                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
                                                     &ptr->m_variable->getLowerBound() );
                         } else {
-                            variableStates->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
+                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
                                                     &ptr->m_variable->getUpperBound() );
                         }
                     } else {
@@ -179,12 +183,12 @@ void BasisHeadBAS::finishReading(std::vector<int> * basisHead,
                     //name1.m_name = line.substr(4, 8);
                     const VariableIndex * ptr = m_hashTable.get(name1);
                     if (ptr != 0) {
-                        variableStates->remove( ptr->m_index );
+                        m_variableStatesPtr->remove( ptr->m_index );
                         if (ch1 == 'L') {
-                            variableStates->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
+                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
                                                     &ptr->m_variable->getLowerBound());
                         } else {
-                            variableStates->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
+                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
                                                     &ptr->m_variable->getUpperBound());
                         }
                     } else {
