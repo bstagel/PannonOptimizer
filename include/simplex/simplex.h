@@ -52,6 +52,7 @@ public:
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
+    bool checkTheta(int rowIndex, int columnIndex, Numerical::Double theta);
     //TODO Ezt hogyan implementaljuk?
     const std::vector<Numerical::Double> getPrimalSolution() const;
     const std::vector<Numerical::Double> getDualSolution() const;

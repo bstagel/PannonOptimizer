@@ -50,8 +50,7 @@ public:
 
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
-    void performRatiotestPhase1(unsigned int outgoingVariableIndex,
-                                const Vector& alpha,
+    void performRatiotestPhase1(const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue)
                                 throw (NumericalException);
@@ -85,11 +84,18 @@ private:
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int& iterationCounter,
                                Numerical::Double& functionSlope);
-    void useNumericalThreshold(unsigned int iterationCounter,
+    void useNumericalThresholdPhase1(unsigned int iterationCounter,
                                const Vector& alpha,
                                Numerical::Double& functionSlope);
     void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
                                    const Vector& alpha,
                                    Numerical::Double phaseIIObjectiveValue);
+    void computeFunctionPhase2(const Vector& alpha,
+                               unsigned int& iterationCounter,
+                               Numerical::Double& functionSlope,
+                               Numerical::Double& primalSteplength);
+    void useNumericalThresholdPhase2(unsigned int iterationCounter,
+                               const Vector& alpha,
+                               Numerical::Double& functionSlope);
 };
 #endif // DUALRATIOTEST_H
