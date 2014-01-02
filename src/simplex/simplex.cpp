@@ -293,6 +293,54 @@ Simplex::~Simplex() {
 //    fpu_fix_end(&m_old_cw);
 }
 
+bool Simplex::checkTheta(int rowIndex, int columnIndex, Numerical::Double theta){
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+
+    Vector column(rowCount);
+    column.setSparsityRatio(DENSE);
+    if(columnIndex < (int)columnCount){
+        column = m_simplexModel->getMatrix().column(columnIndex);
+    } else {
+        column.setNewNonzero(columnIndex - columnCount, 1);
+    }
+    m_basis->Ftran(column);
+
+    Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(rowIndex).getType();
+    Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
+
+    Numerical::Double computed;
+    if (typeOfIthVariable == Variable::FIXED) {
+        computed = (valueOfOutgoingVariable - m_simplexModel->getVariable(columnIndex).getLowerBound()) /
+                column.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::BOUNDED) {
+        computed = (valueOfOutgoingVariable - m_simplexModel->getVariable(columnIndex).getLowerBound()) /
+                column.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::PLUS) {
+        computed = (valueOfOutgoingVariable - m_simplexModel->getVariable(columnIndex).getLowerBound()) /
+                column.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::FREE) {
+        computed = valueOfOutgoingVariable / column.at(rowIndex);
+    }
+    else if (typeOfIthVariable == Variable::MINUS) {
+        computed = (valueOfOutgoingVariable - m_simplexModel->getVariable(columnIndex).getUpperBound()) /
+                column.at(rowIndex);
+    }
+
+    LPINFO("Theta value: get: "<<theta);
+    LPINFO("Theta value: computed: "<<computed);
+    LPINFO("Theta value diff: "<<Numerical::fabs(theta - computed));
+    if(!Numerical::isZero(theta - computed)){
+        LPWARNING("THETA ERROR!");
+        return false;
+    } else {
+        return true;
+    }
+}
+
 std::vector<IterationReportField> Simplex::getIterationReportFields(
         enum ITERATION_REPORT_FIELD_TYPE & type) const {
     std::vector<IterationReportField> result;

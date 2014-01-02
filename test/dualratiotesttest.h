@@ -15,7 +15,9 @@ private:
                       Numerical::Double lb,
                       Numerical::Double ub);
     void  initTestDefines();
+
 //phase 1 tests
+    void testStagelPh1OneStep();
     void testStagelPh1();
     void testMaros1Ph1();
     void testMaros2Ph1();
@@ -25,11 +27,18 @@ private:
     void testNum2Ph1();
     void testNum3Ph1();
     void testNum4Ph1();
+
 //phase 2 tests
     void testStagelPh2();
     void testMaros1Ph2();
     void testMaros2Ph2();
     void testStagelCf3Ph2();
+    void testStagelCf3Ph2OneStep();
+
+    void testNum1Ph2();
+    void testNum2Ph2();
+    void testNum3Ph2();
+    void testNum4Ph2();
 };
 
 #endif // DUALRATIOTESTTEST_H
