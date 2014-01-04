@@ -35,6 +35,9 @@ public:
     static const int NONLINEAR_PRIMAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEII_FUNCTION;
+    static const int THRESHOLD_REPORT_LEVEL;
+    static const int EXPAND_DUAL_PHASEI;
+    static const int EXPAND_DUAL_PHASEII;
     //Global
     static const int DEBUG_LEVEL;
     static const int ITERATION_LIMIT;

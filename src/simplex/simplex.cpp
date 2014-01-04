@@ -584,8 +584,8 @@ void Simplex::solve() {
 //        loadBasis("basis_cycle_1230.bas", new BasisHeadPanOpt, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
-//            if(m_iterationIndex == 1230)
-//              saveBasis("basis_cycle_1230.bas", new BasisHeadPanOpt, true);
+//            if(m_iterationIndex == 5611)
+//              saveBasis("25FV47_5611.bas", new BasisHeadPanOpt, true);
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;

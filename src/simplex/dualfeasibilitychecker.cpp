@@ -43,7 +43,7 @@ bool DualFeasibilityChecker::checkFeasibility(){
 }
 
 void DualFeasibilityChecker::computeFeasibility(){
-//this function determines M/F/P sets, dual objective function value
+//this function determines M/F/P sets, phase I objective function value
 
     //TODO: JOCO _ CLEAR ALL PARTITION
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);
@@ -60,26 +60,16 @@ void DualFeasibilityChecker::computeFeasibility(){
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
     //min problem
-
             if(objectiveType == MINIMIZE) {
 
-//                for(int i=0; i< m_reducedCosts.length();i++){
-//                    LPINFO("COMPUTE MINIMIZE m_reducedCost "<<variableIndex << " - " <<m_reducedCosts.at(variableIndex));
-//                }
     //nonbasic variables with M type infeasibility
-
                 if (Numerical::lessthan(m_reducedCosts.at(variableIndex), 0,optimalityTolerance) &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
-//                    LPINFO("nonbasic variables with M type infeasibility");
-//                    LPINFO("typeOfIthVariable "<<typeOfIthVariable);
-//                    LPINFO("variableIndex "<<variableIndex);
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(variableIndex));
-                        (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
+                    (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with P type infeasibility
-
                 if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), optimalityTolerance) &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
@@ -87,23 +77,19 @@ void DualFeasibilityChecker::computeFeasibility(){
                 } else
 
     //nonbasic variables with F type infeasibility
-
                 if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::PLUS) ||
                         (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::MINUS) ||
                         (Numerical::equal(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::FREE)) {
-//                                        LPINFO("nonbasic variables with F type infeasibility");
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }
 
      //max problem
-
             } else{
 
     //nonbasic variables with M type infeasibility
-
                 if (Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
@@ -111,7 +97,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                 } else
 
     //nonbasic variables with P type infeasibility
-
                 if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), optimalityTolerance) &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
@@ -119,7 +104,6 @@ void DualFeasibilityChecker::computeFeasibility(){
                 } else
 
     //nonbasic variables with F type infeasibility
-
                 if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
                         typeOfIthVariable == Variable::MINUS) ||
                         (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
