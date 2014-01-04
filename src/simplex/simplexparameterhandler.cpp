@@ -19,18 +19,18 @@ SimplexParameterHandler::SimplexParameterHandler()
 ParameterHandler& SimplexParameterHandler::getInstance()
 {
     try{
-        static SimplexParameterHandler s_instance;
-        THREAD_STATIC_DECL bool s_init = false;
-        if(!s_init) {
-            s_instance.initParameters();
-            s_instance.readParameterFile(sm_defaultFilename);
-            s_init = true;
-        }
-        return s_instance;
+    static SimplexParameterHandler s_instance;
+    THREAD_STATIC_DECL bool s_init = false;
+    if(!s_init) {
+        s_instance.initParameters();
+        s_instance.readParameterFile(sm_defaultFilename);
+        s_init = true;
+    }
+    return s_instance;
     } catch (const ParameterException & exception) {
         LPERROR( "Simplex ParameterException: " <<exception.getMessage() );
         exit(-1);
-    }
+}
 }
 
 void SimplexParameterHandler::writeParameterFile(){
@@ -107,24 +107,42 @@ void SimplexParameterHandler::writeParameterFile(){
         out << std::fixed << std::endl;
         out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
 
-        out << "! Use the piecewise linear concave function in primal phase I." << std::endl;
-        out << "! 0 = Traditional one step method" <<std::endl;
-        out << "! 1 = Piecewise linear function" <<std::endl;
-        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
-        out << "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << std::endl;
+        out << "! Use the piecewise linear concave function in primal phase I. \n"
+               "\t! 0 = Traditional one step method \n"
+               "\t! 1 = Piecewise linear function \n"
+               "\t! 2 = Piecewise linear function with numerical threshold \n"
+               "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << std::endl;
 
-        out << "! Use the piecewise linear concave function in dual phase I." << std::endl;
-        out << "! 0 = Traditional one step method" <<std::endl;
-        out << "! 1 = Piecewise linear function" <<std::endl;
-        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
-        out << "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << std::endl;
 
-        out << "! Use the piecewise linear concave function in dual phase II." << std::endl;
-        out << "! 0 = Traditional one step method" <<std::endl;
-        out << "! 1 = Piecewise linear function" <<std::endl;
-        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
-        out << "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << std::endl;
+        out << "! Use the piecewise linear concave function in dual phase I. \n"
+               "\t! 0 = Traditional one step method \n"
+               "\t! 1 = Piecewise linear function \n"
+               "\t! 2 = Piecewise linear function with numerical threshold \n"
+               "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << std::endl;
 
+        out << "! Use the piecewise linear concave function in dual phase II. \n"
+               "\t! 0 = Traditional one step method \n"
+               "\t! 1 = Piecewise linear function \n"
+               "\t! 2 = Piecewise linear function with numerical threshold \n"
+               "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << std::endl;
+
+        out << "! Numerical Threshold report in Dual Phase I and II \n"
+               "\t! 0 = no report \n"
+               "\t! 1 = report threshold active & sum of steps \n"
+               "\t! 2 = report threshold step by step"<< std::endl;
+        out << "\t" << "threshold_report_level = " << writeParameter("threshold_report_level")
+            << std::endl << std::endl;
+
+        out << "! EXPAND procedure in Dual Phase I \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Active \n"
+               "\t" << "expand_dual_phaseI = " << writeParameter("expand_dual_phaseI")
+                << std::endl << std::endl;
+        out << "! EXPAND procedure in Dual Phase II \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Active \n"
+               "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII")
+                << std::endl << std::endl;
 
         out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
@@ -135,7 +153,7 @@ void SimplexParameterHandler::writeParameterFile(){
                "! 3 = detailed problem report\t&\tone line per minor iteration\t&\tdetailed time report" << std::endl;
         out << "\t" << "debug_level = " << writeParameter("debug_level") << std::endl;
 
-        out << "! Maximal # of iterations" << std::endl;
+        out << "! Maximal # of iterations" <<  std::endl;
         out << "\t" << "iteration_limit = " << writeParameter("iteration_limit") <<  std::endl;
 
         out << "! Time limit for a problem (sec)" <<  std::endl;
@@ -190,6 +208,13 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("nonlinear_dual_phaseI_function", DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
     createParameter("nonlinear_dual_phaseII_function", Entry::INTEGER);
     setParameterValue("nonlinear_dual_phaseII_function", DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
+
+    createParameter("threshold_report_level", Entry::INTEGER);
+    setParameterValue("threshold_report_level", DefaultParameters::THRESHOLD_REPORT_LEVEL);
+    createParameter("expand_dual_phaseI", Entry::INTEGER);
+    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEI);
+    createParameter("expand_dual_phaseII", Entry::INTEGER);
+    setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
 
     //Global
     createParameter("debug_level", Entry::INTEGER);

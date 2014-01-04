@@ -11,25 +11,27 @@ using namespace std;
 DualRatiotestTestSuite::DualRatiotestTestSuite(const char * name):UnitTest(name)
 {
 //    ADD_TEST(DualRatiotestTestSuite::testStagelPh1OneStep);
-//    ADD_TEST(DualRatiotestTestSuite::testStagelPh1);
-//    ADD_TEST(DualRatiotestTestSuite::testMaros1Ph1);
-//    ADD_TEST(DualRatiotestTestSuite::testMaros2Ph1);
-//    ADD_TEST(DualRatiotestTestSuite::testStagelCf3Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testStagelPh1);
+    ADD_TEST(DualRatiotestTestSuite::testMaros1Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testMaros2Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testStagelCf3Ph1);
 
-//    ADD_TEST(DualRatiotestTestSuite::testNum1Ph1);
-//    ADD_TEST(DualRatiotestTestSuite::testNum2Ph1);
-//    ADD_TEST(DualRatiotestTestSuite::testNum3Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testNum1Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testNum2Ph1);
+    ADD_TEST(DualRatiotestTestSuite::testNum3Ph1);
     ADD_TEST(DualRatiotestTestSuite::testNum4Ph1);
 
 //phase 2 tests
 //    ADD_TEST(DualRatiotestTestSuite::testStagelCf3Ph2OneStep);
-//    ADD_TEST(DualRatiotestTestSuite::testStagelPh2);
-//    ADD_TEST(DualRatiotestTestSuite::testMaros1Ph2);
-//    ADD_TEST(DualRatiotestTestSuite::testMaros2Ph2);
-//    ADD_TEST(DualRatiotestTestSuite::testStagelCf3Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testStagelPh2);
+    ADD_TEST(DualRatiotestTestSuite::testMaros1Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testMaros2Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testStagelCf3Ph2);
 
-//    ADD_TEST(DualRatiotestTestSuite::testNum1Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testNum1Ph2);
     ADD_TEST(DualRatiotestTestSuite::testNum2Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testNum3Ph2);
+    ADD_TEST(DualRatiotestTestSuite::testNum4Ph2);
 
     initTestDefines();
 }
@@ -1090,6 +1092,77 @@ void DualRatiotestTestSuite::testStagelCf3Ph2OneStep()
 
 void DualRatiotestTestSuite::testNum1Ph2()
 {
+    unsigned size = 4;
+    Vector alpha(size), reducedCosts(size);
+    Model model;
+
+    Numerical::Double alphas[] = { 3, 1.e-10, 2};
+    for(unsigned i=0; i<size-1; i++){
+        alpha.set(i,alphas[i]);
+    }
+
+    Numerical::Double d[] ={ 3, 9, -1};
+    for(unsigned i=0; i<size-1; i++){
+        reducedCosts.set(i,d[i]);
+    }
+
+    IndexList<> reducedCostFeasibilities;
+    reducedCostFeasibilities.init(size,Simplex::FEASIBILITY_ENUM_LENGTH);
+
+    Numerical::Double lowerbounds[] = { 0, 0, 0};
+    Numerical::Double upperbounds[] = { 1, 2, _INF_};
+    Simplex::VARIABLE_STATE varstates[] ={ _NLB_,_NUB_,_NLB_};
+    IndexList<const Numerical::Double*> variableStates;
+    variableStates.init(size,Simplex::VARIABLE_STATE_ENUM_LENGTH);
+
+    for(unsigned int i=0; i < size-1 ;i++){
+        initVariable(model,lowerbounds[i],upperbounds[i]);
+        variableStates.insert(varstates[i],i);
+    }
+    double var = 14.0;
+    initVariable(model,0,2);
+    variableStates.insert(_B_,size-1,&var);
+
+    Constraint con;
+    model.addConstraint(con,alpha);
+    SimplexModel mo(model);
+    DualRatiotestUpdater updater(&reducedCostFeasibilities);
+
+//performing
+    DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
+
+    dualtest.m_phaseIIObjectiveValue = 50;
+    Numerical::Double bpts[] = {0, 5, 10};
+    Numerical::Double obj[] = {0, 10, 50};
+    DualRatiotest::BreakPoint p;
+    for(unsigned i=0; i<size-1; i++){
+        p.value = bpts[i];
+        p.functionValue = obj[i];
+        p.index = i-1;
+        dualtest.m_breakpoints.push_back(p);
+    }
+
+    for(unsigned i=0; i<size-2; i++){
+        dualtest.getNextElement( &(dualtest.m_breakpoints),size-i);
+    }
+//    for(int i=0;i<dualtest.m_breakpoints.size();i++){LPINFO(dualtest.m_breakpoints[i]);}
+    Numerical::Double slope = -15.0;
+    unsigned iterations = 2;
+    dualtest.useNumericalThresholdPhase2(iterations,alpha,slope);
+
+//asserting
+//    LPINFO("t_d: "<<dualtest.getDualSteplength());
+//    LPINFO("inc: "<<dualtest.getIncomingVariableIndex());
+//    LPINFO("f2: "<<dualtest.getObjectiveFunctionPhase2());
+
+    TEST_ASSERT(dualtest.m_tPositive == false);
+    TEST_ASSERT(dualtest.getDualSteplength() == 5);
+    TEST_ASSERT(dualtest.getIncomingVariableIndex() == 0);
+    TEST_ASSERT(dualtest.getObjectiveFunctionPhase2() == 10);
+}
+
+void DualRatiotestTestSuite::testNum2Ph2()
+{
     unsigned size = 5;
     Vector alpha(size), reducedCosts(size);
     Model model;
@@ -1163,7 +1236,7 @@ void DualRatiotestTestSuite::testNum1Ph2()
     TEST_ASSERT(dualtest.getObjectiveFunctionPhase2() == 14);
 }
 
-void DualRatiotestTestSuite::testNum2Ph2()
+void DualRatiotestTestSuite::testNum3Ph2()
 {
     unsigned size = 5;
     Vector alpha(size), reducedCosts(size);
@@ -1236,4 +1309,75 @@ void DualRatiotestTestSuite::testNum2Ph2()
     TEST_ASSERT(dualtest.getDualSteplength() == 0);
     TEST_ASSERT(dualtest.getIncomingVariableIndex() == -1);
     TEST_ASSERT(dualtest.getObjectiveFunctionPhase2() == 6);
+}
+
+void DualRatiotestTestSuite::testNum4Ph2()
+{
+    unsigned size = 6;
+    Vector alpha(size), reducedCosts(size);
+    Model model;
+
+    Numerical::Double alphas[] = { 1.e-8, 1.e-9, 1.e-10, 1.e-11, 2};
+    for(unsigned i=0; i<size-1; i++){
+        alpha.set(i,alphas[i]);
+    }
+
+    Numerical::Double d[] = { 3, -2, 9, -1, 3};
+    for(unsigned i=0; i<size-1; i++){
+        reducedCosts.set(i,d[i]);
+    }
+
+    IndexList<> reducedCostFeasibilities;
+    reducedCostFeasibilities.init(size,Simplex::FEASIBILITY_ENUM_LENGTH);
+
+    Numerical::Double lowerbounds[] = { 0, 0, 0, 0, 0};
+    Numerical::Double upperbounds[] = { 1, 1, 2, 3, _INF_};
+    Simplex::VARIABLE_STATE varstates[] = { _NLB_, _NUB_, _NUB_, _NLB_, _NLB_};
+    IndexList<const Numerical::Double*> variableStates;
+    variableStates.init(size,Simplex::VARIABLE_STATE_ENUM_LENGTH);
+
+    for(unsigned int i=0; i < size-1 ;i++){
+        initVariable(model,lowerbounds[i],upperbounds[i]);
+        variableStates.insert(varstates[i],i);
+    }
+    double var = 14.0;
+    initVariable(model,0,2);
+    variableStates.insert(_B_,size-1,&var);
+
+    Constraint con;
+    model.addConstraint(con,alpha);
+    SimplexModel mo(model);
+    DualRatiotestUpdater updater(&reducedCostFeasibilities);
+
+//performing
+    DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
+
+    dualtest.m_phaseIIObjectiveValue = 30;
+    Numerical::Double bpts[] = {0, 5, 10, 15, 20, 25};
+    Numerical::Double obj[] = {0, 15, 25, 30, 20, 10};
+    DualRatiotest::BreakPoint p;
+    for(unsigned i=0; i<size; i++){
+        p.value = bpts[i];
+        p.functionValue = obj[i];
+        p.index = i-1;
+        dualtest.m_breakpoints.push_back(p);
+    }
+
+    for(unsigned i=0; i<size-1; i++){
+        dualtest.getNextElement( &(dualtest.m_breakpoints),size-i);
+    }
+//    for(int i=0;i<dualtest.m_breakpoints.size();i++){LPINFO(dualtest.m_breakpoints[i]);}
+    Numerical::Double slope = -2.0;
+    unsigned iterations = 3;
+    dualtest.useNumericalThresholdPhase2(iterations,alpha,slope);
+
+//asserting
+//    LPINFO("t_d: "<<dualtest.getDualSteplength());
+//    LPINFO("inc: "<<dualtest.getIncomingVariableIndex());
+//    LPINFO("f2: "<<dualtest.getObjectiveFunctionPhase2());
+
+    TEST_ASSERT(dualtest.m_tPositive == false);
+    TEST_ASSERT(dualtest.getDualSteplength() == 25);
+    TEST_ASSERT(dualtest.getIncomingVariableIndex() == 4);
+    TEST_ASSERT(dualtest.getObjectiveFunctionPhase2() == 10);
 }

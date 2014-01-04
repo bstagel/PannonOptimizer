@@ -18,6 +18,7 @@ class DualRatiotest{
     friend class DualRatiotestTestSuite;
 
     struct BreakPoint{
+        bool fakeFeasible;
         int index;
         Numerical::Double value;
         Numerical::Double functionValue;
@@ -75,9 +76,16 @@ private:
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
     std::vector <BreakPoint> m_breakpoints;
+    Numerical::Double m_pivotThreshold;
+
+    //EXPAND
+    Numerical::Double m_expandingTolerance;
+    Numerical::Double m_expTolIncrement;
+    unsigned int m_expandIterationCounter;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
+    bool numericalCheckPhase1(const Vector& alpha, unsigned int alphaId);
     void generateBreakpointsPhase1(const Vector& alpha,
                                    Numerical::Double phaseIReducedCost,
                                    Numerical::Double phaseIObjectiveValue);
