@@ -105,6 +105,11 @@ public:
     NumericalException(const std::string& message): PanOptException(message) {}
 };
 
+class ParameterException: public PanOptException {
+public:
+    ParameterException(const std::string& message): PanOptException(message) {}
+};
+
 class SyntaxErrorException: public PanOptException {
 public:
     SyntaxErrorException(const std::string & message,

@@ -9,7 +9,7 @@
 #include <simplex/pfibasis.h>
 
 static const Numerical::Double optimalityTolerance =
-        SimplexParameterHandler::getInstance().getParameterValue("e_optimality");
+        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
                                                IndexList<const Numerical::Double*>* variableStates,

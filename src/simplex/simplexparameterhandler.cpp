@@ -18,14 +18,19 @@ SimplexParameterHandler::SimplexParameterHandler()
 
 ParameterHandler& SimplexParameterHandler::getInstance()
 {
-    static SimplexParameterHandler s_instance;
-    THREAD_STATIC_DECL bool s_init = false;
-    if(!s_init) {
-        s_instance.initParameters();
-        s_instance.readParameterFile(sm_defaultFilename);
-        s_init = true;
+    try{
+        static SimplexParameterHandler s_instance;
+        THREAD_STATIC_DECL bool s_init = false;
+        if(!s_init) {
+            s_instance.initParameters();
+            s_instance.readParameterFile(sm_defaultFilename);
+            s_init = true;
+        }
+        return s_instance;
+    } catch (const ParameterException & exception) {
+        LPERROR( "Simplex ParameterException: " <<exception.getMessage() );
+        exit(-1);
     }
-    return s_instance;
 }
 
 void SimplexParameterHandler::writeParameterFile(){
@@ -40,107 +45,101 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "!!! Tolerances !!!" << std::endl << std::endl;
 
         out << "! Pivot tolerance for SSX iterations" << std::endl;
-        out << "\t" << "e_pivot = " << m_values["e_pivot"].getValue() << std::endl;
-
-        out << "! Harris ratio tolerance" << std::endl;
-        out << "\t" << "e_harris = " << m_values["e_harris"].getValue() << std::endl;
+        out << "\t" << "e_pivot = " <<writeParameter("e_pivot") << std::endl;
 
         out << "! Feasibility tolerance" << std::endl;
-        out << "\t" << "e_feasibility = " << m_values["e_feasibility"].getValue() << std::endl;
+        out << "\t" << "e_feasibility = " << writeParameter("e_feasibility") << std::endl;
 
         out << "! Optimality tolerance" << std::endl;
-        out << "\t" << "e_optimality = " << m_values["e_optimality"].getValue() << std::endl;
+        out << "\t" << "e_optimality = " << writeParameter("e_optimality") << std::endl;
 
 
         out << std::fixed << std::endl;
         out << "!!! Starting procedures !!!" << std::endl << std::endl;
 
-        out << "! Presolve: 0.0 = no, 1.0 = yes" << std::endl;
-        out << "\t" << "presolve = " << m_values["presolve"].getValue() << std::endl;
+        out << "! Presolve" << std::endl;
+        out << "\t" << "presolve = " << writeParameter("presolve") << std::endl;
 
-        out << "! Scaling: 0.0 = no, 1.0 = yes" << std::endl;
-        out << "\t" << "scaling = " << m_values["scaling"].getValue() << std::endl;
+        out << "! Scaling" << std::endl;
+        out << "\t" << "scaling = " << writeParameter("scaling") << std::endl;
+
         out << "! Starting procedures" << std::endl;
-
-        out << "! 0.0 = Lower logical\n! 1.0 = Upper logical\n! 2.0 = Mixed logical\n"
-               "! 3.0 = Symbolic crash\n! 4.0 = LTSF Crash\n! 5.0 = ADG Crash\n"
-               "! 6.0 = ADG+LTSF Crash" << std::endl;
-        out << "\t" << "starting_basis = " << m_values["starting_basis"].getValue() << std::endl;
+        out << "! 0 = Lower logical\n"
+               "! 1 = Upper logical\n"
+               "! 2 = Mixed logical" << std::endl;
+        out << "\t" << "starting_basis = " << writeParameter("starting_basis") << std::endl;
 
 
         out << std::fixed << std::endl;
         out << "!!! Basis factorization !!!" << std::endl << std::endl;
 
-        out << "! Type of basis factorization\n! 0.0 = PFI\n"
-               "! 1.0 = LU Decomposition --- NOT AVAILABLE YET" << std::endl;
-        out << "\t" << "factorization_type = " << m_values["factorization_type"].getValue() << std::endl;
+        out << "! Type of basis factorization\n"
+               "! 0 = PFI" << std::endl;
+        out << "\t" << "factorization_type = " << writeParameter("factorization_type") << std::endl << std::endl;
 
         out << "\t! PFI specific parameters" << std::endl;
         out << "\t! The method used to process the non-triangular kernel\n"
-               "\t! 0.0 = Simple search for potential pivot positions\n"
-               "\t! 1.0 = Create a block triangular form and pivot down the diagonal\n"
-               "\t! 2.0 = Create a block triangular form and order the blocks by column counts before pivoting"<< std::endl;
-        out << "\t\t" << "nontriangular_method = " << m_values["nontriangular_method"].getValue() <<  std::endl;
+               "\t! 0 = Simple search for potential pivot positions\n"
+               "\t! 1 = Create a block triangular form and pivot down the diagonal\n"
+               "\t! 2 = Create a block triangular form and order the blocks by column counts before pivoting"<< std::endl;
+        out << "\t\t" << "nontriangular_method = " << writeParameter("nontriangular_method") <<  std::endl;
 
-        out << "\t! Pivot rules for the non-triangular part\n\t! 0.0 = Simple pivot tolerance is used\n"
-               "\t! 1.0 = Threshold pivoting" <<  std::endl;
-        out << "\t\t" << "nontriangular_pivot_rule = " << m_values["nontriangular_pivot_rule"].getValue() <<  std::endl;
+        out << "\t! Pivot rules for the non-triangular part\n"
+               "\t! 0 = Simple pivot tolerance is used\n"
+               "\t! 1 = Threshold pivoting" <<  std::endl;
+        out << "\t\t" << "nontriangular_pivot_rule = " << writeParameter("nontriangular_pivot_rule") <<  std::endl;
+
+        out << "\t! Frequency of reinversions in # of iterations" <<  std::endl;
+        out << "\t\t" << "reinversion_frequency = " << writeParameter("reinversion_frequency") <<  std::endl;
 
         out << "\t ! Constant value used for threshold pivoting" <<  std::endl;
-        out << "\t\t" << "pivot_threshold = " << m_values["pivot_threshold"].getValue() <<  std::endl;
-
-        out << "! Frequency of reinversions in # of iterations" <<  std::endl;
-        out << "\t" << "reinversion_frequency = " << m_values["reinversion_frequency"].getValue() <<  std::endl;
+        out << "\t\t" << "pivot_threshold = " << writeParameter("pivot_threshold") <<  std::endl;
 
 
         out << std::fixed << std::endl;
         out << "!!! Pricing !!!" <<  std::endl <<  std::endl;
 
         out << "! Pricing type\n"
-               "! 0.0 = Dantzig\n"
-               "! 1.0 = Exact steepest edge"
-               "! 2.0 = Another steepest edge"
-               "! 3.0 = Devex" << std::endl;
-        out << "\t" << "pricing_type = " << m_values["pricing_type"].getValue() << std::endl;
+               "! 0 = Dantzig" << std::endl;
+        out << "\t" << "pricing_type = " << writeParameter("pricing_type") << std::endl;
 
 
         out << std::fixed << std::endl;
         out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
 
         out << "! Use the piecewise linear concave function in primal phase I." << std::endl;
-        out << "! 0.0 = Traditional one step method" <<std::endl;
-        out << "! 1.0 = Piecewise linear function" <<std::endl;
-        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
-        out << "\t" << "nonlinear_primal_phaseI_function = " << m_values["nonlinear_primal_phaseI_function"].getValue() << std::endl;
+        out << "! 0 = Traditional one step method" <<std::endl;
+        out << "! 1 = Piecewise linear function" <<std::endl;
+        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
+        out << "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << std::endl;
 
         out << "! Use the piecewise linear concave function in dual phase I." << std::endl;
-        out << "! 0.0 = Traditional one step method" <<std::endl;
-        out << "! 1.0 = Piecewise linear function" <<std::endl;
-        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
+        out << "! 0 = Traditional one step method" <<std::endl;
+        out << "! 1 = Piecewise linear function" <<std::endl;
+        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
+        out << "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << std::endl;
 
-        out << "\t" << "nonlinear_dual_phaseI_function = " << m_values["nonlinear_dual_phaseI_function"].getValue() << std::endl;
         out << "! Use the piecewise linear concave function in dual phase II." << std::endl;
-        out << "! 0.0 = Traditional one step method" <<std::endl;
-        out << "! 1.0 = Piecewise linear function" <<std::endl;
-        out << "! 2.0 = Piecewise linear function with numerical threshold" <<std::endl;
-        out << "\t" << "nonlinear_dual_phaseII_function = " << m_values["nonlinear_dual_phaseII_function"].getValue() << std::endl;
+        out << "! 0 = Traditional one step method" <<std::endl;
+        out << "! 1 = Piecewise linear function" <<std::endl;
+        out << "! 2 = Piecewise linear function with numerical threshold" <<std::endl;
+        out << "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << std::endl;
 
 
         out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
-        out << "! Level of iteration report"
-               "\t! -1.0 = CSV export format\n"
-               "\t! 0.0 = brief problem report\t&\tsolution only\t\t\t&\tonly solution time\n"
-               "\t! 1.0 = brief problem report\t&\tone line per major iteration\t& \tonly solution time\n"
-               "\t! 2.0 = detailed problem report\t&\tone line per major iteration\t&\tbrief time report\n"
-               "\t! 3.0 = detailed problem report\t&\tone line per minor iteration\t&\tdetailed time report" << std::endl;
-        out << "\t" << "debug_level = " << m_values["debug_level"].getValue() << std::endl;
+        out << "! Level of iteration report\n"
+               "! 0 = brief problem report\t&\tsolution only\t\t\t&\tonly solution time\n"
+               "! 1 = brief problem report\t&\tone line per major iteration\t& \tonly solution time\n"
+               "! 2 = detailed problem report\t&\tone line per major iteration\t&\tbrief time report\n"
+               "! 3 = detailed problem report\t&\tone line per minor iteration\t&\tdetailed time report" << std::endl;
+        out << "\t" << "debug_level = " << writeParameter("debug_level") << std::endl;
 
-        out << "! Maximal # of iterations" <<  std::endl;
-        out << "\t" << "iteration_limit = " << m_values["iteration_limit"].getValue() <<  std::endl;
+        out << "! Maximal # of iterations" << std::endl;
+        out << "\t" << "iteration_limit = " << writeParameter("iteration_limit") <<  std::endl;
 
         out << "! Time limit for a problem (sec)" <<  std::endl;
-        out << "\t" << "time_limit = " << m_values["time_limit"].getValue() <<  std::endl;
+        out << "\t" << "time_limit = " << writeParameter("time_limit") <<  std::endl;
 
 
         out.close();
@@ -153,36 +152,51 @@ void SimplexParameterHandler::writeParameterFile(){
 void SimplexParameterHandler::initParameters()
 {
     //Tolerances
-    m_values["e_pivot"] = Parameter("e_pivot", DefaultParameters::E_PIVOT);
-    m_values["e_harris"] = Parameter("e_harris", DefaultParameters::E_HARRIS);
-    m_values["e_feasibility"] = Parameter("e_feasibility", DefaultParameters::E_FEASIBILITY);
-    m_values["e_optimality"] = Parameter("e_optimality", DefaultParameters::E_OPTIMALITY);
+    createParameter("e_pivot", Entry::DOUBLE);
+    setParameterValue("e_pivot", DefaultParameters::E_PIVOT);
+    createParameter("e_feasibility", Entry::DOUBLE);
+    setParameterValue("e_feasibility", DefaultParameters::E_FEASIBILITY);
+    createParameter("e_optimality", Entry::DOUBLE);
+    setParameterValue("e_optimality", DefaultParameters::E_OPTIMALITY);
 
     //Starting procedures
-    m_values["presolve"] = Parameter("presolve", DefaultParameters::PRESOLVE);
-    m_values["scaling"] = Parameter("scaling", DefaultParameters::SCALING);
-    m_values["starting_basis"] = Parameter("starting_basis", DefaultParameters::STARTING_BASIS);
+    createParameter("presolve", Entry::BOOL);
+    setParameterValue("presolve", DefaultParameters::PRESOLVE);
+    createParameter("scaling", Entry::BOOL);
+    setParameterValue("scaling", DefaultParameters::SCALING);
+    createParameter("starting_basis", Entry::INTEGER);
+    setParameterValue("starting_basis", DefaultParameters::STARTING_BASIS);
 
     //Basis factorization
-    m_values["factorization_type"] = Parameter("factorization_type", DefaultParameters::FACTORIZATION_TYPE);
-    m_values["nontriangular_method"] = Parameter("nontriangular_method", DefaultParameters::NONTRIANGULAR_METHOD);
-    m_values["nontriangular_pivot_rule"] = Parameter("nontriangular_pivot_rule", DefaultParameters::NONTRIANGULAR_PIVOT_RULE);
-    m_values["pivot_threshold"] = Parameter("pivot_threshold", DefaultParameters::PIVOT_THRESHOLD);
-    m_values["reinversion_frequency"] = Parameter("reinversion_frequency", DefaultParameters::REINVERSION_FREQUENCY);
+    createParameter("factorization_type", Entry::INTEGER);
+    setParameterValue("factorization_type", DefaultParameters::FACTORIZATION_TYPE);
+    createParameter("nontriangular_method", Entry::INTEGER);
+    setParameterValue("nontriangular_method", DefaultParameters::NONTRIANGULAR_METHOD);
+    createParameter("nontriangular_pivot_rule", Entry::INTEGER);
+    setParameterValue("nontriangular_pivot_rule", DefaultParameters::NONTRIANGULAR_PIVOT_RULE);
+    createParameter("reinversion_frequency", Entry::INTEGER);
+    setParameterValue("reinversion_frequency", DefaultParameters::REINVERSION_FREQUENCY);
+    createParameter("pivot_threshold", Entry::DOUBLE);
+    setParameterValue("pivot_threshold", DefaultParameters::PIVOT_THRESHOLD);
 
     //Pricing
-    m_values["pricing_type"] = Parameter("pricing_type", DefaultParameters::PRICING_TYPE);
+    createParameter("pricing_type", Entry::INTEGER);
+    setParameterValue("pricing_type", DefaultParameters::PRICING_TYPE);
 
     //Ratiotest
-    m_values["nonlinear_primal_phaseI_function"] = Parameter("nonlinear_primal_phaseI_function",
-                                                           DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION);
-    m_values["nonlinear_dual_phaseI_function"] = Parameter("nonlinear_dual_phaseI_function",
-                                                           DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
-    m_values["nonlinear_dual_phaseII_function"] = Parameter("nonlinear_dual_phaseII_function",
-                                                           DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
+    createParameter("nonlinear_primal_phaseI_function", Entry::INTEGER);
+    setParameterValue("nonlinear_primal_phaseI_function", DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION);
+    createParameter("nonlinear_dual_phaseI_function", Entry::INTEGER);
+    setParameterValue("nonlinear_dual_phaseI_function", DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
+    createParameter("nonlinear_dual_phaseII_function", Entry::INTEGER);
+    setParameterValue("nonlinear_dual_phaseII_function", DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
+
     //Global
-    m_values["debug_level"] = Parameter("debug_level", DefaultParameters::DEBUG_LEVEL);
-    m_values["iteration_limit"] = Parameter("iteration_limit", DefaultParameters::ITERATION_LIMIT);
-    m_values["time_limit"] = Parameter("time_limit", DefaultParameters::TIME_LIMIT);
+    createParameter("debug_level", Entry::INTEGER);
+    setParameterValue("debug_level", DefaultParameters::DEBUG_LEVEL);
+    createParameter("iteration_limit", Entry::INTEGER);
+    setParameterValue("iteration_limit", DefaultParameters::ITERATION_LIMIT);
+    createParameter("time_limit", Entry::DOUBLE);
+    setParameterValue("time_limit", DefaultParameters::TIME_LIMIT);
 
 }

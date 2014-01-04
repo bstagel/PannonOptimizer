@@ -109,15 +109,15 @@ Entry DualSimplex::getIterationEntry(const string &name,
         } else if (name == OUTGOING_NAME) {
             reply.m_integer = m_outgoingIndex;
         } else if (name == PHASE_1_OBJ_VAL_STRING) {
-            reply.m_float = m_phaseIObjectiveValue;
+            reply.m_double = m_phaseIObjectiveValue;
         } else if (name == OBJ_VAL_STRING) {
-            reply.m_float = m_objectiveValue;
+            reply.m_double = m_objectiveValue;
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
-            reply.m_float = m_primalReducedCost;
+            reply.m_double = m_primalReducedCost;
         } else if (name == PRIMAL_THETA_STRING) {
-            reply.m_float = m_primalTheta;
+            reply.m_double = m_primalTheta;
         } else if (name == DUAL_THETA_STRING) {
-            reply.m_float = m_dualTheta;
+            reply.m_double = m_dualTheta;
         } else {
             break;
         }

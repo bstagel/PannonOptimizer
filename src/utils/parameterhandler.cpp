@@ -18,8 +18,7 @@ ParameterHandler::~ParameterHandler()
 
 }
 
-void ParameterHandler::readParameterFile(const char * filename)
-{
+void ParameterHandler::readParameterFile(const char * filename){
     try {
         std::ifstream in;
         in.open(filename);
@@ -38,8 +37,24 @@ void ParameterHandler::readParameterFile(const char * filename)
     }
 }
 
-void ParameterHandler::loadValuesFromFile(std::ifstream &in)
-{
+const std::string ParameterHandler::writeParameter(std::string name){
+    Parameter& parameter = m_values.at(name);
+    if(parameter.getEntryType() == Entry::DOUBLE) {
+        std::ostringstream strs;
+        strs << parameter.getEntry().m_double;
+        return strs.str();
+    } else if(parameter.getEntryType() == Entry::INTEGER){
+        return std::to_string(parameter.getEntry().m_integer);
+    } else if(parameter.getEntryType() == Entry::STRING){
+        return *(parameter.getEntry().m_string);
+    } else if(parameter.getEntryType() == Entry::BOOL){
+        return parameter.getEntry().m_bool?std::string("true"):std::string("false");
+    } else {
+        throw ParameterException("Invalid parameter type");
+    }
+}
+
+void ParameterHandler::loadValuesFromFile(std::ifstream &in){
     try {
         std::string line;
         std::vector<std::string> tokens;
@@ -56,14 +71,47 @@ void ParameterHandler::loadValuesFromFile(std::ifstream &in)
                 continue;
             }
 
-            if (tokens.size()!=3 && tokens[1] != "=") {
-                throw std::string("Parameter error ... ").append(tokens[0]);
+            if (tokens.size()<3 && tokens[1] != "=") {
+                throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
             }
 
-            double val = atof(tokens[2].c_str());
-
             if (m_values.find(tokens[0])!=m_values.end()) {
-                m_values[tokens[0]].setValue(val);
+                Parameter& parameter = m_values.at(tokens[0]);
+                Entry::ENTRY_TYPE type = parameter.getEntryType();
+                if(type == Entry::DOUBLE){
+                    if(tokens.size() == 3){
+                        parameter.setDoubleValue(atof(tokens[2].c_str()));
+                    } else {
+                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
+                    }
+                } else if (type == Entry::INTEGER){
+                    if(tokens.size() == 3){
+                        parameter.setIntegerValue(atoi(tokens[2].c_str()));
+                    } else {
+                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
+                    }
+                } else if (type == Entry::STRING){
+                    std::string value;
+                    for(unsigned int i=2; i<tokens.size(); i++){
+                        value.append(tokens[i]);
+                        if(i != tokens.size()-1){
+                            value.append(" ");
+                        }
+                    }
+                    parameter.setStringValue(value);
+                } else if (type == Entry::BOOL){
+                    if(tokens.size() == 3){
+                        if(tokens[2].compare("true")){
+                            parameter.setBoolValue(true);
+                        } else if(tokens[2].compare("false")){
+                            parameter.setBoolValue(false);
+                        } else {
+                            throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
+                        }
+                    } else {
+                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
+                    }
+                }
             }
             else {
                 throw std::string("Unknown Parameter in the Parameter File: ").append(tokens[0]);

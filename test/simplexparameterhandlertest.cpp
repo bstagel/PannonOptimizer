@@ -8,7 +8,6 @@ SimplexParameterHandlerTestSuite::SimplexParameterHandlerTestSuite(const char * 
 void SimplexParameterHandlerTestSuite::getInstance()
 {
     TEST_ASSERT(SimplexParameterHandler::getInstance().m_values.count("e_pivot")>0);
-    TEST_ASSERT(SimplexParameterHandler::getInstance().m_values.count("e_harris")>0);
     TEST_ASSERT(SimplexParameterHandler::getInstance().m_values.count("e_feasibility")>0);
     TEST_ASSERT(SimplexParameterHandler::getInstance().m_values.count("e_optimality")>0);
     TEST_ASSERT(SimplexParameterHandler::getInstance().m_values.count("presolve")>0);

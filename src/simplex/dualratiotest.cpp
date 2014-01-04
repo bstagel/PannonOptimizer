@@ -11,10 +11,10 @@
 #include <simplex/simplexparameterhandler.h>
 #include <utils/thirdparty/prettyprint.h>
 
-static const double nonlinearDualPhaseIFunction =
-        SimplexParameterHandler::getInstance().getParameterValue("nonlinear_dual_phaseI_function");
-static const double nonlinearDualPhaseIIFunction =
-        SimplexParameterHandler::getInstance().getParameterValue("nonlinear_dual_phaseII_function");
+static const int nonlinearDualPhaseIFunction =
+        SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function");
+static const int nonlinearDualPhaseIIFunction =
+        SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function");
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
@@ -314,7 +314,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     unsigned int length = m_breakpoints.size(),
     alphaId = length-1-iterationCounter, prevAlphaId = alphaId, nextAlphaId = alphaId,
     prevIterationCounter = 0, nextIterationCounter = 0;
-    Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("e_pivot");
+    Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
 
     LPWARNING("BAD NUMERICAL VALUE,  ACTIVATING THRESHOLD for "<<alpha.at(m_breakpoints.at(alphaId).index));
     Numerical::Double prevObjValue = m_phaseIObjectiveValue, nextObjValue = m_phaseIObjectiveValue;
@@ -412,7 +412,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     getNextElement(&m_breakpoints,length);
 
     if (m_breakpoints.size() > 1) {
-        int num = (int)nonlinearDualPhaseIFunction;
+        int num = nonlinearDualPhaseIFunction;
         switch (num) {
       //using traditional one step method
           case 0:
@@ -430,7 +430,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
           break;
       //using piecewise linear function with numerical threshold
         case 2:
-            Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("e_pivot");
+            Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
 
             computeFunctionPhase1(alpha, iterationCounter, functionSlope);
             if(Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index)) <= pivotThreshold){
@@ -645,7 +645,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     alphaId = length-1-iterationCounter, prevAlphaId = alphaId, nextAlphaId = alphaId,
     prevIterationCounter = 0, nextIterationCounter = 0;
     Numerical::Double prevObjValue = m_phaseIIObjectiveValue, nextObjValue = m_phaseIIObjectiveValue;
-    Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("pivot_threshold");
+    Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
 
     if (Numerical::fabs(alpha.at(m_breakpoints[alphaId].index)) <= pivotThreshold) {
         LPWARNING("BAD NUMERICAL VALUE, ACTIVATING THRESHOLD for "<<alpha.at(m_breakpoints[alphaId].index));
@@ -744,7 +744,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 m_model.getVariable(outgoingVariableIndex).getUpperBound();
     }
 
-    int num =(int)nonlinearDualPhaseIIFunction;
+    int num = nonlinearDualPhaseIIFunction;
+
     switch (num) {
     //using traditional one step method
       case 0:
@@ -783,7 +784,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         break;
 //numerical threshold
     case 2:
-        Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getParameterValue("e_pivot");
+        Numerical::Double pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
 
         computeFunctionPhase2(alpha, iterationCounter, functionSlope,primalSteplength);
         if(Numerical::fabs(alpha.at(m_breakpoints[length-1-iterationCounter].index)) <= pivotThreshold){

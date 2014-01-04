@@ -19,22 +19,27 @@ LinalgParameterHandler::LinalgParameterHandler()
 
 ParameterHandler& LinalgParameterHandler::getInstance()
 {
-    static LinalgParameterHandler s_instance;
-    THREAD_STATIC_DECL bool s_init = false;
-    if(!s_init) {
-        s_instance.initParameters();
-        s_instance.readParameterFile(sm_defaultFilename);
-        s_init = true;
+    try{
+        static LinalgParameterHandler s_instance;
+        THREAD_STATIC_DECL bool s_init = false;
+        if(!s_init) {
+            s_instance.initParameters();
+            s_instance.readParameterFile(sm_defaultFilename);
+            s_init = true;
+        }
+        return s_instance;
+    } catch (const ParameterException & exception) {
+        LPERROR( "Linalg ParameterException: " <<exception.getMessage() );
+        exit(-1);
     }
-    return s_instance;
 }
+
+
 
 void LinalgParameterHandler::writeParameterFile()
 {
     try {
-        std::cout <<"m_filename;";
         std::ofstream out(m_filename);
-        std::cout <<m_filename;
 
         if (!out.is_open()) throw -1;
 
@@ -44,15 +49,15 @@ void LinalgParameterHandler::writeParameterFile()
         out << std::scientific << std::endl;
         out << "!!! Tolerances !!!" << std::endl << std::endl;
         out << "! Absolute tolerance" << std::endl;
-        out << "\t" << "e_absolute = " << m_values["e_absolute"].getValue() << std::endl;
+        out << "\t" << "e_absolute = " << writeParameter("e_absolute") << std::endl;
         out << "! Relative tolerance for additive operations" << std::endl;
-        out << "\t" << "e_relative = " << m_values["e_relative"].getValue() << std::endl << std::endl;
+        out << "\t" << "e_relative = " << writeParameter("e_relative") << std::endl << std::endl;
 
         out << std::fixed << std::endl;
         out << "! Nonzero ratio used as a bound between sparse and dense vector forms" << std::endl;
-        out << "\t" << "sparsity_ratio = " << m_values["sparsity_ratio"].getValue() << std::endl;
+        out << "\t" << "sparsity_ratio = " << writeParameter("sparsity_ratio") << std::endl;
         out << "! The number of extra spaces reserved in vectors for new elements" << std::endl;
-        out << "\t" << "elbowroom = " << m_values["elbowroom"].getValue() << std::endl;
+        out << "\t" << "elbowroom = " << writeParameter("elbowroom") << std::endl;
 
         out.close();
     }
@@ -64,11 +69,15 @@ void LinalgParameterHandler::writeParameterFile()
 void LinalgParameterHandler::initParameters()
 {
     //Tolerances
-    m_values["e_absolute"] = Parameter("e_absolute", DefaultParameters::E_ABSOLUTE);
-    m_values["e_relative"] = Parameter("e_relative", DefaultParameters::E_RELATIVE);
+    createParameter("e_absolute", Entry::DOUBLE);
+    setParameterValue("e_absolute", DefaultParameters::E_ABSOLUTE);
+    createParameter("e_relative", Entry::DOUBLE);
+    setParameterValue("e_relative", DefaultParameters::E_RELATIVE);
 
     //Global
-    m_values["sparsity_ratio"] = Parameter("sparsity_ratio", DefaultParameters::SPARSITY_RATIO);
-    m_values["elbowroom"] = Parameter("elbowroom", DefaultParameters::SPARSITY_RATIO);
+    createParameter("sparsity_ratio", Entry::DOUBLE);
+    setParameterValue("sparsity_ratio", DefaultParameters::SPARSITY_RATIO);
+    createParameter("elbowroom", Entry::INTEGER);
+    setParameterValue("elbowroom", DefaultParameters::ELBOWROOM);
 
 }
