@@ -2,8 +2,8 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 
-static const double nonlinearPrimalPhaseIFunction =
-        SimplexParameterHandler::getInstance().getParameterValue("nonlinear_primal_phaseI_function");
+static const int nonlinearPrimalPhaseIFunction =
+        SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function");
 
 void PrimalRatiotest::shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId) {
     unsigned int i=startId,  j=2*i+1;
@@ -258,7 +258,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     getNextElement(&breakpoints,length);
 
     if (breakpoints.size() > 1) {
-        int num = (int)nonlinearPrimalPhaseIFunction;
+        int num = nonlinearPrimalPhaseIFunction;
         switch (num) {
           case 0:
       //using traditional one step method

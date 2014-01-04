@@ -15,8 +15,8 @@
 #include <cstring>
 #include <cmath>
 
-unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getParameterValue("elbowroom");
-Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getParameterValue("sparsity_ratio");
+unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
 THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLengthVectorLenght = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;

@@ -423,7 +423,7 @@ Entry Simplex::getIterationEntry(const string &name,
         if (name == ITERATION_INDEX_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == ITERATION_TIME_NAME) {
-            reply.m_float = m_solveTimer.getRunningTime()/1000000;
+            reply.m_double = m_solveTimer.getRunningTime()/1000000;
         } else if (name == ITERATION_INVERSION_NAME) {
             if(m_freshBasis){
                 reply.m_string = new std::string("*I*");
@@ -437,23 +437,23 @@ Entry Simplex::getIterationEntry(const string &name,
         if (name == SOLUTION_ITERATION_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == SOLUTION_SOLVE_TIMER_NAME) {
-            reply.m_float = m_solveTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_solveTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_INVERSION_TIMER_NAME) {
-            reply.m_float = m_inversionTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_inversionTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME) {
-            reply.m_float = m_computeBasicSolutionTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_computeBasicSolutionTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME) {
-            reply.m_float = m_computeReducedCostsTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_computeReducedCostsTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME) {
-            reply.m_float = m_computeFeasibilityTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_computeFeasibilityTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_CHECK_FEASIBILITY_TIMER_NAME) {
-            reply.m_float = m_checkFeasibilityTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_checkFeasibilityTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_PRICE_TIMER_NAME) {
-            reply.m_float = m_priceTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_priceTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_SELECT_PIVOT_TIMER_NAME) {
-            reply.m_float = m_selectPivotTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_selectPivotTimer.getTotalElapsed()/1000000;
         } else if (name == SOLUTION_UPDATE_TIMER_NAME) {
-            reply.m_float = m_updateTimer.getTotalElapsed()/1000000;
+            reply.m_double = m_updateTimer.getTotalElapsed()/1000000;
         }
         break;
 
@@ -552,18 +552,18 @@ void Simplex::solve() {
 
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
-    const unsigned int iterationLimit = simplexParameters.getParameterValue("iteration_limit");
-    const double timeLimit = simplexParameters.getParameterValue("time_limit");
+    const unsigned int iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
+    const double timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
-            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getParameterValue("starting_basis");
-    unsigned int reinversionFrequency = simplexParameters.getParameterValue("reinversion_frequency");
+            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getIntegerParameterValue("starting_basis");
+    unsigned int reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
 
     m_iterationReport.addProviderForStart(*this);
     m_iterationReport.addProviderForIteration(*this);
     m_iterationReport.addProviderForSolution(*this);
 
-    m_debugLevel = SimplexParameterHandler::getInstance().getParameterValue("debug_level");
+    m_debugLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level");
     m_iterationReport.setDebugLevel(m_debugLevel);
 
     m_iterationReport.createStartReport();
@@ -580,7 +580,7 @@ void Simplex::solve() {
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
-        loadBasis("basis2.bas", new BasisHeadPanOpt, true);
+//        loadBasis("basis2.bas", new BasisHeadPanOpt, true);
 //        loadBasis("basis_cycle_1230.bas", new BasisHeadPanOpt, true);
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
             // ITTEN MENTJUK KI A BAZIST:
@@ -763,7 +763,7 @@ void Simplex::solve() {
 
 void Simplex::initModules() {
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates, &m_basicVariableValues);
-    double factorizationType = SimplexParameterHandler::getInstance().getParameterValue("factorization_type");
+    int factorizationType = SimplexParameterHandler::getInstance().getIntegerParameterValue("factorization_type");
     if (factorizationType == 0){
         m_basis = new PfiBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
     } else {

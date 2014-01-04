@@ -40,9 +40,9 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_columnSwapHash = new std::vector<int>();
     m_columnSwapLog = new std::vector<int>();
 
-    nontriangularMethod = (NONTRIANGULAR_METHOD) SimplexParameterHandler::getInstance().getParameterValue("nontriangular_method");
-    nontriangularPivotRule = (NONTRIANGULAR_PIVOT_RULE) SimplexParameterHandler::getInstance().getParameterValue("nontriangular_pivot_rule");
-    threshold = SimplexParameterHandler::getInstance().getParameterValue("pivot_threshold");
+    nontriangularMethod = (NONTRIANGULAR_METHOD) SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_method");
+    nontriangularPivotRule = (NONTRIANGULAR_PIVOT_RULE) SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_pivot_rule");
+    threshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
 
 
     cl_inversion = 0;
@@ -1567,13 +1567,9 @@ void PfiBasis::printStatistics() const {
 }
 
 void PfiBasis::printTransformationStatistics() const {
-    if (SimplexParameterHandler::getInstance().getParameterValue("debug_level") == -1) {
-        cout << m_inversionCount << ", " << m_transformationAverage << ", " << m_mNumAverage << ", ";
-    } else {
-        LPINFO("Inversion count: "<<m_inversionCount);
-        //		LPINFO("Transformation count in the last inversion: "<<m_transformationCount);
-        LPINFO("Transformation count average: "<<m_transformationAverage);
-        LPINFO("Average size of the non-triangular part:"<<m_mNumAverage);
-    }
+    LPINFO("Inversion count: "<<m_inversionCount);
+    //		LPINFO("Transformation count in the last inversion: "<<m_transformationCount);
+    LPINFO("Transformation count average: "<<m_transformationAverage);
+    LPINFO("Average size of the non-triangular part:"<<m_mNumAverage);
     printStatistics();
 }

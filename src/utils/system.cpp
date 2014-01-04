@@ -1,3 +1,4 @@
+#include <globals.h>
 #include <utils/system.h>
 #ifdef UNIX
 #include <unistd.h>
@@ -13,8 +14,9 @@ std::string System::getCurrentUserName() {
 #endif
 
 #ifdef WIN32
-    char username[UNLEN+1];
-    GetUserName(username, UNLEN+1);
+    TCHAR username[UNLEN+1];       // TCHAR to allow for MBCS and Unicode
+    DWORD len = UNLEN + 1;
+    GetUserName(username, &len);
     return std::string(username);
 #endif
 }

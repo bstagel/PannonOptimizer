@@ -5,9 +5,6 @@
 #include <iomanip>
 #include <simplex/simplexparameterhandler.h>
 
-static const double debugLevel =
-        SimplexParameterHandler::getInstance().getParameterValue("debug_level");
-
 IterationReport::IterationReport() {
     m_refreshHeader = true;
     m_debugLevel = 0;
@@ -176,7 +173,7 @@ std::string IterationReport::getContent(const Entry & entry, const IterationRepo
         } else {
             entryString.unsetf( std::ios::floatfield );
         }
-        entryString << entry.m_float;
+        entryString << entry.m_double;
         break;
     case IterationReportField::IRF_INT:
         entryString << entry.m_integer;

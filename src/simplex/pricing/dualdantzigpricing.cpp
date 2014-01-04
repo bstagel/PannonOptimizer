@@ -7,7 +7,7 @@
 #include <simplex/simplex.h>
 
 static const Numerical::Double feasibilityTolerance =
-        SimplexParameterHandler::getInstance().getParameterValue("e_feasibility");
+        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
 DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
                                        const DualPricingUpdater &updater,

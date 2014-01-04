@@ -3,7 +3,7 @@
 #include <simplex/simplexparameterhandler.h>
 
 static const Numerical::Double feasibilityTolerance =
-        SimplexParameterHandler::getInstance().getParameterValue("e_feasibility");
+        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
                                                    IndexList<const Numerical::Double *> * variableStates,
