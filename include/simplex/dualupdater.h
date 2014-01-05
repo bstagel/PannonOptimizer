@@ -18,11 +18,12 @@ public:
     void setPricingUpdater(DualPricingUpdater * pricingUpdater);
     void setRatiotestUpdater(DualRatiotestUpdater* ratiotestUpdater);
 
-    void update();
+    void update(int phase);
 
 protected:
     DualPricingUpdater * m_pricingUpdater;
     DualRatiotestUpdater * m_ratiotestUpdater;
+
 };
 
 #endif	/* DUALUPDATER_H */

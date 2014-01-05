@@ -35,6 +35,10 @@ private:
     Numerical::Double m_phase2ReducedCost;
 
     void clearPhase1ReducedCosts();
+
+    std::vector<bool> m_used;
+
+
 };
 
 #endif	/* DUALDANTZIGREPRICINGUPDATER_H */

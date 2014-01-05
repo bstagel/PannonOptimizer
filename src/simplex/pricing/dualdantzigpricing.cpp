@@ -10,15 +10,15 @@ static const Numerical::Double feasibilityTolerance =
         SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
 DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
-                                       const DualPricingUpdater &updater,
+                                       DualPricingUpdater * updater,
                                        const Vector & reducedCosts,
                                        const std::vector<int> & basisHead):
     DualPricing(model, updater),
-    m_updater(dynamic_cast<const DualDantzigPricingUpdater &>(updater)),
+    m_updater(dynamic_cast<DualDantzigPricingUpdater *>(updater)),
     m_reducedCosts(reducedCosts),
     m_basisHead(basisHead)
 {
-    m_phase1ReducedCosts = new Numerical::Double[ m_updater.m_simplexModel.getRowCount() ];
+    m_phase1ReducedCosts = new Numerical::Double[ m_updater->m_simplexModel.getRowCount() ];
     clearPhase1ReducedCosts();
 }
 
@@ -37,9 +37,9 @@ DualDantzigPricing::~DualDantzigPricing()
 }
 
 void DualDantzigPricing::copy(const DualDantzigPricing & orig) {
-    m_phase1ReducedCosts = new Numerical::Double[ m_updater.m_simplexModel.getRowCount() ];
+    m_phase1ReducedCosts = new Numerical::Double[ m_updater->m_simplexModel.getRowCount() ];
     memcpy(m_phase1ReducedCosts, orig.m_phase1ReducedCosts,
-           sizeof(Numerical::Double) * m_updater.m_simplexModel.getRowCount());
+           sizeof(Numerical::Double) * m_updater->m_simplexModel.getRowCount());
 }
 
 void DualDantzigPricing::release() {
@@ -49,15 +49,15 @@ void DualDantzigPricing::release() {
 
 
 void DualDantzigPricing::clearPhase1ReducedCosts() {
-    memset(m_phase1ReducedCosts, 0, sizeof(Numerical::Double) * m_updater.m_simplexModel.getRowCount());
+    memset(m_phase1ReducedCosts, 0, sizeof(Numerical::Double) * m_updater->m_simplexModel.getRowCount());
 }
 
 void DualDantzigPricing::initPhase1() {
-    const Matrix & matrix = m_updater.m_simplexModel.getMatrix();
+    const Matrix & matrix = m_updater->m_simplexModel.getMatrix();
     const unsigned int variableCount = matrix.columnCount();
     clearPhase1ReducedCosts();
     IndexList<>::Iterator iter, iterEnd;
-    m_updater.m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
+    m_updater->m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     unsigned int index;
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
@@ -73,7 +73,7 @@ void DualDantzigPricing::initPhase1() {
         }
     }
 
-    m_updater.m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
+    m_updater->m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
 
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
@@ -101,33 +101,35 @@ void DualDantzigPricing::initPhase1() {
             temp.newNonZero( m_phase1ReducedCosts[index], index );
         }
     }
-    m_updater.m_basis.Ftran(temp);
+    m_updater->m_basis.Ftran(temp);
     clearPhase1ReducedCosts();
     Vector::NonzeroIterator vectorIter = temp.beginNonzero();
     Vector::NonzeroIterator vectorIterEnd = temp.endNonzero();
     for (; vectorIter < vectorIterEnd; vectorIter++) {
         m_phase1ReducedCosts[ vectorIter.getIndex() ] = *vectorIter;
     }
+
 }
 
 void DualDantzigPricing::initPhase2() {
 
-    m_updater.m_variableFeasibilities->clearPartition(Simplex::FEASIBLE);
-    m_updater.m_variableFeasibilities->clearPartition(Simplex::MINUS);
-    m_updater.m_variableFeasibilities->clearPartition(Simplex::PLUS);
+    m_updater->m_variableFeasibilities->clearPartition(Simplex::FEASIBLE);
+    m_updater->m_variableFeasibilities->clearPartition(Simplex::MINUS);
+    m_updater->m_variableFeasibilities->clearPartition(Simplex::PLUS);
 
-    Vector::NonzeroIterator iter = m_updater.m_basicVariableValues.beginNonzero();
-    Vector::NonzeroIterator iterEnd = m_updater.m_basicVariableValues.endNonzero();
+    Vector::NonzeroIterator iter = m_updater->m_basicVariableValues.beginNonzero();
+    Vector::NonzeroIterator iterEnd = m_updater->m_basicVariableValues.endNonzero();
     for(; iter < iterEnd ; iter++){
-        const Variable & variable = m_model.getVariable(m_updater.m_basisHead[iter.getIndex()]);
+        const Variable & variable = m_model.getVariable(m_updater->m_basisHead[iter.getIndex()]);
         if(Numerical::lessthan(*iter, variable.getLowerBound(), feasibilityTolerance)) {
-            m_updater.m_variableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
+            m_updater->m_variableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
         } else if(Numerical::lessthan(variable.getUpperBound(), *iter, feasibilityTolerance)) {
-            m_updater.m_variableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
+            m_updater->m_variableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
         } else {
-            m_updater.m_variableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
+            m_updater->m_variableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
         }
     }
+
 }
 
 int DualDantzigPricing::performPricingPhase1() {
@@ -138,6 +140,9 @@ int DualDantzigPricing::performPricingPhase1() {
     int maxIndex = -1;
     unsigned int index;
     for (index = 0; index < variableCount; index++) {
+        if ( m_updater->m_used[index] == true ) {
+            continue;
+        }
         unsigned int variableIndex = m_basisHead.at(index);
         Variable::VARIABLE_TYPE variableType = m_model.getVariable(variableIndex).getType();
         //TODO: Min // Max feladat!
@@ -151,7 +156,10 @@ int DualDantzigPricing::performPricingPhase1() {
             }
         }
     }
-    m_reducedCost = m_phase1ReducedCosts[maxIndex];
+    if (maxIndex != -1) {
+        m_reducedCost = m_phase1ReducedCosts[maxIndex];
+        m_updater->m_used[maxIndex] = true;
+    }
     return maxIndex;
 }
 
@@ -161,26 +169,32 @@ int DualDantzigPricing::performPricingPhase2() {
     IndexList<>::Iterator iter, iterEnd;
     Numerical::Double max = -1.0;
     int rowIndex;
-    unsigned int phase2Index = -1;
-    m_updater.m_simplexModel.getVariable(0);
-    m_updater.m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
+    int phase2Index = -1;
+    m_updater->m_simplexModel.getVariable(0);
+    m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
-        int variableIndex = m_updater.m_basisHead[rowIndex];
-        Numerical::Double difference =  m_updater.m_simplexModel.getVariable(variableIndex).getLowerBound() -
-                m_updater.m_basicVariableValues.at(rowIndex);
+        if ( m_updater->m_used[rowIndex] == true ) {
+            continue;
+        }
+        int variableIndex = m_updater->m_basisHead[rowIndex];
+        Numerical::Double difference =  m_updater->m_simplexModel.getVariable(variableIndex).getLowerBound() -
+                m_updater->m_basicVariableValues.at(rowIndex);
         if (difference > max) {
             max = difference;
             phase2Index = rowIndex;
         }
     }
 
-    m_updater.m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
+    m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
-        int variableIndex = m_updater.m_basisHead[rowIndex];
-        Numerical::Double difference = m_updater.m_basicVariableValues.at(rowIndex) -
-                m_updater.m_simplexModel.getVariable(variableIndex).getUpperBound();
+        if ( m_updater->m_used[rowIndex] == true ) {
+            continue;
+        }
+        int variableIndex = m_updater->m_basisHead[rowIndex];
+        Numerical::Double difference = m_updater->m_basicVariableValues.at(rowIndex) -
+                m_updater->m_simplexModel.getVariable(variableIndex).getUpperBound();
         if (difference > max) {
             max = difference;
             phase2Index = rowIndex;
@@ -188,6 +202,9 @@ int DualDantzigPricing::performPricingPhase2() {
     }
 
     m_reducedCost = max;
+    if (phase2Index != -1) {
+        m_updater->m_used[phase2Index] = true;
+    }
     return phase2Index;
 
 }

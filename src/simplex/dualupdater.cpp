@@ -30,6 +30,10 @@ void DualUpdater::setRatiotestUpdater(DualRatiotestUpdater *ratiotestUpdater){
     m_ratiotestUpdater=ratiotestUpdater;
 }
 
-void DualUpdater::update() {
-
+void DualUpdater::update(int phase) {
+    if (phase == 1) {
+        m_pricingUpdater->updatePhase1();
+    } else {
+        m_pricingUpdater->updatePhase2();
+    }
 }

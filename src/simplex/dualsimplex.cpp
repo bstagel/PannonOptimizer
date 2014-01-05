@@ -152,7 +152,7 @@ void DualSimplex::initModules() {
                 );
     m_updater->setPricingUpdater( pricingUpdater );
     m_pricing = pricingFactory->createDualPricing( *m_simplexModel,
-                                                   *pricingUpdater,
+                                                   pricingUpdater,
                                                    m_reducedCosts,
                                                    m_basisHead);
 
@@ -322,7 +322,7 @@ void DualSimplex::update()throw (NumericalException) {
     computeFeasibility();
 
     //Do dual specific using the updater
-//    m_updater->update();
+    m_updater->update(m_feasible ? 2 : 1);
 }
 
 void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw(NumericalException) {
