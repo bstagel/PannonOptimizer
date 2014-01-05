@@ -5,7 +5,7 @@
 #include <simplex/dualpricing.h>
 
 DualPricing::DualPricing(const SimplexModel & model,
-                         const DualPricingUpdater & updater):
+                         DualPricingUpdater * updater):
     m_model(model),
     m_updater(updater)
 {

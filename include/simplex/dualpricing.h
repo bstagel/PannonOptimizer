@@ -13,7 +13,7 @@ class SimplexModel;
 class DualPricing {
 public:
     DualPricing(const SimplexModel & model,
-                const DualPricingUpdater & updater);
+                DualPricingUpdater * updater);
 
     virtual ~DualPricing();
 
@@ -26,7 +26,7 @@ public:
 protected:
     const SimplexModel & m_model;
 
-    const DualPricingUpdater & m_updater;
+    DualPricingUpdater * m_updater;
 
     Numerical::Double m_reducedCost;
 };

@@ -17,6 +17,8 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
 {
     m_phase2ReducedCost = 0;
     m_phase2Index = -1;
+    m_used.clear();
+    m_used.resize( m_basisHead.size(), false );
 }
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig):
@@ -28,7 +30,11 @@ DualDantzigPricingUpdater::~DualDantzigPricingUpdater() {
 }
 
 void DualDantzigPricingUpdater::updatePhase1() {
+    m_used.clear();
+    m_used.resize( m_basisHead.size(), false );
 }
 
 void DualDantzigPricingUpdater::updatePhase2() {
+    m_used.clear();
+    m_used.resize( m_basisHead.size(), false );
 }

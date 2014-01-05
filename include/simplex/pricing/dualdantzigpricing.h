@@ -9,12 +9,13 @@
 #include <simplex/dualpricing.h>
 #include <simplex/pricing/dualdantzigpricingupdater.h>
 #include <utils/exceptions.h>
+#include <vector>
 
 class DualDantzigPricing: public DualPricing
 {
 public:
     DualDantzigPricing(const SimplexModel & model,
-                       const DualPricingUpdater & updater,
+                       DualPricingUpdater * updater,
                        const Vector& reducedCosts,
                        const std::vector<int> & basisHead);
     DualDantzigPricing(const DualDantzigPricing& orig);
@@ -24,7 +25,7 @@ public:
     int performPricingPhase2();
 private:
 
-    const DualDantzigPricingUpdater & m_updater;
+    DualDantzigPricingUpdater * m_updater;
 
     const Vector & m_reducedCosts;
     const std::vector<int> & m_basisHead;
@@ -38,6 +39,7 @@ private:
 
     void initPhase1();
     void initPhase2();
+
 };
 
 #endif	/* DUALDANTZIGPRICING_H */

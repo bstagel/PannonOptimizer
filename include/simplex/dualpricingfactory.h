@@ -25,7 +25,7 @@ public:
                                                           const Basis & basis) const = 0;
 
     virtual DualPricing * createDualPricing(const SimplexModel & model,
-                                            const DualPricingUpdater & updater,
+                                            DualPricingUpdater * updater,
                                             const Vector& reducedCosts,
                                             const std::vector<int>& basisHead) const = 0;
 };
