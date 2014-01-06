@@ -208,3 +208,9 @@ int DualDantzigPricing::performPricingPhase2() {
     return phase2Index;
 
 }
+
+void DualDantzigPricing::releaseUsed() {
+    unsigned int size = m_updater->m_used.size();
+    m_updater->m_used.clear();
+    m_updater->m_used.resize( size, false );
+}
