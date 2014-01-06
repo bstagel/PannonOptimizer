@@ -402,7 +402,8 @@ void Simplex::solve() {
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
-                if(m_iterationIndex == m_saveIteration || (m_iterationIndex % m_savePeriodically == 0) ){
+                if ((m_iterationIndex == m_saveIteration) ||
+                    (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
                     stringstream numStream;
                     numStream << m_iterationIndex;
                     std::string saveFormat = m_saveFormat;
