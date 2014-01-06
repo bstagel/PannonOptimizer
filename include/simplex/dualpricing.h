@@ -23,6 +23,8 @@ public:
     inline Numerical::Double getReducedCost() const {
         return m_reducedCost;
     }
+
+    virtual void releaseUsed() = 0;
 protected:
     const SimplexModel & m_model;
 

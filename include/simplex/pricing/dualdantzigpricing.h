@@ -23,6 +23,8 @@ public:
 
     int performPricingPhase1();
     int performPricingPhase2();
+
+    void releaseUsed();
 private:
 
     DualDantzigPricingUpdater * m_updater;
