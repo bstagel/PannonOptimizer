@@ -17,7 +17,15 @@ public:
     Parameter(const std::string& name, const Entry::ENTRY_TYPE type) :
         m_name(name), m_type(type) {
         if(m_type == Entry::STRING){
-            m_entry.m_string = new std::string();
+            m_entry.m_string = new std::string("");
+        }
+    }
+
+    Parameter(const Parameter& other) :
+        m_name(other.m_name), m_entry(other.m_entry), m_type(other.m_type){
+        if(m_type == Entry::STRING){
+            m_entry.m_string = new std::string("");
+            *(m_entry.m_string) = *(other.m_entry.m_string);
         }
     }
 
@@ -30,25 +38,25 @@ public:
     const std::string& getName() const { return m_name; }
     const Entry & getEntry() const { return m_entry; }
     Entry::ENTRY_TYPE getEntryType() const { return m_type; }
-    void setStringValue(const std::string value) throw (ParameterException) {
+    void setStringValue(const std::string value){
         if(m_type != Entry::STRING){
             throw ParameterException("Invalid parameter value");
         }
         *(m_entry.m_string) = value;
     }
-    void setIntegerValue(const int value) throw (ParameterException) {
+    void setIntegerValue(const int value){
         if(m_type != Entry::INTEGER){
             throw ParameterException("Invalid parameter value");
         }
         m_entry.m_integer = value;
     }
-    void setDoubleValue(const double value) throw (ParameterException) {
+    void setDoubleValue(const double value){
         if(m_type != Entry::DOUBLE){
             throw ParameterException("Invalid parameter value");
         }
         m_entry.m_double = value;
     }
-    void setBoolValue(const bool value) throw (ParameterException) {
+    void setBoolValue(const bool value){
         if(m_type != Entry::BOOL){
             throw ParameterException("Invalid parameter value");
         }

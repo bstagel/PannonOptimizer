@@ -103,7 +103,8 @@ HEADERS += include/debug.h \
     include/utils/datetime.h \
     include/utils/system.h \
     include/utils/tokenizer.h \
-    include/utils/nodefile.h
+    include/utils/nodefile.h \
+    include/simplex/checker.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -158,6 +159,7 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/datetime.cpp \
     src/utils/system.cpp \
     src/utils/tokenizer.cpp \
-    src/utils/nodefile.cpp
+    src/utils/nodefile.cpp \
+    src/simplex/checker.cpp
 
 OBJECTS_DIR = .o

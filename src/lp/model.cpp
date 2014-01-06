@@ -145,8 +145,8 @@ void Model::scale() {
     std::vector<Constraint>::iterator constraintIter = m_constraints.begin();
     std::vector<Constraint>::iterator constraintIterEnd = m_constraints.end();
     for (; constraintIter < constraintIterEnd; constraintIter++, mulIter++) {
-        double r1 = rand() % 100000 / 10000000000.0;
-        double r2 = rand() % 100000 / 10000000000.0;
+//        double r1 = rand() % 100000 / 10000000000.0;
+//        double r2 = rand() % 100000 / 10000000000.0;
         lowerBound = constraintIter->getLowerBound() * *mulIter;
         upperBound = constraintIter->getUpperBound() * *mulIter;
         constraintIter->setBounds(lowerBound, upperBound);

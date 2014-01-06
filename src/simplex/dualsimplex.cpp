@@ -87,6 +87,8 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     case IterationReportProvider::IRF_SOLUTION:
         break;
 
+    default:
+        break;
     }
 
     return result;
@@ -126,6 +128,8 @@ Entry DualSimplex::getIterationEntry(const string &name,
     case IterationReportProvider::IRF_SOLUTION:
         break;
 
+    default:
+        break;
     }
 
     return Simplex::getIterationEntry(name, type);

@@ -5,6 +5,7 @@
 #ifndef DEFAULTPARAMETERS_H
 #define DEFAULTPARAMETERS_H
 
+#include <string>
 
 class DefaultParameters {
 public:
@@ -43,6 +44,20 @@ public:
     static const int ITERATION_LIMIT;
     static const double TIME_LIMIT;
 
+    static const bool SAVE_BASIS;
+    static const char* SAVE_FILENAME;
+    static const char* SAVE_FORMAT;
+    static const bool SAVE_LAST_BASIS;
+    static const int SAVE_ITERATION;
+    static const int SAVE_PERIODICALLY;
+
+    static const bool LOAD_BASIS;
+    static const char* LOAD_FILENAME;
+    static const char* LOAD_FORMAT;
+
+    static const bool ENABLE_EXPORT;
+    static const char* EXPORT_FILENAME;
+    static const int EXPORT_TYPE;
 };
 
 #endif // DEFAULTPARAMETERS_H

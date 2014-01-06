@@ -3,6 +3,8 @@
 #include <debug.h>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
+#include <iostream>
 #include <simplex/simplexparameterhandler.h>
 
 IterationReport::IterationReport() {
@@ -137,6 +139,10 @@ void IterationReport::addProviderForSolution(
     addFields(provider, &m_solutionFields, IterationReportProvider::IRF_SOLUTION);
 }
 
+void IterationReport::addProviderForExport(const IterationReportProvider & provider) {
+    addFields(provider, &m_exportFields, IterationReportProvider::IRF_EXPORT);
+}
+
 void IterationReport::getRow(const std::vector<IterationReportField> & fields,
                              std::vector< Entry > * row,
                              enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
@@ -197,6 +203,27 @@ void IterationReport::writeSimpleTable(const std::vector<IterationReportField> &
     STL_FOREACH(std::vector<IterationReportField>, fields, fieldsIter) {
         LPINFO(fieldsIter->getName() << ": " << getContent(row[entryIndex], *fieldsIter));
         entryIndex++;
+    }
+}
+
+void IterationReport::writeExportTable(const std::vector<IterationReportField> &fields,
+                                       const std::vector<Entry> &row,
+                                       const std::string filename) const {
+    std::ofstream exportfile;
+    exportfile.open(filename, std::ios::out | std::ios::app);
+    if(exportfile.is_open()){
+        unsigned int entryIndex = 0;
+        STL_FOREACH(std::vector<IterationReportField>, fields, fieldsIter) {
+            exportfile << getContent(row[entryIndex], *fieldsIter);
+            if (entryIndex < fields.size()-1){
+                exportfile << " , ";
+            } else {
+                exportfile << "\n";
+            }
+            entryIndex++;
+        }
+    } else {
+        throw ParameterException("Export file cannot be opened!");
     }
 }
 
@@ -314,4 +341,12 @@ void IterationReport::createSolutionReport() {
 
 void IterationReport::writeSolutionReport() const {
     writeSimpleTable(m_solutionFields, m_solutionTable, IterationReportProvider::IRF_SOLUTION);
+}
+
+void IterationReport::createExportReport() {
+    getRow(m_exportFields, &m_exportTable, IterationReportProvider::IRF_EXPORT);
+}
+
+void IterationReport::writeExportReport(std::string filename) const {
+    writeExportTable(m_exportFields, m_exportTable, filename);
 }

@@ -101,9 +101,9 @@ void ParameterHandler::loadValuesFromFile(std::ifstream &in){
                     parameter.setStringValue(value);
                 } else if (type == Entry::BOOL){
                     if(tokens.size() == 3){
-                        if(tokens[2].compare("true")){
+                        if(tokens[2].compare("true") == 0){
                             parameter.setBoolValue(true);
-                        } else if(tokens[2].compare("false")){
+                        } else if(tokens[2].compare("false") == 0){
                             parameter.setBoolValue(false);
                         } else {
                             throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));

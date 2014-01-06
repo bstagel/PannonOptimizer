@@ -147,10 +147,10 @@ void SimplexParameterHandler::writeParameterFile(){
         out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
         out << "! Level of iteration report\n"
-               "! 0 = brief problem report\t&\tsolution only\t\t\t&\tonly solution time\n"
-               "! 1 = brief problem report\t&\tone line per major iteration\t& \tonly solution time\n"
-               "! 2 = detailed problem report\t&\tone line per major iteration\t&\tbrief time report\n"
-               "! 3 = detailed problem report\t&\tone line per minor iteration\t&\tdetailed time report" << std::endl;
+               "! 0 = brief problem report    & solution only                   & only solution time\n"
+               "! 1 = brief problem report    & one line per inversion          & only solution time\n"
+               "! 2 = detailed problem report & one line per iteration          & brief time report\n"
+               "! 3 = detailed problem report & one detailed line per iteration & detailed time report" << std::endl;
         out << "\t" << "debug_level = " << writeParameter("debug_level") << std::endl;
 
         out << "! Maximal # of iterations" <<  std::endl;
@@ -158,6 +158,35 @@ void SimplexParameterHandler::writeParameterFile(){
 
         out << "! Time limit for a problem (sec)" <<  std::endl;
         out << "\t" << "time_limit = " << writeParameter("time_limit") <<  std::endl;
+
+        out << "! Previously specified states of the solution algorithm can be saved.\n"
+               "! After a filename is specified, there are four options. \n"
+               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format) .\n"
+               "! The last basis can be marked to be saved as `basis_filename`_last.`format` .\n"
+               "! A basis of a given iteration can be marked to be saved or basis can be saved periodically \n"
+               "! each output will follow the following syntax: `basis_filename`_`iteration_number`.`format` .\n"
+               "! Both parameters are integers, 0 means saving is turned off." << std::endl;
+        out << "\t" << "save_basis = " << writeParameter("save_basis") << std::endl;
+        out << "\t" << "save_filename = " << writeParameter("save_filename") << std::endl;
+        out << "\t" << "save_format = " << writeParameter("save_format") << std::endl;
+        out << "\t" << "save_last_basis = " << writeParameter("save_last_basis") << std::endl;
+        out << "\t" << "save_iteration = " << writeParameter("save_iteration") << std::endl;
+        out << "\t" << "save_periodically = " << writeParameter("save_periodically") << std::endl;
+
+        out << "! The solver can start from a given basis.\n"
+               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format)." << std::endl;
+        out << "\t" << "load_basis = " << writeParameter("load_basis") << std::endl;
+        out << "\t" << "load_filename = " << writeParameter("load_filename") << std::endl;
+        out << "\t" << "load_format = " << writeParameter("load_format") << std::endl;
+
+        out << "! The solver can export specific data in CSV format for research purposes.\n"
+               "! The export type specifies the set of output to be written.\n"
+               "! The export should be clean, it is appended with one line for each problem solved\n."
+               "! The available export types are the following:"
+               "! 0 = Parameter study (reporting numerical problems, tolerances and the solution)"<< std::endl;
+        out << "\t" << "enable_export = " << writeParameter("enable_export") << std::endl;
+        out << "\t" << "export_filename = " << writeParameter("export_filename") << std::endl;
+        out << "\t" << "export_type = " << writeParameter("export_type") << std::endl;
 
 
         out.close();
@@ -224,4 +253,30 @@ void SimplexParameterHandler::initParameters()
     createParameter("time_limit", Entry::DOUBLE);
     setParameterValue("time_limit", DefaultParameters::TIME_LIMIT);
 
+    createParameter("save_basis", Entry::BOOL);
+    setParameterValue("save_basis", DefaultParameters::SAVE_BASIS);
+    createParameter("save_filename", Entry::STRING);
+    setParameterValue("save_filename", std::string(DefaultParameters::SAVE_FILENAME));
+    createParameter("save_format", Entry::STRING);
+    setParameterValue("save_format", std::string(DefaultParameters::SAVE_FORMAT));
+    createParameter("save_last_basis", Entry::BOOL);
+    setParameterValue("save_last_basis", DefaultParameters::SAVE_LAST_BASIS);
+    createParameter("save_iteration", Entry::INTEGER);
+    setParameterValue("save_iteration", DefaultParameters::SAVE_ITERATION);
+    createParameter("save_periodically", Entry::INTEGER);
+    setParameterValue("save_periodically", DefaultParameters::SAVE_PERIODICALLY);
+
+    createParameter("load_basis", Entry::BOOL);
+    setParameterValue("load_basis", DefaultParameters::LOAD_BASIS);
+    createParameter("load_filename", Entry::STRING);
+    setParameterValue("load_filename", std::string(DefaultParameters::LOAD_FILENAME));
+    createParameter("load_format", Entry::STRING);
+    setParameterValue("load_format", std::string(DefaultParameters::LOAD_FORMAT));
+
+    createParameter("enable_export", Entry::BOOL);
+    setParameterValue("enable_export", DefaultParameters::ENABLE_EXPORT);
+    createParameter("export_filename", Entry::STRING);
+    setParameterValue("export_filename", std::string(DefaultParameters::EXPORT_FILENAME));
+    createParameter("export_type", Entry::INTEGER);
+    setParameterValue("export_type", DefaultParameters::EXPORT_TYPE);
 }
