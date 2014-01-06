@@ -25,6 +25,7 @@ class BasisHeadIO;
 class Simplex : public Method, public IterationReportProvider
 {
     friend class BasisHeadIO;
+    friend class Checker;
 public:
 
     enum FEASIBILITY
@@ -52,7 +53,6 @@ public:
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
-    bool checkTheta(int rowIndex, int columnIndex, Numerical::Double theta);
     //TODO Ezt hogyan implementaljuk?
     const std::vector<Numerical::Double> getPrimalSolution() const;
     const std::vector<Numerical::Double> getDualSolution() const;
@@ -101,6 +101,19 @@ protected:
     Timer m_selectPivotTimer;
     Timer m_updateTimer;
 
+    bool m_saveBasis;
+    std::string m_saveFilename;
+    std::string m_saveFormat;
+    bool m_saveLastBasis;
+    unsigned int m_saveIteration;
+    unsigned int m_savePeriodically;
+    bool m_loadBasis;
+    std::string m_loadFilename;
+    std::string m_loadFormat;
+    bool m_enableExport;
+    std::string m_exportFilename;
+    int m_exportType;
+
     //FPU fix
     unsigned int m_old_cw;
 
@@ -132,12 +145,6 @@ protected:
 
     void registerIntoIterationReport(const IterationReportProvider & provider);
 
-    bool checkPfiWithFtran();
-    bool checkPfiWithBtran();
-    bool checkPfiWithReducedCost();
-    bool checkAlphaValue(int rowIndex, int columnIndex, double& columnAlpha, double& rowAlpha);
-    bool checkPrimalTheta(int rowIndex, int columnIndex,
-                          Numerical::Double& thetaFromCol, Numerical::Double& thetaFromRow);
 
 private:
     unsigned int m_iterationIndex;

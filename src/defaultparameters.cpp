@@ -39,3 +39,18 @@ const int DefaultParameters::DEBUG_LEVEL = 1;
 const int DefaultParameters::ITERATION_LIMIT = 200000;
 const double DefaultParameters::TIME_LIMIT = 3600.0;
 
+const bool DefaultParameters::SAVE_BASIS = false;
+const char* DefaultParameters::SAVE_FILENAME = "basis";
+const char* DefaultParameters::SAVE_FORMAT = "PBF";
+const bool DefaultParameters::SAVE_LAST_BASIS = false;
+const int DefaultParameters::SAVE_ITERATION = 0;
+const int DefaultParameters::SAVE_PERIODICALLY = 0;
+
+const bool DefaultParameters::LOAD_BASIS = false;
+const char* DefaultParameters::LOAD_FILENAME = "basis";
+const char* DefaultParameters::LOAD_FORMAT = "PBF";
+
+const bool DefaultParameters::ENABLE_EXPORT = false;
+const char* DefaultParameters::EXPORT_FILENAME = "exported_result";
+const int DefaultParameters::EXPORT_TYPE = 0;
+

@@ -26,6 +26,8 @@ public:
 
     void addProviderForSolution(const IterationReportProvider & provider);
 
+    void addProviderForExport(const IterationReportProvider & provider);
+
     void createStartReport();
 
     void writeStartReport() const;
@@ -37,6 +39,10 @@ public:
     void createSolutionReport();
 
     void writeSolutionReport() const;
+
+    void createExportReport();
+
+    void writeExportReport(std::string filename) const;
 
     void setDebugLevel(int level);
 
@@ -58,11 +64,15 @@ private:
 
     std::vector<IterationReportField> m_solutionFields;
 
+    std::vector<IterationReportField> m_exportFields;
+
     std::vector< std::vector< Entry > > m_iterationTable;
 
     std::vector< Entry > m_startTable;
 
     std::vector< Entry > m_solutionTable;
+
+    std::vector< Entry > m_exportTable;
 
     bool m_refreshHeader;
 
@@ -81,6 +91,10 @@ private:
     void writeSimpleTable(const std::vector<IterationReportField> & fields,
                           const std::vector< Entry > & row,
                           IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
+
+    void writeExportTable(const std::vector<IterationReportField> & fields,
+                          const std::vector< Entry > & row,
+                          const std::string filename) const;
 
     std::string getContent(const Entry & entry, const IterationReportField & field) const;
 

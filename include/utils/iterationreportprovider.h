@@ -13,7 +13,8 @@ public:
     enum ITERATION_REPORT_FIELD_TYPE {
         IRF_START,
         IRF_ITERATION,
-        IRF_SOLUTION
+        IRF_SOLUTION,
+        IRF_EXPORT
     };
 
     virtual std::vector<IterationReportField> getIterationReportFields(
