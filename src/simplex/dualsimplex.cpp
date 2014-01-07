@@ -207,7 +207,7 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() throw (NumericalException) {
-    m_feasibilityChecker->computeFeasibility();
+    m_feasibilityChecker->computeFeasibility(m_expandingTolerance);
 }
 
 void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
@@ -251,7 +251,7 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
 
     if(!m_feasible){
-        m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
+        m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandingTolerance);
     } else {
         m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
     }
