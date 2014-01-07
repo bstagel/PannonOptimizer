@@ -137,7 +137,14 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t! 0 = Inactive \n"
                "\t! 1 = Active \n"
                "\t" << "expand_dual_phaseI = " << writeParameter("expand_dual_phaseI")
-                << std::endl << std::endl;
+                << std::endl;
+        out << "! EXPAND multiplier initializing value\n"
+               "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI")
+               << std::endl;
+        out << "! EXPAND divider initializing value\n"
+               "\t" << "expand_divider_dphI = " << writeParameter("expand_divider_dphI")
+               << std::endl << std::endl;
+
         out << "! EXPAND procedure in Dual Phase II \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Active \n"
@@ -242,6 +249,10 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("threshold_report_level", DefaultParameters::THRESHOLD_REPORT_LEVEL);
     createParameter("expand_dual_phaseI", Entry::INTEGER);
     setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEI);
+    createParameter("expand_multiplier_dphI", Entry::DOUBLE);
+    setParameterValue("expand_multiplier_dphI", DefaultParameters::EXPAND_MULTIPLIER_DPH1);
+    createParameter("expand_divider_dphI", Entry::INTEGER);
+    setParameterValue("expand_divider_dphI", DefaultParameters::EXPAND_DIVIDER_DPH1);
     createParameter("expand_dual_phaseII", Entry::INTEGER);
     setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
 

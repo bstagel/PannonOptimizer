@@ -75,6 +75,9 @@ public:
 
 
 protected:
+    //EXPAND
+    Numerical::Double m_expandingTolerance;
+
     SimplexModel * m_simplexModel;
 
     std::vector<int> m_basisHead;

@@ -38,6 +38,8 @@ public:
     static const int NONLINEAR_DUAL_PHASEII_FUNCTION;
     static const int THRESHOLD_REPORT_LEVEL;
     static const int EXPAND_DUAL_PHASEI;
+    static const double EXPAND_MULTIPLIER_DPH1;
+    static const int EXPAND_DIVIDER_DPH1;
     static const int EXPAND_DUAL_PHASEII;
     //Global
     static const int DEBUG_LEVEL;

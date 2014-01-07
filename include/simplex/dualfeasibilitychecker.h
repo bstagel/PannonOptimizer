@@ -23,7 +23,7 @@ public:
                            Numerical::Double* phaseIObjectiveValue);
 
     bool checkFeasibility();
-    void computeFeasibility();
+    void computeFeasibility(Numerical::Double tolerance);
     void feasiblityCorrection(Vector* basicVariableValues);
 
 private:

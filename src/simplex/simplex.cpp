@@ -50,6 +50,7 @@ const static char * EXPORT_E_OPTIMALITY = "export_e_optimality";
 const static char * EXPORT_E_PIVOT = "export_e_pivot";
 
 Simplex::Simplex():
+    m_expandingTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
@@ -155,7 +156,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_STRING, *this));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
-        }
+    }
         break;
     }
     default:
@@ -238,7 +239,7 @@ Entry Simplex::getIterationEntry(const string &name,
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
         } else if(name == EXPORT_E_PIVOT){
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
-        }
+    }
         break;
 
     default:
@@ -399,7 +400,32 @@ void Simplex::solve() {
                 throw ParameterException("Invalid load basis file format!");
             }
         }
-        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit && (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
+//initializing EXPAND tolerance
+        Numerical::Double expandStep = 0;
+        if (SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_dual_phaseI") == 1) {
+            m_expandingTolerance =
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+                expandStep = (1 -
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") ) *
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality") /
+                SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+        }
+        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
+             (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
+            // ITTEN MENTJUK KI A BAZIST:
+//            if(m_iterationIndex == 509)
+//              saveBasis("STOCKFOR2_509.bas", new BasisHeadPanOpt, true);
+//incrementing EXPAND tolerance
+            m_expandingTolerance += expandStep;
+//resetting EXPAND tolerance TODO:atgondolni
+            if (m_expandingTolerance >=
+                    SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
+            {
+                m_expandingTolerance =
+                        SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
+                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+            }
 
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
