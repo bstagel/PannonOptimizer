@@ -641,7 +641,7 @@ void PfiBasis::findC() {
         while (m_columnCountIndexList.firstElement(1) != -1) {
             int columnindex = m_columnCountIndexList.firstElement(1);
             //This part searches for rows with row count 1 and order them to the upper triangular part
-            int rowindex ;
+            int rowindex = -1 ;
             Vector::NonzeroIterator it = m_basicColumns.at(columnindex)->beginNonzero();
             Vector::NonzeroIterator itend = m_basicColumns.at(columnindex)->endNonzero();
             for (; it < itend; it++) {

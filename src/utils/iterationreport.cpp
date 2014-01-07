@@ -153,7 +153,6 @@ void IterationReport::getRow(const std::vector<IterationReportField> & fields,
         Entry newEntry;
         std::string name = field.getName();
         newEntry = field.getProvider().getIterationEntry(name, type);
-
         row->push_back(newEntry);
     }
 }

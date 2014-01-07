@@ -20,9 +20,9 @@
 
 #include <algorithm>
 
-const static char * ITERATION_INDEX_NAME = "iteration";
-const static char * ITERATION_TIME_NAME = "time";
-const static char * ITERATION_INVERSION_NAME = "inv";
+const static char * ITERATION_INDEX_NAME = "Iteration";
+const static char * ITERATION_TIME_NAME = "Time";
+const static char * ITERATION_INVERSION_NAME = "Inv";
 
 const static char * SOLUTION_ITERATION_NAME = "Total iterations";
 const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
