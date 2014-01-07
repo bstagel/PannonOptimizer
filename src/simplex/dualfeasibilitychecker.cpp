@@ -42,22 +42,20 @@ bool DualFeasibilityChecker::checkFeasibility(){
 void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phase I objective function value
 
-    //TODO: JOCO _ CLEAR ALL PARTITION
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);
     m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
     m_reducedCostFeasibilities->clearPartition(Simplex::PLUS);
     *m_phaseIObjectiveValue = 0;
 
     Variable::VARIABLE_TYPE typeOfIthVariable;
-    OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
+//    OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
 
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
-        //TODO: Mi a helyzet a bazisvaltozokkal?...
         if (m_variableStates->where(variableIndex) != Simplex::BASIC) {
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
-    //min problem
-            if(objectiveType == MINIMIZE) {
+    //min problem only
+//            if(objectiveType == MINIMIZE) {
 
     //nonbasic variables with M type infeasibility
                 if (Numerical::lessthan(m_reducedCosts.at(variableIndex), 0,tolerance) &&
@@ -83,39 +81,40 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }
 
-     //max problem
-            } else{
+//     //max problem
+//            } else{
 
-    //nonbasic variables with M type infeasibility
-                if (Numerical::lessthan(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
-                    m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
-                        (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
-                } else
+//    //nonbasic variables with M type infeasibility
+//                if (Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
+//                        (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
+//                    m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
+//                        (*m_phaseIObjectiveValue) += m_reducedCosts.at(variableIndex);
+//                } else
 
-    //nonbasic variables with P type infeasibility
-                if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), tolerance) &&
-                        (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
-                    m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
-                        (*m_phaseIObjectiveValue) -= m_reducedCosts.at(variableIndex);
-                } else
+//    //nonbasic variables with P type infeasibility
+//                if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), optimalityTolerance) &&
+//                        (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
+//                    m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
+//                        (*m_phaseIObjectiveValue) -= m_reducedCosts.at(variableIndex);
+//                } else
 
-    //nonbasic variables with F type infeasibility
-                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::MINUS) ||
-                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::PLUS) ||
-                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::FREE)) {
-                    m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
-                }
-            }
+//    //nonbasic variables with F type infeasibility
+//                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
+//                        typeOfIthVariable == Variable::MINUS) ||
+//                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
+//                        typeOfIthVariable == Variable::PLUS) ||
+//                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,optimalityTolerance) &&
+//                        typeOfIthVariable == Variable::FREE)) {
+//                    m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
+//                }
+//            }
         }
     }
 }
 
 void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
 
+    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
 
@@ -140,10 +139,10 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
                     transformVector.addVector(-1 * theta, logical);
                 }
             } else if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-                   (m_reducedCosts.at(variableIndex) < 0)) {
+                   (m_reducedCosts.at(variableIndex) > 0)) {
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
-                m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
+                m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getUpperBound()));
                 //Compute (u_j-l_j)*a_j
                 Numerical::Double theta = variable.getLowerBound() - variable.getUpperBound();
                 if(variableIndex < columnCount){

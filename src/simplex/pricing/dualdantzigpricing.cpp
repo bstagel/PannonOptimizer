@@ -184,6 +184,7 @@ int DualDantzigPricing::performPricingPhase2() {
             max = difference;
             phase2Index = rowIndex;
         }
+//        LPINFO("M difference: "<<difference << " - rowindex: "<< rowIndex);
     }
 
     m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
@@ -199,6 +200,7 @@ int DualDantzigPricing::performPricingPhase2() {
             max = difference;
             phase2Index = rowIndex;
         }
+//        LPINFO("P difference: "<<difference << " - rowindex: "<< rowIndex);
     }
 
     m_reducedCost = max;

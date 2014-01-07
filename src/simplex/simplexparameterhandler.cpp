@@ -188,7 +188,7 @@ void SimplexParameterHandler::writeParameterFile(){
 
         out << "! The solver can export specific data in CSV format for research purposes.\n"
                "! The export type specifies the set of output to be written.\n"
-               "! The export should be clean, it is appended with one line for each problem solved\n."
+               "! The export should be clean, it is appended with one line for each problem solved\n"
                "! The available export types are the following:"
                "! 0 = Parameter study (reporting numerical problems, tolerances and the solution)"<< std::endl;
         out << "\t" << "enable_export = " << writeParameter("enable_export") << std::endl;

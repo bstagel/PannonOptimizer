@@ -367,14 +367,24 @@ void ManualModelBuilder::buildCostVector(Vector * costVector) const
     std::vector< Numerical::Double >::const_iterator iter = m_costVector.begin();
     std::vector< Numerical::Double >::const_iterator iterEnd = m_costVector.end();
     unsigned int index;
-    for (index = 0; iter != iterEnd; iter++, index++) {
-        costVector->newNonZero(*iter, index);
+    if(m_objectiveType == MINIMIZE){
+        for (index = 0; iter != iterEnd; iter++, index++) {
+            costVector->newNonZero(*iter, index);
+        }
+    } else {
+        for (index = 0; iter != iterEnd; iter++, index++) {
+            costVector->newNonZero(-(*iter), index);
+        }
     }
 }
 
 Numerical::Double ManualModelBuilder::getObjectiveConstant() const
 {
-    return m_objectiveConstant;
+    if(m_objectiveType == MINIMIZE){
+        return m_objectiveConstant;
+    } else {
+        return -m_objectiveConstant;
+    }
 }
 
 std::string ManualModelBuilder::getName() const

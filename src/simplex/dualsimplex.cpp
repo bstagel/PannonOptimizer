@@ -11,17 +11,17 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
-const static char * INCOMING_NAME = "incoming";
-const static char * OUTGOING_NAME = "outgoing";
-const static char * PHASE_NAME = "phase";
+const static char * INCOMING_NAME = "Incoming";
+const static char * OUTGOING_NAME = "Outgoing";
+const static char * PHASE_NAME = "Phase";
 const static char * PHASE_1_STRING = "ph-1";
 const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
-const static char * PHASE_1_OBJ_VAL_STRING = "dual infeasibility";
-const static char * OBJ_VAL_STRING = "objective value";
-const static char * PRIMAL_REDUCED_COST_STRING = "reduced cost";
-const static char * PRIMAL_THETA_STRING = "primal theta";
-const static char * DUAL_THETA_STRING = "dual theta";
+const static char * PHASE_1_OBJ_VAL_STRING = "Dual infeasibility";
+const static char * OBJ_VAL_STRING = "Objective value";
+const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
+const static char * PRIMAL_THETA_STRING = "Primal theta";
+const static char * DUAL_THETA_STRING = "Dual theta";
 
 DualSimplex::DualSimplex():
     m_pricing(0),
@@ -85,7 +85,13 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
+    {
+        IterationReportField objValField(OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC);
+        result.push_back(objValField);
         break;
+    }
 
     default:
         break;
@@ -113,7 +119,11 @@ Entry DualSimplex::getIterationEntry(const string &name,
         } else if (name == PHASE_1_OBJ_VAL_STRING) {
             reply.m_double = m_phaseIObjectiveValue;
         } else if (name == OBJ_VAL_STRING) {
-            reply.m_double = m_objectiveValue;
+            if(m_simplexModel->getObjectiveType() == MINIMIZE){
+                reply.m_double = m_objectiveValue;
+            } else {
+                reply.m_double = -m_objectiveValue;
+            }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             reply.m_double = m_primalReducedCost;
         } else if (name == PRIMAL_THETA_STRING) {
@@ -126,7 +136,16 @@ Entry DualSimplex::getIterationEntry(const string &name,
         return reply;
 
     case IterationReportProvider::IRF_SOLUTION:
-        break;
+        if (name == OBJ_VAL_STRING) {
+            if(m_simplexModel->getObjectiveType() == MINIMIZE){
+                reply.m_double = m_objectiveValue;
+            } else {
+                reply.m_double = -m_objectiveValue;
+            }
+        } else {
+            break;
+        }
+        return reply;
 
     default:
         break;
@@ -241,15 +260,6 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
     Vector* alpha;
     computeTransformedRow(alpha, m_outgoingIndex);
 
-//    LPINFO("m_reducedCostFeasibilities: "<<m_reducedCostFeasibilities);
-//    LPINFO("m_reducedCosts: "<<m_reducedCosts);
-//    LPINFO("m_basisHead: "<<m_basisHead);
-//    LPINFO("m_basicVariableValues: "<<m_basicVariableValues);
-//    LPINFO("m_pricing->getReducedCost(): "<<m_pricing->getReducedCost());
-//    LPINFO("transformedRow: "<<alpha);
-//    LPINFO("PHASE I OBJ VAL: "<< setw(19) << setprecision(10) << scientific << m_phaseIObjectiveValue);
-//    LPINFO("OBJ VAL:         "<< setw(19) << setprecision(10) << scientific << m_objectiveValue);
-
     if(!m_feasible){
         m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandingTolerance);
     } else {
@@ -287,8 +297,10 @@ void DualSimplex::update()throw (NumericalException) {
         m_basis->Ftran(alpha);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+            m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+            m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             LPERROR("Boundflipping variable in the basis (or superbasic)!");
             //TODO Throw some exception here

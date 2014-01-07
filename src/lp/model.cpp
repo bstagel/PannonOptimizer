@@ -63,8 +63,23 @@ void Model::print(std::ostream& out) const
     out << (m_objectiveType == MINIMIZE ? "min" : "max");
     Vector::Iterator it = m_costVector.begin();
     Vector::Iterator end = m_costVector.end();
-    for (unsigned int i = 0; it < end; i++, it++) {
-        out << (i == 0 ? " " : "+ ") << *it << "*x" << i << " \n";
+    // For maximization problems the cost vector is multiplied by -1
+    if(m_objectiveType == MINIMIZE){
+        for (unsigned int i = 0; it < end; i++, it++) {
+            out << (i == 0 ? " " : "+ ") << *it << "*x" << i;
+        }
+        if(m_costConstant != 0){
+            out << "+ " << m_costConstant;
+        }
+        out << "\n";
+    } else {
+        for (unsigned int i = 0; it < end; i++, it++) {
+            out << (i == 0 ? " " : "+ ") << -(*it) << "*x" << i;
+        }
+        if(m_costConstant != 0){
+            out << "+ " << -m_costConstant;
+        }
+        out << "\n";
     }
     out << "\n s.t.: \n";
     for (unsigned int i = 0; i < m_matrix.rowCount(); i++) {
