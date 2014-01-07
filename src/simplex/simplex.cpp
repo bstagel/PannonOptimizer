@@ -400,9 +400,10 @@ void Simplex::solve() {
                 throw ParameterException("Invalid load basis file format!");
             }
         }
-//initializing EXPAND tolerance
+
+        //initializing EXPAND tolerance
         Numerical::Double expandStep = 0;
-        if (SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_dual_phaseI") == 1) {
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 1) {
             m_expandingTolerance =
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
@@ -411,24 +412,10 @@ void Simplex::solve() {
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality") /
                 SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
         }
+
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
-            // ITTEN MENTJUK KI A BAZIST:
-//            if(m_iterationIndex == 509)
-//              saveBasis("STOCKFOR2_509.bas", new BasisHeadPanOpt, true);
-//incrementing EXPAND tolerance
-            if (SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_dual_phaseI") == 1)
-            {
-                m_expandingTolerance += expandStep;
-        //resetting EXPAND tolerance TODO:atgondolni
-                if (m_expandingTolerance >=
-                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
-                {
-                    m_expandingTolerance =
-                            SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
-                            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-                }
-            }
+
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
                     (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
@@ -444,6 +431,41 @@ void Simplex::solve() {
                         saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
                     } else {
                         throw ParameterException("Invalid save basis file format!");
+                    }
+                }
+            }
+
+            //incrementing EXPAND tolerance
+            if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 1)
+            {
+                m_expandingTolerance += expandStep;
+                 //resetting EXPAND tolerance TODO:atgondolni
+                if (m_expandingTolerance >=
+                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
+                {
+                    m_expandingTolerance =
+                            SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
+                            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+                }
+            }
+
+
+            for(unsigned int varIndex = 0; varIndex<m_reducedCosts.length(); varIndex++){
+                const Variable& variable = m_simplexModel->getVariable(varIndex);
+                if (variable.getType() == Variable::BOUNDED){
+                    if(m_variableStates.where(varIndex) == 1 && m_reducedCosts.at(varIndex)<0){
+                        LPERROR("ALSO KORLATOS HIBA " << varIndex);
+                        LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+                        LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+
+//                        exit(-1);
+                    }
+                    if(m_variableStates.where(varIndex) == 2 && m_reducedCosts.at(varIndex)>0){
+                        LPERROR("FELSO KORLATOS HIBA " << varIndex);
+                        LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+                        LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+
+//                        exit(-1);
                     }
                 }
             }

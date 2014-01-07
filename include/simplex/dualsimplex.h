@@ -50,7 +50,7 @@ private:
     virtual void update()throw (NumericalException);
 
     void computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw (NumericalException);
-    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex);
+    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex, bool upperBound = false);
 
     void registerIntoIterationReport(IterationReport * iterationReport) const;
 

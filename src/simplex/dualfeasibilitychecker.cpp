@@ -158,4 +158,5 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
     //Transform x_b
     m_basis.Ftran(transformVector);
     basicVariableValues->addVector(1, transformVector);
+
 }
