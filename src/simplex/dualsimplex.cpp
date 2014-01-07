@@ -283,6 +283,31 @@ void DualSimplex::update()throw (NumericalException) {
     }
 
 
+
+    if(m_feasible){
+        for(unsigned int varIndex = 0; varIndex<m_reducedCosts.length(); varIndex++){
+            const Variable& variable = m_simplexModel->getVariable(varIndex);
+            if (variable.getType() == Variable::BOUNDED){
+                if(m_variableStates.where(varIndex) == 1 && m_reducedCosts.at(varIndex)<0){
+                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
+                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+
+                    exit(-1);
+                }
+                if(m_variableStates.where(varIndex) == 2 && m_reducedCosts.at(varIndex)>0){
+                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
+                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+
+                    exit(-1);
+                }
+            }
+        }
+    }
+
+
+
     //Todo update the solution properly
     //    Numerical::Double boundflipTheta = 0.0;
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
