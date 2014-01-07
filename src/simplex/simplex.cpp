@@ -417,16 +417,18 @@ void Simplex::solve() {
 //            if(m_iterationIndex == 509)
 //              saveBasis("STOCKFOR2_509.bas", new BasisHeadPanOpt, true);
 //incrementing EXPAND tolerance
-            m_expandingTolerance += expandStep;
-//resetting EXPAND tolerance TODO:atgondolni
-            if (m_expandingTolerance >=
-                    SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
+            if (SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_dual_phaseI") == 1)
             {
-                m_expandingTolerance =
-                        SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
-                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+                m_expandingTolerance += expandStep;
+        //resetting EXPAND tolerance TODO:atgondolni
+                if (m_expandingTolerance >=
+                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
+                {
+                    m_expandingTolerance =
+                            SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
+                            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+                }
             }
-
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
                     (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){

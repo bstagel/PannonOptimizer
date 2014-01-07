@@ -709,9 +709,9 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     }
     if (thresholdReportLevel > 1.0) LPWARNING("steps(prev;next): " << prevIterationCounter<<
                                               " ; " << nextIterationCounter<<"\n");
-//                LPWARNING("breakpoints\t\t|\talpha values");
-//                for(unsigned i=0;i<m_breakpoints.size();i++){LPWARNING(m_breakpoints[i]<<
-//                                                                       "\t|\t"<<alpha.at(m_breakpoints[i].index));}
+//    LPWARNING("breakpoints\t\t|\talpha values");
+//    for(unsigned i=0;i<m_breakpoints.size();i++){LPWARNING(m_breakpoints[i]<<
+//                                                           "\t|\t"<<alpha.at(m_breakpoints[i].index));}
 }
 
 void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
@@ -720,20 +720,28 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                                            Numerical::Double expandingTolerance)
                                            throw (NumericalException){
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
-    unsigned int iterationCounter = 0,length = m_breakpoints.size();
+    unsigned int iterationCounter = 0, length;
 
     if (expandDualPhaseI == 1){
         generateExpandedBreakpointsPhase1(alpha,phaseIReducedCost,phaseIObjectiveValue,expandingTolerance);
-        //Init the heap with the breakpoint at 0
-        getNextElement(&m_breakpoints,length-iterationCounter);
     } else{
         generateBreakpointsPhase1(alpha,phaseIReducedCost,phaseIObjectiveValue);
+    }
+
+    length = m_breakpoints.size();
+    //init function at 0
+    getNextElement(&m_breakpoints,length);
+
+    if (expandDualPhaseI == 0) {
         //fake feasible variables
-        while(m_breakpoints[length-iterationCounter].index != -1){
-            getNextElement(&m_breakpoints,length-iterationCounter);
+        while(m_breakpoints[length-1-iterationCounter].index != -1)
+        {
             iterationCounter++;
-            LPERROR("fake feasible breakpoint: "<<m_breakpoints[length-iterationCounter]<<" d: "<<
-                m_reducedCosts.at(m_breakpoints[length-iterationCounter].index));
+            getNextElement(&m_breakpoints,length-iterationCounter);
+            functionSlope -= alpha.at(m_breakpoints[length-1-iterationCounter].index);
+            if (functionSlope < 0) {
+                LPERROR("functionSlope < 0, pricing->masik sor!");
+            }
         }
     }
 
