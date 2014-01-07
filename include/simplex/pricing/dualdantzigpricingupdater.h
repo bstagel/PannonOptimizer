@@ -36,7 +36,7 @@ private:
 
     void clearPhase1ReducedCosts();
 
-    std::vector<bool> m_used;
+    std::vector<char> m_used;
 
 
 };

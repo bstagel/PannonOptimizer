@@ -321,7 +321,23 @@ void DualSimplex::update()throw (NumericalException) {
         }
         m_basis->Ftran(alpha);
 
-        m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
+
+
+        if(!m_feasible){
+            //Phase-I: Bounded variable leaves at lower bound (feasibility correction will handle it)
+            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
+        }
+
+        if(m_feasible &&
+                (m_basicVariableValues.at(m_outgoingIndex) -
+                m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
+            //Phase-II: Bounded variable leaves at lower bound (comes from M)
+            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, false);
+        }else{
+            //Phase-II: Bounded variable leaves at upper bound (comes from P)
+            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, true);
+        }
+
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
@@ -394,7 +410,7 @@ void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) t
 //    }
 }
 
-Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex){
+Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex, bool upperBound){
     Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
     Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
 
@@ -403,8 +419,13 @@ Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIn
                 alpha.at(rowIndex);
     }
     else if (typeOfIthVariable == Variable::BOUNDED) {
-        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
-                alpha.at(rowIndex);
+        if(upperBound){
+            return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
+                    alpha.at(rowIndex);
+        } else {
+            return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
+                    alpha.at(rowIndex);
+        }
     }
     else if (typeOfIthVariable == Variable::PLUS) {
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /

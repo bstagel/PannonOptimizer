@@ -875,6 +875,7 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
                 LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(variableIndex));
                 LPERROR("alpha.at(variableIndex) "<<alpha.at(variableIndex));
                 LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(variableIndex));
+                LPERROR("variableIndex "<<variableIndex);
                 exit(-1);
             }
         }
