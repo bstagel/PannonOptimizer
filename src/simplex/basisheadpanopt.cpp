@@ -43,6 +43,14 @@ void BasisHeadPanOpt::startWrting(const char * fileName,
     m_modelPtr = &model;
 }
 
+void BasisHeadPanOpt::writeDouble(Numerical::Double value) {
+    if ( value != -Numerical::Infinity ) {
+        m_outputFile << value;
+    } else {
+        m_outputFile << "minus_inf";
+    }
+}
+
 void BasisHeadPanOpt::writeString(const std::string & str) {
     unsigned int index;
     m_outputFile << '\"';
@@ -133,9 +141,15 @@ void BasisHeadPanOpt::writeBasisHeadInfo() {
         m_outputFile << "\t\t" NAME_STR " = ";
         writeString(iter->m_variablePtr->getName());
         m_outputFile << std::endl;
-        m_outputFile << "\t\t" LOWER_BOUND_STR " = " << iter->m_variablePtr->getLowerBound() << std::endl;
-        m_outputFile << "\t\t" UPPER_BOUND_STR " = " << iter->m_variablePtr->getUpperBound() << std::endl;
-        m_outputFile << "\t\t" VALUE_STR " = " << iter->m_value << std::endl;
+        m_outputFile << "\t\t" LOWER_BOUND_STR " = ";
+        writeDouble(iter->m_variablePtr->getLowerBound());
+        m_outputFile << std::endl;
+        m_outputFile << "\t\t" UPPER_BOUND_STR " = ";
+        writeDouble(iter->m_variablePtr->getUpperBound());
+        m_outputFile << std::endl;
+        m_outputFile << "\t\t" VALUE_STR " = ";
+        writeDouble(iter->m_value);
+        m_outputFile << std::endl;
         m_outputFile << "\t\t" STRUCTURAL_TYPE_STR " = ";
         if ( iter->m_isLogical == true ) {
             m_outputFile << LOGICAL_STR;
@@ -162,9 +176,15 @@ void BasisHeadPanOpt::writeNonBasisInfo() {
         m_outputFile << "\t\t" NAME_STR " = ";
         writeString(iter->m_variablePtr->getName());
         m_outputFile << std::endl;
-        m_outputFile << "\t\t" LOWER_BOUND_STR " = " << iter->m_variablePtr->getLowerBound() << std::endl;
-        m_outputFile << "\t\t" UPPER_BOUND_STR " = " << iter->m_variablePtr->getUpperBound() << std::endl;
-        m_outputFile << "\t\t" VALUE_STR " = " << iter->m_value << std::endl;
+        m_outputFile << "\t\t" LOWER_BOUND_STR " = ";
+        writeDouble( iter->m_variablePtr->getLowerBound() );
+        m_outputFile << std::endl;
+        m_outputFile << "\t\t" UPPER_BOUND_STR " = ";
+        writeDouble( iter->m_variablePtr->getUpperBound() );
+        m_outputFile << std::endl;
+        m_outputFile << "\t\t" VALUE_STR " = ";
+        writeDouble(iter->m_value);
+        m_outputFile << std::endl;
         m_outputFile << "\t\t" STATE_STR " = ";
         if ( iter->m_state == Simplex::NONBASIC_AT_LB ) {
             m_outputFile << AT_LOWER_BOUND_STR;

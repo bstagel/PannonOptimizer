@@ -77,6 +77,8 @@ private:
 
     void writeString(const std::string & str);
 
+    void writeDouble(Numerical::Double value);
+
     void release();
 };
 
