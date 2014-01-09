@@ -607,7 +607,8 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_dualSteplength = m_breakpoints[nextAlphaId].value;
     }
 
-    if (thresholdReportLevel > 1.0) LPWARNING("steps(prev;next): " << prevIterationCounter<<
+    if (thresholdReportLevel > 1.0)  {
+        LPWARNING("steps(prev;next): " << prevIterationCounter<<
                                               " ; " << nextIterationCounter<<"\n");
         LPWARNING(m_breakpoints[alphaId+nextIterationCounter-prevIterationCounter]<<" chosen");
     }
