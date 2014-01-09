@@ -401,7 +401,7 @@ void Simplex::solve() {
             }
         }
 
-        //initializing EXPAND tolerance
+//initializing EXPAND tolerance
         Numerical::Double expandStep = 0;
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 1) {
             m_expandingTolerance =
