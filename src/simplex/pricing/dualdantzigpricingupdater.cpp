@@ -30,11 +30,11 @@ DualDantzigPricingUpdater::~DualDantzigPricingUpdater() {
 }
 
 void DualDantzigPricingUpdater::updatePhase1() {
-    m_used.clear();
-    m_used.resize( m_basisHead.size(), false );
+//    m_used.clear();
+//    m_used.resize( m_basisHead.size(), false );
 }
 
 void DualDantzigPricingUpdater::updatePhase2() {
-    m_used.clear();
-    m_used.resize( m_basisHead.size(), false );
+//    m_used.clear();
+//    m_used.resize( m_basisHead.size(), false );
 }

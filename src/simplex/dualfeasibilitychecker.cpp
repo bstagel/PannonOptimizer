@@ -124,8 +124,10 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
     for(unsigned int variableIndex = 0; variableIndex<m_reducedCosts.length(); variableIndex++){
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
+//            LPINFO("CORRECT: BOUNDED ");
             if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB &&
                     (m_reducedCosts.at(variableIndex) < 0)) {
+//                LPINFO("CORRECT: LB -> UB ");
                 //Do a bound flip LB -> UB (T+ set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
@@ -140,6 +142,7 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
                 }
             } else if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
                    (m_reducedCosts.at(variableIndex) > 0)) {
+//                LPINFO("CORRECT: UB -> LB ");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getUpperBound()));

@@ -57,28 +57,13 @@ void SbfLogical::run()
 
     case MIXED_LOGICAL: {
         const Vector & costs = m_model.getCostVector();
-        switch (m_model.getObjectiveType()) {
-        case MINIMIZE:
-            for (i=0; i<columnCount; i++) {
-                if (costs.at(i) < 0) {
-                    adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
-                } else {
-                    adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
-                }
+        //Always minimize
+        for (i=0; i<columnCount; i++) {
+            if (costs.at(i) < 0) {
+                adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
+            } else {
+                adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
             }
-            break;
-
-        case MAXIMIZE:
-            for (i=0; i<columnCount; i++) {
-                if (costs.at(i) > 0) {
-                    adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
-                } else {
-                    adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
-                }
-            }
-            break;
-        default:
-            LPERROR("Unknown objective type");
         }
     }
 

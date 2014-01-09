@@ -36,6 +36,8 @@ private:
     virtual void price() throw (OptimizationResultException, NumericalException);
     virtual void selectPivot() throw (OptimizationResultException, NumericalException);
     virtual void update()throw (NumericalException);
+
+    virtual void releaseLocks();
 };
 
 #endif /* PRIMALSIMPLEX_H */

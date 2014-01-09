@@ -4,6 +4,7 @@
 #include <simplex/simplex.h>
 
 class Checker {
+public:
     static bool checkPfiWithFtran(const Simplex& simplex);
     static bool checkPfiWithBtran(const Simplex& simplex);
     static bool checkPfiWithReducedCost(const Simplex& simplex);
