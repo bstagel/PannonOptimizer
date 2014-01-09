@@ -141,6 +141,8 @@ protected:
     virtual void selectPivot() throw (OptimizationResultException, NumericalException) = 0;
     virtual void update()throw (NumericalException)  = 0;
 
+    virtual void releaseLocks() = 0;
+
     void transform(int incomingIndex,
                    int outgoingIndex,
                    const std::vector<unsigned int>& boundflips,

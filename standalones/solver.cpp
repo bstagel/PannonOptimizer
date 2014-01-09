@@ -33,7 +33,7 @@ void solve(std::string filename, ALGORITHM algorithm) {
     builder.loadFromFile(filename.c_str());
     model.build(builder);
 
-    //model.scale();
+//    model.scale();
     //return;
 
     simplex->setModel(model);

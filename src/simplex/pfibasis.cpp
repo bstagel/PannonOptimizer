@@ -274,7 +274,7 @@ void PfiBasis::invert() throw (NumericalException) {
     //printStatistics();
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
-
+  
 void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (NumericalException) {
     //If the alpha vector comes in, then ftran is done already
 
@@ -296,7 +296,6 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (
         throw NumericalException("NUMERICAL problem");
     }
     m_basisHead->at(pivotRow) = incoming;
-    m_variableStates->move(incoming,Simplex::BASIC, &(m_basicVariableValues.at(pivotRow)));
     m_isFresh = false;
 }
 

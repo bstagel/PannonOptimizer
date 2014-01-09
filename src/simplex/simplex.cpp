@@ -451,6 +451,8 @@ void Simplex::solve() {
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
+                releaseLocks();
+
                 reinversionCounter = 0;
                 m_inversionTimer.start();
                 reinvert();
@@ -512,6 +514,7 @@ void Simplex::solve() {
                 }
             }
             catch ( const DualInfeasibleException & exception ) {
+                LPINFO("EX");
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
@@ -543,10 +546,10 @@ void Simplex::solve() {
             }
             catch ( const NumericalException & exception ) {
                 //Check the result with triggering reinversion
-                LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! ");
                 if(m_freshBasis){
                     throw exception;
                 } else {
+                    LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! ");
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
@@ -685,6 +688,9 @@ void Simplex::computeBasicSolution() throw (NumericalException) {
     m_basicVariableValues = m_simplexModel->getRhs();
     m_objectiveValue = - m_simplexModel->getCostConstant();
 
+//    Checker::checkPfiWithFtran(*this);
+//    Checker::checkPfiWithBtran(*this);
+//    Checker::checkPfiWithReducedCost(*this);
 
     const unsigned int columnCount = m_simplexModel->getColumnCount();
     //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})

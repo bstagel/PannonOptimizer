@@ -88,3 +88,7 @@ void PrimalSimplex::update()throw (NumericalException) {
     //Do dual specific using the updater
     m_updater->update();
 }
+
+void PrimalSimplex::releaseLocks() {
+
+}

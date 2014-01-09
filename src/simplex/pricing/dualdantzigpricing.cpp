@@ -137,7 +137,7 @@ int DualDantzigPricing::performPricingPhase1() {
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
     const unsigned int variableCount = m_model.getMatrix().rowCount();
     Numerical::Double max = 0;
-    int maxIndex = -1;
+    m_outgoingIndex = -1;
     unsigned int index;
     for (index = 0; index < variableCount; index++) {
         if ( m_updater->m_used[index] == true ) {
@@ -152,15 +152,14 @@ int DualDantzigPricing::performPricingPhase1() {
              (variableType == Variable::MINUS && m_phase1ReducedCosts[index] < 0)) {
             if ( Numerical::fabs(m_phase1ReducedCosts[index]) > max ) {
                 max = Numerical::fabs(m_phase1ReducedCosts[index]);
-                maxIndex = index;
+                m_outgoingIndex = index;
             }
         }
     }
-    if (maxIndex != -1) {
-        m_reducedCost = m_phase1ReducedCosts[maxIndex];
-        m_updater->m_used[maxIndex] = true;
+    if (m_outgoingIndex != -1) {
+        m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
     }
-    return maxIndex;
+    return m_outgoingIndex;
 }
 
 int DualDantzigPricing::performPricingPhase2() {
@@ -169,7 +168,7 @@ int DualDantzigPricing::performPricingPhase2() {
     IndexList<>::Iterator iter, iterEnd;
     Numerical::Double max = -1.0;
     int rowIndex;
-    int phase2Index = -1;
+    m_outgoingIndex = -1;
     m_updater->m_simplexModel.getVariable(0);
     m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
@@ -182,9 +181,8 @@ int DualDantzigPricing::performPricingPhase2() {
                 m_updater->m_basicVariableValues.at(rowIndex);
         if (difference > max) {
             max = difference;
-            phase2Index = rowIndex;
+            m_outgoingIndex = rowIndex;
         }
-//        LPINFO("M difference: "<<difference << " - rowindex: "<< rowIndex);
     }
 
     m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
@@ -198,16 +196,12 @@ int DualDantzigPricing::performPricingPhase2() {
                 m_updater->m_simplexModel.getVariable(variableIndex).getUpperBound();
         if (difference > max) {
             max = difference;
-            phase2Index = rowIndex;
+            m_outgoingIndex = rowIndex;
         }
-//        LPINFO("P difference: "<<difference << " - rowindex: "<< rowIndex);
     }
 
     m_reducedCost = max;
-    if (phase2Index != -1) {
-        m_updater->m_used[phase2Index] = true;
-    }
-    return phase2Index;
+    return m_outgoingIndex;
 
 }
 
@@ -215,4 +209,12 @@ void DualDantzigPricing::releaseUsed() {
     unsigned int size = m_updater->m_used.size();
     m_updater->m_used.clear();
     m_updater->m_used.resize( size, false );
+}
+
+void DualDantzigPricing::lockLastIndex() {
+    if (m_outgoingIndex != -1) {
+        m_updater->m_used[m_outgoingIndex] = true;
+    } else {
+        throw NumericalException("Invalid row lock index!");
+    }
 }

@@ -1816,12 +1816,13 @@ inline const char * MpsModelBuilder::readBoundRecord(const char * ptr, ROW_INFO 
         if (index < FIELD_0_START) {
             invalidStartFieldError(index, FIELD_0_START);
         }
-        Numerical::Double bound;
+        Numerical::Double bound = 0;
         Bound::BoundId boundId;
         //LO, LI, FX, FR, UP, UI, MI, PL, BV, SC
         char c1 = *ptr;
         char c2 = ptr[1];
         boundId.m_type = m_boundTypeMap[c1][c2];
+
         /*boundId.m_type = Bound::INVALID;
         if (c1 == 'L' && c2 == 'O')
             boundId.m_type = Bound::LO;

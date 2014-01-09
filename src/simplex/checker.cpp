@@ -7,6 +7,7 @@
 bool Checker::checkPfiWithFtran(const Simplex &simplex) {
     std::vector<int> unitVectors;
     Vector v;
+    v.reInit(simplex.m_simplexModel->getRowCount());
     DEVINFO(D::PFIMAKER, "Check inverse with FTRAN");
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {

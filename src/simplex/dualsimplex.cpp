@@ -8,6 +8,7 @@
 #include <simplex/dualpricingfactory.h>
 #include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pfibasis.h>
+#include <simplex/simplexparameterhandler.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -158,7 +159,6 @@ Entry DualSimplex::getIterationEntry(const string &name,
 void DualSimplex::initModules() {
     Simplex::initModules();
 
-
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
     DualPricingFactory * pricingFactory = new DualDantzigPricingFactory;
@@ -196,8 +196,6 @@ void DualSimplex::initModules() {
 
     delete pricingFactory;
     pricingFactory = 0;
-
-    //registerIntoIterationReport(*this);
 }
 
 void DualSimplex::releaseModules() {
@@ -240,14 +238,12 @@ void DualSimplex::checkFeasibility() throw (OptimizationResultException, Numeric
 void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
     if(!m_feasible){
         m_phaseName = PHASE_1_STRING;
-        //LPINFO("PHASE1 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase1();
         if(m_outgoingIndex == -1){
             throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
         }
     } else {
         m_phaseName = PHASE_2_STRING;
-        //LPINFO("PHASE2 PRICE");
         m_outgoingIndex = m_pricing->performPricingPhase2();
         if(m_outgoingIndex == -1){
             throw OptimalException("OPTIMAL SOLUTION found!");
@@ -257,54 +253,95 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
 
 void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
 
+//    LPERROR("PIVOT");
     Vector* alpha;
-    computeTransformedRow(alpha, m_outgoingIndex);
 
-    if(!m_feasible){
-        m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandingTolerance);
-    } else {
-        m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
+    int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
+
+//    LPINFO("OUT: "<<m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)));
+//    LPINFO("OUT VAL: "<<m_basicVariableValues.at(m_outgoingIndex));
+//    LPINFO("- "<<1439-m_simplexModel->getColumnCount());
+//    LPINFO("RHS VAL: "<<m_simplexModel->getRhs().at(1439-m_simplexModel->getColumnCount()));
+
+    m_incomingIndex = -1;
+    while(m_incomingIndex == -1){
+
+        computeTransformedRow(alpha, m_outgoingIndex);
+
+        if(!m_feasible){
+            m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandingTolerance);
+        } else {
+            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
+        }
+        m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
+
+        //Row disabling control
+        if(m_incomingIndex == -1){
+            //Ask for another row
+            if(thresholdReportLevel > 0){
+                LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
+            }
+            m_pricing->lockLastIndex();
+            price();
+        }
     }
-    m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
-
     m_dualTheta = m_ratiotest->getDualSteplength();
+    m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
 
     delete alpha;
 }
 
 void DualSimplex::update()throw (NumericalException) {
 
-    if(m_incomingIndex != -1){
-        m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
-    } else {
-        //TODO: Bad incoming index, reinvert
-        throw NumericalException("Invalid incoming index");
-        m_primalReducedCost = std::numeric_limits<double>::signaling_NaN();
-    }
+//    //VALIDATION CODE
+//    if(m_feasible){
+//        for(unsigned int varIndex = 0; varIndex<m_reducedCosts.length(); varIndex++){
+//            const Variable& variable = m_simplexModel->getVariable(varIndex);
+//            if (variable.getType() == Variable::BOUNDED){
+//                if(m_variableStates.where(varIndex) == 1 && m_reducedCosts.at(varIndex)<0){
+//                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
+//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
 
+//                    exit(-1);
+//                }
+//                if(m_variableStates.where(varIndex) == 2 && m_reducedCosts.at(varIndex)>0){
+//                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
+//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
 
+//                    exit(-1);
+//                }
+//            }
+//            if(variable.getType() == Variable::PLUS){
+//                if(m_reducedCosts.at(varIndex)<0){
+//                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
+//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
 
-    if(m_feasible){
-        for(unsigned int varIndex = 0; varIndex<m_reducedCosts.length(); varIndex++){
-            const Variable& variable = m_simplexModel->getVariable(varIndex);
-            if (variable.getType() == Variable::BOUNDED){
-                if(m_variableStates.where(varIndex) == 1 && m_reducedCosts.at(varIndex)<0){
-                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
-                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+//                    exit(-1);
+//                }
+//            }
+//            if(variable.getType() == Variable::MINUS){
+//                if(m_reducedCosts.at(varIndex)>0){
+//                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
+//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
 
-                    exit(-1);
-                }
-                if(m_variableStates.where(varIndex) == 2 && m_reducedCosts.at(varIndex)>0){
-                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
-                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
+//                    exit(-1);
+//                }
+//            }
+//            if(variable.getType() == Variable::FREE){
+//                if(m_reducedCosts.at(varIndex)!=0){
+//                    LPERROR("FREE HIBA " << varIndex);
+//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
+//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
 
-                    exit(-1);
-                }
-            }
-        }
-    }
+//                    exit(-1);
+//                }
+//            }
+//        }
+//    }
 
 
 
@@ -316,14 +353,15 @@ void DualSimplex::update()throw (NumericalException) {
     for(; it < itend; it++){
 //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
-        Numerical::Double boundDistance = Numerical::fabs(variable.getLowerBound() - variable.getUpperBound());
         //Alpha is not available, since we are in the dual
         Vector alpha = m_simplexModel->getMatrix().column(*it);
         m_basis->Ftran(alpha);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+            Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+            Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
@@ -351,28 +389,36 @@ void DualSimplex::update()throw (NumericalException) {
         if(!m_feasible){
             //Phase-I: Bounded variable leaves at lower bound (feasibility correction will handle it)
             m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
-        }
-
-        if(m_feasible &&
-                (m_basicVariableValues.at(m_outgoingIndex) -
-                m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
-            //Phase-II: Bounded variable leaves at lower bound (comes from M)
-            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, false);
-        }else{
-            //Phase-II: Bounded variable leaves at upper bound (comes from P)
-            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, true);
-        }
-
+        } else{
+            if(m_feasible &&
+                    (m_basicVariableValues.at(m_outgoingIndex) -
+                    m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
+                //Phase-II: Bounded variable leaves at lower bound (comes from M)
+                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, false);
+            }else{
+                //Phase-II: Bounded variable leaves at upper bound (comes from P)
+                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, true);
+            }
+    }
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
+
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-
         m_basis->append(alpha, m_outgoingIndex, m_incomingIndex);
+
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+        m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
+
+//        Vector compare = m_basicVariableValues;
+//        computeBasicSolution();
+
+//        for(int i=0; i<compare.length();i++){
+//            if(compare.at(i) != m_basicVariableValues.at(i)){
+//                LPERROR(i<<"("<<m_basisHead[i]<<")"<<" 2 compare: "<<compare.at(i)<<" ; m_basic: "<<m_basicVariableValues.at(i));
+//            }
+//        }
+
     }
-
-
-//    computeBasicSolution();
 
     computeReducedCosts();
 
@@ -380,6 +426,10 @@ void DualSimplex::update()throw (NumericalException) {
 
     //Do dual specific using the updater
     m_updater->update(m_feasible ? 2 : 1);
+}
+
+void DualSimplex::releaseLocks(){
+    m_pricing->releaseUsed();
 }
 
 void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw(NumericalException) {

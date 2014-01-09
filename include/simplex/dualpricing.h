@@ -25,6 +25,7 @@ public:
     }
 
     virtual void releaseUsed() = 0;
+    virtual void lockLastIndex() = 0;
 protected:
     const SimplexModel & m_model;
 
