@@ -107,17 +107,17 @@ void SimplexParameterHandler::writeParameterFile(){
         out << std::fixed << std::endl;
         out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
 
-        out << "! Use the piecewise linear concave function in primal phase I. \n"
-               "\t! 0 = Traditional one step method \n"
-               "\t! 1 = Piecewise linear function \n"
-               "\t! 2 = Piecewise linear function with numerical threshold \n"
-               "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << std::endl;
-
+//        out << "! Use the piecewise linear concave function in primal phase I. \n"
+//               "\t! 0 = Traditional one step method \n"
+//               "\t! 1 = Piecewise linear function \n"
+//               "\t! 2 = Piecewise linear function with numerical threshold \n"
+//               "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << std::endl;
 
         out << "! Use the piecewise linear concave function in dual phase I. \n"
                "\t! 0 = Traditional one step method \n"
                "\t! 1 = Piecewise linear function \n"
                "\t! 2 = Piecewise linear function with numerical threshold \n"
+               "\t! 3 = Piecewise linear function with EXPAND \n"
                "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << std::endl;
 
         out << "! Use the piecewise linear concave function in dual phase II. \n"
@@ -133,11 +133,6 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "\t" << "threshold_report_level = " << writeParameter("threshold_report_level")
             << std::endl << std::endl;
 
-        out << "! EXPAND procedure in Dual Phase I \n"
-               "\t! 0 = Inactive \n"
-               "\t! 1 = Active \n"
-               "\t" << "expand_dual_phaseI = " << writeParameter("expand_dual_phaseI")
-                << std::endl;
         out << "! EXPAND multiplier initializing value\n"
                "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI")
                << std::endl;
@@ -247,8 +242,6 @@ void SimplexParameterHandler::initParameters()
 
     createParameter("threshold_report_level", Entry::INTEGER);
     setParameterValue("threshold_report_level", DefaultParameters::THRESHOLD_REPORT_LEVEL);
-    createParameter("expand_dual_phaseI", Entry::INTEGER);
-    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEI);
     createParameter("expand_multiplier_dphI", Entry::DOUBLE);
     setParameterValue("expand_multiplier_dphI", DefaultParameters::EXPAND_MULTIPLIER_DPH1);
     createParameter("expand_divider_dphI", Entry::INTEGER);

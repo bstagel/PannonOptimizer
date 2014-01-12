@@ -51,6 +51,7 @@ const static char * EXPORT_E_PIVOT = "export_e_pivot";
 
 Simplex::Simplex():
     m_expandingTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
+    m_expandStep(0),
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
@@ -401,13 +402,12 @@ void Simplex::solve() {
             }
         }
 
-//initializing EXPAND tolerance
-        Numerical::Double expandStep = 0;
-        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 1) {
+        //initializing EXPAND tolerance
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3) {
             m_expandingTolerance =
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-                expandStep = (1 -
+                m_expandStep = (1 -
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") ) *
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality") /
                 SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
@@ -436,10 +436,10 @@ void Simplex::solve() {
             }
 
             //incrementing EXPAND tolerance
-            if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 1)
+            if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3)
             {
-                m_expandingTolerance += expandStep;
-                 //resetting EXPAND tolerance TODO:atgondolni
+                m_expandingTolerance += m_expandStep;
+                 //resetting EXPAND tolerance
                 if (m_expandingTolerance >=
                         SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
                 {

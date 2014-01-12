@@ -79,10 +79,10 @@ private:
     Numerical::Double m_pivotThreshold;
 
     //EXPAND
-    void generateExpandedBreakpointsPhase1(const Vector& alpha,
-                                           Numerical::Double phaseIReducedCost,
-                                           Numerical::Double phaseIObjectiveValue,
-                                           Numerical::Double expandingTolerance);
+//    void generateExpandedBreakpointsPhase1(const Vector& alpha,
+//                                           Numerical::Double phaseIReducedCost,
+//                                           Numerical::Double phaseIObjectiveValue,
+//                                           Numerical::Double expandingTolerance);
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
@@ -105,6 +105,6 @@ private:
                                Numerical::Double& primalSteplength);
     void useNumericalThresholdPhase2(unsigned int iterationCounter,
                                const Vector& alpha,
-                               Numerical::Double& functionSlope);
+                               const Numerical::Double primalSteplength);
 };
 #endif // DUALRATIOTEST_H

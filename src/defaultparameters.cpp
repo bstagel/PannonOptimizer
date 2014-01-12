@@ -32,7 +32,6 @@ const int DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 2;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 2;
 const int DefaultParameters::THRESHOLD_REPORT_LEVEL = 1;
-const int DefaultParameters::EXPAND_DUAL_PHASEI = 0;
 const double DefaultParameters::EXPAND_MULTIPLIER_DPH1 = 0.1;
 const int DefaultParameters::EXPAND_DIVIDER_DPH1 = 10000;
 const int DefaultParameters::EXPAND_DUAL_PHASEII = 0;
