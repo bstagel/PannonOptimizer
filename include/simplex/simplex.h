@@ -77,6 +77,7 @@ public:
 protected:
     //EXPAND
     Numerical::Double m_expandingTolerance;
+    Numerical::Double m_expandStep;
 
     SimplexModel * m_simplexModel;
 

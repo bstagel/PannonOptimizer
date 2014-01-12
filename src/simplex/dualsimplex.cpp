@@ -269,7 +269,7 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
         computeTransformedRow(alpha, m_outgoingIndex);
 
         if(!m_feasible){
-            m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandingTolerance);
+            m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandStep);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
         }
