@@ -466,7 +466,8 @@ public:
      * @param vector The function adds this vector to the other vector
      * @return The function returns with the reference of modified vector
      */
-    Vector & addVector(Numerical::Double lambda, const Vector & vector);
+    Vector & addVector(Numerical::Double lambda, const Vector & vector,
+                       Numerical::ADD_TYPE addType = Numerical::ADD_ABS_REL);
 
     /**
      * @param eta
@@ -803,25 +804,32 @@ protected:
      * @param lambda
      * @param vector
      */
-    void addDenseToDense(Numerical::Double lambda, const Vector & vector);
+    void addDenseToDense(Numerical::Double lambda, const Vector & vector,
+                         Numerical::ADD_TYPE addType);
 
     /**
      * @param lambda
      * @param vector
      */
-    void addDenseToSparse(Numerical::Double lambda, const Vector & vector);
+    void addDenseToSparse(Numerical::Double lambda,
+                          const Vector & vector,
+                          Numerical::ADD_TYPE addType);
 
     /**
      * @param lambda
      * @param vector
      */
-    void addSparseToDense(Numerical::Double lambda, const Vector & vector);
+    void addSparseToDense(Numerical::Double lambda,
+                          const Vector & vector,
+                          Numerical::ADD_TYPE addType);
 
     /**
      * @param lambda
      * @param vector
      */
-    void addSparseToSparse(Numerical::Double lambda, const Vector & vector);
+    void addSparseToSparse(Numerical::Double lambda,
+                           const Vector & vector,
+                           Numerical::ADD_TYPE addType);
 
     /**
      * @param index

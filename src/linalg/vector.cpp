@@ -823,7 +823,9 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     return summarizer.getResult();
 }
 
-Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)
+Vector & Vector::addVector(Numerical::Double lambda,
+                           const Vector & vector,
+                           Numerical::ADD_TYPE addType)
 {
     if (vector.m_size == 0 || lambda == 0.0) {
         CHECK;
@@ -831,15 +833,15 @@ Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)
     }
     if (m_vectorType == DENSE_VECTOR) {
         if (vector.m_vectorType == DENSE_VECTOR) {
-            addDenseToDense(lambda, vector);
+            addDenseToDense(lambda, vector, addType);
         } else {
-            addSparseToDense(lambda, vector);
+            addSparseToDense(lambda, vector, addType);
         }
     } else {
         if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
-            addSparseToSparse(lambda, vector);
+            addSparseToSparse(lambda, vector, addType);
         } else {
-            addDenseToSparse(lambda, vector);
+            addDenseToSparse(lambda, vector, addType);
         }
     }
 
@@ -847,7 +849,9 @@ Vector & Vector::addVector(Numerical::Double lambda, const Vector & vector)
     return *this;
 }
 
-void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector)
+void Vector::addDenseToDense(Numerical::Double lambda,
+                             const Vector & vector,
+                             Numerical::ADD_TYPE addType)
 {
 
     Numerical::Double * ptr1 = m_data;
@@ -855,21 +859,77 @@ void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector)
     const Numerical::Double * end = m_dataEnd;
     //    int nonZeros1 = 0; // DO NOT DELETE YET!!!
     //    int nonZeros2 = 0; // DO NOT DELETE YET!!!
-    while (ptr1 < end) {
-        if (*ptr2 != 0.0) {
-            if (*ptr1 == 0.0) {
-                m_nonZeros++;
+    // TODO: nonzero alapjan valszammal eldonteni, hogy erdemes-e
+    // megnezni, hogy 0-t adunk-e hozza a vektor adott elemehez
+    // Es a nem nulla adminisztraciojat is lehet okosabban csinalni
+    switch (addType) {
+    case Numerical::ADD_ABS_REL:
+        while (ptr1 < end) {
+            if (*ptr2 != 0.0) {
+                if (*ptr1 == 0.0) {
+                    m_nonZeros++;
+                }
+                *ptr1 = Numerical::stableAdd(*ptr1, *ptr2 * lambda);
+                // Numerical::isZero is unnecessary after stableAdd
+                if (*ptr1 == 0.0) {
+                    *ptr1 = 0.0;
+                    m_nonZeros--;
+                }
             }
-            *ptr1 = Numerical::stableAdd(*ptr1, *ptr2 * lambda);
-            // Numerical::isZero is unnecessary after stableAdd
-            if (*ptr1 == 0.0) {
-                *ptr1 = 0.0;
-                m_nonZeros--;
-            }
+            ptr1++;
+            ptr2++;
         }
-        ptr1++;
-        ptr2++;
+        break;
+    case Numerical::ADD_ABS:
+        while (ptr1 < end) {
+            if (*ptr2 != 0.0) {
+                if (*ptr1 == 0.0) {
+                    m_nonZeros++;
+                }
+                *ptr1 = Numerical::stableAddAbs(*ptr1, *ptr2 * lambda);
+                if (*ptr1 == 0.0) {
+                    *ptr1 = 0.0;
+                    m_nonZeros--;
+                }
+            }
+            ptr1++;
+            ptr2++;
+        }
+        break;
+    case Numerical::ADD_REL:
+        while (ptr1 < end) {
+            if (*ptr2 != 0.0) {
+                if (*ptr1 == 0.0) {
+                    m_nonZeros++;
+                }
+                *ptr1 = Numerical::stableAddRel(*ptr1, *ptr2 * lambda);
+                if (*ptr1 == 0.0) {
+                    *ptr1 = 0.0;
+                    m_nonZeros--;
+                }
+            }
+            ptr1++;
+            ptr2++;
+        }
+        break;
+    case Numerical::ADD_FAST:
+        while (ptr1 < end) {
+            if (*ptr2 != 0.0) {
+                if (*ptr1 == 0.0) {
+                    m_nonZeros++;
+                }
+                *ptr1 += *ptr2 * lambda;
+                if (*ptr1 == 0.0) {
+                    *ptr1 = 0.0;
+                    m_nonZeros--;
+                }
+            }
+            ptr1++;
+            ptr2++;
+        }
+        break;
     }
+
     if (m_nonZeros < m_sparsityThreshold) {
         denseToSparse();
     }
@@ -877,40 +937,94 @@ void Vector::addDenseToDense(Numerical::Double lambda, const Vector & vector)
     CHECK;
 }
 
-void Vector::addDenseToSparse(Numerical::Double lambda, const Vector & vector)
+void Vector::addDenseToSparse(Numerical::Double lambda,
+                              const Vector & vector,
+                              Numerical::ADD_TYPE addType)
 {
     m_sorted = false;
     sparseToDense();
-    addDenseToDense(lambda, vector);
+    addDenseToDense(lambda, vector, addType);
     CHECK;
 }
 
-void Vector::addSparseToDense(Numerical::Double lambda, const Vector & vector)
+void Vector::addSparseToDense(Numerical::Double lambda,
+                              const Vector & vector,
+                              Numerical::ADD_TYPE addType)
 {
     const Numerical::Double * ptrData = vector.m_data;
     const Numerical::Double * const ptrDataEnd = vector.m_dataEnd;
     const unsigned int * ptrIndex = vector.m_index;
-    while (ptrData < ptrDataEnd) {
-        Numerical::Double & data = m_data[ *ptrIndex ];
-        if (data == 0.0) {
-            m_nonZeros++;
+    switch (addType) {
+    case Numerical::ADD_ABS_REL:
+        while (ptrData < ptrDataEnd) {
+            Numerical::Double & data = m_data[ *ptrIndex ];
+            if (data == 0.0) {
+                m_nonZeros++;
+            }
+            data = Numerical::stableAdd(data, lambda * *ptrData);
+            if (data == 0.0) {
+                data = 0.0;
+                m_nonZeros--;
+            }
+            ptrData++;
+            ptrIndex++;
         }
-        data = Numerical::stableAdd(data, lambda * *ptrData);
-        if (data == 0.0) {
-            data = 0.0;
-            m_nonZeros--;
+        break;
+    case Numerical::ADD_ABS:
+        while (ptrData < ptrDataEnd) {
+            Numerical::Double & data = m_data[ *ptrIndex ];
+            if (data == 0.0) {
+                m_nonZeros++;
+            }
+            data = Numerical::stableAddAbs(data, lambda * *ptrData);
+            if (data == 0.0) {
+                data = 0.0;
+                m_nonZeros--;
+            }
+            ptrData++;
+            ptrIndex++;
         }
-        ptrData++;
-        ptrIndex++;
+        break;
+    case Numerical::ADD_REL:
+        while (ptrData < ptrDataEnd) {
+            Numerical::Double & data = m_data[ *ptrIndex ];
+            if (data == 0.0) {
+                m_nonZeros++;
+            }
+            data = Numerical::stableAddRel(data, lambda * *ptrData);
+            if (data == 0.0) {
+                data = 0.0;
+                m_nonZeros--;
+            }
+            ptrData++;
+            ptrIndex++;
+        }
+        break;
+    case Numerical::ADD_FAST:
+        while (ptrData < ptrDataEnd) {
+            Numerical::Double & data = m_data[ *ptrIndex ];
+            if (data == 0.0) {
+                m_nonZeros++;
+            }
+            data += lambda * *ptrData;
+            if (data == 0.0) {
+                data = 0.0;
+                m_nonZeros--;
+            }
+            ptrData++;
+            ptrIndex++;
+        }
+        break;
     }
-
     if (m_nonZeros < m_sparsityThreshold) {
         denseToSparse();
     }
     CHECK;
 }
 
-void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector)
+void Vector::addSparseToSparse(Numerical::Double lambda,
+                               const Vector & vector,
+                               Numerical::ADD_TYPE addType)
 {
     m_sorted = false;
     scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
@@ -918,29 +1032,108 @@ void Vector::addSparseToSparse(Numerical::Double lambda, const Vector & vector)
     Numerical::Double * denseVector = sm_fullLengthVector;
     Numerical::Double * ptrActualVector = m_data;
     unsigned int * ptrIndex = m_index;
-    while (ptrActualVector < m_dataEnd) {
-        if (denseVector[ *ptrIndex ] != 0.0) {
+    switch (addType) {
+    case Numerical::ADD_ABS_REL:
+        while (ptrActualVector < m_dataEnd) {
+            if (denseVector[ *ptrIndex ] != 0.0) {
 
-            Numerical::Double result = Numerical::stableAdd(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
-            denseVector[ *ptrIndex ] = 0.0;
-            if (result != 0.0) {
-                *ptrActualVector = result;
+                Numerical::Double result = Numerical::stableAdd(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
+                denseVector[ *ptrIndex ] = 0.0;
+                if (result != 0.0) {
+                    *ptrActualVector = result;
+                    ptrActualVector++;
+                    ptrIndex++;
+                } else {
+                    m_dataEnd--;
+                    m_size--;
+                    m_nonZeros--;
+                    if (ptrActualVector < m_dataEnd) {
+                        *ptrActualVector = *m_dataEnd;
+                        *ptrIndex = m_index[ m_size ];
+                    }
+                }
+            } else {
                 ptrActualVector++;
                 ptrIndex++;
-            } else {
-                m_dataEnd--;
-                m_size--;
-                m_nonZeros--;
-                if (ptrActualVector < m_dataEnd) {
-                    *ptrActualVector = *m_dataEnd;
-                    *ptrIndex = m_index[ m_size ];
-                }
             }
-        } else {
-            ptrActualVector++;
-            ptrIndex++;
         }
+        break;
+    case Numerical::ADD_ABS:
+        while (ptrActualVector < m_dataEnd) {
+            if (denseVector[ *ptrIndex ] != 0.0) {
+
+                Numerical::Double result = Numerical::stableAddAbs(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
+                denseVector[ *ptrIndex ] = 0.0;
+                if (result != 0.0) {
+                    *ptrActualVector = result;
+                    ptrActualVector++;
+                    ptrIndex++;
+                } else {
+                    m_dataEnd--;
+                    m_size--;
+                    m_nonZeros--;
+                    if (ptrActualVector < m_dataEnd) {
+                        *ptrActualVector = *m_dataEnd;
+                        *ptrIndex = m_index[ m_size ];
+                    }
+                }
+            } else {
+                ptrActualVector++;
+                ptrIndex++;
+            }
+        }
+        break;
+    case Numerical::ADD_REL:
+        while (ptrActualVector < m_dataEnd) {
+            if (denseVector[ *ptrIndex ] != 0.0) {
+
+                Numerical::Double result = Numerical::stableAddRel(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
+                denseVector[ *ptrIndex ] = 0.0;
+                if (result != 0.0) {
+                    *ptrActualVector = result;
+                    ptrActualVector++;
+                    ptrIndex++;
+                } else {
+                    m_dataEnd--;
+                    m_size--;
+                    m_nonZeros--;
+                    if (ptrActualVector < m_dataEnd) {
+                        *ptrActualVector = *m_dataEnd;
+                        *ptrIndex = m_index[ m_size ];
+                    }
+                }
+            } else {
+                ptrActualVector++;
+                ptrIndex++;
+            }
+        }
+        break;
+    case Numerical::ADD_FAST:
+        while (ptrActualVector < m_dataEnd) {
+            if (denseVector[ *ptrIndex ] != 0.0) {
+                Numerical::Double result = *ptrActualVector + lambda * denseVector[ *ptrIndex ];
+                denseVector[ *ptrIndex ] = 0.0;
+                if (result != 0.0) {
+                    *ptrActualVector = result;
+                    ptrActualVector++;
+                    ptrIndex++;
+                } else {
+                    m_dataEnd--;
+                    m_size--;
+                    m_nonZeros--;
+                    if (ptrActualVector < m_dataEnd) {
+                        *ptrActualVector = *m_dataEnd;
+                        *ptrIndex = m_index[ m_size ];
+                    }
+                }
+            } else {
+                ptrActualVector++;
+                ptrIndex++;
+            }
+        }
+        break;
     }
+
     ptrIndex = vector.m_index;
     ptrActualVector = vector.m_data;
     while (ptrActualVector < vector.m_dataEnd) {
