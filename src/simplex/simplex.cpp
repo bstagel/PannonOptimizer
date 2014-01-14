@@ -452,7 +452,7 @@ void Simplex::solve() {
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
                 releaseLocks();
-
+//                LPERROR("REINVERTING "<<m_iterationIndex);
                 reinversionCounter = 0;
                 m_inversionTimer.start();
                 reinvert();

@@ -112,9 +112,9 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     }
 }
 
-void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
+void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues, Numerical::Double tolerance) {
 
-    LPINFO(" -- FEAS CORRECTION -- ");
+//    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
 
@@ -126,7 +126,7 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
         if (variable.getType() == Variable::BOUNDED){
 //            LPINFO("CORRECT: BOUNDED ");
             if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB &&
-                    (m_reducedCosts.at(variableIndex) < 0)) {
+                    Numerical::lessthan(m_reducedCosts.at(variableIndex), 0, tolerance)) {
 //                LPINFO("CORRECT: LB -> UB ");
                 //Do a bound flip LB -> UB (T+ set)
                 //Swap states
@@ -141,7 +141,7 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
                     transformVector.addVector(-1 * theta, logical);
                 }
             } else if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-                   (m_reducedCosts.at(variableIndex) > 0)) {
+                   Numerical::lessthan(0,m_reducedCosts.at(variableIndex), tolerance)) {
 //                LPINFO("CORRECT: UB -> LB ");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states

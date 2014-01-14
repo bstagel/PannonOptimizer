@@ -225,13 +225,18 @@ void DualSimplex::releaseModules() {
 
 void DualSimplex::computeFeasibility() throw (NumericalException) {
     m_feasibilityChecker->computeFeasibility(m_expandingTolerance);
+
+    //In phase II check whether the basic variables are correct or not
+    if(m_feasible){
+        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_expandingTolerance);
+    }
 }
 
 void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
-        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
+        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_expandingTolerance);
     }
 }
 
@@ -254,7 +259,7 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
 void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
 
 //    LPERROR("PIVOT");
-    Vector* alpha;
+    Vector alpha;
 
     int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
 
@@ -266,12 +271,12 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
     m_incomingIndex = -1;
     while(m_incomingIndex == -1){
 
-        computeTransformedRow(alpha, m_outgoingIndex);
+        computeTransformedRow(&alpha, m_outgoingIndex);
 
         if(!m_feasible){
-            m_ratiotest->performRatiotestPhase1(*alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandStep);
+            m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandStep);
         } else {
-            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], *alpha, m_objectiveValue);
+            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
 
@@ -284,11 +289,11 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
             m_pricing->lockLastIndex();
             price();
         }
+//        LPINFO("row alpha: "<<alpha.at(m_incomingIndex));
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
     m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
 
-    delete alpha;
 }
 
 void DualSimplex::update()throw (NumericalException) {
@@ -343,7 +348,14 @@ void DualSimplex::update()throw (NumericalException) {
 //        }
 //    }
 
+//    LPINFO("valueOfOutgoingVariable: "<<m_basicVariableValues.at(m_outgoingIndex));
 
+    Numerical::Double referenceObjective;
+    if(!m_feasible){
+        referenceObjective = m_phaseIObjectiveValue;
+    } else {
+        referenceObjective = m_objectiveValue;
+    }
 
     //Todo update the solution properly
     //    Numerical::Double boundflipTheta = 0.0;
@@ -360,6 +372,7 @@ void DualSimplex::update()throw (NumericalException) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
+
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
@@ -399,7 +412,8 @@ void DualSimplex::update()throw (NumericalException) {
                 //Phase-II: Bounded variable leaves at upper bound (comes from P)
                 m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, true);
             }
-    }
+        }
+//        LPINFO("m_primalTheta: "<<m_primalTheta);
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
@@ -418,11 +432,23 @@ void DualSimplex::update()throw (NumericalException) {
 //            }
 //        }
 
+        if(!m_feasible){
+            if(referenceObjective > m_phaseIObjectiveValue){
+                LPWARNING("BAD ITERATION - PHASE I");
+            }
+        } else {
+            if(referenceObjective > m_objectiveValue ){
+                LPWARNING("BAD ITERATION - PHASE II");
+            }
+        }
     }
 
     computeReducedCosts();
 
-    computeFeasibility();
+    //Do this only in phase one
+    if(!m_feasible){
+        computeFeasibility();
+    }
 
     //Do dual specific using the updater
     m_updater->update(m_feasible ? 2 : 1);
@@ -432,16 +458,18 @@ void DualSimplex::releaseLocks(){
     m_pricing->releaseUsed();
 }
 
-void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) throw(NumericalException) {
+void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) throw(NumericalException) {
 
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
-    if (rowIndex > rowCount){
+    if (rowIndex == -1 || rowIndex > (int)rowCount){
         LPERROR("Invalid row index!");
         throw NumericalException("Invalid row index, the transformed row cannot be computed");
     }
 
+    alpha->reInit(rowCount + columnCount);
+    alpha->setSparsityRatio(DENSE);
 
     Vector rho(rowCount); //Row of the inverse of the basis
     rho.setSparsityRatio(DENSE);
@@ -457,8 +485,6 @@ void DualSimplex::computeTransformedRow(Vector*& alpha, unsigned int rowIndex) t
 //    }
 //    alpha->appendVector(rho);
 
-    alpha = new Vector(rowCount + columnCount);
-    alpha->setSparsityRatio(DENSE);
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
     //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
@@ -489,6 +515,8 @@ Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIn
     Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
     Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
 
+//    LPINFO("valueOfOutgoingVariable: "<<valueOfOutgoingVariable);
+//    LPINFO("alpha: "<<alpha.at(rowIndex));
     if (typeOfIthVariable == Variable::FIXED) {
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 alpha.at(rowIndex);

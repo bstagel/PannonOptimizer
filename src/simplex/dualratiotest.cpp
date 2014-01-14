@@ -622,6 +622,9 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     unsigned int iterationCounter = 0, length;
 
+    m_incomingVariableIndex = -1;
+    m_dualSteplength = 0;
+
     generateBreakpointsPhase1(alpha,phaseIReducedCost,phaseIObjectiveValue);
     length = m_breakpoints.size();
 
@@ -647,7 +650,10 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                 getNextElement(&m_breakpoints,length-iterationCounter);
                 functionSlope -= alpha.at(m_breakpoints[length-1-iterationCounter].index);
                 if (functionSlope < 0) {
-                    LPERROR("FAKE improving row!");
+                    if(thresholdReportLevel > 0){
+                        LPERROR("functionSlope < 0 in the beginning (PHASE I) - incoming index: "<<m_incomingVariableIndex);
+                    }
+                    return;
                 }
             }
             computeFunctionPhase1(alpha, iterationCounter, functionSlope);        
@@ -669,9 +675,6 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
         }
     } else{
         LPERROR(" - Ratiotest - No breakpoint found!");
-        m_incomingVariableIndex = -1;
-        m_dualSteplength = 0;
-        exit(-1);
     }
 }
 
@@ -761,8 +764,8 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
                      if(m_breakpoints.size()>reported){
                          reported++;
                          if(currentRatio.value < 0){
-                             LPERROR("BREAKPOINT ERROR PHASE-II, FAKE BREAKPOINT "<<currentRatio.value
-                                     << "(index: "<<currentRatio.index<<")");
+//                             LPERROR("BREAKPOINT ERROR PHASE-II, FAKE BREAKPOINT "<<currentRatio.value
+//                                     << "(index: "<<currentRatio.index<<")");
                          }
                      }
                  }
@@ -815,8 +818,8 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
                      if(m_breakpoints.size()>reported){
                          reported++;
                          if(currentRatio.value < 0){
-                             LPERROR("BREAKPOINT ERROR PHASE-II, FAKE BREAKPOINT "<<currentRatio.value
-                                     << "(index: "<<currentRatio.index<<")");
+//                             LPERROR("BREAKPOINT ERROR PHASE-II, FAKE BREAKPOINT "<<currentRatio.value
+//                                     << "(index: "<<currentRatio.index<<")");
                          }
                      }
                  }
@@ -913,6 +916,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     }else{
         m_incomingVariableIndex = m_breakpoints[maxId].index;
     }
+
     if(thresholdReportLevel > 1) LPWARNING("Phase 2 Threshold ended alpha: "<<maxValue);
 }
 
@@ -922,6 +926,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                            throw (DualUnboundedException, NumericalException){
 
     generateBreakpointsPhase2(outgoingVariableIndex,alpha,phaseIIObjectiveValue);
+
+    m_incomingVariableIndex = -1;
+    m_dualSteplength = 0;
 
     Numerical::Double primalSteplength;
     unsigned int iterationCounter = 0,length = m_breakpoints.size();
@@ -987,8 +994,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             Numerical::fabs(variable.getUpperBound() - variable.getLowerBound());
 
                     if (functionSlope < 0) {
-                        LPERROR("functionSlope < 0 in the beginning using outgoing variable: "<<outgoingVariableIndex);
-                        break;
+                        if(thresholdReportLevel > 0){
+                            LPERROR("functionSlope < 0 in the beginning using outgoing variable: "<<outgoingVariableIndex);
+                        }
+                        return;
                     }
                 }
                 computeFunctionPhase2(alpha,iterationCounter,functionSlope,primalSteplength);
