@@ -18,6 +18,14 @@
 class Numerical
 {
     public:
+
+    enum ADD_TYPE {
+        ADD_FAST,
+        ADD_ABS,
+        ADD_REL,
+        ADD_ABS_REL
+    };
+
 //    class QD_Summarizer
 //    {
 //        qd_real m_negpos[2];
@@ -250,7 +258,7 @@ class Numerical
      * @param value2
      * @return
      */
-    static inline Double stableAdd(const Double & value1, const Double & value2)
+    static ALWAYS_INLINE Double stableAdd(const Double & value1, const Double & value2)
     {
 //        if(value1 * value2 > 0){
 //            return value1 + value2;
@@ -272,6 +280,45 @@ class Numerical
         return result;
     }
 
+
+    /**
+     * Numerical stable add operation. Ensures that when the first operand
+     * is negative of second one, the result will be zero.
+     *
+     * @param value1
+     * @param value2
+     * @return
+     */
+    static ALWAYS_INLINE Double stableAddRel(const Double & value1, const Double & value2)
+    {
+        const Double value1abs = Numerical::fabs(value1);
+        const Double value2abs = Numerical::fabs(value2);
+        const Double result = value1 + value2;
+        if ((value1abs + value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+            return 0.0;
+        }
+
+        return result;
+    }
+
+
+    /**
+     * Numerical stable add operation. Ensures that when the first operand
+     * is negative of second one, the result will be zero.
+     *
+     * @param value1
+     * @param value2
+     * @return
+     */
+    static ALWAYS_INLINE Double stableAddAbs(const Double & value1, const Double & value2)
+    {
+        const Double result = value1 + value2;
+        if(Numerical::fabs(result)<AbsoluteTolerance) {
+            return 0.0;
+        }
+
+        return result;
+    }
 //    static inline Double stableAdd(const qd_real & value1, const qd_real & value2)
 //    {
 //        const qd_real value1abs = value1.is_positive()?value1:-value1;
