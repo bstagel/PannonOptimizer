@@ -24,7 +24,7 @@ public:
 
     bool checkFeasibility();
     void computeFeasibility(Numerical::Double tolerance);
-    void feasiblityCorrection(Vector* basicVariableValues);
+    void feasiblityCorrection(Vector* basicVariableValues, Numerical::Double tolerance);
 
 private:
     const SimplexModel& m_model;
