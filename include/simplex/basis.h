@@ -13,6 +13,8 @@ class SimplexModel;
 
 #include <linalg/vector.h>
 
+#include <simplex/simplex.h>
+
 #include <utils/exceptions.h>
 #include <utils/indexlist.h>
 
@@ -70,8 +72,8 @@ public:
     inline bool isFresh() const {
         return m_isFresh;
     }
-    virtual void invert() throw (NumericalException) = 0;
-    virtual void append(const Vector & vector, int pivotRow, int incoming) throw (NumericalException) = 0;
+    virtual void invert() = 0;
+    virtual void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) = 0;
 
     virtual int lastPivotIndex() const = 0;
     virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
@@ -140,7 +142,7 @@ protected:
 
     void setNewHead();
     void checkSingularity();
-    Vector* createEta(const Vector& vector, int pivotPosition) throw (NumericalException);
+    Vector* createEta(const Vector& vector, int pivotPosition);
 
     virtual void printStatistics() const = 0;
     void printActiveSubmatrix() const;

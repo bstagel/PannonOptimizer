@@ -159,9 +159,7 @@ public:
      */
     static Variable createVariable(const char * name,
         Numerical::Double lowerBound,
-        Numerical::Double upperBound) throw (InvalidLowerBoundException, 
-                                             InvalidUpperBoundException,
-                                             InvalidBoundsException);
+        Numerical::Double upperBound);
 
     /**
      * Creates a plus type variable, with a given lower bound.
@@ -176,7 +174,7 @@ public:
      * @return The requested variable
      */
     static Variable createPlusTypeVariable(const char * name,
-        Numerical::Double lowerBound) throw (InvalidLowerBoundException);
+        Numerical::Double lowerBound);
 
     /**
      * Creates a minus type variable, with a given upper bound.
@@ -191,7 +189,7 @@ public:
      * @return The requested variable 
      */
     static Variable createMinusTypeVariable(const char * name,
-        Numerical::Double upperBound) throw (InvalidUpperBoundException);
+        Numerical::Double upperBound);
 
     /**
      * Creates a bounded type variable, with the given bounds.
@@ -213,9 +211,7 @@ public:
      */
     static Variable createBoundedTypeVariable(const char * name,
         Numerical::Double lowerBound,
-        Numerical::Double upperBound) throw (InvalidLowerBoundException, 
-                                             InvalidUpperBoundException,
-                                             InvalidBoundsException);
+        Numerical::Double upperBound);
 
     /**
      * Creates a fixed type variable, with a given value.
@@ -251,8 +247,7 @@ public:
      * 
      * @param lowerBound The lower bound of the variable.
      */
-    inline void setLowerBound(Numerical::Double lowerBound) throw (InvalidLowerBoundException,
-                                                                   InvalidBoundsException);
+    inline void setLowerBound(Numerical::Double lowerBound);
 
     /**
      * Returns with the upper bound of the variable.
@@ -270,8 +265,7 @@ public:
      *
      * @param upperBound The upper bound of the variable.
      */
-    inline void setUpperBound(Numerical::Double upperBound) throw (InvalidUpperBoundException,
-                                                                   InvalidBoundsException);
+    inline void setUpperBound(Numerical::Double upperBound);
 
     /**
      * Sets the lower and upper bound of the constraint. If
@@ -282,10 +276,7 @@ public:
      * @param upperBound
      */
     inline void setBounds(Numerical::Double lowerBound,
-                          Numerical::Double upperBound)
-    throw (InvalidLowerBoundException,
-           InvalidUpperBoundException,
-           InvalidBoundsException);
+                          Numerical::Double upperBound);
 
     /**
      * Returns with the type of the variable.
@@ -374,9 +365,7 @@ private:
      */
     inline Variable(Numerical::Double lowerBound,
         Numerical::Double upperBound,
-        const char * name) throw (InvalidLowerBoundException,
-                                  InvalidUpperBoundException,
-                                  InvalidBoundsException);
+        const char * name);
 
     /**
      * This function adjustes the m_type variable considering the m_lowerBound
@@ -399,9 +388,7 @@ private:
      * throws an InvalidUpperBoundException, and if the lower bound is greater than
      * the upper bound, it throws an InvalidBoundsException.
      */
-    void check() const throw (InvalidLowerBoundException,
-                              InvalidUpperBoundException,
-                              InvalidBoundsException);
+    void check() const;
 };
 
 inline Variable::Variable()
@@ -414,9 +401,7 @@ inline Variable::Variable()
 
 inline Variable::Variable(Numerical::Double lowerBound,
     Numerical::Double upperBound,
-    const char * name) throw (InvalidLowerBoundException,
-                              InvalidUpperBoundException,
-                              InvalidBoundsException)
+    const char * name)
 {
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -433,8 +418,7 @@ inline const Numerical::Double& Variable::getLowerBound() const
     return m_lowerBound;
 }
 
-inline void Variable::setLowerBound(Numerical::Double lowerBound) throw (InvalidLowerBoundException,
-                                                                         InvalidBoundsException)
+inline void Variable::setLowerBound(Numerical::Double lowerBound)
 {
     m_lowerBound = lowerBound;
     check();
@@ -451,8 +435,7 @@ inline const Numerical::Double& Variable::getUpperBound() const
     return m_upperBound;
 }
 
-inline void Variable::setUpperBound(Numerical::Double upperBound) throw (InvalidUpperBoundException,
-                                                                         InvalidBoundsException)
+inline void Variable::setUpperBound(Numerical::Double upperBound)
 {
     m_upperBound = upperBound;
     check();
@@ -461,9 +444,7 @@ inline void Variable::setUpperBound(Numerical::Double upperBound) throw (Invalid
 
 inline void Variable::setBounds(Numerical::Double lowerBound,
                                 Numerical::Double upperBound)
-throw (InvalidLowerBoundException,
-       InvalidUpperBoundException,
-       InvalidBoundsException) {
+{
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
     check();

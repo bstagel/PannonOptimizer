@@ -78,7 +78,7 @@ public:
      *
      * @throws NumericalException occures if a pivot element is zero.
      */
-    void invert() throw (NumericalException);
+    void invert();
 
     /**
      * Returns the last pivot index from the basis inverse.
@@ -97,7 +97,7 @@ public:
      * @throws NumericalException if the outgoing variable try to leaves the basis
      * with a value different from LB and UB.
      */
-    void append(const Vector & vector, int pivotRow, int incoming) throw (NumericalException);
+    void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
 
     /**
      * Does the FTRAN operation on a vector.
@@ -226,12 +226,12 @@ private:
     void buildRowCountIndexLists(int size, int maxRowCount);
     void buildColumnCountIndexLists(int size, int maxColumnCount);
 
-    void invertR() throw (NumericalException);
+    void invertR();
     void findC();
-    void invertM() throw (NumericalException);
-    void invertC() throw (NumericalException);
+    void invertM();
+    void invertC();
 
-    void pivot(const Vector& column, int pivotRow) throw (NumericalException);
+    void pivot(const Vector& column, int pivotRow);
 
     void buildMM();
     void findTransversal();

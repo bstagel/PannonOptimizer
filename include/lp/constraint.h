@@ -154,9 +154,7 @@ public:
      */
     static Constraint createConstraint(const char * name,
                                        Numerical::Double lowerBound,
-                                       Numerical::Double upperBound) throw (InvalidLowerBoundException,
-                                                                            InvalidUpperBoundException,
-                                                                            InvalidBoundsException);
+                                       Numerical::Double upperBound);
     
     /**
      * Creates a GREATER_OR_EQUAL type constraint, with the given lower bound.
@@ -171,7 +169,7 @@ public:
      * @return The requiested constraint
      */
     static Constraint createGreaterTypeConstraint(const char * name,
-                                                  Numerical::Double lowerBound) throw (InvalidLowerBoundException);
+                                                  Numerical::Double lowerBound);
 
     /**
      * Creates a LESS_OR_EQUAL type constraint with the given upper bound.
@@ -186,7 +184,7 @@ public:
      * @return The requested constraint
      */
     static Constraint createLessTypeConstraint(const char * name,
-                                               Numerical::Double upperBound) throw (InvalidUpperBoundException);
+                                               Numerical::Double upperBound);
 
     /**
      * Creates a RANGE type constraint, with the given bounds.
@@ -208,9 +206,7 @@ public:
      */
     static Constraint createRangeTypeConstraint(const char * name,
                                                 Numerical::Double lowerBound,
-                                                Numerical::Double upperBound) throw (InvalidLowerBoundException,
-                                                                                     InvalidUpperBoundException,
-                                                                                     InvalidBoundsException);
+                                                Numerical::Double upperBound);
 
     /**
      * Creates an EQUALITY type constraint, with the given value.
@@ -246,9 +242,7 @@ public:
      *
      * @param lowerBound The lower bound of the constarint.
      */
-    inline void setLowerBound(Numerical::Double lowerBound)
-    throw (InvalidLowerBoundException,
-           InvalidBoundsException);
+    inline void setLowerBound(Numerical::Double lowerBound);
 
     /**
      * Returns with the type of the constraint.
@@ -273,9 +267,7 @@ public:
      *
      * @param upperBound The upper bound of the constarint.
      */
-    inline void setUpperBound(Numerical::Double upperBound)
-    throw (InvalidUpperBoundException,
-           InvalidBoundsException);
+    inline void setUpperBound(Numerical::Double upperBound);
 
     /**
      * Sets the lower and upper bound of the constraint. If
@@ -286,10 +278,7 @@ public:
      * @param upperBound
      */
     inline void setBounds(Numerical::Double lowerBound,
-                          Numerical::Double upperBound)
-    throw (InvalidLowerBoundException,
-           InvalidUpperBoundException,
-           InvalidBoundsException);
+                          Numerical::Double upperBound);
 
     /**
      * Sets the constraint's name.
@@ -371,9 +360,7 @@ private:
      */
     inline Constraint(Numerical::Double lowerBound,
                       Numerical::Double upperBound,
-                      const char * name) throw (InvalidLowerBoundException,
-                                                InvalidUpperBoundException,
-                                                InvalidBoundsException);
+                      const char * name);
 
     /**
      * This function adjustes the m_type variable considering the m_lowerBound
@@ -396,9 +383,7 @@ private:
      * throws an InvalidUpperBoundException, and if the lower bound is greater than
      * the upper bound, it throws an InvalidBoundsException.
      */
-    void check() const throw (InvalidLowerBoundException,
-                              InvalidUpperBoundException,
-                              InvalidBoundsException);
+    void check() const;
 };
 
 inline Constraint::Constraint()
@@ -411,9 +396,7 @@ inline Constraint::Constraint()
 
 inline Constraint::Constraint(Numerical::Double lowerBound,
                               Numerical::Double upperBound,
-                              const char * name) throw (InvalidLowerBoundException,
-                                                        InvalidUpperBoundException,
-                                                        InvalidBoundsException)
+                              const char * name)
 {
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
@@ -431,8 +414,6 @@ inline Numerical::Double Constraint::getLowerBound() const
 }
 
 inline void Constraint::setLowerBound(Numerical::Double lowerBound)
-throw (InvalidLowerBoundException,
-       InvalidBoundsException)
 {
     m_lowerBound = lowerBound;
     check();
@@ -450,8 +431,6 @@ inline Numerical::Double Constraint::getUpperBound() const
 }
 
 inline void Constraint::setUpperBound(Numerical::Double upperBound)
-throw (InvalidUpperBoundException,
-       InvalidBoundsException)
 {
     m_upperBound = upperBound;
     check();
@@ -461,9 +440,7 @@ throw (InvalidUpperBoundException,
 // TODO: tesztelot irni neki
 inline void Constraint::setBounds(Numerical::Double lowerBound,
                       Numerical::Double upperBound)
-throw (InvalidLowerBoundException,
-       InvalidUpperBoundException,
-       InvalidBoundsException) {
+{
     m_lowerBound = lowerBound;
     m_upperBound = upperBound;
     check();

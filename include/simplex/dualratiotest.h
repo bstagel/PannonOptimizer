@@ -53,13 +53,11 @@ public:
     void performRatiotestPhase1(const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue,
-                                Numerical::Double expandingTolerance)
-                                throw (NumericalException);
+                                Numerical::Double expandingTolerance);
 
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
-                                Numerical::Double phaseIIObjectiveValue)
-                                throw (NumericalException, DualUnboundedException);
+                                Numerical::Double phaseIIObjectiveValue);
 
 private:
     const SimplexModel& m_model;
@@ -68,6 +66,10 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
     bool m_tPositive;
     bool m_transform;
+
+    //Age vector to record transformation counts
+    std::vector<double> m_variableAge;
+    double m_ageStep;
 
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     int m_incomingVariableIndex;

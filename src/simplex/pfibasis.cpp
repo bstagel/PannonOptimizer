@@ -201,7 +201,7 @@ void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
 #endif
 }
 
-void PfiBasis::invert() throw (NumericalException) {
+void PfiBasis::invert() {
     clock_t inversionStart = clock();
 
     m_transformationCount = 0;
@@ -275,25 +275,34 @@ void PfiBasis::invert() throw (NumericalException) {
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
   
-void PfiBasis::append(const Vector & vector, int pivotRow, int incoming) throw (NumericalException) {
+void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
     //If the alpha vector comes in, then ftran is done already
 
     int outgoing = m_basisHead->at(pivotRow);
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
 
-    if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound())) {
+    if (outgoingState == Simplex::NONBASIC_AT_LB) {
+        if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
+            LPERROR("Outgoing variable is rounded to its lower bound!");
+            LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
+            LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
+            cerr.unsetf(ios_base::floatfield);
+        }
         pivot(vector, pivotRow);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
-    } else if (Numerical::equals(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound())) {
+    } else if (outgoingState == Simplex::NONBASIC_AT_UB) {
+        if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound(),1.0e-4)){
+            LPERROR("Outgoing variable is rounded to its upper bound!");
+            LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
+            LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
+            cerr.unsetf(ios_base::floatfield);
+        }
         pivot(vector, pivotRow);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
     } else {
-        LPERROR("Variable leaves the basis at value between lower at upper bound!");
-        LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
-        LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
-        LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
+        LPERROR("Invalid outgoing variable state!");
         cerr.unsetf(ios_base::floatfield);
-        throw NumericalException("NUMERICAL problem");
+        throw NumericalException("Invalid outgoing variable state");
     }
     m_basisHead->at(pivotRow) = incoming;
     m_isFresh = false;
@@ -574,7 +583,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     cl_updateColumns += updateStop - updateStart;
 }
 
-void PfiBasis::pivot(const Vector& column, int pivotRow) throw (NumericalException) {
+void PfiBasis::pivot(const Vector& column, int pivotRow) {
     clock_t pivotStart = clock();
 
     ETM newEtm;
@@ -587,7 +596,7 @@ void PfiBasis::pivot(const Vector& column, int pivotRow) throw (NumericalExcepti
     cl_pivot += pivotStop - pivotStart;
 }
 
-void PfiBasis::invertR() throw (NumericalException) {
+void PfiBasis::invertR() {
 
     //The upper triangular part is called R part
     DEVINFO(D::PFIMAKER, "Search for the R part and invert it");
@@ -681,7 +690,7 @@ void PfiBasis::findC() {
     DEVINFO(D::PFIMAKER, "CPART num: " << cNum);
 }
 
-void PfiBasis::invertM() throw (NumericalException) {
+void PfiBasis::invertM() {
     //The middle (non-triangular) part is called M part
     DEVINFO(D::PFIMAKER, "Organize the M part and invert the columns");
     unsigned int mNum = 0;
@@ -914,7 +923,7 @@ void PfiBasis::invertM() throw (NumericalException) {
     DEVINFO(D::PFIMAKER, "MPART num: " << mNum);
 }
 
-void PfiBasis::invertC() throw (NumericalException) {
+void PfiBasis::invertC() {
     //The lower triangular part is called C part
     DEVINFO(D::PFIMAKER, "Invert the C part");
     for (std::vector<const Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); it++) {

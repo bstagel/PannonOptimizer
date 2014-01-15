@@ -75,9 +75,10 @@ public:
 
 
 protected:
-    //EXPAND
-    Numerical::Double m_expandingTolerance;
-    Numerical::Double m_expandStep;
+    //Tolerance handling
+    Numerical::Double m_masterTolerance;
+    Numerical::Double m_workingTolerance;
+    Numerical::Double m_toleranceStep;
 
     SimplexModel * m_simplexModel;
 
@@ -133,14 +134,17 @@ protected:
     virtual void initModules();
     virtual void releaseModules();
 
-    void reinvert() throw (NumericalException);
-    void computeBasicSolution() throw (NumericalException);
-    void computeReducedCosts() throw (NumericalException);
-    virtual void computeFeasibility() throw (NumericalException) = 0;
-    virtual void checkFeasibility() throw (OptimizationResultException, NumericalException) = 0;
-    virtual void price() throw (OptimizationResultException, NumericalException) = 0;
-    virtual void selectPivot() throw (OptimizationResultException, NumericalException) = 0;
-    virtual void update()throw (NumericalException)  = 0;
+    void reinvert();
+    void computeBasicSolution();
+    void computeReducedCosts();
+    virtual void computeFeasibility() = 0;
+    virtual void checkFeasibility() = 0;
+    virtual void price() = 0;
+    virtual void selectPivot() = 0;
+    virtual void update() = 0;
+
+    virtual void initWorkingTolerance() = 0;
+    virtual void computeWorkingTolerance() = 0;
 
     virtual void releaseLocks() = 0;
 

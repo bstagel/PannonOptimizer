@@ -82,7 +82,7 @@ void Basis::checkSingularity() {
     }
 }
 
-Vector* Basis::createEta(const Vector& vector, int pivotPosition) throw (NumericalException)
+Vector* Basis::createEta(const Vector& vector, int pivotPosition)
 {
     Vector* eta = new Vector();
     eta->prepareForData(vector.nonZeros(), vector.length());

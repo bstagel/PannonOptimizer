@@ -81,7 +81,16 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
             DEVINFO(D::PFIMAKER, "Unit vector reinverted with index: " << basisIt - rowbasis.begin());
             unitVectors.push_back(basisIt - rowbasis.begin());
         } else {
-            LPERROR ("Rossz vektor: "<<*basisIt);
+            Vector::NonzeroIterator badIt = basisIt->beginNonzero();
+            double max = 0;
+            int maxIndex = 0;
+            for(;badIt != basisIt->endNonzero(); badIt++){
+                if(!Numerical::equals(*badIt, 1) && Numerical::fabs(*badIt)> max){
+                    max = Numerical::fabs(*badIt);
+                    maxIndex = badIt.getIndex();
+                }
+            }
+            LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
         }
     }
     std::sort(unitVectors.begin(), unitVectors.end());

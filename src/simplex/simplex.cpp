@@ -50,8 +50,8 @@ const static char * EXPORT_E_OPTIMALITY = "export_e_optimality";
 const static char * EXPORT_E_PIVOT = "export_e_pivot";
 
 Simplex::Simplex():
-    m_expandingTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
-    m_expandStep(0),
+    m_masterTolerance(0),
+    m_toleranceStep(0),
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_variableFeasibilities(0,0),
@@ -402,16 +402,7 @@ void Simplex::solve() {
             }
         }
 
-        //initializing EXPAND tolerance
-        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3) {
-            m_expandingTolerance =
-                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
-                SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-                m_expandStep = (1 -
-                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") ) *
-                SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality") /
-                SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
-        }
+        initWorkingTolerance();
 
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getRunningTime()/1000000) < timeLimit; m_iterationIndex++) {
@@ -419,6 +410,7 @@ void Simplex::solve() {
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
                     (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
+                    LPERROR("Saving basis "<<m_iterationIndex);
                     stringstream numStream;
                     numStream << m_iterationIndex;
                     std::string saveFormat = m_saveFormat;
@@ -435,24 +427,12 @@ void Simplex::solve() {
                 }
             }
 
-            //incrementing EXPAND tolerance
-            if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3)
-            {
-                m_expandingTolerance += m_expandStep;
-                 //resetting EXPAND tolerance
-                if (m_expandingTolerance >=
-                        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
-                {
-                    m_expandingTolerance =
-                            SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI") *
-                            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-                }
-            }
+            computeWorkingTolerance();
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
                 releaseLocks();
-//                LPERROR("REINVERTING "<<m_iterationIndex);
+
                 reinversionCounter = 0;
                 m_inversionTimer.start();
                 reinvert();
@@ -549,7 +529,7 @@ void Simplex::solve() {
                 if(m_freshBasis){
                     throw exception;
                 } else {
-                    LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! ");
+                    LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! (" << exception.getMessage() <<")");
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
@@ -680,11 +660,11 @@ const std::vector<Numerical::Double> Simplex::getDualSolution() const {
 }
 
 
-void Simplex::reinvert() throw (NumericalException) {
+void Simplex::reinvert() {
     m_basis->invert();
 }
 
-void Simplex::computeBasicSolution() throw (NumericalException) {
+void Simplex::computeBasicSolution() {
     m_basicVariableValues = m_simplexModel->getRhs();
     m_objectiveValue = - m_simplexModel->getCostConstant();
 
@@ -702,7 +682,7 @@ void Simplex::computeBasicSolution() throw (NumericalException) {
     for(; it != itend; it++) {
         if(*(it.getAttached()) != 0){
             if(it.getData() < columnCount){
-                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()));
+                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
                 m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
@@ -722,7 +702,7 @@ void Simplex::computeBasicSolution() throw (NumericalException) {
     }
 }
 
-void Simplex::computeReducedCosts() throw (NumericalException) {
+void Simplex::computeReducedCosts() {
     m_reducedCosts.clear();
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();

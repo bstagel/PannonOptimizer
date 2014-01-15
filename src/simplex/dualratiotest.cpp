@@ -33,6 +33,9 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_variableStates(variableStates),
     m_tPositive(false),
+    m_transform(false),
+    m_variableAge(model.getColumnCount() + model.getRowCount(),1),
+    m_ageStep(0),
     m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
@@ -617,8 +620,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
 void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue,
-                                           Numerical::Double expandStep)
-                                           throw (NumericalException){
+                                           Numerical::Double expandStep) {
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     unsigned int iterationCounter = 0, length;
 
@@ -629,7 +631,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     length = m_breakpoints.size();
 
     //init function at 0
-    getNextElement(&m_breakpoints,length);    
+    getNextElement(&m_breakpoints,length);
 
     if (m_breakpoints.size() > 1) {
         int num = nonlinearDualPhaseIFunction;
@@ -646,9 +648,11 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
         }else{
             //fake feasible variables
             while(m_breakpoints[length-1-iterationCounter].index != -1) {
+                functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[length-1-iterationCounter].index));
+
                 iterationCounter++;
                 getNextElement(&m_breakpoints,length-iterationCounter);
-                functionSlope -= alpha.at(m_breakpoints[length-1-iterationCounter].index);
+
                 if (functionSlope < 0) {
                     if(thresholdReportLevel > 0){
                         LPERROR("functionSlope < 0 in the beginning (PHASE I) - incoming index: "<<m_incomingVariableIndex);
@@ -656,7 +660,8 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                     return;
                 }
             }
-            computeFunctionPhase1(alpha, iterationCounter, functionSlope);        
+            computeFunctionPhase1(alpha, iterationCounter, functionSlope);
+
             //using piecewise linear function with numerical threshold
             if(num == 2){
                 if(m_breakpoints[length-1-iterationCounter].index != -1){
@@ -861,6 +866,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
         if(variable.getType() == Variable::BOUNDED){
             if((variable.getUpperBound() - variable.getLowerBound()) < Numerical::fabs(primalSteplength) ) {
                 m_boundflips.push_back(m_breakpoints[id].index);
+//                m_variableAge[m_breakpoints[id].index] = m_variableAge[m_breakpoints[id].index] + m_ageStep;
             } else{
                 m_transform = true;
             }
@@ -870,6 +876,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
         }
     }
     m_incomingVariableIndex = m_breakpoints.at(length-1-iterationCounter).index;
+
     m_dualSteplength = m_tPositive ? m_breakpoints.at(length-1-iterationCounter).value :
                                      - m_breakpoints.at(length-1-iterationCounter).value;
 }
@@ -879,31 +886,26 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
                                                 const Numerical::Double primalSteplength)
 {
     unsigned int length = m_breakpoints.size(), id, maxId = length-1-iterationCounter;
-    Numerical::Double maxValue = Numerical::fabs(alpha.at(m_breakpoints[maxId].index));
+    Numerical::Double maxValue;
+
+    if(maxId == -1){
+        maxValue = 0;
+    } else {
+        maxValue = Numerical::fabs(alpha.at(m_breakpoints[maxId].index)) / m_variableAge[m_breakpoints[maxId].index];
+    }
 
     while (iterationCounter < length-1)  {
         iterationCounter++;
         getNextElement(&m_breakpoints,length-iterationCounter);
         id = length-1-iterationCounter;
         Numerical::Double diff = m_breakpoints[id].value - m_breakpoints[id+1].value;
-        if(thresholdReportLevel > 1) LPWARNING("diff: "<<m_breakpoints[id].value <<" "<< m_breakpoints[id+1].value);
-
         if( diff == 0 ){
-            if(thresholdReportLevel > 1) LPWARNING("Phase 2 Threshold activated alpha: "<<maxValue);
+            if(thresholdReportLevel > 1) LPWARNING("Phase 2 Threshold activated 0 diff alpha: "<<maxValue);
             m_breakpoints[id].functionValue = m_phaseIIObjectiveValue;
-            const Variable & variable = m_model.getVariable(m_breakpoints[id].index);
 
-            if(variable.getType() == Variable::BOUNDED && (primalSteplength >
-                    (variable.getUpperBound() - variable.getLowerBound())) ){
-                m_boundflips.push_back(m_breakpoints[id].index);
-                m_incomingVariableIndex = -1;
-                if(thresholdReportLevel > 1) LPWARNING("boundflip found");
-                return;
-            }else{
-                if(Numerical::fabs(alpha.at(m_breakpoints[id].index)) > maxValue){
-                    maxId = id;
-                    maxValue = Numerical::fabs(alpha.at(m_breakpoints[id].index));
-                }
+            if(Numerical::fabs(alpha.at(m_breakpoints[id].index)) / m_variableAge[m_breakpoints[maxId].index] > maxValue){
+                maxId = id;
+                maxValue = Numerical::fabs(alpha.at(m_breakpoints[id].index)) / m_variableAge[m_breakpoints[maxId].index];
             }
 
         }else{
@@ -911,19 +913,30 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
         }
 
     }
+
+    const Variable & variable = m_model.getVariable(m_breakpoints[maxId].index);
+    if(variable.getType() == Variable::BOUNDED && (primalSteplength > (variable.getUpperBound() - variable.getLowerBound())) ){
+        m_boundflips.push_back(m_breakpoints[maxId].index);
+//        m_variableAge[m_breakpoints[maxId].index] =  m_variableAge[m_breakpoints[maxId].index] + m_ageStep;
+        m_incomingVariableIndex = -1;
+        if(thresholdReportLevel >= 1) {
+            LPWARNING("Boundflip found");
+        }
+        return;
+    }
+
     if(maxValue < m_pivotThreshold){
         m_incomingVariableIndex = -1;
     }else{
         m_incomingVariableIndex = m_breakpoints[maxId].index;
     }
 
-    if(thresholdReportLevel > 1) LPWARNING("Phase 2 Threshold ended alpha: "<<maxValue);
+    if(thresholdReportLevel >= 1) LPWARNING("Phase 2 Threshold ended alpha: "<<maxValue);
 }
 
 void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                            const Vector& alpha,
-                                           Numerical::Double phaseIIObjectiveValue)
-                                           throw (DualUnboundedException, NumericalException){
+                                           Numerical::Double phaseIIObjectiveValue) {
 
     generateBreakpointsPhase2(outgoingVariableIndex,alpha,phaseIIObjectiveValue);
 
@@ -986,12 +999,12 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             if (!m_transform) {
                 //Handle fake feasible breakpoints
                 while(m_breakpoints[length-1-iterationCounter].index != -1) {
-                    iterationCounter++;
-                    getNextElement(&m_breakpoints,length-iterationCounter);
-
                     const Variable & variable = m_model.getVariable(m_breakpoints[length-1-iterationCounter].index);
                     functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[length-1-iterationCounter].index)) *
-                            Numerical::fabs(variable.getUpperBound() - variable.getLowerBound());
+                            (variable.getUpperBound() - variable.getLowerBound());
+
+                    iterationCounter++;
+                    getNextElement(&m_breakpoints,length-iterationCounter);
 
                     if (functionSlope < 0) {
                         if(thresholdReportLevel > 0){
@@ -1001,14 +1014,30 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
                 }
                 computeFunctionPhase2(alpha,iterationCounter,functionSlope,primalSteplength);
-            }
-            //numerical threshold
-            if(num == 2){
-                if(m_breakpoints[length-1-iterationCounter].index != -1){
-                    useNumericalThresholdPhase2(iterationCounter, alpha, primalSteplength);
+//                if(m_breakpoints[length-1-iterationCounter].index == -1){
+//                    LPINFO("NO THRESHOLD!");
+//                        LPWARNING("breakpoints\t\t|\talpha values");
+//                        for(unsigned i=0;i<m_breakpoints.size();i++){
+//                            if(m_breakpoints[i].index != -1){
+//                                LPWARNING(m_breakpoints[i]<<"\t|\t"<<alpha.at(m_breakpoints[i].index));
+//                            } else {
+//                                LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//                            }
+//                        }
+//                }
+                //numerical threshold
+                if(num == 2){
+//                    if(m_breakpoints[length-1-iterationCounter].index != -1){
+                        useNumericalThresholdPhase2(iterationCounter, alpha, primalSteplength);
+//                    }
                 }
             }
         }
+
+//        if(m_incomingVariableIndex != -1){
+//            m_variableAge[m_incomingVariableIndex] = m_variableAge[m_incomingVariableIndex] + m_ageStep;
+//            LPINFO("AGE incremented: ("<<m_incomingVariableIndex<<") : "<<m_variableAge[m_incomingVariableIndex]);
+//        }
 }
 
 
@@ -1016,5 +1045,13 @@ DualRatiotest::~DualRatiotest() {
 
 }
 
-
+// Breakpoint printer debug code
+//LPWARNING("breakpoints\t\t|\talpha values");
+//for(unsigned i=0;i<m_breakpoints.size();i++){
+//    if(m_breakpoints[i].index != -1){
+//        LPWARNING(m_breakpoints[i]<<"\t|\t"<<alpha.at(m_breakpoints[i].index));
+//    } else {
+//        LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//    }
+//}
 

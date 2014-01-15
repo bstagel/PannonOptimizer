@@ -6,13 +6,15 @@
 #include <simplex/primalpricingfactory.h>
 #include <simplex/pricing/primaldantzigpricingfactory.h>
 
+#include <simplex/simplexparameterhandler.h>
+
 PrimalSimplex::PrimalSimplex():
     m_pricing(0),
-    m_ratiotest(0),
     m_updater(0),
-    m_feasibilityChecker(0)
+    m_feasibilityChecker(0),
+    m_ratiotest(0)
 {
-
+    m_workingTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 }
 
 void PrimalSimplex::initModules() {
@@ -62,23 +64,23 @@ void PrimalSimplex::releaseModules() {
     }
 }
 
-void PrimalSimplex::computeFeasibility() throw (NumericalException) {
+void PrimalSimplex::computeFeasibility() {
     m_feasibilityChecker->computeFeasibilities();
 }
 
-void PrimalSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
+void PrimalSimplex::checkFeasibility() {
 
 }
 
-void PrimalSimplex::price() throw (OptimizationResultException, NumericalException) {
+void PrimalSimplex::price() {
 
 }
 
-void PrimalSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
+void PrimalSimplex::selectPivot() {
 
 }
 
-void PrimalSimplex::update()throw (NumericalException) {
+void PrimalSimplex::update() {
     //Call this with appropriate parameters:
 //    void Simplex::transform(unsigned int incomingIndex,
 //      unsigned int outgoingIndex,
@@ -87,6 +89,14 @@ void PrimalSimplex::update()throw (NumericalException) {
 
     //Do dual specific using the updater
     m_updater->update();
+}
+
+void PrimalSimplex::initWorkingTolerance() {
+
+}
+
+void PrimalSimplex::computeWorkingTolerance() {
+
 }
 
 void PrimalSimplex::releaseLocks() {
