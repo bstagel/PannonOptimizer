@@ -33,6 +33,7 @@ DualSimplex::DualSimplex():
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
 
+    m_workingTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
 }
 
 // Interface of the iteration report provider:
@@ -126,7 +127,11 @@ Entry DualSimplex::getIterationEntry(const string &name,
                 reply.m_double = -m_objectiveValue;
             }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
-            reply.m_double = m_primalReducedCost;
+            if(m_incomingIndex != -1){
+                reply.m_double = m_primalReducedCost;
+            } else {
+                reply.m_double = 0;
+            }
         } else if (name == PRIMAL_THETA_STRING) {
             reply.m_double = m_primalTheta;
         } else if (name == DUAL_THETA_STRING) {
@@ -223,24 +228,24 @@ void DualSimplex::releaseModules() {
 }
 
 
-void DualSimplex::computeFeasibility() throw (NumericalException) {
-    m_feasibilityChecker->computeFeasibility(m_expandingTolerance);
+void DualSimplex::computeFeasibility() {
+    m_feasibilityChecker->computeFeasibility(m_workingTolerance);
 
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
-        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_expandingTolerance);
+        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_workingTolerance);
     }
 }
 
-void DualSimplex::checkFeasibility() throw (OptimizationResultException, NumericalException) {
+void DualSimplex::checkFeasibility() {
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
-        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_expandingTolerance);
+        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_workingTolerance);
     }
 }
 
-void DualSimplex::price() throw (OptimizationResultException, NumericalException) {
+void DualSimplex::price() {
     if(!m_feasible){
         m_phaseName = PHASE_1_STRING;
         m_outgoingIndex = m_pricing->performPricingPhase1();
@@ -256,29 +261,28 @@ void DualSimplex::price() throw (OptimizationResultException, NumericalException
     }
 }
 
-void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalException) {
+void DualSimplex::selectPivot() {
 
-//    LPERROR("PIVOT");
     Vector alpha;
 
     int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
 
-//    LPINFO("OUT: "<<m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)));
-//    LPINFO("OUT VAL: "<<m_basicVariableValues.at(m_outgoingIndex));
-//    LPINFO("- "<<1439-m_simplexModel->getColumnCount());
-//    LPINFO("RHS VAL: "<<m_simplexModel->getRhs().at(1439-m_simplexModel->getColumnCount()));
-
     m_incomingIndex = -1;
-    while(m_incomingIndex == -1){
+    while(m_incomingIndex == -1 ){
 
         computeTransformedRow(&alpha, m_outgoingIndex);
 
         if(!m_feasible){
-            m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue,m_expandStep);
+            m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue, m_toleranceStep);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
+
+        //If a boundflip is found, perform it
+        if(m_feasible && !m_ratiotest->getBoundflips().empty()){
+            break;
+        }
 
         //Row disabling control
         if(m_incomingIndex == -1){
@@ -292,11 +296,15 @@ void DualSimplex::selectPivot() throw (OptimizationResultException, NumericalExc
 //        LPINFO("row alpha: "<<alpha.at(m_incomingIndex));
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
-    m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
+    if(m_incomingIndex != -1){
+        m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
+    } else {
+        m_primalReducedCost = 0;
+    }
 
 }
 
-void DualSimplex::update()throw (NumericalException) {
+void DualSimplex::update() {
 
 //    //VALIDATION CODE
 //    if(m_feasible){
@@ -348,8 +356,6 @@ void DualSimplex::update()throw (NumericalException) {
 //        }
 //    }
 
-//    LPINFO("valueOfOutgoingVariable: "<<m_basicVariableValues.at(m_outgoingIndex));
-
     Numerical::Double referenceObjective;
     if(!m_feasible){
         referenceObjective = m_phaseIObjectiveValue;
@@ -358,7 +364,6 @@ void DualSimplex::update()throw (NumericalException) {
     }
 
     //Todo update the solution properly
-    //    Numerical::Double boundflipTheta = 0.0;
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
@@ -370,12 +375,12 @@ void DualSimplex::update()throw (NumericalException) {
         m_basis->Ftran(alpha);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             LPERROR("Boundflipping variable in the basis (or superbasic)!");
@@ -397,28 +402,31 @@ void DualSimplex::update()throw (NumericalException) {
         }
         m_basis->Ftran(alpha);
 
-
+        Simplex::VARIABLE_STATE outgoingState;
 
         if(!m_feasible){
             //Phase-I: Bounded variable leaves at lower bound (feasibility correction will handle it)
-            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex);
+            outgoingState = NONBASIC_AT_LB;
+            m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, &outgoingState);
         } else{
             if(m_feasible &&
                     (m_basicVariableValues.at(m_outgoingIndex) -
                     m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
                 //Phase-II: Bounded variable leaves at lower bound (comes from M)
-                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, false);
+                outgoingState = NONBASIC_AT_LB;
+                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, &outgoingState);
             }else{
                 //Phase-II: Bounded variable leaves at upper bound (comes from P)
-                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, true);
+                outgoingState = NONBASIC_AT_UB;
+                m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, &outgoingState);
             }
         }
-//        LPINFO("m_primalTheta: "<<m_primalTheta);
-        m_basicVariableValues.addVector(-1 * m_primalTheta, alpha);
+
+        m_basicVariableValues.addVector(-1 * m_primalTheta, alpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-        m_basis->append(alpha, m_outgoingIndex, m_incomingIndex);
+        m_basis->append(alpha, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
@@ -454,11 +462,36 @@ void DualSimplex::update()throw (NumericalException) {
     m_updater->update(m_feasible ? 2 : 1);
 }
 
+void DualSimplex::initWorkingTolerance() {
+    //initializing EXPAND tolerance
+    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3) {
+        m_toleranceStep = (m_masterTolerance - m_workingTolerance) /
+            SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+    } else {
+        m_workingTolerance = m_masterTolerance;
+    }
+}
+
+void DualSimplex::computeWorkingTolerance() {
+    //increment the EXPAND tolerance
+    if (m_toleranceStep != 0)
+    {
+        m_workingTolerance += m_toleranceStep;
+         //reset the EXPAND tolerance
+        if (m_workingTolerance >= m_masterTolerance) {
+            m_workingTolerance = m_masterTolerance *
+                    SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
+        }
+    }
+}
+
+
 void DualSimplex::releaseLocks(){
     m_pricing->releaseUsed();
 }
 
-void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) throw(NumericalException) {
+void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
 
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
@@ -511,33 +544,37 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) throw(Numer
 //    }
 }
 
-Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex, bool upperBound){
+Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex, Simplex::VARIABLE_STATE* outgoingState){
     Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
     Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
 
-//    LPINFO("valueOfOutgoingVariable: "<<valueOfOutgoingVariable);
-//    LPINFO("alpha: "<<alpha.at(rowIndex));
     if (typeOfIthVariable == Variable::FIXED) {
+        *outgoingState = NONBASIC_AT_LB;
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 alpha.at(rowIndex);
     }
     else if (typeOfIthVariable == Variable::BOUNDED) {
-        if(upperBound){
+        if(*outgoingState == Simplex::NONBASIC_AT_UB){
             return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
                     alpha.at(rowIndex);
-        } else {
+        } else if(*outgoingState == Simplex::NONBASIC_AT_LB){
             return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                     alpha.at(rowIndex);
+        } else {
+            throw PanOptException("Outgoing variable state is not specified!");
         }
     }
     else if (typeOfIthVariable == Variable::PLUS) {
+        *outgoingState = NONBASIC_AT_LB;
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 alpha.at(rowIndex);
     }
     else if (typeOfIthVariable == Variable::FREE) {
+        *outgoingState = NONBASIC_FREE;
         return valueOfOutgoingVariable / alpha.at(rowIndex);
     }
     else if (typeOfIthVariable == Variable::MINUS) {
+        *outgoingState = NONBASIC_AT_UB;
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
                 alpha.at(rowIndex);
     }

@@ -43,16 +43,19 @@ private:
     void initModules();
     void releaseModules();
 
-    virtual void computeFeasibility() throw (NumericalException);
-    virtual void checkFeasibility() throw (OptimizationResultException, NumericalException);
-    virtual void price() throw (OptimizationResultException, NumericalException);
-    virtual void selectPivot() throw (OptimizationResultException, NumericalException);
-    virtual void update()throw (NumericalException);
+    virtual void computeFeasibility();
+    virtual void checkFeasibility();
+    virtual void price();
+    virtual void selectPivot();
+    virtual void update();
+
+    virtual void initWorkingTolerance();
+    virtual void computeWorkingTolerance();
 
     virtual void releaseLocks();
 
-    void computeTransformedRow(Vector* alpha, int rowIndex) throw (NumericalException);
-    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex, bool upperBound = false);
+    void computeTransformedRow(Vector* alpha, int rowIndex);
+    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex, Simplex::VARIABLE_STATE *outgoingState);
 
     void registerIntoIterationReport(IterationReport * iterationReport) const;
 

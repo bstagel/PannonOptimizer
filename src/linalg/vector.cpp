@@ -1170,7 +1170,7 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     }
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
-    addVector(pivotValue, eta);
+    addVector(pivotValue, eta, Numerical::ADD_ABS);
     set(pivot, atPivot * pivotValue);
     return *this;
 

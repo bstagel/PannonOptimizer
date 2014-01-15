@@ -20,22 +20,25 @@ public:
 private:
     PrimalPricing * m_pricing;
 
-    PrimalRatiotest * m_ratiotest;
-
     PrimalUpdater * m_updater;
 
     PrimalFeasibilityChecker * m_feasibilityChecker;
+
+    PrimalRatiotest * m_ratiotest;
 
     bool m_feasible;
 
     void initModules();
     void releaseModules();
 
-    virtual void computeFeasibility() throw (NumericalException);
-    virtual void checkFeasibility() throw (OptimizationResultException, NumericalException);
-    virtual void price() throw (OptimizationResultException, NumericalException);
-    virtual void selectPivot() throw (OptimizationResultException, NumericalException);
-    virtual void update()throw (NumericalException);
+    virtual void computeFeasibility();
+    virtual void checkFeasibility();
+    virtual void price();
+    virtual void selectPivot();
+    virtual void update();
+
+    virtual void initWorkingTolerance();
+    virtual void computeWorkingTolerance();
 
     virtual void releaseLocks();
 };
