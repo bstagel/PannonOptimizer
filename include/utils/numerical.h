@@ -20,7 +20,7 @@
 #define DOUBLE_HISTORY 1
 #define DOUBLE_QD      2
 
-#define DOUBLE_TYPE DOUBLE_HISTORY
+#define DOUBLE_TYPE DOUBLE_CLASSIC
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
 #define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
