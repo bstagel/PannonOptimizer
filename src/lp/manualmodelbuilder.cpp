@@ -132,7 +132,9 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     Numerical::Double value;
     unsigned int maxIndex = 0;
     for (index = 0; index < nonzeros; index++) {
-        value = va_arg(arguments, Numerical::Double);
+        double dvalue;
+        dvalue = va_arg(arguments, double);
+        value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
         IndexValuePair pair = {value, rowIndex};
         m_columns[lastIndex].push_back(pair);
@@ -153,7 +155,9 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     va_start(arguments, nonzeros);
     unsigned int variableIndex = m_variables.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        value = va_arg(arguments, Numerical::Double);
+        double dvalue;
+        dvalue = va_arg(arguments, double);
+        value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
         IndexValuePair pair = {value, variableIndex};
         m_nonZerosInRows[ rowIndex ]++;
@@ -266,7 +270,9 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int columnIndex;
     Numerical::Double value;
     for (index = 0; index < nonzeros; index++) {
-        value = va_arg(arguments, Numerical::Double);
+        double dvalue;
+        dvalue = va_arg(arguments, double);
+        value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
         IndexValuePair pair = {value, columnIndex};
         m_rows[lastIndex].push_back(pair);
@@ -288,7 +294,9 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     va_start(arguments, nonzeros);
     unsigned int constraintIndex = m_constraints.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        value = va_arg(arguments, Numerical::Double);
+        double dvalue;
+        dvalue = va_arg(arguments, double);
+        value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
         IndexValuePair pair = {value, constraintIndex};
         m_nonZerosInColumns[ columnIndex ]++;

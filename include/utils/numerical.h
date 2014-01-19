@@ -12,8 +12,25 @@
 #include <cstring>
 #include <iostream>
 #include <debug.h>
+#include <utils/doublehistory.h>
 
 //#include <qd/qd_real.h>
+
+#define DOUBLE_CLASSIC 0
+#define DOUBLE_HISTORY 1
+#define DOUBLE_QD      2
+
+#define DOUBLE_TYPE DOUBLE_HISTORY
+
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+#define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
+#else
+#define COPY_DOUBLES(dest, src, count) {unsigned int _count = (count); \
+                                        for(unsigned int i = 0; i < _count; i++) { \
+                                            dest[i] = src[i]; \
+                                        } \
+                                        }
+#endif
 
 class Numerical
 {
@@ -71,9 +88,17 @@ class Numerical
 ////        }
 //    };
 
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+    typedef double Double;
+#endif
+
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+    typedef DoubleHistory Double;
+#endif
+
     class Summarizer
     {
-        double m_negpos[2];
+        Double m_negpos[2];
 
         union Number
         {
@@ -89,7 +114,7 @@ class Numerical
             m_negpos[1] = 0.0;
         }
 
-        ALWAYS_INLINE void add(const double & v)
+        ALWAYS_INLINE void add(const Double & v)
         {
             m_number.m_num = v;
             *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
@@ -100,7 +125,7 @@ class Numerical
             }*/
         }
 
-        inline double getResult() const
+        inline Double getResult() const
         {
             return stableAdd(m_negpos[0], m_negpos[1]);
         }
@@ -116,17 +141,31 @@ class Numerical
 //        }
     };
 
-
-    typedef double Double;
-
     ALWAYS_INLINE static Double fabs(Double val)
     {
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return DoubleHistory::fabs(val);
+#else
         return ::fabs(val);
+#endif
     }
 
     ALWAYS_INLINE static Double sqrt(Double val)
     {
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return DoubleHistory::sqrt(val);
+#else
         return ::sqrt(val);
+#endif
+    }
+
+    ALWAYS_INLINE static Double round(Double val)
+    {
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return DoubleHistory::round(val);
+#else
+        return ::round(val);
+#endif
     }
 
     ALWAYS_INLINE static bool equal(Double value1,Double value2,Double tolerance){
@@ -145,11 +184,6 @@ class Numerical
 
     ALWAYS_INLINE static bool lessOrEqual(Double value1,Double value2,Double tolerance){
         return ( lessthan(value1,value2,tolerance) || equal(value1,value2,tolerance) );
-    }
-
-    ALWAYS_INLINE static Double round(double val)
-    {
-        return ::round(val);
     }
 
     static const Double Infinity;
@@ -404,5 +438,7 @@ class Numerical
     }
 };
 
+extern const Numerical::Double ZERO;
+extern const Numerical::Double INVALID;
 
 #endif /* NUMERICAL_H_ */

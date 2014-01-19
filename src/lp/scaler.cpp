@@ -182,12 +182,11 @@ Numerical::Double Scaler::getVarianceBenichou(Matrix * matrix,
 }
 
 Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
-    return value;
     union DoubleBits {
-        Numerical::Double m_value;
+        double m_value;
         unsigned long long int m_bits;
     } temp;
-    temp.m_value = value;
+    temp.m_value = (double)value;
     temp.m_bits &= 0xFFF0000000000000ULL;
     Numerical::Double result1 = temp.m_value;
     temp.m_bits += 0x0010000000000000ULL;

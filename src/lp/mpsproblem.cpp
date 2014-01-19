@@ -43,7 +43,6 @@ std::string MpsModelBuilder::nameToString(Name name) {
 
 inline const char * MpsModelBuilder::parseDouble(const char * ptr, Numerical::Double * val)
 {
-
     enum NUMBER_PART
     {
         INTEGER, FRACTION, EXPONENT
@@ -144,7 +143,7 @@ inline const char * MpsModelBuilder::parseDouble(const char * ptr, Numerical::Do
     //    LPINFO("mul: " << mul);
 
     if (finalExponent > 0) {
-        Numerical::Double result = mantissa;
+        double result = mantissa;
         mul = 1;
         while (finalExponent >= 16) {
             finalExponent -= 16;
@@ -186,7 +185,7 @@ inline const char * MpsModelBuilder::parseDouble(const char * ptr, Numerical::Do
         result *= mul;
         *val = result;
     } else if (finalExponent < 0) {
-        Numerical::Double result = mantissa;
+        double result = mantissa;
         mul = 1;
         while (finalExponent <= -16) {
             finalExponent += 16;
@@ -2353,6 +2352,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
                 //cin.get();
                 //LPWARNING("read RHS");
                 ptr = readColumnRecord(ptr, m_rhs, info, &m_rhsIndexTable);
+
                 //LPWARNING("after read RHS");
                 //LPWARNING("begin");
                 if (info != NO_INFO && info != COMMENT) {
@@ -2411,6 +2411,7 @@ void MpsModelBuilder::loadFromFile(const char * filename)
                 }
                 break;
             case SEC_ENDATA:
+                LPINFO("SEC_ENDATA");
                 break;
             }
             ptr++;
@@ -2461,13 +2462,47 @@ void MpsModelBuilder::loadFromFile(const char * filename)
         LPERROR(error.getError());
     } catch (const std::string & error) {
         LPERROR(error);
+    } catch ( const std::bad_alloc & exception ) {
+        LPERROR("STL bad alloc exception: " << exception.what() );
+    } catch ( const std::bad_cast & exception ) {
+        LPERROR("STL bad cast exception: " << exception.what() );
+    } catch ( const std::bad_exception & exception ) {
+        LPERROR("STL bad exception exception: " << exception.what() );
+    } catch ( const std::bad_typeid & exception ) {
+        LPERROR("STL bad typeid exception: " << exception.what() );
+    } catch (const std::ios_base::failure & exception ) {
+        LPERROR("STL ios_base::failure exception: " << exception.what() );
+    } catch (const std::logic_error & exception ) {
+        LPERROR("STL logic error exception: " << exception.what() );
+    } catch ( const std::range_error & exception ) {
+        LPERROR("STL range error: " << exception.what() );
+    } catch ( const std::overflow_error & exception ) {
+        LPERROR("STL arithmetic overflow error: " << exception.what() );
+    } catch ( const std::underflow_error & exception ) {
+        LPERROR("STL arithmetic underflow error: " << exception.what() );
+#if __cplusplus > 199711L
+    } catch ( const std::system_error & exception ) {
+        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
+        LPERROR("STL system error: " << std::endl);
+        LPERROR("\tError: " << exception.what() << std::endl);
+        LPERROR("\tCode: " << exception.code().value() << std::endl);
+        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
+        LPERROR("\tMessage: " << exception.code().message() << std::endl);
+    } catch ( const std::bad_function_call & exception ) {
+        LPERROR("STL bad function call exception: " << exception.what() );
+#endif
+    } catch (const std::runtime_error & exception ) {
+        LPERROR("STL runtime error: " << exception.what() );
+    }
+    catch (const std::exception & exception) {
+        LPERROR("General STL exception: " << exception.what());
     } catch (...) {
         LPERROR("Unknown error");
     }
     delete [] m_actualColumnNonzeros;
     m_actualColumnNonzeros = 0;
     cl_end = clock();
-    cl_mps = (Numerical::Double) (cl_end - cl_start);
+    cl_mps = (int)(Numerical::Double) ((unsigned int)(cl_end - cl_start));
     LPINFO("errors: " << m_errors.size() );
 }
 
@@ -2529,6 +2564,7 @@ void MpsModelBuilder::collectConstraintBounds()
             if (!rangesGiven[rowIndex]) {
                 r = -Numerical::Infinity;
             }
+
             constraint.setLowerBound(b - Numerical::fabs(r));
             constraint.setUpperBound(b);
             break;
@@ -3433,8 +3469,9 @@ void MpsModelBuilder::report(int debugLevel)
     if (debugLevel >= 1.) {
         Numerical::Double sparsity;
         sparsity = m_nonZeros / (Numerical::Double) (m_columns.getCount() * m_rows.getCount());
+        sparsity *= 100;
         LPINFO("records: " << m_line << " , columns: " << m_columns.getCount() <<
-               " , rows: " << m_rows.getCount() << ", non-zeros: " << m_nonZeros << " ( " << sparsity * 100 << " % )");
+               " , rows: " << m_rows.getCount() << ", non-zeros: " << m_nonZeros << " ( " << sparsity << " % )");
     }
     if (debugLevel >= 2.) {
         printVariableStatistics();

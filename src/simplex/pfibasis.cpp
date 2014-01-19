@@ -1559,7 +1559,7 @@ void PfiBasis::printStatistics() const {
     LPINFO("Nonzero statistics: ");
     LPINFO("Nonzeros in the basis: " << m_basisNonzeros);
     LPINFO("Nonzeros in the inverse: " << m_inverseNonzeros);
-    LPINFO("Fill in amount: " << ((Numerical::Double)m_inverseNonzeros / (Numerical::Double)m_basisNonzeros)*100 - 100 << "% )");
+    LPINFO("Fill in amount: " << ((Numerical::Double)m_inverseNonzeros / (Numerical::Double)m_basisNonzeros)*100.0 - 100 << "% )");
     LPINFO("Inversion time statistics: ");
     LPINFO("Total inversion time: " << ((Numerical::Double) (cl_inversion) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
     LPINFO("Active submatrix copy: " << ((Numerical::Double) (cl_copy) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");

@@ -17,8 +17,6 @@
 /* Forward declaration */
 class Matrix;
 
-#define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
-
 /**
  *
  */
@@ -602,7 +600,7 @@ public:
         }
 
         m_dimension = dimension;
-        m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+        m_sparsityThreshold = (unsigned int) Numerical::round(Numerical::Double(m_dimension) * m_sparsityRatio);
         if (nonZeros < m_sparsityThreshold) {
             m_vectorType = SPARSE_VECTOR;
             m_index = allocateIndex(nonZeros + ELBOWROOM);
@@ -718,14 +716,6 @@ protected:
     unsigned int m_nonZeros;
 
     /**
-     * Describes the maximum sparsity ratio. When the ratio of non nozeros and
-     * dimension of vector grows above this value, the vectro representation
-     * switches to dense.
-     *
-     * @see m_sparsityThreshold
-     */
-    Numerical::Double m_sparsityRatio;
-    /**
      * Describes the maximum number of non zeros in sparse representation.
      * This variable equals with (unsigned int) round(m_dimension * m_sparsityRatio),
      * and changed by insert / remove operations.
@@ -733,6 +723,15 @@ protected:
      * @see m_sparsityRatio
      */
     unsigned int m_sparsityThreshold;
+
+    /**
+     * Describes the maximum sparsity ratio. When the ratio of non nozeros and
+     * dimension of vector grows above this value, the vectro representation
+     * switches to dense.
+     *
+     * @see m_sparsityThreshold
+     */
+    Numerical::Double m_sparsityRatio;
 
     /**
      * When m_sorted is true, the sparse elemnets are sorted

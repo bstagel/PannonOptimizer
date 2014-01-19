@@ -148,7 +148,7 @@ bool Checker::checkPfiWithReducedCost(const Simplex& simplex) {
 
 
 bool Checker::checkAlphaValue(const Simplex& simplex,
-                              int rowIndex, int columnIndex, double& columnAlpha, double& rowAlpha){
+                              int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha){
     unsigned int rowCount = simplex.m_simplexModel->getRowCount();
     unsigned int columnCount = simplex.m_simplexModel->getColumnCount();
     Vector row(rowCount + columnCount);
