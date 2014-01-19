@@ -9,7 +9,7 @@ public:
     static bool checkPfiWithBtran(const Simplex& simplex);
     static bool checkPfiWithReducedCost(const Simplex& simplex);
     static bool checkAlphaValue(const Simplex& simplex,
-                               int rowIndex, int columnIndex, double& columnAlpha, double& rowAlpha);
+                               int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha);
     static bool checkPrimalTheta(const Simplex& simplex,
                                    int rowIndex, int columnIndex,
                                    Numerical::Double& thetaFromCol, Numerical::Double& thetaFromRow);

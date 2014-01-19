@@ -322,6 +322,15 @@ public:
      */
     friend std::ostream & operator<<(std::ostream & os, const Variable & var);
 
+    Variable & operator=(const Variable & orig) {
+        m_lowerBound = orig.m_lowerBound;
+        m_name = orig.m_name;
+        m_type = orig.m_type;
+        m_upperBound = orig.m_upperBound;
+        m_vector = orig.m_vector;
+        return *this;
+    }
+
 private:
     /**
      * Represents the lower bound of the variable. It can be - infinity also.

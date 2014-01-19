@@ -539,8 +539,8 @@ void Matrix::invert()
     if (m_isDiagonal == true) {
         unsigned int i;
         for (i = 0; i < m_rowCount; i++) {
-            m_rowWise[i]->set(i, 1 / m_rowWise[i]->at(i));
-            m_columnWise[i]->set(i, 1 / m_columnWise[i]->at(i));
+            m_rowWise[i]->set(i, 1.0 / m_rowWise[i]->at(i));
+            m_columnWise[i]->set(i, 1.0 / m_columnWise[i]->at(i));
         }
     } else {
         Matrix copyMatrix = *this;
@@ -576,8 +576,8 @@ Matrix Matrix::inverse() const
         Matrix inverted(m_rowCount, m_columnCount);
         unsigned int i;
         for (i = 0; i < m_rowCount; i++) {
-            inverted.m_rowWise[i]->set(i, 1 / m_rowWise[i]->at(i));
-            inverted.m_columnWise[i]->set(i, 1 / m_columnWise[i]->at(i));
+            inverted.m_rowWise[i]->set(i, 1.0 / m_rowWise[i]->at(i));
+            inverted.m_columnWise[i]->set(i, 1.0 / m_columnWise[i]->at(i));
         }
         inverted.m_isDiagonal = true;
         return inverted;

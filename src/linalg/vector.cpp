@@ -15,6 +15,8 @@
 #include <cstring>
 #include <cmath>
 
+#include <utils/flags.h>
+
 unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
 Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
 THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
@@ -42,7 +44,7 @@ Vector::Vector(void *, void *, void *)
     m_dimension = 0;
     m_sorted = true;
     m_sparsityRatio = SPARSITY_RATIO;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int) Numerical::round((Numerical::Double)m_dimension * m_sparsityRatio);
     //CHECK;
 }
 
@@ -312,7 +314,8 @@ void Vector::resize(unsigned int length)
             m_dataEnd = newData + length;
             Numerical::Double * actual;
             //            if (length > m_size) {
-            memcpy(newData, m_data, sizeof (Numerical::Double) * m_size);
+            COPY_DOUBLES(newData, m_data, m_size);
+            //memcpy(newData, m_data, sizeof (Numerical::Double) * m_size);
             actual = newData + m_size;
             for (; actual < m_dataEnd; actual++) {
                 *actual = 0.0;
@@ -866,6 +869,7 @@ void Vector::addDenseToDense(Numerical::Double lambda,
     case Numerical::ADD_ABS_REL:
         while (ptr1 < end) {
             if (*ptr2 != 0.0) {
+
                 if (*ptr1 == 0.0) {
                     m_nonZeros++;
                 }

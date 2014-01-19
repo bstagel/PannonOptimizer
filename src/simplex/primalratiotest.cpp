@@ -280,7 +280,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
               //ratio defined by the bound of the incoming variable
               //TODO: nem hatékony
                 if (breakpoints.at(length-1-iterationCounter).index == -1 ) {
-                    functionSlope--;
+                    functionSlope -= 1;
                 } else{
                     functionSlope -= Numerical::fabs(alpha.at(breakpoints.at(length-1-iterationCounter).index));
                 }

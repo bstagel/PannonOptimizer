@@ -40,6 +40,12 @@ protected:
     std::string m_message;
 };
 
+class NullPointerException: PanOptException {
+public:
+    NullPointerException(const std::string & message):
+        PanOptException(message) {}
+};
+
 /**
  * @class OptimizationResultException
  */

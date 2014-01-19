@@ -104,7 +104,10 @@ HEADERS += include/debug.h \
     include/utils/system.h \
     include/utils/tokenizer.h \
     include/utils/nodefile.h \
-    include/simplex/checker.h
+    include/simplex/checker.h \
+    include/utils/doublehistory.h \
+    include/utils/flags.h \
+    include/utils/refobject.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -160,6 +163,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/system.cpp \
     src/utils/tokenizer.cpp \
     src/utils/nodefile.cpp \
-    src/simplex/checker.cpp
+    src/simplex/checker.cpp \
+    src/utils/doublehistory.cpp \
+    src/utils/flags.cpp
 
 OBJECTS_DIR = .o

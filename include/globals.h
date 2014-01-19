@@ -42,9 +42,6 @@
     #define PATH_SEPARATOR '/'
 #endif
 
-extern const double ZERO;
-extern const double INVALID;
-
 enum OBJECTIVE_TYPE
 {
     MINIMIZE = 0,

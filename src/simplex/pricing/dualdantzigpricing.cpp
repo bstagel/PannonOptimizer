@@ -38,8 +38,9 @@ DualDantzigPricing::~DualDantzigPricing()
 
 void DualDantzigPricing::copy(const DualDantzigPricing & orig) {
     m_phase1ReducedCosts = new Numerical::Double[ m_updater->m_simplexModel.getRowCount() ];
-    memcpy(m_phase1ReducedCosts, orig.m_phase1ReducedCosts,
-           sizeof(Numerical::Double) * m_updater->m_simplexModel.getRowCount());
+    COPY_DOUBLES(m_phase1ReducedCosts, orig.m_phase1ReducedCosts, m_updater->m_simplexModel.getRowCount());
+    //memcpy(m_phase1ReducedCosts, orig.m_phase1ReducedCosts,
+    //       sizeof(Numerical::Double) * m_updater->m_simplexModel.getRowCount());
 }
 
 void DualDantzigPricing::release() {
@@ -49,7 +50,11 @@ void DualDantzigPricing::release() {
 
 
 void DualDantzigPricing::clearPhase1ReducedCosts() {
-    memset(m_phase1ReducedCosts, 0, sizeof(Numerical::Double) * m_updater->m_simplexModel.getRowCount());
+    unsigned int index;
+    for (index = 0; index < m_updater->m_simplexModel.getRowCount(); index++) {
+        m_phase1ReducedCosts[index] = 0;
+    }
+    // DO NOT USE MEMSET! Sometimes Numerical::Double can be a special object.
 }
 
 void DualDantzigPricing::initPhase1() {
