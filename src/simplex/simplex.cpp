@@ -43,6 +43,7 @@ const static char * EXPORT_FALLBACK = "export_fallback";
 const static char * EXPORT_SINGULARITY = "export_simgulerity";
 const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion";
 const static char * EXPORT_BAD_ITERATION = "export_bad_iteration";
+const static char * EXPORT_DEGENERATION = "export_degeneration";
 const static char * EXPORT_E_ABSOLUTE = "export_e_absolute";
 const static char * EXPORT_E_RELATIVE = "export_e_relative";
 const static char * EXPORT_E_FEASIBILITY = "export_e_feasibility";
@@ -59,9 +60,17 @@ Simplex::Simplex():
     m_basicVariableValues(0),
     m_reducedCosts(0),
     m_objectiveValue(0),
-    m_phaseIObjectiveValue(0),
+//    m_dualObjectiveValue(0),
+    m_phaseIObjectiveValue(-Numerical::Infinity),
+    m_feasible(false),
     m_baseChanged(false),
     m_freshBasis(false),
+    m_debugLevel(0),
+    m_referenceObjective(0),
+    m_fallbacks(0),
+    m_triggeredReinversion(0),
+    m_badIterations(0),
+    m_degenerateIterations(0),
     m_startingBasisFinder(NULL),
     m_basis(NULL),
     m_iterationIndex(0)
@@ -155,6 +164,39 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         if(m_exportType == 0){
             result.push_back(IterationReportField(EXPORT_FILENAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
+            result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
+            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_SINGULARITY,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_BAD_ITERATION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_DEGENERATION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_E_ABSOLUTE,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_E_RELATIVE,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_E_FEASIBILITY, 20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_E_OPTIMALITY, 20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_E_PIVOT, 20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
     }
@@ -217,20 +259,22 @@ Entry Simplex::getIterationEntry(const string &name,
         if(name == EXPORT_FILENAME){
             reply.m_string = new std::string(m_simplexModel->getName());
         } else if(name == EXPORT_ITERATION){
-            reply.m_string = new std::string("N.A.");
+            reply.m_integer = m_iterationIndex;
         } else if(name == EXPORT_TIME){
-            reply.m_string = new std::string("N.A.");
+            reply.m_double = m_solveTimer.getTotalElapsed()/1000000;
         } else if(name == EXPORT_SOLUTION){
-            reply.m_string = new std::string("N.A.");
+            reply.m_double = m_objectiveValue;
         } else if(name == EXPORT_FALLBACK){
-            reply.m_string = new std::string("N.A.");
+            reply.m_integer = m_fallbacks;
         } else if(name == EXPORT_SINGULARITY){
-            reply.m_string = new std::string("N.A.");
+            reply.m_integer = m_basis->getSingularityCount();
         } else if(name == EXPORT_TRIGGERED_REINVERSION){
-            reply.m_string = new std::string("N.A.");
+            reply.m_integer = m_triggeredReinversion;
         } else if(name == EXPORT_BAD_ITERATION){
-            reply.m_string = new std::string("N.A.");
-        } else if(name == EXPORT_E_ABSOLUTE){
+            reply.m_integer = m_badIterations;
+        } else if(name == EXPORT_DEGENERATION){
+            reply.m_integer = m_degenerateIterations;
+        }  else if(name == EXPORT_E_ABSOLUTE){
             reply.m_double = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_absolute");
         } else if(name == EXPORT_E_RELATIVE){
             reply.m_double = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative");
@@ -448,6 +492,8 @@ void Simplex::solve() {
                 m_computeFeasibilityTimer.stop();
             }
             try{
+                setReferenceObjective();
+
                 m_checkFeasibilityTimer.start();
                 checkFeasibility();
                 m_checkFeasibilityTimer.stop();
@@ -464,6 +510,8 @@ void Simplex::solve() {
                 update();
 //                }
                 m_updateTimer.stop();
+
+                checkReferenceObjective();
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
@@ -530,6 +578,7 @@ void Simplex::solve() {
                     throw exception;
                 } else {
                     LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! (" << exception.getMessage() <<")");
+                    m_triggeredReinversion++;
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
@@ -732,4 +781,6 @@ void Simplex::computeReducedCosts() {
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
     }
+
+//    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }

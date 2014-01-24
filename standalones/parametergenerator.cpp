@@ -4,23 +4,63 @@
 #include <iostream>
 #include <fstream>
 
+#include <dirent.h>
+
 #include <utils/numerical.h>
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
+
+static const std::string endpoint = "'http://mishra.lpds.sztaki.hu:9091'";
+static const std::string grid = "'edgidemo'";
+static const std::string tag = "'PanOptSolverTag'";
+static const std::string exeName = "NewPanOptSolver";
+static const std::string scriptName = "panopt_wsclient.sh";
+static const std::string filelist = "filelist.txt";
+static const std::string exportResult = "export_result.txt";
 
 static bool error = false;
 static int fileIndex = 0;
 static std::string fileName = "";
 
+struct ParameterValue {
+    std::string name;
+    std::string value;
+    std::string type;
+};
+
 struct ParameterRange {
     std::string name;
-    Numerical::Double from;
-    Numerical::Double to;
-
+    std::string from;
     Numerical::Double steplength;
+    std::string type;
+    int number;
 
-    Numerical::Double getStep(int step) const {
-        return from + step*steplength;
+    Numerical::Double getDoubleStep(int step) const {
+        if(step == 0){
+            if(type.compare("double") == 0){
+                return atof(from.c_str());
+            } else {
+                std::cout << "Invalid parameter Type specified!\n";
+                return 0;
+            }
+        }
+        else{
+            return steplength*getDoubleStep(step-1);
+        }
+    }
+
+    int getIntStep(int step) const {
+        if(step == 0){
+            if(type.compare("int") == 0){
+                return atoi(from.c_str());
+            } else {
+                std::cout << "Invalid parameter Type specified!\n";
+                return 0;
+            }
+        }
+        else{
+            return steplength*getIntStep(step-1);
+        }
     }
 };
 
@@ -33,38 +73,123 @@ bool checkParameters(std::vector<ParameterRange> & ranges, const ParameterHandle
     return true;
 }
 
-void initStepsEqually(std::vector<ParameterRange> & ranges, int number) {
-    for(unsigned int i=0; i< ranges.size(); i++){
-        ranges.at(i).steplength = (ranges.at(i).to - ranges.at(i).from) / (number-1);
+bool checkParameters(std::vector<ParameterValue> & values, const ParameterHandler & handler) {
+    for(unsigned int i=0; i < values.size(); i++){
+        if(! handler.hasParameter(values.at(i).name)){
+            return false;
+        }
     }
+    return true;
 }
 
-void computeParameter(std::vector<ParameterRange> & ranges, unsigned int parameterIndex, int number, ParameterHandler & handler ){
-    if(parameterIndex<ranges.size()){
-        for(int i=0; i<number; i++){
-            handler.setParameterValue(ranges.at(parameterIndex).name, ranges.at(parameterIndex).getStep(i));
-            std::cout<<ranges.at(parameterIndex).from<< '\n';
-            std::cout<<ranges.at(parameterIndex).getStep(i)<< '\n';
-            std::cout<<ranges.at(parameterIndex).to<< '\n';
-            computeParameter(ranges, parameterIndex+1, number, handler);
+void computeParameter(std::vector<ParameterRange> & ranges, unsigned int rangeIndex, ParameterHandler & handler ){
+    if(rangeIndex<ranges.size()){
+        for(int i=0; i<ranges.at(rangeIndex).number; i++){
+            if(ranges.at(rangeIndex).type.compare("double") == 0){
+                handler.setParameterValue(ranges.at(rangeIndex).name, ranges.at(rangeIndex).getDoubleStep(i));
+            } else if(ranges.at(rangeIndex).type.compare("int") == 0){
+                handler.setParameterValue(ranges.at(rangeIndex).name, ranges.at(rangeIndex).getIntStep(i));
+            } else {
+                std::cout << "Invalid parameter Type specified!\n";
+                break;
+            }
+//            std::cout<<ranges.at(rangeIndex).from<< '\n';
+//            std::cout<<ranges.at(rangeIndex).steplength<< '\n';
+//            if(ranges.at(rangeIndex).type.compare("double") == 0){
+//                std::cout<<ranges.at(rangeIndex).getDoubleStep(i)<< '\n';
+//            } else if(ranges.at(rangeIndex).type.compare("int") == 0){
+//                std::cout<<ranges.at(rangeIndex).getIntStep(i)<< '\n';
+//            }
+            computeParameter(ranges, rangeIndex+1, handler);
         }
     } else {
         std::stringstream newName;
         newName << fileName << "_" << fileIndex;
-        std::cout <<newName.str();
+        std::cout << "Generating " << newName.str()<<"\n";
         handler.setFileName(newName.str());
         handler.writeParameterFile();
         fileIndex++;
     }
 }
 
-void generateParameters(std::vector<ParameterRange> & ranges, int number, ParameterHandler & handler ) {
+void generateParameters(std::vector<ParameterRange> & ranges, std::vector<ParameterValue> values, ParameterHandler & handler ) {
     if(checkParameters(ranges, handler)){
-        initStepsEqually(ranges, number);
+        for(unsigned int i=0; i<values.size(); i++){
+            if(values.at(i).type.compare("double") == 0){
+                handler.setParameterValue(values.at(i).name, atof(values.at(i).value.c_str()));
+            } else if(values.at(i).type.compare("int") == 0){
+                handler.setParameterValue(values.at(i).name, atoi(values.at(i).value.c_str()));
+            } else if(values.at(i).type.compare("bool") == 0) {
+                if(values.at(i).value.compare("true") == 0){
+                    handler.setParameterValue(values.at(i).name, true);
+                } else if(values.at(i).value.compare("false") == 0){
+                    handler.setParameterValue(values.at(i).name, false);
+                } else {
+                    std::cout << "Wrong value for bool parameter!\n";
+                    break;
+                }
+            } else if(values.at(i).type.compare("string") == 0) {
+                handler.setParameterValue(values.at(i).name, (values.at(i).value));
+            } else {
+                std::cout << "Invalid parameter Type specified!\n";
+                break;
+            }
+        }
         fileIndex = 0;
-        computeParameter(ranges, 0,number, handler);
+        computeParameter(ranges, 0, handler);
     } else {
         std::cout << "Invalid parameter name specified!\n";
+    }
+}
+
+void generateGbacScript(std::string remoteDir) {
+    std::ofstream gbac_script(scriptName);
+    gbac_script << "ENDPOINT=" << endpoint << std::endl;
+    gbac_script << "GRID=" << grid << std::endl;
+    gbac_script << "TAG=" << tag << std::endl;
+    gbac_script << "EXENAME=" << exeName << std::endl;
+    gbac_script << "FILELIST=" << filelist << std::endl;
+    gbac_script << "PATH='http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/'" << std::endl;
+    gbac_script << std::endl;
+
+    int linalgCount = 0;
+    int simplexCount = 0;
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (".")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            std::string entry(ent->d_name);
+            if(entry.size()>=11 && entry.substr(0 , 11).compare("linalg.PAR_") == 0){
+                linalgCount++;
+            }
+            if(entry.size()>=12 && entry.substr(0 , 12).compare("simplex.PAR_") == 0){
+                simplexCount++;
+            }
+        }
+        closedir (dir);
+    } else {
+        std::cout << "Error opening the working directory.\n";
+    }
+
+    for(int linalgIndex=0; linalgIndex<linalgCount; linalgIndex++){
+        for(int simplexIndex=0; simplexIndex<simplexCount; simplexIndex++){
+            gbac_script << "OUTPUT_NAME='result_" << linalgIndex << "_" << simplexIndex << ".txt'" << std::endl;
+            gbac_script << "wsclient \\" << std::endl;
+            gbac_script << "\t -m add \\" << std::endl;
+            gbac_script << "\t -e \"$ENDPOINT\" \\" << std::endl;
+            gbac_script << "\t -g \"$GRID\" \\" << std::endl;
+            gbac_script << "\t -a \"-fl $FILELIST -o $OUTPUT_NAME\" \\" << std::endl;
+            gbac_script << "\t -n gbac \\" << std::endl;
+            gbac_script << "\t -i $EXENAME.app.tgz=\"$PATH\"NewPanOptSolver.app.tgz \\" << std::endl;
+            gbac_script << "\t -i $FILELIST=\"$PATH\"$FILELIST \\" << std::endl;
+            gbac_script << "\t -i linalg.PAR=\"$PATH\"linalg.PAR_" << linalgIndex << " \\" << std::endl;
+            gbac_script << "\t -i simplex.PAR=\"$PATH\"simplex.PAR_" <<simplexIndex << " \\" << std::endl;
+            gbac_script << "\t -t \"$TAG\" \\" << std::endl;
+            gbac_script << "\t -o \"$OUTPUT_NAME\" \\" << std::endl;
+            gbac_script << "\t -o " << exportResult << std::endl;
+            gbac_script << std::endl;
+        }
     }
 }
 
@@ -73,8 +198,9 @@ void printHelp() {
                  "Generate parameter file for the NewPanOpt solver. \n"<<
                  "\n"<<
                  "  -f, --file      \t Two valid parameter values for the argument are `linalg.PAR` and `simplex.PAR`. \n"<<
-                 "  -r, --range     \t Specifies a parameter range with a NAME FROM TO triplet.\n"<<
-                 "  -n, --number    \t The number of partitions in each range specified.\n"<<
+                 "  -r, --range     \t Specifies a parameter range with a NAME TYPE FROM STEP NUMBER tuple.\n"<<
+                 "  -p, --parameter \t Specifies a parameter range with a NAME TYPE VALUE.\n"<<
+                 "  -s, --script    \t Generate GBAC script REMOTEDIR.\n"<<
                  "  -h, --help      \t Displays this help.\n"<<
                  "\n";
 }
@@ -105,7 +231,10 @@ int main(int argc, char** argv) {
     SimplexParameterHandler::getInstance();
 
     std::vector<ParameterRange> ranges;
-    int number = 0;
+    std::vector<ParameterValue> values;
+
+    bool generateScript = false;
+    std::string path;
 
     if(argc < 2){
         printHelp();
@@ -115,6 +244,15 @@ int main(int argc, char** argv) {
 //            std::cout << "arg: "<< arg << "\n";
             if(arg.compare("-h") == 0 || arg.compare("--help") == 0){
                 printHelp();
+            } else if(arg.compare("-s") == 0 || arg.compare("--script") == 0){
+                if(argc < i+2 ){
+                    printMissingOperandError(argv);
+                    break;
+                } else {
+                    generateScript = true;
+                    path = argv[i+1];
+                    i++;
+                }
             } else if(arg.compare("-f") == 0 || arg.compare("--file") == 0){
                 if(argc < i+2 ){
                     printMissingOperandError(argv);
@@ -123,25 +261,31 @@ int main(int argc, char** argv) {
                     fileName = argv[i+1];
                     i++;
                 }
-            } else if(arg.compare("-n") == 0 || arg.compare("--number") == 0){
-                if(argc < i+2 ){
+            } else if(arg.compare("-p") == 0 || arg.compare("--parameter") == 0){
+                if(argc < i+4 ){
                     printMissingOperandError(argv);
                     break;
                 } else {
-                    number = atoi(argv[i+1]);
-                    i++;
+                    ParameterValue value;
+                    value.name = argv[i+1];
+                    value.type = argv[i+2];
+                    value.value = argv[i+3];
+                    values.push_back(value);
+                    i+=3;
                 }
-            } else if(arg.compare("-r") == 0 || arg.compare("--directory") == 0){
-                if(argc < i+4 ){
+            } else if(arg.compare("-r") == 0 || arg.compare("--range") == 0){
+                if(argc < i+6 ){
                     printMissingOperandError(argv);
                     break;
                 } else {
                     ParameterRange range;
                     range.name = argv[i+1];
-                    range.from = atof(argv[i+2]);
-                    range.to = atof(argv[i+3]);
+                    range.type = argv[i+2];
+                    range.from = argv[i+3];
+                    range.steplength = atof(argv[i+4]);
+                    range.number = atoi(argv[i+5]);
                     ranges.push_back(range);
-                    i+=3;
+                    i+=5;
                 }
             } else {
                 printInvalidOptionError(argv, i);
@@ -150,16 +294,21 @@ int main(int argc, char** argv) {
         }
     }
 
-    if(error || number == 0){
+    if(error){
         return EXIT_FAILURE;
     }
 
     if(fileName.compare("linalg.PAR") == 0){
         ParameterHandler & handler = LinalgParameterHandler::getInstance();
-        generateParameters(ranges, number, handler);
+        generateParameters(ranges, values, handler);
+        std::cout << "linalg.PAR files generated!\n";
     } else if(fileName.compare("simplex.PAR") == 0){
-        ParameterHandler & handler = LinalgParameterHandler::getInstance();
-        generateParameters(ranges, number, handler);
+        ParameterHandler & handler = SimplexParameterHandler::getInstance();
+        generateParameters(ranges, values, handler);
+        std::cout << "simplex.PAR files generated!\n";
+    } else if(generateScript){
+        generateGbacScript(path);
+        std::cout << "GBAC script generated!\n";
     } else if(fileName.compare("") == 0){
         std::cout << "Please specify the name of the parameter file. Use `--help` for further information!\n";
         return EXIT_FAILURE;

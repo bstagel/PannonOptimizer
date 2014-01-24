@@ -37,6 +37,9 @@ private:
     virtual void selectPivot();
     virtual void update();
 
+    virtual void setReferenceObjective();
+    virtual void checkReferenceObjective();
+
     virtual void initWorkingTolerance();
     virtual void computeWorkingTolerance();
 

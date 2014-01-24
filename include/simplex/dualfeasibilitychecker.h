@@ -19,12 +19,13 @@ public:
                            IndexList<const Numerical::Double *>* variableStates,
                            IndexList<>* reducedCostFeasibilities,
                            const Vector& reducedCosts,
-                           const Basis& basis,
-                           Numerical::Double* phaseIObjectiveValue);
+                           const Basis& basis);
 
     bool checkFeasibility();
     void computeFeasibility(Numerical::Double tolerance);
     void feasiblityCorrection(Vector* basicVariableValues, Numerical::Double tolerance);
+
+    inline Numerical::Double getPhaseIObjectiveValue() {return m_phaseIObjectiveValue;}
 
 private:
     const SimplexModel& m_model;
@@ -32,7 +33,7 @@ private:
     IndexList<>* m_reducedCostFeasibilities;
     const Vector& m_reducedCosts;
     const Basis& m_basis;
-    Numerical::Double* m_phaseIObjectiveValue;
+    Numerical::Double m_phaseIObjectiveValue;
 };
 
 #endif // DUALFEASIBILITYCHECKER_H

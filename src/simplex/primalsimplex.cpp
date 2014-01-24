@@ -91,6 +91,14 @@ void PrimalSimplex::update() {
     m_updater->update();
 }
 
+void PrimalSimplex::setReferenceObjective() {
+
+}
+
+void PrimalSimplex::checkReferenceObjective() {
+
+}
+
 void PrimalSimplex::initWorkingTolerance() {
 
 }

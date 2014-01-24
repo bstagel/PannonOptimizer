@@ -20,6 +20,7 @@ const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PHASE_1_OBJ_VAL_STRING = "Dual infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
+//const static char * DUAL_OBJ_VAL_STRING = "Dual Objectuve";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Primal theta";
 const static char * DUAL_THETA_STRING = "Dual theta";
@@ -29,7 +30,6 @@ DualSimplex::DualSimplex():
     m_updater(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
-    m_feasible(false),
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
 
@@ -47,51 +47,46 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField incomingField(INCOMING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_INT, *this);
-        result.push_back(incomingField);
+        result.push_back(IterationReportField (INCOMING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_INT, *this));
 
-        IterationReportField outgoingField(OUTGOING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_INT, *this);
-        result.push_back(outgoingField);
+        result.push_back(IterationReportField (OUTGOING_NAME, 10, 2, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_INT, *this));
 
-        IterationReportField primalReducedCostField(PRIMAL_REDUCED_COST_STRING, 15, 3, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PRIMAL_REDUCED_COST_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               -1, IterationReportField::IRF_FIXED);
-        result.push_back(primalReducedCostField);
+                                               -1, IterationReportField::IRF_FIXED));
 
-        IterationReportField primalThetaField(PRIMAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PRIMAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               -1, IterationReportField::IRF_FIXED);
-        result.push_back(primalThetaField);
+                                               -1, IterationReportField::IRF_FIXED));
 
-        IterationReportField dualThetaField(DUAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (DUAL_THETA_STRING, 15, 3, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               -1, IterationReportField::IRF_FIXED);
-        result.push_back(dualThetaField);
+                                               -1, IterationReportField::IRF_FIXED));
 
-        IterationReportField phase1ObjValField(PHASE_1_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               10, IterationReportField::IRF_SCIENTIFIC);
-        result.push_back(phase1ObjValField);
+                                               10, IterationReportField::IRF_SCIENTIFIC));
 
-        IterationReportField objValField(OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               10, IterationReportField::IRF_SCIENTIFIC);
-        result.push_back(objValField);
+                                               10, IterationReportField::IRF_SCIENTIFIC));
 
-        IterationReportField phaseField(PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
-                                        IterationReportField::IRF_STRING, *this);
-        result.push_back(phaseField);
+//        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+//                                               IterationReportField::IRF_FLOAT, *this,
+//                                               10, IterationReportField::IRF_SCIENTIFIC));
+
+        result.push_back(IterationReportField (PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_STRING, *this));
     }
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
     {
-        IterationReportField objValField(OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               10, IterationReportField::IRF_SCIENTIFIC);
-        result.push_back(objValField);
+                                               10, IterationReportField::IRF_SCIENTIFIC));
         break;
     }
 
@@ -126,6 +121,12 @@ Entry DualSimplex::getIterationEntry(const string &name,
             } else {
                 reply.m_double = -m_objectiveValue;
             }
+//        } else if (name == DUAL_OBJ_VAL_STRING) {
+//            if(m_simplexModel->getObjectiveType() == MINIMIZE){
+//                reply.m_double = m_dualObjectiveValue;
+//            } else {
+//                reply.m_double = -m_dualObjectiveValue;
+//            }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
                 reply.m_double = m_primalReducedCost;
@@ -188,8 +189,7 @@ void DualSimplex::initModules() {
                                                     &m_variableStates,
                                                     &m_reducedCostFeasibilities,
                                                     m_reducedCosts,
-                                                    *m_basis,
-                                                    &m_phaseIObjectiveValue);
+                                                    *m_basis);
 
     DualRatiotestUpdater * ratiotestUpdater = new DualRatiotestUpdater(&m_reducedCostFeasibilities);
     m_updater->setRatiotestUpdater( ratiotestUpdater );
@@ -230,7 +230,7 @@ void DualSimplex::releaseModules() {
 
 void DualSimplex::computeFeasibility() {
     m_feasibilityChecker->computeFeasibility(m_workingTolerance);
-
+    m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
         m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_workingTolerance);
@@ -241,7 +241,12 @@ void DualSimplex::checkFeasibility() {
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
+        //Becomes feasible
         m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues, m_workingTolerance);
+        m_referenceObjective = m_objectiveValue;
+    } else if(lastFeasible == true && m_feasible == false ){
+        //Becomes infeasible
+        m_fallbacks++;
     }
 }
 
@@ -356,13 +361,6 @@ void DualSimplex::update() {
 //        }
 //    }
 
-    Numerical::Double referenceObjective;
-    if(!m_feasible){
-        referenceObjective = m_phaseIObjectiveValue;
-    } else {
-        referenceObjective = m_objectiveValue;
-    }
-
     //Todo update the solution properly
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
@@ -431,24 +429,6 @@ void DualSimplex::update() {
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
-//        Vector compare = m_basicVariableValues;
-//        computeBasicSolution();
-
-//        for(int i=0; i<compare.length();i++){
-//            if(compare.at(i) != m_basicVariableValues.at(i)){
-//                LPERROR(i<<"("<<m_basisHead[i]<<")"<<" 2 compare: "<<compare.at(i)<<" ; m_basic: "<<m_basicVariableValues.at(i));
-//            }
-//        }
-
-        if(!m_feasible){
-            if(referenceObjective > m_phaseIObjectiveValue){
-                LPWARNING("BAD ITERATION - PHASE I");
-            }
-        } else {
-            if(referenceObjective > m_objectiveValue ){
-                LPWARNING("BAD ITERATION - PHASE II");
-            }
-        }
     }
 
     computeReducedCosts();
@@ -460,6 +440,35 @@ void DualSimplex::update() {
 
     //Do dual specific using the updater
     m_updater->update(m_feasible ? 2 : 1);
+}
+
+void DualSimplex::setReferenceObjective() {
+    if(!m_feasible){
+        m_referenceObjective = m_phaseIObjectiveValue;
+    } else {
+        m_referenceObjective = m_objectiveValue;
+    }
+//                LPINFO("m_referenceObjective " <<m_referenceObjective);
+}
+
+void DualSimplex::checkReferenceObjective() {
+    if(!m_feasible){
+        if(m_referenceObjective > m_phaseIObjectiveValue){
+            LPWARNING("BAD ITERATION - PHASE I");
+            m_badIterations++;
+        } else if(m_referenceObjective == m_phaseIObjectiveValue){
+            LPWARNING("DEGENERATE - PHASE I");
+            m_degenerateIterations++;
+        }
+    } else {
+        if(m_referenceObjective > m_objectiveValue ){
+            LPWARNING("BAD ITERATION - PHASE II");
+            m_badIterations++;
+        } else if(m_referenceObjective == m_objectiveValue){
+            LPWARNING("DEGENERATE - PHASE II");
+            m_degenerateIterations++;
+        }
+    }
 }
 
 void DualSimplex::initWorkingTolerance() {

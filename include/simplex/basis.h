@@ -80,6 +80,8 @@ public:
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
     virtual void printTransformationStatistics() const = 0;
+
+    int getSingularityCount() {return m_singularityCounter;}
 protected:
     const SimplexModel& m_model;
 
@@ -138,6 +140,7 @@ protected:
 
     bool m_isFresh;
     unsigned int m_basisNonzeros, m_inverseNonzeros;
+    int m_singularityCounter;
     clock_t cl_inversion;
 
     void setNewHead();

@@ -52,6 +52,6 @@ const char* DefaultParameters::LOAD_FILENAME = "basis";
 const char* DefaultParameters::LOAD_FORMAT = "PBF";
 
 const bool DefaultParameters::ENABLE_EXPORT = false;
-const char* DefaultParameters::EXPORT_FILENAME = "exported_result";
+const char* DefaultParameters::EXPORT_FILENAME = "exported_result.txt";
 const int DefaultParameters::EXPORT_TYPE = 0;
 
