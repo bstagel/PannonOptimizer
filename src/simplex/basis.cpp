@@ -18,7 +18,8 @@ Basis::Basis(const SimplexModel& model,
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
-    m_basicVariableValues(basicVariableValues)
+    m_basicVariableValues(basicVariableValues),
+    m_singularityCounter(0)
 {
     m_isFresh = false;
 }
@@ -78,6 +79,7 @@ void Basis::checkSingularity() {
         }
     }
     if (singularity != 0) {
+        m_singularityCounter += singularity;
         LPWARNING("The given basis is singular, the measure of singularity is " << singularity);
     }
 }

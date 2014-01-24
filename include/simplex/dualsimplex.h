@@ -31,7 +31,6 @@ private:
 
     DualRatiotest * m_ratiotest;
 
-    bool m_feasible;
     int m_incomingIndex;
     int m_outgoingIndex;
     Numerical::Double m_primalReducedCost;
@@ -48,6 +47,9 @@ private:
     virtual void price();
     virtual void selectPivot();
     virtual void update();
+
+    virtual void setReferenceObjective();
+    virtual void checkReferenceObjective();
 
     virtual void initWorkingTolerance();
     virtual void computeWorkingTolerance();

@@ -35,7 +35,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_tPositive(false),
     m_transform(false),
     m_variableAge(model.getColumnCount() + model.getRowCount(),1),
-    m_ageStep(0),
+    m_ageStep(1),
     m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
@@ -867,6 +867,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             if((variable.getUpperBound() - variable.getLowerBound()) < Numerical::fabs(primalSteplength) ) {
                 m_boundflips.push_back(m_breakpoints[id].index);
 //                m_variableAge[m_breakpoints[id].index] = m_variableAge[m_breakpoints[id].index] + m_ageStep;
+//                LPINFO("Slope AGE incremented: ("<<m_breakpoints[id].index<<") : "<<m_variableAge[m_breakpoints[id].index]);
             } else{
                 m_transform = true;
             }
@@ -885,7 +886,8 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
                                                 const Vector &alpha,
                                                 const Numerical::Double primalSteplength)
 {
-    unsigned int length = m_breakpoints.size(), id, maxId = length-1-iterationCounter;
+    unsigned int length = m_breakpoints.size();
+    int id, maxId = length-1-iterationCounter;
     Numerical::Double maxValue;
 
     if(maxId == -1){
@@ -918,6 +920,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     if(variable.getType() == Variable::BOUNDED && (primalSteplength > (variable.getUpperBound() - variable.getLowerBound())) ){
         m_boundflips.push_back(m_breakpoints[maxId].index);
 //        m_variableAge[m_breakpoints[maxId].index] =  m_variableAge[m_breakpoints[maxId].index] + m_ageStep;
+//        LPINFO("Threshold AGE incremented: ("<<m_breakpoints[maxId].index<<") : "<<m_variableAge[m_breakpoints[maxId].index]);
         m_incomingVariableIndex = -1;
         if(thresholdReportLevel >= 1) {
             LPWARNING("Boundflip found");
@@ -1034,10 +1037,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             }
         }
 
-//        if(m_incomingVariableIndex != -1){
+        if(m_incomingVariableIndex != -1){
 //            m_variableAge[m_incomingVariableIndex] = m_variableAge[m_incomingVariableIndex] + m_ageStep;
 //            LPINFO("AGE incremented: ("<<m_incomingVariableIndex<<") : "<<m_variableAge[m_incomingVariableIndex]);
-//        }
+        }
 }
 
 
