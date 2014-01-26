@@ -39,7 +39,8 @@ ParameterHandler& LinalgParameterHandler::getInstance()
 void LinalgParameterHandler::writeParameterFile()
 {
     try {
-        std::ofstream out(m_filename);
+        std::ofstream out;
+        out.open(m_filename, std::ios::out | std::ios::binary);
 
         if (!out.is_open()) throw -1;
 

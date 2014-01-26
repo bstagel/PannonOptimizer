@@ -365,6 +365,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
+//    LPERROR(m_ratiotest->getBoundflips());
     for(; it < itend; it++){
 //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
@@ -454,18 +455,18 @@ void DualSimplex::setReferenceObjective() {
 void DualSimplex::checkReferenceObjective() {
     if(!m_feasible){
         if(m_referenceObjective > m_phaseIObjectiveValue){
-            LPWARNING("BAD ITERATION - PHASE I");
+//            LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
-            LPWARNING("DEGENERATE - PHASE I");
+//            LPWARNING("DEGENERATE - PHASE I");
             m_degenerateIterations++;
         }
     } else {
         if(m_referenceObjective > m_objectiveValue ){
-            LPWARNING("BAD ITERATION - PHASE II");
+//            LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
-            LPWARNING("DEGENERATE - PHASE II");
+//            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }
     }
@@ -475,10 +476,13 @@ void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
     m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
     if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3) {
+        m_workingTolerance = m_masterTolerance *
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) /
             SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
     } else {
         m_workingTolerance = m_masterTolerance;
+        m_toleranceStep = 0;
     }
 }
 

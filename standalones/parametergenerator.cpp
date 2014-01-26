@@ -14,8 +14,9 @@ static const std::string endpoint = "'http://mishra.lpds.sztaki.hu:9091'";
 static const std::string grid = "'edgidemo'";
 static const std::string tag = "'PanOptSolverTag'";
 static const std::string exeName = "NewPanOptSolver";
-static const std::string scriptName = "panopt_wsclient.sh";
+static const std::string scriptName = "panopt_wsclient";
 static const std::string filelist = "filelist.txt";
+static const std::string result = "result.txt";
 static const std::string exportResult = "export_result.txt";
 
 static bool error = false;
@@ -142,14 +143,54 @@ void generateParameters(std::vector<ParameterRange> & ranges, std::vector<Parame
     }
 }
 
-void generateGbacScript(std::string remoteDir) {
-    std::ofstream gbac_script(scriptName);
+void generateNewGbacScript(std::string remoteDir) {
+    std::ofstream gbac_script;
+    gbac_script.open(scriptName + "_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
+    gbac_script << "%Minimum 1" << "\n";
+    gbac_script << "%Maximum 100%" << "\n";
+    gbac_script << "\n";
+
+    int linalgCount = 0;
+    int simplexCount = 0;
+
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (".")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            std::string entry(ent->d_name);
+            if(entry.size()>=11 && entry.substr(0 , 11).compare("linalg.PAR_") == 0){
+                linalgCount++;
+            }
+            if(entry.size()>=12 && entry.substr(0 , 12).compare("simplex.PAR_") == 0){
+                simplexCount++;
+            }
+        }
+        closedir (dir);
+    } else {
+        std::cout << "Error opening the working directory.\n";
+    }
+
+    for(int linalgIndex=0; linalgIndex<linalgCount; linalgIndex++){
+        for(int simplexIndex=0; simplexIndex<simplexCount; simplexIndex++){
+            gbac_script << "Arguments='-fl " << filelist << " -o " << result << "'" << "\n";
+            gbac_script << "Input=" << filelist << "=http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/" << filelist << "\n";
+            gbac_script << "Input=linalg.PAR=http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/linalg.PAR_" << linalgIndex << "\n";
+            gbac_script << "Input=simplex.PAR=http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/simplex.PAR_" << simplexIndex << "\n";
+            gbac_script << "Queue \n";
+            gbac_script << "\n";
+        }
+    }
+}
+
+void generateOldGbacScript(std::string remoteDir) {
+    std::ofstream gbac_script;
+    gbac_script.open(scriptName + "_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
     gbac_script << "ENDPOINT=" << endpoint << std::endl;
     gbac_script << "GRID=" << grid << std::endl;
     gbac_script << "TAG=" << tag << std::endl;
     gbac_script << "EXENAME=" << exeName << std::endl;
     gbac_script << "FILELIST=" << filelist << std::endl;
-    gbac_script << "PATH='http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/'" << std::endl;
+    gbac_script << "REPO='http://opres.mik.uni-pannon.hu/gbac/" << remoteDir << "/'" << std::endl;
     gbac_script << std::endl;
 
     int linalgCount = 0;
@@ -181,10 +222,10 @@ void generateGbacScript(std::string remoteDir) {
             gbac_script << "\t -g \"$GRID\" \\" << std::endl;
             gbac_script << "\t -a \"-fl $FILELIST -o $OUTPUT_NAME\" \\" << std::endl;
             gbac_script << "\t -n gbac \\" << std::endl;
-            gbac_script << "\t -i $EXENAME.app.tgz=\"$PATH\"NewPanOptSolver.app.tgz \\" << std::endl;
-            gbac_script << "\t -i $FILELIST=\"$PATH\"$FILELIST \\" << std::endl;
-            gbac_script << "\t -i linalg.PAR=\"$PATH\"linalg.PAR_" << linalgIndex << " \\" << std::endl;
-            gbac_script << "\t -i simplex.PAR=\"$PATH\"simplex.PAR_" <<simplexIndex << " \\" << std::endl;
+            gbac_script << "\t -i $EXENAME.app.tgz=\"$REPO\"NewPanOptSolver.app.tgz \\" << std::endl;
+            gbac_script << "\t -i $FILELIST=\"$REPO\"$FILELIST \\" << std::endl;
+            gbac_script << "\t -i linalg.PAR=\"$REPO\"linalg.PAR_" << linalgIndex << " \\" << std::endl;
+            gbac_script << "\t -i simplex.PAR=\"$REPO\"simplex.PAR_" <<simplexIndex << " \\" << std::endl;
             gbac_script << "\t -t \"$TAG\" \\" << std::endl;
             gbac_script << "\t -o \"$OUTPUT_NAME\" \\" << std::endl;
             gbac_script << "\t -o " << exportResult << std::endl;
@@ -234,7 +275,7 @@ int main(int argc, char** argv) {
     std::vector<ParameterValue> values;
 
     bool generateScript = false;
-    std::string path;
+    std::string remoteDir;
 
     if(argc < 2){
         printHelp();
@@ -250,7 +291,7 @@ int main(int argc, char** argv) {
                     break;
                 } else {
                     generateScript = true;
-                    path = argv[i+1];
+                    remoteDir = argv[i+1];
                     i++;
                 }
             } else if(arg.compare("-f") == 0 || arg.compare("--file") == 0){
@@ -307,7 +348,7 @@ int main(int argc, char** argv) {
         generateParameters(ranges, values, handler);
         std::cout << "simplex.PAR files generated!\n";
     } else if(generateScript){
-        generateGbacScript(path);
+        generateNewGbacScript(remoteDir);
         std::cout << "GBAC script generated!\n";
     } else if(fileName.compare("") == 0){
         std::cout << "Please specify the name of the parameter file. Use `--help` for further information!\n";
