@@ -49,6 +49,7 @@ const static char * EXPORT_E_RELATIVE = "export_e_relative";
 const static char * EXPORT_E_FEASIBILITY = "export_e_feasibility";
 const static char * EXPORT_E_OPTIMALITY = "export_e_optimality";
 const static char * EXPORT_E_PIVOT = "export_e_pivot";
+const static char * EXPORT_PIVOT_THRESHOLD = "export_pivot_threshold";
 
 Simplex::Simplex():
     m_masterTolerance(0),
@@ -197,6 +198,9 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
             result.push_back(IterationReportField(EXPORT_E_PIVOT, 20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_PIVOT_THRESHOLD, 20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
     }
@@ -284,7 +288,9 @@ Entry Simplex::getIterationEntry(const string &name,
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
         } else if(name == EXPORT_E_PIVOT){
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
-    }
+        } else if(name == EXPORT_PIVOT_THRESHOLD){
+            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
+        }
         break;
 
     default:
@@ -575,6 +581,7 @@ void Simplex::solve() {
             catch ( const NumericalException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
+                    m_solveTimer.stop();
                     throw exception;
                 } else {
                     LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! (" << exception.getMessage() <<")");

@@ -35,7 +35,9 @@ ParameterHandler& SimplexParameterHandler::getInstance()
 
 void SimplexParameterHandler::writeParameterFile(){
     try {
-        std::ofstream out(m_filename);
+        std::ofstream out;
+        out.open(m_filename, std::ios::out | std::ios::binary);
+
         if (!out.is_open()) throw -1;
 
         out << "!!! Simplex parameter file for the Pannon Optimizer !!!" << std::endl;
