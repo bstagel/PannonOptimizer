@@ -10,7 +10,12 @@
 
 Timer::Timer():
     m_started(false),
-    m_startCount(0)
+    m_startCount(0),
+    m_clockStart(0),
+    m_clockEnd(0),
+    m_clockLastElapsed(0),
+    m_clockTotalElapsed(0),
+    m_clockAverageElapsed(0)
 {
 #ifdef WIN32
     QueryPerformanceFrequency(&m_frequency);
@@ -36,6 +41,7 @@ void Timer::start()
     m_started = true;
     m_startCount++;
 
+    m_clockStart = clock();
 #ifdef WIN32
     QueryPerformanceCounter(&m_start);
 #else
@@ -51,6 +57,11 @@ void Timer::stop()
     }
 
     m_started = false;
+
+    m_clockEnd = clock();
+    m_clockLastElapsed = m_clockEnd - m_clockStart;
+    m_clockTotalElapsed += m_clockLastElapsed;
+    m_clockAverageElapsed = m_clockTotalElapsed / m_startCount;
 
 #ifdef WIN32
     QueryPerformanceCounter(&m_end);
@@ -118,6 +129,31 @@ double Timer::getRunningTime() const
     unsigned long long int diffTime = endTime - startTime;
     return diffTime/1000000;
 #endif
+    } else {
+        return 0;
+    }
+}
+
+double Timer::getCPULastElapsed() const
+{
+    return m_clockLastElapsed / (double) CLOCKS_PER_SEC;
+}
+
+double Timer::getCPUTotalElapsed() const
+{
+    return m_clockTotalElapsed / (double) CLOCKS_PER_SEC;
+}
+
+double Timer::getCPUAverageElapsed() const
+{
+    return m_clockAverageElapsed / (double) CLOCKS_PER_SEC;
+}
+
+double Timer::getCPURunningTime() const
+{
+    if(m_started){
+        clock_t actual = clock();
+        return (actual-m_clockStart) / (double) CLOCKS_PER_SEC;
     } else {
         return 0;
     }

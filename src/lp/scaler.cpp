@@ -26,7 +26,7 @@ void Scaler::scale(Matrix *matrix, const char * name) {
     timer.stop();
 
     //    LPINFO("Variance: " << variance);
-    LPINFO("Time: " << timer.getLastElapsed());
+    LPINFO("Time: " << timer.getCPULastElapsed());
 }
 
 void Scaler::benichou(Matrix * matrix, const char *name) {
@@ -151,7 +151,7 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     LPINFO("Variance: " << variance);
 
     timer.stop();
-    /*ofs << timer.getLastElapsed() << ";" << variances.size() << ";";
+    /*ofs << timer.getCPULastElapsed() << ";" << variances.size() << ";";
     for (index = 0; index < variances.size(); index++) {
         ofs << variances[index] << ";";
     }
