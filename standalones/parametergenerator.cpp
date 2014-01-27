@@ -146,8 +146,8 @@ void generateParameters(std::vector<ParameterRange> & ranges, std::vector<Parame
 void generateNewGbacScript(std::string remoteDir) {
     std::ofstream gbac_script;
     gbac_script.open(scriptName + "_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
-    gbac_script << "%Minimum 1" << "\n";
-    gbac_script << "%Maximum 100%" << "\n";
+    gbac_script << "%Required 1" << "\n";
+    gbac_script << "%SuccessAt 100%" << "\n";
     gbac_script << "\n";
 
     int linalgCount = 0;

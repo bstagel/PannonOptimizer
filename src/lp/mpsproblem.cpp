@@ -609,7 +609,7 @@ const char * MpsModelBuilder::copyId(const char * ptr,
         /*  timer.stop();
         _counter++;
         if (_counter % 10000 == 0) {
-            LPINFO(timer.getTotalElapsed());
+            LPINFO(timer.getCPUTotalElapsed());
         }*/
 
 
@@ -640,7 +640,7 @@ const char * MpsModelBuilder::copyId(const char * ptr,
     timer.stop();
     _counter++;
     if (_counter % 10000 == 0) {
-        LPINFO(timer.getTotalElapsed());
+        LPINFO(timer.getCPUTotalElapsed());
     }
 
     dest = 0;
@@ -1508,7 +1508,7 @@ inline const char * MpsModelBuilder::readColumnRecord(const char * ptr,
         //timer.stop();
         /*_counter++;
         if (_counter % 10000 == 0) {
-            LPINFO( timer.getTotalElapsed() );
+            LPINFO( timer.getCPUTotalElapsed() );
         }*/
         //std::cin.get();
 
@@ -1573,7 +1573,7 @@ inline const char * MpsModelBuilder::readColumnRecord(const char * ptr,
         /*timer.stop();
         _counter++;
         if (_counter % 10000 == 0) {
-            LPINFO( timer.getTotalElapsed() );
+            LPINFO( timer.getCPUTotalElapsed() );
         }*/
         /*************************-
          * reading the number
@@ -1701,7 +1701,7 @@ inline const char * MpsModelBuilder::readColumnRecord(const char * ptr,
         /*timer.stop();
         _counter++;
         if (_counter % 10000 == 0) {
-            LPINFO( timer.getTotalElapsed() );
+            LPINFO( timer.getCPUTotalElapsed() );
         }*/
 
         /*************************-
@@ -1933,7 +1933,7 @@ inline const char * MpsModelBuilder::readBoundRecord(const char * ptr, ROW_INFO 
         /*timer.stop();
         _counter++;
         if (_counter % 10000 == 0) {
-            LPINFO( timer.getTotalElapsed() );
+            LPINFO( timer.getCPUTotalElapsed() );
         }*/
 
         int col_id;
