@@ -225,7 +225,7 @@ Entry Simplex::getIterationEntry(const string &name,
         if (name == ITERATION_INDEX_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == ITERATION_TIME_NAME) {
-            reply.m_double = m_solveTimer.getCPURunningTime()/1000000;
+            reply.m_double = m_solveTimer.getCPURunningTime();
         } else if (name == ITERATION_INVERSION_NAME) {
             if(m_freshBasis){
                 reply.m_string = new std::string("*I*");
@@ -239,23 +239,23 @@ Entry Simplex::getIterationEntry(const string &name,
         if (name == SOLUTION_ITERATION_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == SOLUTION_SOLVE_TIMER_NAME) {
-            reply.m_double = m_solveTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_solveTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_INVERSION_TIMER_NAME) {
-            reply.m_double = m_inversionTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_inversionTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME) {
-            reply.m_double = m_computeBasicSolutionTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_computeBasicSolutionTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME) {
-            reply.m_double = m_computeReducedCostsTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_computeReducedCostsTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME) {
-            reply.m_double = m_computeFeasibilityTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_computeFeasibilityTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_CHECK_FEASIBILITY_TIMER_NAME) {
-            reply.m_double = m_checkFeasibilityTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_checkFeasibilityTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_PRICE_TIMER_NAME) {
-            reply.m_double = m_priceTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_priceTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_SELECT_PIVOT_TIMER_NAME) {
-            reply.m_double = m_selectPivotTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_selectPivotTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_UPDATE_TIMER_NAME) {
-            reply.m_double = m_updateTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_updateTimer.getCPUTotalElapsed();
         }
         break;
 
@@ -265,7 +265,7 @@ Entry Simplex::getIterationEntry(const string &name,
         } else if(name == EXPORT_ITERATION){
             reply.m_integer = m_iterationIndex;
         } else if(name == EXPORT_TIME){
-            reply.m_double = m_solveTimer.getCPUTotalElapsed()/1000000;
+            reply.m_double = m_solveTimer.getCPUTotalElapsed();
         } else if(name == EXPORT_SOLUTION){
             reply.m_double = m_objectiveValue;
         } else if(name == EXPORT_FALLBACK){
@@ -455,7 +455,7 @@ void Simplex::solve() {
         initWorkingTolerance();
 
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()/1000000) < timeLimit; m_iterationIndex++) {
+             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
