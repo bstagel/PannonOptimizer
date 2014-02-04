@@ -53,7 +53,7 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     timer.start();
 
 
-   // matrix->show();
+    // matrix->show();
     unsigned int index;
     while (variance > 2 && stepCount < 5) {
         Numerical::Double absSum = 0;
@@ -70,10 +70,15 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
             m_rowMultipliers[index] *= rowMultipliers[index];
         }
         for (index = 0; index < columnCount; index++) {
+            if (matrix->column(index).nonZeros() == 0) {
+                columnMultipliers[index] = 1.0;
+                continue;
+            }
             matrix->scaleColumnAndGetResults(index, rowMultipliers,
                                              1,
                                              &squareTemp, &min, &max);
             columnMultipliers[index] = roundPowerOf2(1.0 / Numerical::sqrt(min * max));
+
         }
 
         for (index = 0; index < rowCount; index++) {
@@ -82,17 +87,22 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
 
         // columnwise
         for (index = 0; index < columnCount; index++) {
-             matrix->scaleColumnAndGetResults(index, rowMultipliers,
+            matrix->scaleColumnAndGetResults(index, rowMultipliers,
                                              columnMultipliers[index],
                                              &squareTemp, &min, &max);
-             m_columnMultipliers[index] *= columnMultipliers[index];
+            m_columnMultipliers[index] *= columnMultipliers[index];
         }
 
         for (index = 0; index < rowCount; index++) {
+            if (matrix->row(index).nonZeros() == 0) {
+                rowMultipliers[index] = 1.0;
+                continue;
+            }
             absSum += matrix->scaleRowAndGetResults(index, columnMultipliers,
                                                     1,
                                                     &squareTemp, &min, &max);
             squareSum += squareTemp;
+
             rowMultipliers[index] = roundPowerOf2(1.0 / Numerical::sqrt(min * max));
 
         }
@@ -106,12 +116,20 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     }
 
     for (index = 0; index < rowCount; index++) {
+        if (matrix->row(index).nonZeros() == 0) {
+            rowMultipliers[index] = 1.0;
+            continue;
+        }
         Numerical::Double multiplier = roundPowerOf2(1.0 / matrix->row(index).absMaxElement());
         rowMultipliers[index] = multiplier;
         matrix->scaleOnlyRowwise(index, multiplier);
         m_rowMultipliers[index] *= multiplier;
     }
     for (index = 0; index < columnCount; index++) {
+        if (matrix->column(index).nonZeros() == 0) {
+            columnMultipliers[index] = 1.0;
+            continue;
+        }
         matrix->scaleOnlyColumnwiseLambdas(index, rowMultipliers);
         Numerical::Double multiplier = roundPowerOf2(1.0 / matrix->column(index).absMaxElement());
         columnMultipliers[index] = multiplier;
@@ -157,7 +175,7 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     }
     ofs << std::endl;
     ofs.close();*/
-   // matrix->show();
+    // matrix->show();
 }
 
 Numerical::Double Scaler::getVarianceBenichou(Matrix * matrix,
@@ -173,6 +191,10 @@ Numerical::Double Scaler::getVarianceBenichou(Matrix * matrix,
     const unsigned int rowCount = matrix->rowCount();
 
     for (index = 0; index < rowCount; index++) {
+        if (matrix->row(index).nonZeros() == 0) {
+            (*rowMultpiliersPtr)[index] = 1.0;
+            continue;
+        }
         absSum += matrix->row(index).absMaxSumsAndMinMax(&squareTemp, &min, &max);
         (*rowMultpiliersPtr)[index] = roundPowerOf2(1.0 / Numerical::sqrt(min * max));
 
@@ -191,5 +213,6 @@ Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
     Numerical::Double result1 = temp.m_value;
     temp.m_bits += 0x0010000000000000ULL;
     Numerical::Double result2 = temp.m_value;
+    Numerical::Double result = value - result1 > result2 - value ? result2 : result1;
     return value - result1 > result2 - value ? result2 : result1;
 }

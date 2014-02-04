@@ -107,7 +107,9 @@ HEADERS += include/debug.h \
     include/simplex/checker.h \
     include/utils/doublehistory.h \
     include/utils/flags.h \
-    include/utils/refobject.h
+    include/utils/refobject.h \
+    include/utils/architecture.h \
+    include/utils/arch/x86.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -165,6 +167,7 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/nodefile.cpp \
     src/simplex/checker.cpp \
     src/utils/doublehistory.cpp \
-    src/utils/flags.cpp
+    src/utils/flags.cpp \
+    src/utils/arch/x86.cpp
 
 OBJECTS_DIR = .o
