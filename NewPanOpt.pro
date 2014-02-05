@@ -168,6 +168,7 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/checker.cpp \
     src/utils/doublehistory.cpp \
     src/utils/flags.cpp \
+    src/simplex/primalpricing.cpp \
+    src/simplex/primalpricingupdater.cpp \
     src/utils/arch/x86.cpp
-
 OBJECTS_DIR = .o

@@ -29,8 +29,6 @@ public:
 protected:
     const SimplexModel & m_model;
 
-    DualPricingUpdater * m_updater;
-
     Numerical::Double m_reducedCost;
 };
 

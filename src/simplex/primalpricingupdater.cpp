@@ -1,0 +1,25 @@
+/**
+ * @file primalpricingupdater.cpp
+ */
+
+#include <simplex/primalpricingupdater.h>
+
+PrimalPricingUpdater::PrimalPricingUpdater(const Vector &basicVariableValues,
+                                          IndexList<> * variableFeasibilities,
+                                          const IndexList<> & reducedCostFeasibilities,
+                                          const std::vector<int> & basisHead,
+                                          const SimplexModel &simplexModel,
+                                          const Basis & basis):
+    m_basicVariableValues(basicVariableValues),
+    m_variableFeasibilities(variableFeasibilities),
+    m_reducedCostFeasibilities(reducedCostFeasibilities),
+    m_basisHead(basisHead),
+    m_simplexModel(simplexModel),
+    m_basis(basis)
+{
+
+}
+
+PrimalPricingUpdater::~PrimalPricingUpdater() {
+
+}

@@ -6,6 +6,7 @@
 #define	DUALDANTZIGPRICING_H
 
 #include <globals.h>
+
 #include <simplex/dualpricing.h>
 #include <simplex/pricing/dualdantzigpricingupdater.h>
 #include <utils/exceptions.h>

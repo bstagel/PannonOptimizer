@@ -65,15 +65,15 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED));
 
-        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
-        result.push_back(IterationReportField (OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
-//        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+//        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
 //                                               IterationReportField::IRF_FLOAT, *this,
 //                                               10, IterationReportField::IRF_SCIENTIFIC));
 
@@ -84,7 +84,7 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_SOLUTION:
     {
-        result.push_back(IterationReportField (OBJ_VAL_STRING, 19, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
         break;
@@ -97,8 +97,7 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     return result;
 }
 
-Entry DualSimplex::getIterationEntry(const string &name,
-                                                         ITERATION_REPORT_FIELD_TYPE &type) const {
+Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE &type) const {
     Entry reply;
     reply.m_integer = 0;
 
@@ -180,10 +179,11 @@ void DualSimplex::initModules() {
                 *m_basis
                 );
     m_updater->setPricingUpdater( pricingUpdater );
-    m_pricing = pricingFactory->createDualPricing( *m_simplexModel,
-                                                   pricingUpdater,
-                                                   m_reducedCosts,
-                                                   m_basisHead);
+
+    m_pricing = pricingFactory->createDualPricing(*m_simplexModel,
+                                                  pricingUpdater,
+                                                  m_reducedCosts,
+                                                  m_basisHead);
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
                                                     &m_variableStates,
@@ -193,6 +193,7 @@ void DualSimplex::initModules() {
 
     DualRatiotestUpdater * ratiotestUpdater = new DualRatiotestUpdater(&m_reducedCostFeasibilities);
     m_updater->setRatiotestUpdater( ratiotestUpdater );
+
     m_ratiotest = new DualRatiotest(*m_simplexModel,
                                     m_reducedCosts,
                                     m_reducedCostFeasibilities,

@@ -23,7 +23,6 @@ public:
 protected:
     DualPricingUpdater * m_pricingUpdater;
     DualRatiotestUpdater * m_ratiotestUpdater;
-
 };
 
 #endif	/* DUALUPDATER_H */
