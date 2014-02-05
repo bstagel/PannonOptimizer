@@ -40,6 +40,8 @@ HEADERS += include/debug.h \
            include/lp/variable.h \
            include/lp/constraint.h \
            include/lp/mpsproblem.h \
+           include/lp/scaler.h \
+           include/lp/panoptstate.h \
            include/simplex/pricing/dualdantzigpricing.h \
            include/simplex/pricing/dualdantzigpricingfactory.h \
            include/simplex/pricing/dualdantzigpricingupdater.h \
@@ -64,7 +66,19 @@ HEADERS += include/debug.h \
            include/simplex/basis.h \
            include/simplex/pfibasis.h \
            include/simplex/startingbasisfinder.h \
+           include/simplex/dualfeasibilitychecker.h \
+           include/simplex/dualratiotest.h \
+           include/simplex/dualratiotestupdater.h \
+           include/simplex/primalratiotest.h \
+           include/simplex/primalfeasibilitychecker.h \
+           include/simplex/primalratiotestupdater.h \
+           include/simplex/basisheadpanopt.h \
+           include/simplex/checker.h \
+           include/simplex/basisheadio.h \
+           include/simplex/basisheadbas.h \
+           include/simplex/simplexstates.h \
            include/utils/thirdparty/prettyprint.h \
+           include/utils/arch/x86.h \
            include/utils/numerical.h \
            include/utils/elementproducer.h \
            include/utils/file.h \
@@ -76,40 +90,26 @@ HEADERS += include/debug.h \
            include/utils/timer.h \
            include/utils/parameterhandler.h \
            include/utils/outputhandler.h \
-           include/defaultparameters.h \
-           include/globals.h \
-           include/simplex/dualfeasibilitychecker.h \
-           include/simplex/dualratiotest.h \
-           include/simplex/dualratiotestupdater.h \
+           include/utils/doublehistory.h \
+           include/utils/flags.h \
+           include/utils/refobject.h \
+           include/utils/architecture.h \
            include/utils/memoryman.h \
-           include/simplex/primalratiotest.h \
-           include/simplex/primalfeasibilitychecker.h \
-           include/simplex/primalratiotestupdater.h \
            include/utils/colors.h \
            include/utils/platform.h \
-           include/simplex/basisheadio.h \
-           include/simplex/basisheadbas.h \
-           include/simplex/simplexstates.h \
            include/utils/hashtable.h \
-    include/utils/thread.h \
-    include/utils/iterationreport.h \
-    include/utils/iterationreportprovider.h \
-    include/utils/iterationreportfield.h \
-    include/utils/entry.h \
-    include/lp/scaler.h \
-    include/utils/sha1.h \
-    include/lp/panoptstate.h \
-    include/simplex/basisheadpanopt.h \
-    include/utils/datetime.h \
-    include/utils/system.h \
-    include/utils/tokenizer.h \
-    include/utils/nodefile.h \
-    include/simplex/checker.h \
-    include/utils/doublehistory.h \
-    include/utils/flags.h \
-    include/utils/refobject.h \
-    include/utils/architecture.h \
-    include/utils/arch/x86.h
+           include/utils/thread.h \
+           include/utils/iterationreport.h \
+           include/utils/iterationreportprovider.h \
+           include/utils/iterationreportfield.h \
+           include/utils/entry.h \
+           include/utils/sha1.h \
+           include/utils/datetime.h \
+           include/utils/system.h \
+           include/utils/tokenizer.h \
+           include/utils/nodefile.h \
+           include/defaultparameters.h \
+           include/globals.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -120,6 +120,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/variable.cpp \
            src/lp/constraint.cpp \
            src/lp/mpsproblem.cpp \
+           src/lp/scaler.cpp \
            src/simplex/pricing/dualdantzigpricing.cpp \
            src/simplex/pricing/dualdantzigpricingfactory.cpp \
            src/simplex/pricing/dualdantzigpricingupdater.cpp \
@@ -138,37 +139,37 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/basis.cpp \
            src/simplex/pfibasis.cpp \
            src/simplex/startingbasisfinder.cpp \
+           src/simplex/dualfeasibilitychecker.cpp \
+           src/simplex/dualratiotest.cpp \
+           src/simplex/dualratiotestupdater.cpp \
+           src/simplex/dualpricing.cpp \
+           src/simplex/dualpricingupdater.cpp \
+           src/simplex/primalratiotest.cpp \
+           src/simplex/primalfeasibilitychecker.cpp \
+           src/simplex/primalratiotestupdater.cpp \
+           src/simplex/basisheadbas.cpp \
+           src/simplex/basisheadpanopt.cpp \
+           src/simplex/checker.cpp \
+           src/simplex/primalpricing.cpp \
+           src/simplex/primalpricingupdater.cpp \
+           src/utils/arch/x86.cpp \
            src/utils/file.cpp \
            src/utils/numerical.cpp \
            src/utils/timer.cpp \
            src/utils/parameterhandler.cpp \
            src/utils/outputhandler.cpp \
+           src/utils/memoryman.cpp \
+           src/utils/hashtable.cpp \
+           src/utils/iterationreport.cpp \
+           src/utils/sha1.cpp \
+           src/utils/datetime.cpp \
+           src/utils/system.cpp \
+           src/utils/tokenizer.cpp \
+           src/utils/nodefile.cpp \
+           src/utils/doublehistory.cpp \
+           src/utils/flags.cpp \
            src/debug.cpp \
            src/defaultparameters.cpp \
-           src/simplex/dualfeasibilitychecker.cpp \
-    	   src/simplex/dualratiotest.cpp \
-    	   src/simplex/dualratiotestupdater.cpp \
-           src/simplex/dualpricing.cpp \
-           src/simplex/dualpricingupdater.cpp \
-           src/utils/memoryman.cpp \
-           src/simplex/primalratiotest.cpp \
-           src/simplex/primalfeasibilitychecker.cpp \
-           src/simplex/primalratiotestupdater.cpp \
-           src/globals.cpp \
-           src/simplex/basisheadbas.cpp \
-           src/utils/hashtable.cpp \
-    src/utils/iterationreport.cpp \
-    src/lp/scaler.cpp \
-    src/utils/sha1.cpp \
-    src/simplex/basisheadpanopt.cpp \
-    src/utils/datetime.cpp \
-    src/utils/system.cpp \
-    src/utils/tokenizer.cpp \
-    src/utils/nodefile.cpp \
-    src/simplex/checker.cpp \
-    src/utils/doublehistory.cpp \
-    src/utils/flags.cpp \
-    src/simplex/primalpricing.cpp \
-    src/simplex/primalpricingupdater.cpp \
-    src/utils/arch/x86.cpp
+           src/globals.cpp
+
 OBJECTS_DIR = .o

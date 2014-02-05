@@ -1,5 +1,7 @@
 #include <utils/arch/x86.h>
-#include <sys/sysinfo.h>
+#ifdef UNIX
+    #include <sys/sysinfo.h>
+#endif
 #include <cstring>
 
 ArchitectureX86::ArchitectureX86() {

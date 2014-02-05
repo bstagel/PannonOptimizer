@@ -15,11 +15,10 @@ PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
     copy(orig);
 }
 
-//TODO: Az X_B is kell majd meg
 PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
                                            PrimalPricingUpdater * updater,
                                            const std::vector<int> & basisHead):
-    PrimalPricing(model, updater),
+    PrimalPricing(model),
     m_updater(dynamic_cast<PrimalDantzigPricingUpdater *>(updater)),
     m_basisHead(basisHead)
 {
@@ -36,6 +35,26 @@ void PrimalDantzigPricing::copy(const PrimalDantzigPricing &orig)
 }
 
 void PrimalDantzigPricing::release()
+{
+
+}
+
+int PrimalDantzigPricing::performPricingPhase1()
+{
+
+}
+
+int PrimalDantzigPricing::performPricingPhase2()
+{
+
+}
+
+void PrimalDantzigPricing::releaseUsed()
+{
+
+}
+
+void PrimalDantzigPricing::lockLastIndex()
 {
 
 }

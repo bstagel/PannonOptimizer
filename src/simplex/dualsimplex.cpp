@@ -182,7 +182,6 @@ void DualSimplex::initModules() {
 
     m_pricing = pricingFactory->createDualPricing(*m_simplexModel,
                                                   pricingUpdater,
-                                                  m_reducedCosts,
                                                   m_basisHead);
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
