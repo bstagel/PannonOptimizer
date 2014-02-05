@@ -25,7 +25,6 @@ public:
 
     DualPricing * createDualPricing(const SimplexModel & model,
                                     DualPricingUpdater * updater,
-                                    const Vector& reducedCosts,
                                     const std::vector<int>& basisHead) const;
 private:
 
