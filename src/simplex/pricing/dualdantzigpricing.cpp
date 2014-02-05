@@ -12,7 +12,7 @@ static const Numerical::Double feasibilityTolerance =
 DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
                                        DualPricingUpdater * updater,
                                        const std::vector<int> & basisHead):
-    DualPricing(model, updater),
+    DualPricing(model),
     m_updater(dynamic_cast<DualDantzigPricingUpdater *>(updater)),
     m_basisHead(basisHead)
 {

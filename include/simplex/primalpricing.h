@@ -12,8 +12,7 @@ class SimplexModel;
 
 class PrimalPricing {
 public:
-    PrimalPricing(const SimplexModel & model,
-                PrimalPricingUpdater * updater);
+    PrimalPricing(const SimplexModel & model);
 
     virtual ~PrimalPricing();
 

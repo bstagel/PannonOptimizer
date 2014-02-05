@@ -214,5 +214,5 @@ Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
     temp.m_bits += 0x0010000000000000ULL;
     Numerical::Double result2 = temp.m_value;
     Numerical::Double result = value - result1 > result2 - value ? result2 : result1;
-    return value - result1 > result2 - value ? result2 : result1;
+    return result;
 }

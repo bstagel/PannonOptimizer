@@ -12,8 +12,7 @@ class SimplexModel;
 
 class DualPricing {
 public:
-    DualPricing(const SimplexModel & model,
-                DualPricingUpdater * updater);
+    DualPricing(const SimplexModel & model);
 
     virtual ~DualPricing();
 
