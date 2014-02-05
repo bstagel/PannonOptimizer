@@ -11,11 +11,9 @@ static const Numerical::Double feasibilityTolerance =
 
 DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
                                        DualPricingUpdater * updater,
-                                       const Vector & reducedCosts,
                                        const std::vector<int> & basisHead):
     DualPricing(model, updater),
     m_updater(dynamic_cast<DualDantzigPricingUpdater *>(updater)),
-    m_reducedCosts(reducedCosts),
     m_basisHead(basisHead)
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_updater->m_simplexModel.getRowCount() ];
@@ -25,7 +23,6 @@ DualDantzigPricing::DualDantzigPricing(const SimplexModel & model,
 DualDantzigPricing::DualDantzigPricing(const DualDantzigPricing& orig):
     DualPricing(orig),
     m_updater(orig.m_updater),
-    m_reducedCosts(orig.m_reducedCosts),
     m_basisHead(orig.m_basisHead)
 {
     copy(orig);

@@ -17,7 +17,6 @@ class DualDantzigPricing: public DualPricing
 public:
     DualDantzigPricing(const SimplexModel & model,
                        DualPricingUpdater * updater,
-                       const Vector& reducedCosts,
                        const std::vector<int> & basisHead);
     DualDantzigPricing(const DualDantzigPricing& orig);
     virtual ~DualDantzigPricing();
@@ -31,7 +30,6 @@ private:
 
     DualDantzigPricingUpdater * m_updater;
 
-    const Vector & m_reducedCosts;
     const std::vector<int> & m_basisHead;
     Numerical::Double * m_phase1ReducedCosts;
 
