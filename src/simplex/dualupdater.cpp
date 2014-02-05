@@ -27,7 +27,7 @@ void DualUpdater::setPricingUpdater(DualPricingUpdater * pricingUpdater) {
 }
 
 void DualUpdater::setRatiotestUpdater(DualRatiotestUpdater *ratiotestUpdater){
-    m_ratiotestUpdater=ratiotestUpdater;
+    m_ratiotestUpdater = ratiotestUpdater;
 }
 
 void DualUpdater::update(int phase) {

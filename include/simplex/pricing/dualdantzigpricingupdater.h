@@ -34,10 +34,7 @@ private:
 
     Numerical::Double m_phase2ReducedCost;
 
-    void clearPhase1ReducedCosts();
-
     std::vector<char> m_used;
-
 
 };
 

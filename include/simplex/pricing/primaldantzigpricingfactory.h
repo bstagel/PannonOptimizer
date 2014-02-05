@@ -16,8 +16,16 @@ public:
     PrimalDantzigPricingFactory(const PrimalDantzigPricingFactory& orig);
     virtual ~PrimalDantzigPricingFactory();
 
-    PrimalPricingUpdater * createPrimalPricingUpdater() const;
-    PrimalPricing * createPrimalPricing() const;
+    PrimalPricingUpdater * createPrimalPricingUpdater(const Vector &basicVariableValues,
+                                                      IndexList<> * variableFeasibilities,
+                                                      const IndexList<> & reducedCostFeasibilities,
+                                                      const std::vector<int> & basisHead,
+                                                      const SimplexModel & simplexModel,
+                                                      const Basis & basis) const;
+
+    PrimalPricing * createPrimalPricing(const SimplexModel & model,
+                                        PrimalPricingUpdater * updater,
+                                        const std::vector<int>& basisHead) const;
 private:
 
 };
