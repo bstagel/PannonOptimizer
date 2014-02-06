@@ -17,7 +17,8 @@ class PrimalDantzigPricing: public PrimalPricing
 public:
     PrimalDantzigPricing(const SimplexModel & model,
                          PrimalPricingUpdater * updater,
-                         const std::vector<int> & basisHead);
+                         const std::vector<int> & basisHead,
+                         const Vector & reducedCosts);
     PrimalDantzigPricing(const PrimalDantzigPricing& orig);
     virtual ~PrimalDantzigPricing();
 
@@ -47,7 +48,6 @@ private:
     void release();
 
     void initPhase1();
-    void initPhase2();
 
 };
 

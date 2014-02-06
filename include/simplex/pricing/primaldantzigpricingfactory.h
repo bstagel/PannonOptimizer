@@ -26,7 +26,8 @@ public:
 
     PrimalPricing * createPrimalPricing(const SimplexModel & model,
                                         PrimalPricingUpdater * updater,
-                                        const std::vector<int>& basisHead) const;
+                                        const std::vector<int>& basisHead,
+                                        const Vector & reducedCosts) const;
 private:
 
 };

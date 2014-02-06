@@ -12,7 +12,8 @@ class SimplexModel;
 
 class PrimalPricing {
 public:
-    PrimalPricing(const SimplexModel & model);
+    PrimalPricing(const SimplexModel & model,
+                  const Vector & reducedCosts);
 
     virtual ~PrimalPricing();
 
@@ -29,6 +30,8 @@ protected:
     const SimplexModel & m_model;
 
     Numerical::Double m_reducedCost;
+
+    const Vector & m_reducedCosts;
 };
 
 

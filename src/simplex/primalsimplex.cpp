@@ -160,7 +160,8 @@ void PrimalSimplex::initModules() {
 
     m_pricing = pricingFactory->createPrimalPricing(*m_simplexModel,
                                                     pricingUpdater,
-                                                    m_basisHead);
+                                                    m_basisHead,
+                                                    m_reducedCosts);
 
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
