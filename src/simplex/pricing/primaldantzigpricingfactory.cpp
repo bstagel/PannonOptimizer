@@ -20,13 +20,13 @@ PrimalDantzigPricingFactory::~PrimalDantzigPricingFactory()
 }
 
 PrimalPricingUpdater * PrimalDantzigPricingFactory::createPrimalPricingUpdater(const Vector & basicVariableValues,
-                                                                               IndexList<> * variableFeasibilities,
-                                                                               const IndexList<> &reducedCostFeasibilities,
+                                                                               const IndexList<> & basicVariableFeasibilities,
+                                                                               IndexList<> *reducedCostFeasibilities,
                                                                                const std::vector<int> &basisHead,
                                                                                const SimplexModel &simplexModel,
                                                                                const Basis &basis) const
 {
-    return new PrimalDantzigPricingUpdater(basicVariableValues, variableFeasibilities,
+    return new PrimalDantzigPricingUpdater(basicVariableValues, basicVariableFeasibilities,
                                            reducedCostFeasibilities, basisHead, simplexModel,
                                            basis);
 }

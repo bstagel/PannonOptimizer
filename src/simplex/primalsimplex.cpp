@@ -149,8 +149,8 @@ void PrimalSimplex::initModules() {
 
     PrimalPricingUpdater * pricingUpdater = pricingFactory->createPrimalPricingUpdater(
                 m_basicVariableValues,
-                &m_variableFeasibilities,
-                m_reducedCostFeasibilities,
+                m_basicVariableFeasibilities,
+                &m_reducedCostFeasibilities,
                 m_basisHead,
                 *m_simplexModel,
                 *m_basis
@@ -163,7 +163,7 @@ void PrimalSimplex::initModules() {
 
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
-                                                        &m_variableFeasibilities,
+                                                        &m_basicVariableFeasibilities,
                                                         &m_phaseIObjectiveValue);
 
     PrimalRatiotestUpdater * ratiotestUpdater = new PrimalRatiotestUpdater(&m_reducedCostFeasibilities);
@@ -173,7 +173,7 @@ void PrimalSimplex::initModules() {
     m_ratiotest = new PrimalRatiotest(*m_simplexModel,
                                       m_basicVariableValues,
                                       m_basisHead,
-                                      m_variableFeasibilities,
+                                      m_basicVariableFeasibilities,
                                       m_variableStates,
                                       m_reducedCosts);
 

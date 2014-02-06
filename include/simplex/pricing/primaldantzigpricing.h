@@ -32,6 +32,12 @@ private:
 
     const std::vector<int> & m_basisHead;
 
+    std::vector<Numerical::Double> m_negativeSums;
+
+    std::vector<Numerical::Double> m_positiveSums;
+
+    std::vector<Numerical::Double> m_phase1ReducedCosts;
+
     void copy(const PrimalDantzigPricing & orig);
 
     void release();

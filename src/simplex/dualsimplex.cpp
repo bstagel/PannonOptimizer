@@ -172,7 +172,7 @@ void DualSimplex::initModules() {
 
     DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater(
                 m_basicVariableValues,
-                &m_variableFeasibilities,
+                &m_basicVariableFeasibilities,
                 m_reducedCostFeasibilities,
                 m_basisHead,
                 *m_simplexModel,

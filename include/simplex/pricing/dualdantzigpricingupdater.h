@@ -16,7 +16,7 @@ class DualDantzigPricingUpdater: public DualPricingUpdater
     friend class DualDantzigPricing;
 public:
     DualDantzigPricingUpdater(const Vector &basicVariableValues,
-                              IndexList<> * variableFeasibilities,
+                              IndexList<> * basicVariableFeasibilities,
                               const IndexList<> & reducedCostFeasibilities,
                               const std::vector<int> & basisHead,
                               const SimplexModel & simplexModel,

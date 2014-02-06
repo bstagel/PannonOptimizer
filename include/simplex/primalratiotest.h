@@ -28,7 +28,7 @@ public:
     PrimalRatiotest(const SimplexModel& model,
                     const Vector& basicVariableValues,
                     const std::vector<int>& basishead,
-                    const IndexList<>& variableFeasibilities,
+                    const IndexList<>& basicVariableFeasibilities,
                     const IndexList<const Numerical::Double*>& variableStates,
                     const Vector& reducedcosts
                     //PrimalRatiotestUpdater& primalRatiotestUpdater
@@ -57,7 +57,7 @@ private:
     const SimplexModel& m_model;
     const Vector& m_basicVariableValues;
     const std::vector<int>& m_basishead;
-    const IndexList<>& m_variableFeasibilities;
+    const IndexList<>& m_basicVariableFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
     const Vector& m_reducedcosts;
 

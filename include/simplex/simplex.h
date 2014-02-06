@@ -86,7 +86,7 @@ protected:
     std::vector<int> m_basisHead;
     //Template parameter holds the value of the variable
     IndexList<const Numerical::Double*> m_variableStates;
-    IndexList<> m_variableFeasibilities;
+    IndexList<> m_basicVariableFeasibilities;
     IndexList<> m_reducedCostFeasibilities;
     Vector m_basicVariableValues;
     Vector m_reducedCosts;
