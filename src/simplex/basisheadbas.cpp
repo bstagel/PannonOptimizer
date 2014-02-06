@@ -118,7 +118,7 @@ void BasisHeadBAS::getNamedVariable(const char * name, VariableIndex * index) {
 
 void BasisHeadBAS::insertVariable(Simplex::VARIABLE_STATE state,
                                   const VariableIndex *variableIndex,
-                                  const Numerical::Double * attached = 0) {
+                                  const Numerical::Double * attached ) {
     if (state == Simplex::BASIC) {
         m_variableStatesPtr->insert( state, variableIndex->m_index );
         return;
@@ -186,7 +186,7 @@ void BasisHeadBAS::finishReading() {
                             //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
                             //                        &ptr->m_variable->getLowerBound() );
                         } else {
-                            insertVariable( Simplex::NONBASIC_AT_UB, ptr->,
+                            insertVariable( Simplex::NONBASIC_AT_UB, ptr,
                                             &ptr->m_variable->getUpperBound() );
                             //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
                             //                        &ptr->m_variable->getUpperBound() );

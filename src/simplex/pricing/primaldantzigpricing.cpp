@@ -25,6 +25,7 @@ PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
     m_negativeSums.resize( model.getColumnCount() + model.getRowCount(), 0.0 );
     m_positiveSums.resize( model.getColumnCount() + model.getRowCount(), 0.0 );
     m_phase1ReducedCosts.reserve( model.getColumnCount() + model.getRowCount() );
+    m_reducedCost = 0.0;
 }
 PrimalDantzigPricing::~PrimalDantzigPricing()
 {
@@ -99,7 +100,61 @@ void PrimalDantzigPricing::initPhase1() {
 int PrimalDantzigPricing::performPricingPhase1()
 {
     initPhase1();
+    int maxIndex = -1;
+    int minIndex = -1;
+    m_reducedCost = 0.0;
+    m_incomingIndex = -1;
+    Numerical::Double maxReducedCost = 0.0;
+    Numerical::Double minReducedCost = 0.0;
+    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
+            minIndex = variableIndex;
+            minReducedCost = m_phase1ReducedCosts[variableIndex];
+        }
+    }
+
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
+            maxIndex = variableIndex;
+            maxReducedCost = m_phase1ReducedCosts[variableIndex];
+        }
+    }
+
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
+            minIndex = variableIndex;
+            minReducedCost = m_phase1ReducedCosts[variableIndex];
+        } else if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
+            maxIndex = variableIndex;
+            maxReducedCost = m_phase1ReducedCosts[variableIndex];
+        }
+    }
+    if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
+        m_reducedCost = minReducedCost;
+        m_incomingIndex = minIndex;
+        return minIndex;
+    }
+    m_reducedCost = maxReducedCost;
+    m_incomingIndex = maxIndex;
+    return maxIndex;
 }
 
 int PrimalDantzigPricing::performPricingPhase2()
@@ -107,12 +162,18 @@ int PrimalDantzigPricing::performPricingPhase2()
 
 }
 
-void PrimalDantzigPricing::releaseUsed()
-{
-
+void PrimalDantzigPricing::releaseUsed() {
+    unsigned int size = m_updater->m_used.size();
+    m_updater->m_used.clear();
+    m_updater->m_used.resize( size, false );
 }
 
-void PrimalDantzigPricing::lockLastIndex()
-{
-
+void PrimalDantzigPricing::lockLastIndex() {
+    if (m_incomingIndex != -1) {
+        m_updater->m_used[m_incomingIndex] = true;
+    } else {
+        // TODO: kell ez ide egyaltalan?
+        throw NumericalException("Invalid column lock index!");
+    }
 }
+
