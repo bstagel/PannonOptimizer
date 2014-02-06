@@ -6,6 +6,8 @@
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/simplex.h>
 
+static const Numerical::Double feasibilityTolerance =
+        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
 PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
     PrimalPricing(orig),
@@ -104,8 +106,8 @@ int PrimalDantzigPricing::performPricingPhase1()
     int minIndex = -1;
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
-    Numerical::Double maxReducedCost = 0.0;
-    Numerical::Double minReducedCost = 0.0;
+    Numerical::Double maxReducedCost = feasibilityTolerance;
+    Numerical::Double minReducedCost = -feasibilityTolerance;
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
@@ -157,8 +159,13 @@ int PrimalDantzigPricing::performPricingPhase1()
     return maxIndex;
 }
 
+void PrimalDantzigPricing::initPhase2() {
+
+}
+
 int PrimalDantzigPricing::performPricingPhase2()
 {
+    initPhase2();
 
 }
 
