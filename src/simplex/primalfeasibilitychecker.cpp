@@ -33,7 +33,8 @@ bool PrimalFeasibilityChecker::checkFeasibility(const IndexList<>& basicVariable
     return false;
 }
 
-void PrimalFeasibilityChecker::computeFeasibilities(){
+void PrimalFeasibilityChecker::computeFeasibilities()
+{
     //this function determines M/F/P sets, phaseI objective value
 
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);

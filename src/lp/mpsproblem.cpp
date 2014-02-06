@@ -1015,16 +1015,20 @@ void MpsModelBuilder::missingRhsSection()
 
 void MpsModelBuilder::missingRangesSection()
 {
+#ifndef NDEBUG
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<RANGES_MISSING > (m_line, m_section,
                                                   "missing RANGES section", MpsErrorData::MPS_WARNING).getData());
+#endif
 }
 
 void MpsModelBuilder::missingBoundsSection()
 {
+#ifndef NDEBUG
     LPERROR(__FUNCTION__);
     m_errors.push_back(MpsError<BOUNDS_MISSING > (m_line, m_section,
                                                   "missing BOUNDS section", MpsErrorData::MPS_WARNING).getData());
+#endif
 }
 
 void MpsModelBuilder::missingEndataSection()

@@ -29,16 +29,13 @@ public:
                     const Vector& basicVariableValues,
                     const std::vector<int>& basishead,
                     const IndexList<>& basicVariableFeasibilities,
-                    const IndexList<const Numerical::Double*>& variableStates,
-                    const Vector& reducedcosts
+                    const IndexList<const Numerical::Double*>& variableStates
                     //PrimalRatiotestUpdater& primalRatiotestUpdater
                     );
 
     inline unsigned int getOutgoingVariableIndex()const{return m_outgoingVariableIndex;}
 
     inline Numerical::Double getPrimalSteplength()const{return m_primalSteplength;}
-
-    inline Numerical::Double getDualSteplength()const{return m_dualSteplength;}
 
     inline Numerical::Double getPhaseIObjectiveValue()const{return m_phaseIObjectiveValue;}
 
@@ -59,18 +56,24 @@ private:
     const std::vector<int>& m_basishead;
     const IndexList<>& m_basicVariableFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
-    const Vector& m_reducedcosts;
 
     //PrimalRatiotestUpdater& m_primalRatiotestUpdater;
     unsigned int m_outgoingVariableIndex;
-    Numerical::Double m_dualSteplength; //TODO: hogy számolod?
     Numerical::Double m_primalSteplength;
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
+    std::vector <BreakPoint> m_breakpoints;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
+    void generateBreakpointsPhase1(const Vector& alpha,
+                                   int incomingVariableIndex,
+                                   Numerical::Double phaseIReducedCost);
+    void computeFunctionPhase1(const Vector& alpha,
+                               Numerical::Double functionSlope);
+    void generateBreakpointsPhase2(const Vector& alpha,
+                                   int incomingVariableIndex);
 };
 
 #endif // PRIMALRATIOTEST_H

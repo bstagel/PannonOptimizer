@@ -517,8 +517,9 @@ void Simplex::solve() {
 //                }
                 m_updateTimer.stop();
 
+#ifndef NDEBUG
                 checkReferenceObjective();
-
+#endif
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
                     m_iterationReport.writeIterationReport();
@@ -584,7 +585,9 @@ void Simplex::solve() {
                     m_solveTimer.stop();
                     throw exception;
                 } else {
+#ifndef NDEBUG
                     LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! (" << exception.getMessage() <<")");
+#endif
                     m_triggeredReinversion++;
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
@@ -787,6 +790,7 @@ void Simplex::computeReducedCosts() {
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
+//        if (Numerical::fabs(reducedCost) < 1e-5 && Numerical::fabs(reducedCost) != 0 ) LPINFO("d_"<<i<<" "<<reducedCost);
     }
 
 //    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());

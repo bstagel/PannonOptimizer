@@ -46,14 +46,10 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     m_phaseIObjectiveValue = 0;
 
     Variable::VARIABLE_TYPE typeOfIthVariable;
-//    OBJECTIVE_TYPE objectiveType = m_model.getObjectiveType();
 
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         if (m_variableStates->where(variableIndex) != Simplex::BASIC) {
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
-
-    //min problem only
-//            if(objectiveType == MINIMIZE) {
 
     //nonbasic variables with M type infeasibility
                 if (Numerical::lessthan(m_reducedCosts.at(variableIndex), 0,tolerance) &&
