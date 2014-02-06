@@ -20,13 +20,13 @@ DualDantzigPricingFactory::~DualDantzigPricingFactory()
 }
 
 DualPricingUpdater * DualDantzigPricingFactory::createDualPricingUpdater(const Vector & basicVariableValues,
-                                                                         IndexList<> * variableFeasibilities,
+                                                                         IndexList<> * basicVariableFeasibilities,
                                                                          const IndexList<> &reducedCostFeasibilities,
                                                                          const std::vector<int> &basisHead,
                                                                          const SimplexModel &simplexModel,
                                                                          const Basis &basis) const
 {
-    return new DualDantzigPricingUpdater(basicVariableValues, variableFeasibilities,
+    return new DualDantzigPricingUpdater(basicVariableValues, basicVariableFeasibilities,
                                          reducedCostFeasibilities, basisHead, simplexModel,
                                          basis);
 }

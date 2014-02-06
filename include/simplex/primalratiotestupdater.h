@@ -14,11 +14,11 @@ class PrimalRatiotestUpdater{
     friend class PrimalRatiotest;
 
 public:
-    PrimalRatiotestUpdater(IndexList<>* variableFeasibilities);
+    PrimalRatiotestUpdater(IndexList<>* basicVariableFeasibilities);
     void updateFeasibilities();
 
 private:
-    IndexList<> * m_variableFeasibilities;
+    IndexList<> * m_basicVariableFeasibilities;
 
     std::vector<int> m_updateVector;
 };

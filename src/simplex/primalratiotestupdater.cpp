@@ -1,7 +1,7 @@
 #include <simplex/primalratiotestupdater.h>
 
-PrimalRatiotestUpdater::PrimalRatiotestUpdater(IndexList<>* variableFeasibilities):
-    m_variableFeasibilities(variableFeasibilities)
+PrimalRatiotestUpdater::PrimalRatiotestUpdater(IndexList<>* basicVariableFeasibilities):
+    m_basicVariableFeasibilities(basicVariableFeasibilities)
 {
 
 }

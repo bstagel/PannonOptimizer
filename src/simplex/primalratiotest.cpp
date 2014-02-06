@@ -46,7 +46,7 @@ void PrimalRatiotest::getNextElement(std::vector<BreakPoint>* breakpoints, unsig
 PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
                                  const Vector& basicVariableValues,
                                  const std::vector<int>& basishead,
-                                 const IndexList<>& variableFeasibilities,
+                                 const IndexList<>& basicVariableFeasibilities,
                                  const IndexList<const Numerical::Double *>& variableStates,
                                  const Vector& reducedcosts
                                  //PrimalRatiotestUpdater& primalRatiotestUpdater
@@ -54,7 +54,7 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_model(model),
     m_basicVariableValues(basicVariableValues),
     m_basishead(basishead),
-    m_variableFeasibilities(variableFeasibilities),
+    m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_variableStates(variableStates),
     m_reducedcosts(reducedcosts),
     m_outgoingVariableIndex(-1),
@@ -113,7 +113,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
     //computing ratios in M
 
-        m_variableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
+        m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
         for (; it != endit; it++) {
             basisIndex = it.getData();
             variableIndex = m_basishead.at(basisIndex);
@@ -133,7 +133,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
     //computing ratios in P
 
-        m_variableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
+        m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
         for (; it != endit; it++) {
             basisIndex = it.getData();
             variableIndex = m_basishead.at(basisIndex);
@@ -153,7 +153,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
     //computing ratios in F
 
-        m_variableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
+        m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
         for (; it != endit; it++) {
             basisIndex = it.getData();
             variableIndex = m_basishead.at(basisIndex);
@@ -180,7 +180,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
         //computing ratios in M
 
-            m_variableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
+            m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
                 variableIndex = m_basishead.at(basisIndex);
@@ -200,7 +200,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
         //computing ratios in P
 
-            m_variableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
+            m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
                 variableIndex = m_basishead.at(basisIndex);
@@ -220,7 +220,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
         //computing ratios in F
 
-            m_variableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
+            m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
                 variableIndex = m_basishead.at(basisIndex);
@@ -333,7 +333,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
 
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
-    m_variableFeasibilities.getIterators(&it,&endit,Simplex::BASIC);
+    m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::BASIC);
 
 
 //determining t<=0 ot t>=0 cases

@@ -18,8 +18,8 @@ public:
     virtual ~PrimalPricingFactory(){}
 
     virtual PrimalPricingUpdater * createPrimalPricingUpdater(const Vector &basicVariableValues,
-                                                              IndexList<> * variableFeasibilities,
-                                                              const IndexList<> & reducedCostFeasibilities,
+                                                              const IndexList<> & basicVariableFeasibilities,
+                                                              IndexList<> * reducedCostFeasibilities,
                                                               const std::vector<int> & basisHead,
                                                               const SimplexModel & simplexModel,
                                                               const Basis & basis) const = 0;

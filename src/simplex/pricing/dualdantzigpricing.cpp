@@ -115,20 +115,20 @@ void DualDantzigPricing::initPhase1() {
 
 void DualDantzigPricing::initPhase2() {
 
-    m_updater->m_variableFeasibilities->clearPartition(Simplex::FEASIBLE);
-    m_updater->m_variableFeasibilities->clearPartition(Simplex::MINUS);
-    m_updater->m_variableFeasibilities->clearPartition(Simplex::PLUS);
+    m_updater->m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
+    m_updater->m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
+    m_updater->m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
 
     Vector::NonzeroIterator iter = m_updater->m_basicVariableValues.beginNonzero();
     Vector::NonzeroIterator iterEnd = m_updater->m_basicVariableValues.endNonzero();
     for(; iter < iterEnd ; iter++){
         const Variable & variable = m_model.getVariable(m_updater->m_basisHead[iter.getIndex()]);
         if(Numerical::lessthan(*iter, variable.getLowerBound(), feasibilityTolerance)) {
-            m_updater->m_variableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
+            m_updater->m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
         } else if(Numerical::lessthan(variable.getUpperBound(), *iter, feasibilityTolerance)) {
-            m_updater->m_variableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
+            m_updater->m_basicVariableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
         } else {
-            m_updater->m_variableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
+            m_updater->m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
         }
     }
 
@@ -172,7 +172,7 @@ int DualDantzigPricing::performPricingPhase2() {
     int rowIndex;
     m_outgoingIndex = -1;
     m_updater->m_simplexModel.getVariable(0);
-    m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
+    m_updater->m_basicVariableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         if ( m_updater->m_used[rowIndex] == true ) {
@@ -187,7 +187,7 @@ int DualDantzigPricing::performPricingPhase2() {
         }
     }
 
-    m_updater->m_variableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
+    m_updater->m_basicVariableFeasibilities->getIterators(&iter, &iterEnd, Simplex::PLUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         if ( m_updater->m_used[rowIndex] == true ) {

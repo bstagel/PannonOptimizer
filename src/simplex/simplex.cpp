@@ -56,7 +56,7 @@ Simplex::Simplex():
     m_toleranceStep(0),
     m_simplexModel(NULL),
     m_variableStates(0,0),
-    m_variableFeasibilities(0,0),
+    m_basicVariableFeasibilities(0,0),
     m_reducedCostFeasibilities(0,0),
     m_basicVariableValues(0),
     m_reducedCosts(0),
@@ -313,7 +313,7 @@ void Simplex::setModel(const Model &model) {
     unsigned int columnCount = m_simplexModel->getColumnCount();
     m_basisHead.resize(rowCount, INVALID_POSITION);
     m_variableStates.init(rowCount + columnCount, VARIABLE_STATE_ENUM_LENGTH);
-    m_variableFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
+    m_basicVariableFeasibilities.init(rowCount, FEASIBILITY_ENUM_LENGTH);
     m_reducedCostFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
     m_basicVariableValues.reInit(rowCount);
     m_reducedCosts.reInit(rowCount + columnCount);

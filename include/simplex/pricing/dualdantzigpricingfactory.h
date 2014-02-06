@@ -17,7 +17,7 @@ public:
     virtual ~DualDantzigPricingFactory();
     
     DualPricingUpdater * createDualPricingUpdater(const Vector &basicVariableValues,
-                                                  IndexList<> * variableFeasibilities,
+                                                  IndexList<> * basicVariableFeasibilities,
                                                   const IndexList<> & reducedCostFeasibilities,
                                                   const std::vector<int> & basisHead,
                                                   const SimplexModel & simplexModel,

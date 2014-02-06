@@ -15,8 +15,8 @@
 class PrimalPricingUpdater {
 public:
     PrimalPricingUpdater(const Vector &basicVariableValues,
-                         IndexList<> * variableFeasibilities,
-                         const IndexList<> & reducedCostFeasibilities,
+                         const IndexList<> & basicVariableFeasibilities,
+                         IndexList<> * reducedCostFeasibilities,
                          const std::vector<int> & basisHead,
                          const SimplexModel & simplexModel,
                          const Basis & basis);
@@ -29,9 +29,9 @@ protected:
 
     const Vector & m_basicVariableValues;
 
-    IndexList<> * m_variableFeasibilities;
+    const IndexList<> & m_basicVariableFeasibilities;
 
-    const IndexList<> & m_reducedCostFeasibilities;
+    IndexList<> * m_reducedCostFeasibilities;
 
     const std::vector<int> & m_basisHead;
 

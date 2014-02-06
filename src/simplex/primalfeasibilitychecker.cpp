@@ -7,24 +7,24 @@ static const Numerical::Double feasibilityTolerance =
 
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
                                                    IndexList<const Numerical::Double *> * variableStates,
-                                                   IndexList<> * variableFeasibilities,
+                                                   IndexList<> * basicVariableFeasibilities,
                                                    Numerical::Double * phaseIObjectiveValue):
-    m_model(model),m_variableStates(variableStates),m_variableFeasibilities(variableFeasibilities),
+    m_model(model),m_variableStates(variableStates),m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_phaseIObjectiveValue(phaseIObjectiveValue)
 {
 
 }
 
-bool PrimalFeasibilityChecker::checkFeasibility(const IndexList<>& variableFeasibilities)
+bool PrimalFeasibilityChecker::checkFeasibility(const IndexList<>& basicVariableFeasibilities)
 {
     IndexList<>::Iterator setMit;
     IndexList<>::Iterator setMendit;
     IndexList<>::Iterator setPit;
     IndexList<>::Iterator setPendit;
 
-    (*m_variableFeasibilities) = variableFeasibilities;
-    m_variableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
-    m_variableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+    (*m_basicVariableFeasibilities) = basicVariableFeasibilities;
+    m_basicVariableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
+    m_basicVariableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
 
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
@@ -36,9 +36,9 @@ bool PrimalFeasibilityChecker::checkFeasibility(const IndexList<>& variableFeasi
 void PrimalFeasibilityChecker::computeFeasibilities(){
     //this function determines M/F/P sets, phaseI objective value
 
-    m_variableFeasibilities->clearPartition(Simplex::MINUS);
-    m_variableFeasibilities->clearPartition(Simplex::PLUS);
-    m_variableFeasibilities->clearPartition(Simplex::FEASIBLE);
+    m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
+    m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
+    m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
 
     (*m_phaseIObjectiveValue) = 0;
 
@@ -57,14 +57,14 @@ void PrimalFeasibilityChecker::computeFeasibilities(){
         //basic variables with M type infeasibility
 
             if ( Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) ) {
-                m_variableFeasibilities->insert(Simplex::MINUS, variableIndex);
+                m_basicVariableFeasibilities->insert(Simplex::MINUS, variableIndex);
                 (*m_phaseIObjectiveValue) += (valueOfIthVariable - lbOfIthVariable);
             } else
 
         //basic variables with P type infeasibility
 
             if ( !Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) ) {
-                m_variableFeasibilities->insert(Simplex::PLUS, variableIndex);
+                m_basicVariableFeasibilities->insert(Simplex::PLUS, variableIndex);
                 (*m_phaseIObjectiveValue) -= (valueOfIthVariable - ubOfIthVariable);
             } else
 
@@ -72,7 +72,7 @@ void PrimalFeasibilityChecker::computeFeasibilities(){
 
             if ( Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) &&
                  !Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) ) {
-                m_variableFeasibilities->insert(Simplex::FEASIBLE, variableIndex);
+                m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, variableIndex);
             }
         }
     }

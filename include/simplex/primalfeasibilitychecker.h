@@ -10,16 +10,16 @@ class PrimalFeasibilityChecker{
 public:
     PrimalFeasibilityChecker(const SimplexModel& model,
                              IndexList<const Numerical::Double *>* variableStates,
-                             IndexList<>* variableFeasibilities,
+                             IndexList<>* basicVariableFeasibilities,
                              Numerical::Double * phaseIObjectiveValue);
 
-    bool checkFeasibility(const IndexList<>& variableFeasibilities);
+    bool checkFeasibility(const IndexList<>& basicVariableFeasibilities);
     void computeFeasibilities();
 
 private:
     const SimplexModel& m_model;
     IndexList<const Numerical::Double*>* m_variableStates;
-    IndexList<>* m_variableFeasibilities;
+    IndexList<>* m_basicVariableFeasibilities;
     Numerical::Double * m_phaseIObjectiveValue;
 };
 

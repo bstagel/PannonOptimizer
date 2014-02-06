@@ -16,8 +16,8 @@ class PrimalDantzigPricingUpdater: public PrimalPricingUpdater
     friend class PrimalDantzigPricing;
 public:
     PrimalDantzigPricingUpdater(const Vector &basicVariableValues,
-                                IndexList<> * variableFeasibilities,
-                                const IndexList<> & reducedCostFeasibilities,
+                                const IndexList<> & basicVariableFeasibilities,
+                                IndexList<> * reducedCostFeasibilities,
                                 const std::vector<int> & basisHead,
                                 const SimplexModel & simplexModel,
                                 const Basis & basis);

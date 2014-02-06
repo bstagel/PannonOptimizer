@@ -6,12 +6,12 @@
 #include <simplex/simplex.h>
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariableValues,
-                                                     IndexList<> * variableFeasibilities,
+                                                     IndexList<> * basicVariableFeasibilities,
                                                      const IndexList<> & reducedCostFeasibilities,
                                                      const std::vector<int> & basisHead,
                                                      const SimplexModel & simplexModel,
                                                      const Basis & basis):
-    DualPricingUpdater(basicVariableValues, variableFeasibilities,
+    DualPricingUpdater(basicVariableValues, basicVariableFeasibilities,
                        reducedCostFeasibilities, basisHead, simplexModel,
                        basis)
 {
