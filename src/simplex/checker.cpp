@@ -161,7 +161,7 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
     //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
-    simplex.m_variableStates.getIterators(&it, &itEnd, Simplex::BASIC, 4);
+    simplex.m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){

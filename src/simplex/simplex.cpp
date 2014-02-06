@@ -344,6 +344,15 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     }
 
     IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
+
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FIXED, 1);
+    for (; iter != iterEnd; iter++) {
+        variableIndex = iter.getData();
+        const Variable * variable = &m_simplexModel->getVariable(variableIndex);
+        // TODO: itt az erteket nem kell majd atadni
+        basisWriter->addNonbasicVariable(variable, variableIndex, Simplex::NONBASIC_FIXED, variable->getLowerBound());
+    }
+
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
     for (; iter != iterEnd; iter++) {
         variableIndex = iter.getData();
@@ -736,7 +745,7 @@ void Simplex::computeBasicSolution() {
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itend;
     //This iterates through Simplex::NONBASIC_AT_LB and Simplex::NONBASIC_AT_UB too -- BUG with 2 partitions
-    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,2);
+    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
     for(; it != itend; it++) {
         if(*(it.getAttached()) != 0){

@@ -31,6 +31,7 @@
 #define AT_LOWER_BOUND_STR "AT_LOWER_BOUND"
 #define AT_UPPER_BOUND_STR "AT_UPPER_BOUND"
 #define FREE_STR "FREE"
+#define FIXED_STR "FIXED"
 #define INDEX_STR "Index"
 
 BasisHeadPanOpt::BasisHeadPanOpt() {
@@ -192,6 +193,8 @@ void BasisHeadPanOpt::writeNonBasisInfo() {
             m_outputFile << AT_UPPER_BOUND_STR;
         } else if ( iter->m_state == Simplex::NONBASIC_FREE ) {
             m_outputFile << FREE_STR;
+        } else if ( iter->m_state == Simplex::NONBASIC_FIXED ) {
+            m_outputFile << FIXED_STR;
         }
         m_outputFile << std::endl;
         m_outputFile << "\t\t" INDEX_STR " = " << iter->m_variableIndex << std::endl;
@@ -298,6 +301,9 @@ void BasisHeadPanOpt::finishReading() {
                                          &m_variables[variableIndex]->getUpperBound() );
         } else if (stateStr == FREE_STR) {
             m_variableStatesPtr->insert( Simplex::NONBASIC_FREE,
+                                         variableIndex, 0 );
+        } else if (stateStr == FIXED_STR) {
+            m_variableStatesPtr->insert( Simplex::NONBASIC_FIXED,
                                          variableIndex, 0 );
         } else {
             throw PanOptException("Illegal variable state: " + stateStr);

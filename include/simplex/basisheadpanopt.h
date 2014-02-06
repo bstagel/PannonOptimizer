@@ -79,7 +79,7 @@ private:
 
     void writeDouble(Numerical::Double value);
 
-    void release();
+    void release( );
 };
 
 #endif // BASISHEADPANOPT_H

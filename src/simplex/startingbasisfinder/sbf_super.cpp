@@ -45,7 +45,10 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
         } else if (variable.getType() == Variable::PLUS) {
             m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, &(variable.getLowerBound()));
             return;
-        } else {
+        } else if ( variable.getType() == Variable::FIXED ) {
+            m_variableStates->insert(Simplex::NONBASIC_FIXED, variableIndex, &(variable.getLowerBound()));
+            return;
+        } else { // BOUNDED
             if (state == Simplex::NONBASIC_AT_LB) {
                 m_variableStates->insert(Simplex::NONBASIC_AT_LB, variableIndex, &(variable.getLowerBound()));
                 return;

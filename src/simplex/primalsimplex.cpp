@@ -151,6 +151,7 @@ void PrimalSimplex::initModules() {
                 m_basicVariableValues,
                 m_basicVariableFeasibilities,
                 &m_reducedCostFeasibilities,
+                m_variableStates,
                 m_basisHead,
                 *m_simplexModel,
                 *m_basis

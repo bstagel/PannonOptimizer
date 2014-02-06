@@ -303,6 +303,15 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
         }
         pivot(vector, pivotRow);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
+    } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
+        if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
+            LPERROR("Outgoing variable is rounded to its lower bound!");
+            LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
+            LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
+            cerr.unsetf(ios_base::floatfield);
+        }
+        pivot(vector, pivotRow);
+        m_variableStates->move(outgoing,Simplex::NONBASIC_FIXED, &(outgoingVariable.getLowerBound()));
     } else {
         LPERROR("Invalid outgoing variable state!");
         cerr.unsetf(ios_base::floatfield);
