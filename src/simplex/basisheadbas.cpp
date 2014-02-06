@@ -55,7 +55,8 @@ void BasisHeadBAS::finishWriting() {
 
     STL_FOREACH(std::vector<BasicVariable>, m_basicVariables, basicIter) {
         m_outputFile << " ";
-        if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ) {
+        if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ||
+             m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_FIXED) {
             m_outputFile << "XL " << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
                             basicIter->m_variable->getName() << "  ";
         } else if (m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_UB) {
@@ -74,7 +75,8 @@ void BasisHeadBAS::finishWriting() {
     }
 
     for (; nonbasicIndex < m_nonBasicVariables.size(); nonbasicIndex++) {
-        if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ) {
+        if ( m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_LB ||
+             m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_FIXED ) {
             m_outputFile << " LL " << std::setw(MPS_NAME_LENGTH) << std::setfill(' ') <<
                             m_nonBasicVariables[nonbasicIndex].m_variable->getName() << std::endl;
         } else if (m_nonBasicVariables[nonbasicIndex].m_state == Simplex::NONBASIC_AT_UB) {
@@ -112,6 +114,20 @@ void BasisHeadBAS::getNamedVariable(const char * name, VariableIndex * index) {
     Variable * variable = new Variable;
     variable->setName(name);
     index->m_variable = variable;
+}
+
+void BasisHeadBAS::insertVariable(Simplex::VARIABLE_STATE state,
+                                  const VariableIndex *variableIndex,
+                                  const Numerical::Double * attached = 0) {
+    if (state == Simplex::BASIC) {
+        m_variableStatesPtr->insert( state, variableIndex->m_index );
+        return;
+    }
+    if ( variableIndex->m_variable->getType() == Variable::FIXED ) {
+        m_variableStatesPtr->insert( Simplex::NONBASIC_FIXED, variableIndex->m_index, attached );
+        return;
+    }
+    m_variableStatesPtr->insert( state, variableIndex->m_index, attached );
 }
 
 void BasisHeadBAS::finishReading() {
@@ -165,11 +181,15 @@ void BasisHeadBAS::finishReading() {
 
                         m_variableStatesPtr->remove( ptr->m_index );
                         if (ch2 == 'L') {
-                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
-                                                    &ptr->m_variable->getLowerBound() );
+                            insertVariable(Simplex::NONBASIC_AT_LB, ptr,
+                                           &ptr->m_variable->getLowerBound() );
+                            //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
+                            //                        &ptr->m_variable->getLowerBound() );
                         } else {
-                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
-                                                    &ptr->m_variable->getUpperBound() );
+                            insertVariable( Simplex::NONBASIC_AT_UB, ptr->,
+                                            &ptr->m_variable->getUpperBound() );
+                            //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
+                            //                        &ptr->m_variable->getUpperBound() );
                         }
                     } else {
                         // TODO: exception
@@ -185,11 +205,15 @@ void BasisHeadBAS::finishReading() {
                     if (ptr != 0) {
                         m_variableStatesPtr->remove( ptr->m_index );
                         if (ch1 == 'L') {
-                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
-                                                    &ptr->m_variable->getLowerBound());
+                            insertVariable(Simplex::NONBASIC_AT_LB, ptr,
+                                           &ptr->m_variable->getLowerBound() );
+                            //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB, ptr->m_index,
+                            //                             &ptr->m_variable->getLowerBound());
                         } else {
-                            m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
-                                                    &ptr->m_variable->getUpperBound());
+                            insertVariable(Simplex::NONBASIC_AT_UB, ptr,
+                                           &ptr->m_variable->getUpperBound() );
+                            //m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB, ptr->m_index,
+                            //                             &ptr->m_variable->getUpperBound());
                         }
                     } else {
                         // TODO: exception

@@ -41,8 +41,10 @@ public:
         BASIC = 0,
         NONBASIC_AT_LB,
         NONBASIC_AT_UB,
+        NONBASIC_FIXED,
         NONBASIC_FREE,
         VARIABLE_STATE_ENUM_LENGTH
+        // Do not modify the order of the enum!
     };
 
 

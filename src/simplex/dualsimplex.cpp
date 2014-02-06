@@ -536,7 +536,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
     //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
-    m_variableStates.getIterators(&it, &itEnd, Simplex::BASIC, 4);
+    m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
@@ -564,7 +564,7 @@ Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIn
     Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
 
     if (typeOfIthVariable == Variable::FIXED) {
-        *outgoingState = NONBASIC_AT_LB;
+        *outgoingState = NONBASIC_FIXED;
         return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
                 alpha.at(rowIndex);
     }

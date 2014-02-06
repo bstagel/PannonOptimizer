@@ -20,6 +20,7 @@ public:
     virtual PrimalPricingUpdater * createPrimalPricingUpdater(const Vector &basicVariableValues,
                                                               const IndexList<> & basicVariableFeasibilities,
                                                               IndexList<> * reducedCostFeasibilities,
+                                                              const IndexList<const Numerical::Double*> & variableStates,
                                                               const std::vector<int> & basisHead,
                                                               const SimplexModel & simplexModel,
                                                               const Basis & basis) const = 0;

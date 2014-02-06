@@ -76,7 +76,6 @@ HEADERS += include/debug.h \
            include/simplex/checker.h \
            include/simplex/basisheadio.h \
            include/simplex/basisheadbas.h \
-           include/simplex/simplexstates.h \
            include/utils/thirdparty/prettyprint.h \
            include/utils/arch/x86.h \
            include/utils/numerical.h \

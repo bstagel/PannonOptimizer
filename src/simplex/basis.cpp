@@ -60,6 +60,9 @@ void Basis::setNewHead() {
             } else if (variable.getType() == Variable::PLUS) {
                 m_variableStates->move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 return;
+            } else if (variable.getType() == Variable::FIXED) {
+                m_variableStates->move(*it, Simplex::NONBASIC_FIXED, &(variable.getLowerBound()));
+                return;
             } else {
                 m_variableStates->move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 return;
