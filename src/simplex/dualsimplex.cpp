@@ -270,7 +270,6 @@ void DualSimplex::selectPivot() {
 
     Vector alpha;
 
-    int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
 
     m_incomingIndex = -1;
     while(m_incomingIndex == -1 ){
@@ -278,7 +277,7 @@ void DualSimplex::selectPivot() {
         computeTransformedRow(&alpha, m_outgoingIndex);
 
         if(!m_feasible){
-            m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue, m_toleranceStep);
+            m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
         }
@@ -292,9 +291,12 @@ void DualSimplex::selectPivot() {
         //Row disabling control
         if(m_incomingIndex == -1){
             //Ask for another row
+#ifndef NDEBUG
+            int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
             if(thresholdReportLevel > 0){
                 LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
             }
+#endif
             m_pricing->lockLastIndex();
             price();
         }
@@ -455,18 +457,18 @@ void DualSimplex::setReferenceObjective() {
 void DualSimplex::checkReferenceObjective() {
     if(!m_feasible){
         if(m_referenceObjective > m_phaseIObjectiveValue){
-//            LPWARNING("BAD ITERATION - PHASE I");
+            LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
-//            LPWARNING("DEGENERATE - PHASE I");
+            LPWARNING("DEGENERATE - PHASE I");
             m_degenerateIterations++;
         }
     } else {
         if(m_referenceObjective > m_objectiveValue ){
-//            LPWARNING("BAD ITERATION - PHASE II");
+            LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
-//            LPWARNING("DEGENERATE - PHASE II");
+            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }
     }

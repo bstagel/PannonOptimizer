@@ -52,8 +52,7 @@ public:
 
     void performRatiotestPhase1(const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
-                                Numerical::Double phaseIObjectiveValue,
-                                Numerical::Double expandingTolerance);
+                                Numerical::Double phaseIObjectiveValue);
 
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
@@ -90,8 +89,7 @@ private:
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
     bool numericalCheckPhase1(const Vector& alpha, unsigned int alphaId);
     void generateBreakpointsPhase1(const Vector& alpha,
-                                   Numerical::Double phaseIReducedCost,
-                                   Numerical::Double phaseIObjectiveValue);
+                                   Numerical::Double phaseIReducedCost);
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int& iterationCounter,
                                Numerical::Double& functionSlope);

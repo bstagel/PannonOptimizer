@@ -174,8 +174,7 @@ void PrimalSimplex::initModules() {
                                       m_basicVariableValues,
                                       m_basisHead,
                                       m_basicVariableFeasibilities,
-                                      m_variableStates,
-                                      m_reducedCosts);
+                                      m_variableStates);
 
     delete pricingFactory;
     pricingFactory = 0;
