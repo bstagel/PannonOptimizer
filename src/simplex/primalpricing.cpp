@@ -5,8 +5,10 @@
 
 #include <simplex/primalpricing.h>
 
-PrimalPricing::PrimalPricing(const SimplexModel & model):
-    m_model(model)
+PrimalPricing::PrimalPricing(const SimplexModel & model,
+                             const Vector &reducedCosts):
+    m_model(model),
+    m_reducedCosts(reducedCosts)
 {
     m_reducedCost = 0.0;
 }

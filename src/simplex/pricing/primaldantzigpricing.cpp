@@ -9,6 +9,9 @@
 static const Numerical::Double feasibilityTolerance =
         SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
+static const Numerical::Double optimalityTolerance =
+        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+
 PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
     PrimalPricing(orig),
     m_updater(orig.m_updater),
@@ -19,8 +22,9 @@ PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
 
 PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
                                            PrimalPricingUpdater * updater,
-                                           const std::vector<int> & basisHead):
-    PrimalPricing(model),
+                                           const std::vector<int> & basisHead,
+                                           const Vector &reducedCosts):
+    PrimalPricing(model, reducedCosts),
     m_updater(dynamic_cast<PrimalDantzigPricingUpdater *>(updater)),
     m_basisHead(basisHead)
 {
@@ -159,14 +163,69 @@ int PrimalDantzigPricing::performPricingPhase1()
     return maxIndex;
 }
 
-void PrimalDantzigPricing::initPhase2() {
-
-}
-
 int PrimalDantzigPricing::performPricingPhase2()
 {
-    initPhase2();
+    //OBJECTIVE_TYPE objectiveType = m_updater->m_simplexModel.getObjectiveType();
 
+    int maxIndex = -1;
+    int minIndex = -1;
+    m_reducedCost = 0.0;
+    m_incomingIndex = -1;
+    Numerical::Double maxReducedCost = optimalityTolerance;
+    Numerical::Double minReducedCost = -optimalityTolerance;
+    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
+
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        if (reducedCost < minReducedCost) {
+            minIndex = variableIndex;
+            minReducedCost = reducedCost;
+        }
+    }
+
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        if (reducedCost > maxReducedCost) {
+            maxIndex = variableIndex;
+            maxReducedCost = reducedCost;
+        }
+    }
+
+    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
+    for (; iter != iterEnd; iter++) {
+        unsigned int variableIndex = iter.getData();
+        if (m_updater->m_used[variableIndex] == true) {
+            continue;
+        }
+        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        if (reducedCost < minReducedCost) {
+            minIndex = variableIndex;
+            minReducedCost = reducedCost;
+        } else if (reducedCost > maxReducedCost) {
+            maxIndex = variableIndex;
+            maxReducedCost = reducedCost;
+        }
+    }
+    if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
+        m_reducedCost = minReducedCost;
+        m_incomingIndex = minIndex;
+        return minIndex;
+    }
+    m_reducedCost = maxReducedCost;
+    m_incomingIndex = maxIndex;
+    return maxIndex;
 }
 
 void PrimalDantzigPricing::releaseUsed() {
