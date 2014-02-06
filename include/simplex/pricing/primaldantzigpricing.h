@@ -28,6 +28,10 @@ public:
     void lockLastIndex();
 private:
 
+    int m_incomingIndex;
+
+    Numerical::Double m_reducedCost;
+
     PrimalDantzigPricingUpdater * m_updater;
 
     const std::vector<int> & m_basisHead;

@@ -12,7 +12,6 @@
 #include <simplex/simplexmodel.h>
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
-#include <simplex/simplexstates.h>
 #include <utils/iterationreport.h>
 #include <utils/iterationreportprovider.h>
 #include <utils/timer.h>
