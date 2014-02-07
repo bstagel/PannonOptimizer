@@ -64,6 +64,8 @@ private:
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
     std::vector <BreakPoint> m_breakpoints;
+    bool m_tPositive;
+    Numerical::Double m_pivotThreshold;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
@@ -73,6 +75,9 @@ private:
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int &iterationCounter,
                                Numerical::Double functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter,
+                                     const Vector& alpha,
+                                     Numerical::Double& functionSlope);
     void generateBreakpointsPhase2(const Vector& alpha,
                                    int incomingVariableIndex);
 };
