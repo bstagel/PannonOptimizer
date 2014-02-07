@@ -104,7 +104,6 @@ private:
                                Numerical::Double& functionSlope,
                                Numerical::Double& primalSteplength);
     void useNumericalThresholdPhase2(unsigned int iterationCounter,
-                               const Vector& alpha,
-                               const Numerical::Double primalSteplength);
+                               const Vector& alpha);
 };
 #endif // DUALRATIOTEST_H

@@ -16,7 +16,10 @@ PrimalDantzigPricingUpdater::PrimalDantzigPricingUpdater(const Vector &basicVari
                          reducedCostFeasibilities, variableStates, basisHead, simplexModel,
                          basis)
 {
-
+    m_phase2ReducedCost = 0;
+    m_phase2Index = -1;
+    m_used.clear();
+    m_used.resize( m_simplexModel.getRowCount() + m_simplexModel.getColumnCount(), false );
 }
 
 PrimalDantzigPricingUpdater::PrimalDantzigPricingUpdater(const PrimalDantzigPricingUpdater& orig):

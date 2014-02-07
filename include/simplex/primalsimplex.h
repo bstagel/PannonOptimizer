@@ -26,6 +26,8 @@ private:
 
     PrimalRatiotest * m_ratiotest;
 
+    Vector m_alpha;
+
     int m_incomingIndex;
     int m_outgoingIndex;
     Numerical::Double m_primalReducedCost;

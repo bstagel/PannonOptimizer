@@ -2,8 +2,8 @@
  * @file:   dualdantzigpricingupdater.h
  */
 
-#ifndef DUALDANTZIGREPRICINGUPDATER_H
-#define	DUALDANTZIGREPRICINGUPDATER_H
+#ifndef DUALDANTZIGPRICINGUPDATER_H
+#define	DUALDANTZIGPRICINGUPDATER_H
 
 #include <globals.h>
 
@@ -38,5 +38,5 @@ private:
 
 };
 
-#endif	/* DUALDANTZIGREPRICINGUPDATER_H */
+#endif	/* DUALDANTZIGPRICINGUPDATER_H */
 

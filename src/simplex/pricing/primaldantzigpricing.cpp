@@ -28,9 +28,6 @@ PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
     m_updater(dynamic_cast<PrimalDantzigPricingUpdater *>(updater)),
     m_basisHead(basisHead)
 {
-    m_negativeSums.resize( model.getColumnCount() + model.getRowCount(), 0.0 );
-    m_positiveSums.resize( model.getColumnCount() + model.getRowCount(), 0.0 );
-    m_phase1ReducedCosts.reserve( model.getColumnCount() + model.getRowCount() );
     m_reducedCost = 0.0;
 }
 PrimalDantzigPricing::~PrimalDantzigPricing()
@@ -49,6 +46,13 @@ void PrimalDantzigPricing::release()
 }
 
 void PrimalDantzigPricing::initPhase1() {
+    m_negativeSums.clear();
+    m_negativeSums.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0 );
+    m_positiveSums.clear();
+    m_positiveSums.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0 );
+    m_phase1ReducedCosts.clear();
+    m_phase1ReducedCosts.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0);
+
     unsigned int rowCount = m_basisHead.size();
     // get the h vector
     Vector auxVector( rowCount, Vector::DENSE_VECTOR );
@@ -93,6 +97,11 @@ void PrimalDantzigPricing::initPhase1() {
                 m_negativeSums[nonzIter.getIndex()] += product;
             }
         }
+        if(lambda > 0.0){
+            m_positiveSums[m_model.getColumnCount() + auxIter.getIndex()] = lambda;
+        } else {
+            m_negativeSums[m_model.getColumnCount() + auxIter.getIndex()] = lambda;
+        }
     }
     unsigned int index;
     for (index = 0; index < m_phase1ReducedCosts.size(); index++) {
@@ -110,8 +119,14 @@ int PrimalDantzigPricing::performPricingPhase1()
     int minIndex = -1;
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
-    Numerical::Double maxReducedCost = feasibilityTolerance;
-    Numerical::Double minReducedCost = -feasibilityTolerance;
+
+    //TODO: What the hell is this? :O
+//    Numerical::Double maxReducedCost = feasibilityTolerance;
+//    Numerical::Double minReducedCost = -feasibilityTolerance;
+
+
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
@@ -171,8 +186,12 @@ int PrimalDantzigPricing::performPricingPhase2()
     int minIndex = -1;
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
-    Numerical::Double maxReducedCost = optimalityTolerance;
-    Numerical::Double minReducedCost = -optimalityTolerance;
+    // ????
+//    Numerical::Double maxReducedCost = optimalityTolerance;
+//    Numerical::Double minReducedCost = -optimalityTolerance;
+
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
 
     m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);

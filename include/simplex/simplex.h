@@ -51,7 +51,7 @@ public:
     virtual ~Simplex();
 
     inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
-//    inline const Numerical::Double & getDualObjectiveValue() const {return m_dualObjectiveValue;}
+    inline const Numerical::Double & getDualObjectiveValue() const {return m_dualObjectiveValue;}
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
@@ -92,7 +92,7 @@ protected:
     Vector m_basicVariableValues;
     Vector m_reducedCosts;
     Numerical::Double m_objectiveValue;
-//    Numerical::Double m_dualObjectiveValue;
+    Numerical::Double m_dualObjectiveValue;
     Numerical::Double m_phaseIObjectiveValue;
 
     bool m_feasible;

@@ -147,7 +147,6 @@ int DualDantzigPricing::performPricingPhase1() {
         }
         unsigned int variableIndex = m_basisHead.at(index);
         Variable::VARIABLE_TYPE variableType = m_model.getVariable(variableIndex).getType();
-        //TODO: Min // Max feladat!
         if ( variableType == Variable::FIXED ||
              variableType == Variable::BOUNDED ||
              (variableType == Variable::PLUS && m_phase1ReducedCosts[index] > 0) ||
@@ -159,7 +158,7 @@ int DualDantzigPricing::performPricingPhase1() {
         }
     }
     if (m_outgoingIndex != -1) {
-        m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
+            m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
     }
     return m_outgoingIndex;
 }

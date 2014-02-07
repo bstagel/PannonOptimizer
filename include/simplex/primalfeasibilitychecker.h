@@ -11,16 +11,19 @@ public:
     PrimalFeasibilityChecker(const SimplexModel& model,
                              IndexList<const Numerical::Double *>* variableStates,
                              IndexList<>* basicVariableFeasibilities,
-                             Numerical::Double * phaseIObjectiveValue);
+                             const std::vector<int> &basisHead);
 
-    bool checkFeasibility(const IndexList<>& basicVariableFeasibilities);
+    bool checkFeasibility();
     void computeFeasibilities();
+
+    inline Numerical::Double getPhaseIObjectiveValue() {return m_phaseIObjectiveValue;}
 
 private:
     const SimplexModel& m_model;
     IndexList<const Numerical::Double*>* m_variableStates;
     IndexList<>* m_basicVariableFeasibilities;
-    Numerical::Double * m_phaseIObjectiveValue;
+    const std::vector<int>& m_basisHead;
+    Numerical::Double m_phaseIObjectiveValue;
 };
 
 #endif // PRIMALFEASIBILITYCHECKER_H

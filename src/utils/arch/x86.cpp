@@ -213,9 +213,11 @@ void ArchitectureX86::setMemoryData() {
 
 
 ArchitectureX86::AddVecDenseToDense_NonzCount ArchitectureX86::getAddVecDenseToDense_NonzCount() const {
-
+    //Return to avoid warning
+    return 0;
 }
 
 ArchitectureX86::AddVecDenseToDense ArchitectureX86::getAddVecDenseToDense() const {
-
+    //Return to avoid warning
+    return 0;
 }

@@ -140,6 +140,7 @@ void DualRatiotest::generateBreakpointsPhase1(const Vector& alpha,
         m_tPositive = true;
     }
 
+//    LPINFO("PH1: "<<phaseIReducedCost);
 //computing ratios
     m_breakpoints.clear();
     m_breakpoints.reserve(alpha.nonZeros()*2);
@@ -691,6 +692,19 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
 //                }
 //            }
         }
+//        LPWARNING("breakpoints\t\t\t|\talpha values\t|\treduced costs");
+//        for(unsigned i=0;i<m_breakpoints.size();i++){
+//            if(m_breakpoints[i].index != -1){
+//                LPWARNING(m_breakpoints[i]<<"     \t|\t"<<alpha.at(m_breakpoints[i].index)<<"    \t|\t"<<m_reducedCosts.at(m_breakpoints[i].index));
+//            } else {
+//                LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//            }
+//        }
+//        LPINFO("1160 d_j: "<<m_reducedCosts.at(1160));
+//        LPINFO("50 d_j: "<<m_reducedCosts.at(50));
+//        LPINFO("inc d_j: "<<m_reducedCosts.at(m_incomingVariableIndex));
+//        LPINFO("inc alpha: "<<alpha.at(m_incomingVariableIndex));
+
     } else{
         LPERROR(" - Ratiotest - No breakpoint found!");
     }
@@ -911,8 +925,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
 }
 
 void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
-                                                const Vector &alpha,
-                                                const Numerical::Double primalSteplength)
+                                                const Vector &alpha)
 {
     unsigned int length = m_breakpoints.size();
     int id, maxId = length-1-iterationCounter;
@@ -943,18 +956,6 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
         }
 
     }
-
-//    const Variable & variable = m_model.getVariable(m_breakpoints[maxId].index);
-//    if(variable.getType() == Variable::BOUNDED && (primalSteplength > (variable.getUpperBound() - variable.getLowerBound())) ){
-//        m_boundflips.push_back(m_breakpoints[maxId].index);
-////        m_variableAge[m_breakpoints[maxId].index] =  m_variableAge[m_breakpoints[maxId].index] + m_ageStep;
-////        LPINFO("Threshold AGE incremented: ("<<m_breakpoints[maxId].index<<") : "<<m_variableAge[m_breakpoints[maxId].index]);
-//        m_incomingVariableIndex = -1;
-//        if(thresholdReportLevel >= 1) {
-//            LPWARNING("Boundflip found");
-//        }
-//        return;
-//    }
 
     if(maxValue < m_pivotThreshold){
         m_incomingVariableIndex = -1;
@@ -1069,21 +1070,11 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     computeFunctionPhase2(alpha,iterationCounter,functionSlope,primalSteplength);
 
                     //numerical threshold
-//                LPERROR(m_boundflips);
                     if(num == 2){
     //                    if(m_breakpoints[length-1-iterationCounter].index != -1){
-                            useNumericalThresholdPhase2(iterationCounter, alpha, primalSteplength);
+                            useNumericalThresholdPhase2(iterationCounter, alpha);
     //                    }
                     }
-//                 Breakpoint printer debug code
-//                LPWARNING("breakpoints\t\t\t|\talpha values\t|\treduced costs");
-//                for(unsigned i=0;i<m_breakpoints.size();i++){
-//                    if(m_breakpoints[i].index != -1){
-//                        LPWARNING(m_breakpoints[i]<<"     \t|\t"<<alpha.at(m_breakpoints[i].index)<<"    \t|\t"<<m_reducedCosts.at(m_breakpoints[i].index));
-//                    } else {
-//                        LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
-//                    }
-//                }
                 }
             }
         } else{
