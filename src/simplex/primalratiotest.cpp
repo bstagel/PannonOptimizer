@@ -100,7 +100,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
                 basisIndex = it.getData();
                 variableIndex = m_basishead.at(basisIndex);
                 if (alpha.at(basisIndex) < 0) {
-                    currentRatio.index = variableIndex;
+                    currentRatio.index = basisIndex;
                     currentRatio.value = m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound() / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
                     m_breakpoints.push_back(currentRatio);
@@ -119,7 +119,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
                 basisIndex = it.getData();
                 variableIndex = m_basishead.at(basisIndex);
                 if (alpha.at(basisIndex) > 0) {
-                    currentRatio.index = variableIndex;
+                    currentRatio.index = basisIndex;
                     currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
                     m_breakpoints.push_back(currentRatio);
@@ -141,14 +141,14 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
               //F->P
                 if (alpha.at(basisIndex) < 0 &&
                         m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
-                        currentRatio.index = variableIndex;
+                        currentRatio.index = basisIndex;
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
               //F->M
                 } else if (alpha.at(basisIndex) > 0 &&
                            m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
-                        currentRatio.index = variableIndex;
+                        currentRatio.index = basisIndex;
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
@@ -164,7 +164,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
                     basisIndex = it.getData();
                     variableIndex = m_basishead.at(basisIndex);
                     if (alpha.at(basisIndex) > 0) {
-                        currentRatio.index = variableIndex;
+                        currentRatio.index = basisIndex;
                         currentRatio.value = - (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
@@ -183,7 +183,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
                     basisIndex = it.getData();
                     variableIndex = m_basishead.at(basisIndex);
                     if (alpha.at(basisIndex) < 0) {
-                        currentRatio.index = variableIndex;
+                        currentRatio.index = basisIndex;
                         currentRatio.value = - (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
@@ -205,14 +205,14 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
                   //F->P
                     if (alpha.at(basisIndex) > 0 &&
                             m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
-                            currentRatio.index = variableIndex;
+                            currentRatio.index = basisIndex;
                             currentRatio.value = -(m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                             currentRatio.functionValue = 0;
                             m_breakpoints.push_back(currentRatio);
                   //F->M
                     } else if (alpha.at(basisIndex) < 0 &&
                                m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
-                            currentRatio.index = variableIndex;
+                            currentRatio.index = basisIndex;
                             currentRatio.value = - (m_basicVariableValues.at(basisIndex) - m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                             currentRatio.functionValue = 0;
                             m_breakpoints.push_back(currentRatio);
@@ -229,9 +229,11 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha, int incomin
         }
 }
 
-void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha, Numerical::Double functionSlope)
+void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
+                                            unsigned int& iterationCounter,
+                                            Numerical::Double functionSlope)
 {
-    unsigned int iterationCounter = 0,length = m_breakpoints.size();
+    unsigned int length = m_breakpoints.size();
     while (functionSlope > 0 && iterationCounter < length-1) {
         iterationCounter++;
         getNextElement(&m_breakpoints,length-iterationCounter);
@@ -244,6 +246,8 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha, Numerical::Doub
         if (m_breakpoints.at(length-1-iterationCounter).index == -1 ) {
             functionSlope -= 1;
         } else{
+            LPINFO("index: "<<m_breakpoints.at(length-1-iterationCounter).index);
+            LPINFO("alpha: "<<alpha.at(m_breakpoints.at(length-1-iterationCounter).index));
             functionSlope -= Numerical::fabs(alpha.at(m_breakpoints.at(length-1-iterationCounter).index));
         }
     }
@@ -260,6 +264,8 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     m_phaseIObjectiveValue = phaseIObjectiveValue;
     m_outgoingVariableIndex = -1;
     m_primalSteplength = 0;
+
+    m_breakpoints.clear();
 
     generateBreakpointsPhase1(alpha,incomingVariableIndex,phaseIReducedCost);
     length = m_breakpoints.size();
@@ -292,7 +298,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
             m_breakpoints[length-1].functionValue = m_phaseIObjectiveValue;
            } else{
         //using piecewise linear function
-                computeFunctionPhase1(alpha,functionSlope);
+                computeFunctionPhase1(alpha, iterationCounter, functionSlope);
         //numerical issues
 //                if(num == 2){
 //                }
@@ -322,6 +328,7 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha,
                                                 int incomingVariableIndex)
 {
     BreakPoint currentBreakpoint;
+    currentBreakpoint.functionValue = 0;
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::BASIC);
@@ -345,17 +352,16 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha,
             if (tPositive) {
                 if ( alpha.at(basisIndex) > 0 &&
                      m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
-                    currentBreakpoint.index = variableIndex;
+                    currentBreakpoint.index = basisIndex;
                     currentBreakpoint.value = (m_basicVariableValues.at(basisIndex) -
                                               m_model.getVariable(variableIndex).getLowerBound() ) /
                                               alpha.at(basisIndex);
                     m_breakpoints.push_back(currentBreakpoint);
                 } else if (alpha.at(basisIndex) < 0 &&
                            m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
-                    currentBreakpoint.index = variableIndex;
+                    currentBreakpoint.index = basisIndex;
                     currentBreakpoint.value = (m_basicVariableValues.at(basisIndex) -
-                            (m_model.getVariable(variableIndex).getUpperBound() -
-                            m_model.getVariable(variableIndex).getLowerBound()) ) /
+                            m_model.getVariable(variableIndex).getUpperBound()) /
                             alpha.at(basisIndex);
                     m_breakpoints.push_back(currentBreakpoint);
                 }
@@ -363,17 +369,16 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha,
             } else{
                 if ( - alpha.at(basisIndex) > 0 &&
                      m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
-                    currentBreakpoint.index = variableIndex;
-                    currentBreakpoint.value = (m_basicVariableValues.at(basisIndex) -
+                    currentBreakpoint.index = basisIndex;
+                    currentBreakpoint.value = - (m_basicVariableValues.at(basisIndex) -
                                               m_model.getVariable(variableIndex).getLowerBound() ) /
                                               alpha.at(basisIndex);
                     m_breakpoints.push_back(currentBreakpoint);
                 } else if ( - alpha.at(basisIndex) < 0 &&
                            m_model.getVariable(variableIndex).getUpperBound() != Numerical::Infinity) {
-                    currentBreakpoint.index = variableIndex;
-                    currentBreakpoint.value = (m_basicVariableValues.at(basisIndex) -
-                            (m_model.getVariable(variableIndex).getUpperBound() -
-                            m_model.getVariable(variableIndex).getLowerBound()) ) /
+                    currentBreakpoint.index = basisIndex;
+                    currentBreakpoint.value = - (m_basicVariableValues.at(basisIndex) -
+                            m_model.getVariable(variableIndex).getUpperBound() )/
                             alpha.at(basisIndex);
                     m_breakpoints.push_back(currentBreakpoint);
                 }
@@ -387,6 +392,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
+    m_breakpoints.clear();
     m_breakpoints.reserve(alpha.length()*2);
     m_boundflips.clear();
     m_boundflips.reserve(alpha.nonZeros());
@@ -396,9 +402,8 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
   //determining primal steplength, outgoing variable
     unsigned int length = m_breakpoints.size();
     getNextElement(&m_breakpoints,length);
-    getNextElement(&m_breakpoints,length-1);
 
-    if ( m_breakpoints.size() > 1 ) {
+    if ( m_breakpoints.size() > 0 ) {
         if ( m_breakpoints.at(length-1).value < ( m_model.getVariable(incomingVariableIndex).getUpperBound() -
                                                  m_model.getVariable(incomingVariableIndex).getLowerBound()) ) {
             m_outgoingVariableIndex = m_breakpoints.at(length-1).index;

@@ -29,18 +29,14 @@ public:
     void lockLastIndex();
 private:
 
-    int m_incomingIndex;
-
-    Numerical::Double m_reducedCost;
-
     PrimalDantzigPricingUpdater * m_updater;
 
     const std::vector<int> & m_basisHead;
 
+    int m_incomingIndex;
+
     std::vector<Numerical::Double> m_negativeSums;
-
     std::vector<Numerical::Double> m_positiveSums;
-
     std::vector<Numerical::Double> m_phase1ReducedCosts;
 
     void copy(const PrimalDantzigPricing & orig);

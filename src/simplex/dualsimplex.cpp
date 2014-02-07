@@ -20,7 +20,7 @@ const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PHASE_1_OBJ_VAL_STRING = "Dual infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
-//const static char * DUAL_OBJ_VAL_STRING = "Dual Objectuve";
+const static char * DUAL_OBJ_VAL_STRING = "Dual Objectuve";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Primal theta";
 const static char * DUAL_THETA_STRING = "Dual theta";
@@ -73,9 +73,9 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
-//        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
-//                                               IterationReportField::IRF_FLOAT, *this,
-//                                               10, IterationReportField::IRF_SCIENTIFIC));
+        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC));
 
         result.push_back(IterationReportField (PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_STRING, *this));
@@ -120,12 +120,12 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
             } else {
                 reply.m_double = -m_objectiveValue;
             }
-//        } else if (name == DUAL_OBJ_VAL_STRING) {
-//            if(m_simplexModel->getObjectiveType() == MINIMIZE){
-//                reply.m_double = m_dualObjectiveValue;
-//            } else {
-//                reply.m_double = -m_dualObjectiveValue;
-//            }
+        } else if (name == DUAL_OBJ_VAL_STRING) {
+            if(m_simplexModel->getObjectiveType() == MINIMIZE){
+                reply.m_double = m_dualObjectiveValue;
+            } else {
+                reply.m_double = -m_dualObjectiveValue;
+            }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
                 reply.m_double = m_primalReducedCost;
@@ -300,7 +300,6 @@ void DualSimplex::selectPivot() {
             m_pricing->lockLastIndex();
             price();
         }
-//        LPINFO("row alpha: "<<alpha.at(m_incomingIndex));
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
     if(m_incomingIndex != -1){
@@ -312,68 +311,24 @@ void DualSimplex::selectPivot() {
 }
 
 void DualSimplex::update() {
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
 
-//    //VALIDATION CODE
-//    if(m_feasible){
-//        for(unsigned int varIndex = 0; varIndex<m_reducedCosts.length(); varIndex++){
-//            const Variable& variable = m_simplexModel->getVariable(varIndex);
-//            if (variable.getType() == Variable::BOUNDED){
-//                if(m_variableStates.where(varIndex) == 1 && m_reducedCosts.at(varIndex)<0){
-//                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
-//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
-
-//                    exit(-1);
-//                }
-//                if(m_variableStates.where(varIndex) == 2 && m_reducedCosts.at(varIndex)>0){
-//                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
-//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
-
-//                    exit(-1);
-//                }
-//            }
-//            if(variable.getType() == Variable::PLUS){
-//                if(m_reducedCosts.at(varIndex)<0){
-//                    LPERROR("ALSO KORLATOS HIBA " << varIndex);
-//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
-
-//                    exit(-1);
-//                }
-//            }
-//            if(variable.getType() == Variable::MINUS){
-//                if(m_reducedCosts.at(varIndex)>0){
-//                    LPERROR("FELSO KORLATOS HIBA " << varIndex);
-//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
-
-//                    exit(-1);
-//                }
-//            }
-//            if(variable.getType() == Variable::FREE){
-//                if(m_reducedCosts.at(varIndex)!=0){
-//                    LPERROR("FREE HIBA " << varIndex);
-//                    LPERROR("m_variableStates.where(variableIndex) "<<m_variableStates.where(varIndex));
-//                    LPERROR("m_reducedCosts.at(variableIndex) "<<m_reducedCosts.at(varIndex) << " - "<<varIndex);
-
-//                    exit(-1);
-//                }
-//            }
-//        }
-//    }
-
-    //Todo update the solution properly
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-//    LPERROR(m_ratiotest->getBoundflips());
     for(; it < itend; it++){
 //        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        Vector alpha(rowCount);
+        if(m_incomingIndex < (int)columnCount){
+            alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+        } else {
+            alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
+        }
+        m_basis->Ftran(alpha);
+
         const Variable& variable = m_simplexModel->getVariable(*it);
         //Alpha is not available, since we are in the dual
-        Vector alpha = m_simplexModel->getMatrix().column(*it);
-        m_basis->Ftran(alpha);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
@@ -393,8 +348,6 @@ void DualSimplex::update() {
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
-        unsigned int rowCount = m_simplexModel->getRowCount();
-        unsigned int columnCount = m_simplexModel->getColumnCount();
         Vector alpha(rowCount);
         if(m_incomingIndex < (int)columnCount){
             alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
@@ -449,7 +402,7 @@ void DualSimplex::setReferenceObjective() {
     if(!m_feasible){
         m_referenceObjective = m_phaseIObjectiveValue;
     } else {
-        m_referenceObjective = m_objectiveValue;
+        m_referenceObjective = m_dualObjectiveValue;
     }
 //                LPINFO("m_referenceObjective " <<m_referenceObjective);
 }
@@ -460,15 +413,15 @@ void DualSimplex::checkReferenceObjective() {
             LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
-            LPWARNING("DEGENERATE - PHASE I");
+//            LPWARNING("DEGENERATE - PHASE I");
             m_degenerateIterations++;
         }
     } else {
-        if(m_referenceObjective > m_objectiveValue ){
+        if(m_referenceObjective > m_dualObjectiveValue ){
             LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
-        } else if(m_referenceObjective == m_objectiveValue){
-            LPWARNING("DEGENERATE - PHASE II");
+        } else if(m_referenceObjective == m_dualObjectiveValue){
+//            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }
     }

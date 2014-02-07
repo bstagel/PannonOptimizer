@@ -16,6 +16,7 @@ const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PHASE_1_OBJ_VAL_STRING = "Primal infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
+const static char * DUAL_OBJ_VAL_STRING = "Dual Objectuve";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Theta";
 
@@ -63,6 +64,10 @@ std::vector<IterationReportField> PrimalSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
+        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC));
+
         result.push_back(IterationReportField (PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_STRING, *this));
     }
@@ -105,6 +110,12 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
                 reply.m_double = m_objectiveValue;
             } else {
                 reply.m_double = -m_objectiveValue;
+            }
+        } else if (name == DUAL_OBJ_VAL_STRING) {
+            if(m_simplexModel->getObjectiveType() == MINIMIZE){
+                reply.m_double = m_dualObjectiveValue;
+            } else {
+                reply.m_double = -m_dualObjectiveValue;
             }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
@@ -166,7 +177,7 @@ void PrimalSimplex::initModules() {
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
                                                         &m_basicVariableFeasibilities,
-                                                        &m_phaseIObjectiveValue);
+                                                        m_basisHead);
 
     PrimalRatiotestUpdater * ratiotestUpdater = new PrimalRatiotestUpdater(&m_reducedCostFeasibilities);
     m_updater->setRatiotestUpdater( ratiotestUpdater );
@@ -180,72 +191,253 @@ void PrimalSimplex::initModules() {
 
     delete pricingFactory;
     pricingFactory = 0;
+
+    //The alpha vector for the column calculations
+    m_alpha.resize(m_simplexModel->getRowCount());
 }
 
 void PrimalSimplex::releaseModules() {
     Simplex::releaseModules();
 
-    if (m_feasibilityChecker){
-        delete m_feasibilityChecker;
-        m_feasibilityChecker = 0;
-    }
     if (m_pricing) {
         delete m_pricing;
         m_pricing = 0;
     }
-    if (m_ratiotest) {
-        delete m_ratiotest;
-        m_ratiotest = 0;
-    }
+
     if (m_updater) {
         delete m_updater;
         m_updater = 0;
     }
+
+    if (m_feasibilityChecker){
+        delete m_feasibilityChecker;
+        m_feasibilityChecker = 0;
+    }
+
+    if (m_ratiotest) {
+        delete m_ratiotest;
+        m_ratiotest = 0;
+    }
+
 }
 
 void PrimalSimplex::computeFeasibility() {
     m_feasibilityChecker->computeFeasibilities();
+    m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
 }
 
 void PrimalSimplex::checkFeasibility() {
+    bool lastFeasible = m_feasible;
+    m_feasible = m_feasibilityChecker->checkFeasibility();
+    if(lastFeasible == false && m_feasible == true){
+        //Becomes feasible
+        m_referenceObjective = m_objectiveValue;
+    } else if(lastFeasible == true && m_feasible == false ){
+        //Becomes infeasible
+        m_fallbacks++;
+    }
 
 }
 
 void PrimalSimplex::price() {
+    if(!m_feasible){
+        m_phaseName = PHASE_1_STRING;
+        m_incomingIndex = m_pricing->performPricingPhase1();
+        if(m_incomingIndex == -1){
+            throw PrimalInfeasibleException("The problem is PRIMAL INFEASIBLE!");
+        }
+    } else {
+        m_phaseName = PHASE_2_STRING;
+        m_incomingIndex = m_pricing->performPricingPhase2();
+        if(m_incomingIndex == -1){
+            throw OptimalException("OPTIMAL SOLUTION found!");
+        }
+    }
 
+    if(m_incomingIndex != -1){
+        m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
+    } else {
+        m_primalReducedCost = 0;
+    }
 }
 
 void PrimalSimplex::selectPivot() {
+    m_outgoingIndex = -1;
+
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+
+    while(m_outgoingIndex == -1){
+
+        if(m_incomingIndex < (int)columnCount){
+            m_alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+        } else {
+            m_alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
+        }
+        m_basis->Ftran(m_alpha);
+
+        if(!m_feasible){
+            m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
+        } else {
+            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha);
+        }
+        m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
+
+        //If a boundflip is found, perform it
+        if(m_feasible && !m_ratiotest->getBoundflips().empty()){
+            break;
+        }
+
+        //Column disabling control
+        if(m_outgoingIndex == -1){
+            //Ask for another column
+#ifndef NDEBUG
+            int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
+            if(thresholdReportLevel > 0){
+                LPERROR("Ask for another column, column is unstable: "<<m_incomingIndex);
+            }
+#endif
+            m_pricing->lockLastIndex();
+            price();
+        }
+    }
+
+    m_primalTheta = m_ratiotest->getPrimalSteplength();
 
 }
 
 void PrimalSimplex::update() {
-    //Call this with appropriate parameters:
-//    void Simplex::transform(unsigned int incomingIndex,
-//      unsigned int outgoingIndex,
-//      const std::vector<unsigned int>& boundflips,
-//      Numerical::Double reducedCost) {
+    std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
+    std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-    //Do primal specific using the updater
+    for(; it < itend; it++){
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        const Variable& variable = m_simplexModel->getVariable(*it);
+        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+            Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
+            m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
+            m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
+
+        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+            Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
+            m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
+            m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
+        } else {
+            LPERROR("Boundflipping variable in the basis (or superbasic)!");
+            //TODO Throw some exception here
+        }
+    }
+
+    if(m_outgoingIndex != -1 && m_incomingIndex != -1){
+        //Save whether the basis is to be changed
+        m_baseChanged = true;
+
+
+        Simplex::VARIABLE_STATE outgoingState;
+        Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
+        Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
+
+        if (typeOfIthVariable == Variable::FIXED) {
+            outgoingState = NONBASIC_FIXED;
+
+        }
+        else if (typeOfIthVariable == Variable::BOUNDED) {
+            if(Numerical::equals(valueOfOutgoingVariable + m_primalTheta, m_simplexModel->getVariable(m_outgoingIndex).getLowerBound())){
+                outgoingState = NONBASIC_AT_LB;
+            } else if(Numerical::equals(valueOfOutgoingVariable + m_primalTheta, m_simplexModel->getVariable(m_outgoingIndex).getUpperBound())){
+                outgoingState = NONBASIC_AT_UB;
+            } else {
+                outgoingState = NONBASIC_AT_LB;
+                LPERROR("INVALID OUTGOING STATE");
+            }
+        }
+        else if (typeOfIthVariable == Variable::PLUS) {
+            outgoingState = NONBASIC_AT_LB;
+        }
+        else if (typeOfIthVariable == Variable::FREE) {
+            outgoingState = NONBASIC_FREE;
+        }
+        else if (typeOfIthVariable == Variable::MINUS) {
+            outgoingState = NONBASIC_AT_UB;
+        } else {
+            throw PanOptException("Invalid variable type");
+        }
+
+        m_basicVariableValues.addVector(-1 * m_primalTheta, m_alpha, Numerical::ADD_ABS);
+        m_objectiveValue += m_primalReducedCost * m_primalTheta;
+
+        //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
+        m_basis->append(m_alpha, m_outgoingIndex, m_incomingIndex, outgoingState);
+
+        m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+        m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
+
+    }
+
+    computeReducedCosts();
+
+    //Do this only in phase one
+    if(!m_feasible){
+        computeFeasibility();
+    }
+
     m_updater->update(m_feasible ? 2 : 1);
 }
 
 void PrimalSimplex::setReferenceObjective() {
-
+    if(!m_feasible){
+        m_referenceObjective = m_phaseIObjectiveValue;
+    } else {
+        m_referenceObjective = m_objectiveValue;
+    }
 }
 
 void PrimalSimplex::checkReferenceObjective() {
-
+    if(!m_feasible){
+        if(m_referenceObjective > m_phaseIObjectiveValue){
+            LPWARNING("BAD ITERATION - PHASE I");
+            m_badIterations++;
+        } else if(m_referenceObjective == m_phaseIObjectiveValue){
+//            LPWARNING("DEGENERATE - PHASE I");
+            m_degenerateIterations++;
+        }
+    } else {
+        if(m_referenceObjective < m_objectiveValue ){
+            LPWARNING("BAD ITERATION - PHASE II");
+            m_badIterations++;
+        } else if(m_referenceObjective == m_objectiveValue){
+//            LPWARNING("DEGENERATE - PHASE II");
+            m_degenerateIterations++;
+        }
+    }
 }
 
 void PrimalSimplex::initWorkingTolerance() {
-
+    //initializing EXPAND tolerance
+    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function") == 3) {
+        m_workingTolerance = m_masterTolerance *
+                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
+        m_toleranceStep = (m_masterTolerance - m_workingTolerance) /
+            SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+    } else {
+        m_workingTolerance = m_masterTolerance;
+        m_toleranceStep = 0;
+    }
 }
 
 void PrimalSimplex::computeWorkingTolerance() {
-
+    //increment the EXPAND tolerance
+    if (m_toleranceStep != 0)
+    {
+        m_workingTolerance += m_toleranceStep;
+         //reset the EXPAND tolerance
+        if (m_workingTolerance >= m_masterTolerance) {
+            m_workingTolerance = m_masterTolerance *
+                    SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
+        }
+    }
 }
 
 void PrimalSimplex::releaseLocks() {
-
+    m_pricing->releaseUsed();
 }

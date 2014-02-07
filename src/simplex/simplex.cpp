@@ -15,6 +15,7 @@
 #include <simplex/checker.h>
 
 #include <utils/thirdparty/prettyprint.h>
+
 //#include <qd/qd_real.h>
 //#include <qd/fpu.h>
 
@@ -61,7 +62,7 @@ Simplex::Simplex():
     m_basicVariableValues(0),
     m_reducedCosts(0),
     m_objectiveValue(0),
-//    m_dualObjectiveValue(0),
+    m_dualObjectiveValue(0),
     m_phaseIObjectiveValue(-Numerical::Infinity),
     m_feasible(false),
     m_baseChanged(false),
@@ -526,9 +527,7 @@ void Simplex::solve() {
 //                }
                 m_updateTimer.stop();
 
-#ifndef NDEBUG
                 checkReferenceObjective();
-#endif
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
                     m_iterationReport.writeIterationReport();
@@ -558,7 +557,6 @@ void Simplex::solve() {
                 }
             }
             catch ( const DualInfeasibleException & exception ) {
-                LPINFO("EX");
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
@@ -803,5 +801,6 @@ void Simplex::computeReducedCosts() {
 //        if (Numerical::fabs(reducedCost) < 1e-5 && Numerical::fabs(reducedCost) != 0 ) LPINFO("d_"<<i<<" "<<reducedCost);
     }
 
-//    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
+    //TODO: Ez plusz egy csomo ido
+    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }

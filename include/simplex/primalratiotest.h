@@ -58,7 +58,7 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
 
     //PrimalRatiotestUpdater& m_primalRatiotestUpdater;
-    unsigned int m_outgoingVariableIndex;
+    int m_outgoingVariableIndex;
     Numerical::Double m_primalSteplength;
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
@@ -71,6 +71,7 @@ private:
                                    int incomingVariableIndex,
                                    Numerical::Double phaseIReducedCost);
     void computeFunctionPhase1(const Vector& alpha,
+                               unsigned int &iterationCounter,
                                Numerical::Double functionSlope);
     void generateBreakpointsPhase2(const Vector& alpha,
                                    int incomingVariableIndex);
