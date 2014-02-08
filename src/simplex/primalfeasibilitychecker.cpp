@@ -47,7 +47,6 @@ void PrimalFeasibilityChecker::computeFeasibilities()
     Numerical::Double ubOfIthVariable = 0;
     Numerical::Double valueOfIthVariable = 0;
 
-  //TODO: bejárás nem hatékony
     for(unsigned int basisIndex = 0; basisIndex < m_basisHead.size(); basisIndex++){
         const Variable & basicVariable = m_model.getVariable(m_basisHead.at(basisIndex));
         lbOfIthVariable = basicVariable.getLowerBound();

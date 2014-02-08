@@ -287,6 +287,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
             LPERROR("Outgoing variable is rounded to its lower bound!");
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
             LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
+            LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
 #endif
             cerr.unsetf(ios_base::floatfield);
         }
@@ -297,6 +298,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
 #ifndef NDEBUG
             LPERROR("Outgoing variable is rounded to its upper bound!");
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
+            LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
             LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
 #endif
             cerr.unsetf(ios_base::floatfield);
@@ -305,9 +307,9 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
     } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
-            LPERROR("Outgoing variable is rounded to its lower bound!");
+            LPERROR("Outgoing fixed variable is rounded to its bound!");
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
-            LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
+            LPERROR("Bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
             cerr.unsetf(ios_base::floatfield);
         }
         pivot(vector, pivotRow);

@@ -91,6 +91,8 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
                 }
             }
             LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
+//            LPINFO(*basisIt);
+//            exit(-1);
         }
     }
     std::sort(unitVectors.begin(), unitVectors.end());

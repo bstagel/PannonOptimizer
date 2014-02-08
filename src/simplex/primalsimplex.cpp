@@ -56,9 +56,9 @@ std::vector<IterationReportField> PrimalSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED));
 
-        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 25, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               10, IterationReportField::IRF_SCIENTIFIC));
+                                               15, IterationReportField::IRF_SCIENTIFIC));
 
         result.push_back(IterationReportField (OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
@@ -194,6 +194,7 @@ void PrimalSimplex::initModules() {
 
     //The alpha vector for the column calculations
     m_alpha.resize(m_simplexModel->getRowCount());
+    m_alpha.setSparsityRatio(DENSE);
 }
 
 void PrimalSimplex::releaseModules() {
@@ -254,6 +255,8 @@ void PrimalSimplex::price() {
         }
     }
 
+//    LPWARNING("rc: "<<m_pricing->getReducedCost());
+
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
@@ -268,8 +271,10 @@ void PrimalSimplex::selectPivot() {
 
     while(m_outgoingIndex == -1){
 
+        m_alpha.clear();
         if(m_incomingIndex < (int)columnCount){
             m_alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+            m_alpha.setSparsityRatio(DENSE);
         } else {
             m_alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
         }
@@ -278,7 +283,7 @@ void PrimalSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
-            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha);
+            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha, m_reducedCosts.at(m_incomingIndex));
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
 
@@ -310,7 +315,7 @@ void PrimalSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
@@ -338,16 +343,16 @@ void PrimalSimplex::update() {
 
         if (typeOfIthVariable == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
-
         }
         else if (typeOfIthVariable == Variable::BOUNDED) {
-            if(Numerical::equals(valueOfOutgoingVariable + m_primalTheta, m_simplexModel->getVariable(m_outgoingIndex).getLowerBound())){
+            if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex), m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound())){
                 outgoingState = NONBASIC_AT_LB;
-            } else if(Numerical::equals(valueOfOutgoingVariable + m_primalTheta, m_simplexModel->getVariable(m_outgoingIndex).getUpperBound())){
+            } else if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex), m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound())){
                 outgoingState = NONBASIC_AT_UB;
             } else {
                 outgoingState = NONBASIC_AT_LB;
                 LPERROR("INVALID OUTGOING STATE");
+                LPWARNING("sum: "<<valueOfOutgoingVariable+m_primalTheta);
             }
         }
         else if (typeOfIthVariable == Variable::PLUS) {
@@ -363,6 +368,8 @@ void PrimalSimplex::update() {
         }
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_alpha, Numerical::ADD_ABS);
+
+
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
@@ -370,6 +377,15 @@ void PrimalSimplex::update() {
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
+
+
+//        Vector checker = m_basicVariableValues;
+//        computeBasicSolution();
+//        for(int i=0; i<checker.length(); i++){
+//            if(!Numerical::equals(checker.at(i),m_basicVariableValues.at(i))){
+//                LPERROR("ASDASD: "<<checker.at(i) << " - "<<m_basicVariableValues.at(i));
+//            }
+//        }
 
     }
 

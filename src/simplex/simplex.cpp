@@ -272,7 +272,7 @@ Entry Simplex::getIterationEntry(const string &name,
         } else if(name == EXPORT_FALLBACK){
             reply.m_integer = m_fallbacks;
         } else if(name == EXPORT_SINGULARITY){
-            reply.m_integer = m_basis->getSingularityCount();
+//            reply.m_integer = m_basis->getSingularityCount();
         } else if(name == EXPORT_TRIGGERED_REINVERSION){
             reply.m_integer = m_triggeredReinversion;
         } else if(name == EXPORT_BAD_ITERATION){
@@ -436,7 +436,6 @@ void Simplex::solve() {
     m_iterationReport.createStartReport();
     m_iterationReport.writeStartReport();
 
-    LPINFO("-----------------------------------");
 
     try {
         m_solveTimer.start();
@@ -671,8 +670,14 @@ void Simplex::solve() {
         filename.append("_last.").append(m_saveFormat);
         std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
         if(saveFormat.compare("BAS") == 0){
+            //TODO: Fix load order
+            saveBasis(filename.c_str(), new BasisHeadBAS, true);
+            loadBasis(filename.c_str(), new BasisHeadBAS, true);
             saveBasis(filename.c_str(), new BasisHeadBAS, true);
         } else if (saveFormat.compare("PBF") == 0){
+            //TODO: Fix load order
+            saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
+            loadBasis(filename.c_str(), new BasisHeadPanOpt, true);
             saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
         } else {
             throw ParameterException("Invalid save basis file format!");

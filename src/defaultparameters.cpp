@@ -5,7 +5,7 @@
 #include <defaultparameters.h>
 
 //Linalg Parameters
-const double DefaultParameters::E_ABSOLUTE = 1.0E-12;
+const double DefaultParameters::E_ABSOLUTE = 1.0E-14;
 const double DefaultParameters::E_RELATIVE = 1.0E-10;
 const double DefaultParameters::SPARSITY_RATIO = 0.05;
 const int DefaultParameters::ELBOWROOM = 5;
@@ -24,7 +24,7 @@ const int DefaultParameters::FACTORIZATION_TYPE = 0;
 const int DefaultParameters::NONTRIANGULAR_METHOD = 2;
 const int DefaultParameters::NONTRIANGULAR_PIVOT_RULE = 1;
 const int DefaultParameters::REINVERSION_FREQUENCY = 30;
-const double DefaultParameters::PIVOT_THRESHOLD = 0.01;
+const double DefaultParameters::PIVOT_THRESHOLD = 0.1;
 //Pricing
 const int DefaultParameters::PRICING_TYPE = 0;
 //Ratiotest
