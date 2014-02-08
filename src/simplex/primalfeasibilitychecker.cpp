@@ -2,6 +2,8 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 
+#include <utils/thirdparty/prettyprint.h>
+
 static const Numerical::Double feasibilityTolerance =
         SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
 
@@ -47,6 +49,9 @@ void PrimalFeasibilityChecker::computeFeasibilities()
     Numerical::Double ubOfIthVariable = 0;
     Numerical::Double valueOfIthVariable = 0;
 
+//    std::vector<int> mindex;
+//    std::vector<int> pindex;
+
     for(unsigned int basisIndex = 0; basisIndex < m_basisHead.size(); basisIndex++){
         const Variable & basicVariable = m_model.getVariable(m_basisHead.at(basisIndex));
         lbOfIthVariable = basicVariable.getLowerBound();
@@ -58,20 +63,25 @@ void PrimalFeasibilityChecker::computeFeasibilities()
         if ( Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, basisIndex);
             m_phaseIObjectiveValue += (valueOfIthVariable - lbOfIthVariable);
+//            mindex.push_back(basisIndex);;
         } else
 
     //basic variables with P type infeasibility
 
-        if ( !Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) ) {
+        if ( Numerical::lessthan(ubOfIthVariable, valueOfIthVariable, feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, basisIndex);
             m_phaseIObjectiveValue -= (valueOfIthVariable - ubOfIthVariable);
+//            pindex.push_back(basisIndex);
         } else
 
     //basic variables with F type infeasibility
 
-        if ( Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) &&
-             !Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) ) {
+//        if ( Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) &&
+//             !Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) )
+        {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, basisIndex);
         }
     }
+//    LPINFO("mindex "<<mindex);
+//    LPINFO("pindex "<<pindex);
 }

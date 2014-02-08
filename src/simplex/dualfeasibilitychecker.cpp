@@ -66,19 +66,20 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
                 } else
 
     //nonbasic variables with F type infeasibility
-                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::PLUS) ||
-                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::MINUS) ||
-                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,tolerance) &&
-                        typeOfIthVariable == Variable::FREE)) {
+//                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,tolerance) &&
+//                        typeOfIthVariable == Variable::PLUS) ||
+//                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,tolerance) &&
+//                        typeOfIthVariable == Variable::MINUS) ||
+//                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,tolerance) &&
+//                        typeOfIthVariable == Variable::FREE))
+                {
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }
         }
     }
 }
 
-void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues, Numerical::Double tolerance) {
+void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
 
 //    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();
@@ -91,8 +92,12 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues, N
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
 //            LPINFO("CORRECT: BOUNDED ");
-            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB &&
-                    Numerical::lessthan(m_reducedCosts.at(variableIndex), 0, tolerance)) {
+            //TODO: Is tolerance necessary here? (Probably no)
+//            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+//                    Numerical::lessthan(m_reducedCosts.at(variableIndex), 0, tolerance))
+            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < 0)
+
+            {
 //                LPINFO("CORRECT: LB -> UB ");
                 //Do a bound flip LB -> UB (T+ set)
                 //Swap states
@@ -106,8 +111,11 @@ void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues, N
                     logical.setNewNonzero(variableIndex - columnCount,1);
                     transformVector.addVector(-1 * theta, logical);
                 }
-            } else if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-                   Numerical::lessthan(0,m_reducedCosts.at(variableIndex), tolerance)) {
+            } else
+//                if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+//                   Numerical::lessthan(0,m_reducedCosts.at(variableIndex), tolerance))
+                if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB && m_reducedCosts.at(variableIndex) > 0)
+                {
 //                LPINFO("CORRECT: UB -> LB ");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states

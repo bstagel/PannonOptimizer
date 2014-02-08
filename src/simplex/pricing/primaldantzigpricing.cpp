@@ -71,16 +71,16 @@ void PrimalDantzigPricing::initPhase1() {
     m_updater->m_basis.Btran(auxVector);
 
     // compute the reduced costs
-//    std::vector<Numerical::Double>::iterator sumIter = m_negativeSums.begin();
-//    std::vector<Numerical::Double>::iterator sumIterEnd = m_negativeSums.end();
-//    for (; sumIter != sumIterEnd; sumIter++) {
-//        *sumIter = 0.0;
-//    }
-//    sumIter = m_positiveSums.begin();
-//    sumIterEnd = m_positiveSums.end();
-//    for (; sumIter != sumIterEnd; sumIter++) {
-//        *sumIter = 0.0;
-//    }
+    std::vector<Numerical::Double>::iterator sumIter = m_negativeSums.begin();
+    std::vector<Numerical::Double>::iterator sumIterEnd = m_negativeSums.end();
+    for (; sumIter != sumIterEnd; sumIter++) {
+        *sumIter = 0.0;
+    }
+    sumIter = m_positiveSums.begin();
+    sumIterEnd = m_positiveSums.end();
+    for (; sumIter != sumIterEnd; sumIter++) {
+        *sumIter = 0.0;
+    }
     const Matrix & matrix = m_updater->m_simplexModel.getMatrix();
     Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
     Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
