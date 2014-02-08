@@ -48,7 +48,8 @@ public:
                                 Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue);
     void performRatiotestPhase2(int incomingVariableIndex,
-                                const Vector& alpha);
+                                const Vector& alpha,
+                                Numerical::Double reducedCost);
 
 private:
     const SimplexModel& m_model;
@@ -79,7 +80,7 @@ private:
                                      const Vector& alpha,
                                      Numerical::Double& functionSlope);
     void generateBreakpointsPhase2(const Vector& alpha,
-                                   int incomingVariableIndex);
+                                   Numerical::Double reducedCost);
 };
 
 #endif // PRIMALRATIOTEST_H

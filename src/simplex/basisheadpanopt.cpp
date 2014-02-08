@@ -301,10 +301,10 @@ void BasisHeadPanOpt::finishReading() {
                                          &m_variables[variableIndex]->getUpperBound() );
         } else if (stateStr == FREE_STR) {
             m_variableStatesPtr->insert( Simplex::NONBASIC_FREE,
-                                         variableIndex, 0 );
+                                         variableIndex, &ZERO );
         } else if (stateStr == FIXED_STR) {
             m_variableStatesPtr->insert( Simplex::NONBASIC_FIXED,
-                                         variableIndex, 0 );
+                                         variableIndex, &ZERO );
         } else {
             throw PanOptException("Illegal variable state: " + stateStr);
         }
