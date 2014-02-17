@@ -3383,6 +3383,36 @@ void MpsModelBuilder::getColumnVector(unsigned int columnIndex, Vector * vector,
             }
         }
 
+    } else if ( &columnHashTable == &m_ranges ) {
+        std::vector< std::vector< std::map<Column, int> > >::const_iterator columnIter1 =
+                m_ranges.m_table.begin();
+        std::vector< std::vector< std::map<Column, int> > >::const_iterator columnIterEnd1 =
+                m_ranges.m_table.end();
+        for (; columnIter1 < columnIterEnd1; columnIter1++) {
+            std::vector< std::map<Column, int> >::const_iterator columnIter2 =
+                    columnIter1->begin();
+            std::vector< std::map<Column, int> >::const_iterator columnIterEnd2 =
+                    columnIter1->end();
+            for (; columnIter2 < columnIterEnd2; columnIter2++) {
+                if ( columnIter2->size() > 0 ) {
+                    Column column = columnIter2->begin()->first;
+                    List< Column::Pair >::Iterator row_iter = column.m_coeffs.begin();
+                    List< Column::Pair >::Iterator row_end = column.m_coeffs.end();
+
+                    for (; row_iter != row_end; row_iter++) {
+                        if (given) {
+                            if (row_iter.getData().m_index >= m_costVectorIndex) {
+                                (*given)[row_iter.getData().m_index - 1] = true;
+                            } else {
+                                (*given)[row_iter.getData().m_index] = true;
+                            }
+                        }
+                        vector->set(row_iter.getData().m_index, row_iter.getData().m_value);
+                    }
+                    return;
+                }
+            }
+        }
     }
     /*std::vector< std::map<Column, int> >::const_iterator columnHashIter =
         columnHashTable.m_table.begin();
