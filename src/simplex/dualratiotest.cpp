@@ -518,12 +518,16 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
 
     currentRatio.functionValue = 0;
 
+//    LPINFO("OUTGOING: LB: "<<  m_model.getVariable(outgoingVariableIndex).getLowerBound()
+//           << " UB: " << m_model.getVariable(outgoingVariableIndex).getUpperBound()
+//           << " val: "<< *(m_variableStates.getAttachedData(outgoingVariableIndex)));
+
     //determining t>0 or t<0 cases
     if ( *(m_variableStates.getAttachedData(outgoingVariableIndex)) <
          m_model.getVariable(outgoingVariableIndex).getLowerBound()) {
         m_tPositive = true;
     } else if (*(m_variableStates.getAttachedData(outgoingVariableIndex)) >
-               m_model.getVariable(outgoingVariableIndex).getUpperBound()) {
+               m_model.getVariable(outgoingVariableIndex).getLowerBound()) {
         m_tPositive = false;
     }
 
@@ -531,7 +535,7 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
     Variable::VARIABLE_TYPE typeOfIthVariable;
     IndexList<const Numerical::Double*>::Iterator it;
     IndexList<const Numerical::Double*>::Iterator endit;
-    m_variableStates.getIterators(&it,&endit,0,Simplex::FEASIBILITY_ENUM_LENGTH);
+    m_variableStates.getIterators(&it,&endit,0,Simplex::VARIABLE_STATE_ENUM_LENGTH);
     unsigned int variableIndex = it.getData();
 
     //Threshold report
@@ -607,18 +611,12 @@ void DualRatiotest::generateBreakpointsPhase2(unsigned int outgoingVariableIndex
         //bounded variables
                     if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha.at(variableIndex) > 0) {
-//                        if(variableIndex == 959){
-//                            LPINFO("959 LB -> UB ratio ; "<<alpha.at(variableIndex));
-//                        }
                         currentRatio.index = variableIndex;
                         currentRatio.value = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
                         m_breakpoints.push_back(currentRatio);
                     } else
                     if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
                             typeOfIthVariable == Variable::BOUNDED && alpha.at(variableIndex) < 0) {
-//                        if(variableIndex == 959){
-//                            LPINFO("959 UB -> LB ratio ; "<<alpha.at(variableIndex));
-//                        }
                         currentRatio.index = variableIndex;
                         currentRatio.value = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
                         m_breakpoints.push_back(currentRatio);
@@ -701,11 +699,10 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
     }
     //This forces basis change
     if(m_boundflips.size()>0 && (int)m_boundflips.back() == m_breakpoints.at(length-1-iterationCounter).index){
-//        LPERROR("POP");
+        LPINFO("POPPING THE LAST BOUNDFLIP");
         m_boundflips.pop_back();
     }
     m_incomingVariableIndex = m_breakpoints.at(length-1-iterationCounter).index;
-//    LPERROR("m_incomingVariableIndex" << m_incomingVariableIndex);
     m_dualSteplength = m_tPositive ? m_breakpoints.at(length-1-iterationCounter).value :
                                      - m_breakpoints.at(length-1-iterationCounter).value;
 }
@@ -717,7 +714,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     int id, maxId = length-1-iterationCounter;
     Numerical::Double maxValue;
 
-    if(maxId == -1){
+    if(m_breakpoints[maxId].index == -1){
         maxValue = 0;
     } else {
         maxValue = Numerical::fabs(alpha.at(m_breakpoints[maxId].index)) / m_variableAge[m_breakpoints[maxId].index];
@@ -748,18 +745,16 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     }else{
         m_incomingVariableIndex = m_breakpoints[maxId].index;
     }
-
-    if(thresholdReportLevel >= 1) LPWARNING("Phase 2 Threshold ended alpha: "<<maxValue);
 }
 
 void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                            const Vector& alpha,
                                            Numerical::Double phaseIIObjectiveValue) {
 
-    generateBreakpointsPhase2(outgoingVariableIndex,alpha,phaseIIObjectiveValue);
-
     m_incomingVariableIndex = -1;
     m_dualSteplength = 0;
+
+    generateBreakpointsPhase2(outgoingVariableIndex,alpha,phaseIIObjectiveValue);
 
     Numerical::Double primalSteplength;
     unsigned int iterationCounter = 0,length = m_breakpoints.size();
@@ -785,9 +780,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     }
 #endif
 
-
-    //init function at 0
     getNextElement(&m_breakpoints,length);
+
 
     if (m_breakpoints.size() > 1) {
         int num = nonlinearDualPhaseIIFunction;
@@ -860,14 +854,37 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     //                    if(m_breakpoints[length-1-iterationCounter].index != -1){
                             useNumericalThresholdPhase2(iterationCounter, alpha);
     //                    }
+//                            LPWARNING("breakpoints\t\t\t|\talpha values\t|\treduced costs");
+//                            for(unsigned i=0;i<m_breakpoints.size();i++){
+//                                if(m_breakpoints[i].index != -1){
+//                                    LPWARNING(m_breakpoints[i]<<"     \t|\t"<<alpha.at(m_breakpoints[i].index)<<"    \t|\t"<<m_reducedCosts.at(m_breakpoints[i].index));
+//                                } else {
+//                                    LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//                                }
+//                            }
                     }
                 }
             }
         } else{
             LPERROR(" - Ratiotest - No breakpoint found!");
+//            for(unsigned i=0;i<m_breakpoints.size();i++){
+//                if(m_breakpoints[i].index != -1){
+//                    LPWARNING(m_breakpoints[i]<<"     \t|\t"<<alpha.at(m_breakpoints[i].index)<<"    \t|\t"<<m_reducedCosts.at(m_breakpoints[i].index));
+//                } else {
+//                    LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//                }
+//            }
         }
 
         if(m_incomingVariableIndex != -1){
+//            LPERROR(" - Ratiotest - No incoming found!");
+//            for(unsigned i=0;i<m_breakpoints.size();i++){
+//                if(m_breakpoints[i].index != -1){
+//                    LPWARNING(m_breakpoints[i]<<"     \t|\t"<<alpha.at(m_breakpoints[i].index)<<"    \t|\t"<<m_reducedCosts.at(m_breakpoints[i].index));
+//                } else {
+//                    LPWARNING(m_breakpoints[i]<<"\t|\t"<<" - ");
+//                }
+//            }
 //            m_variableAge[m_incomingVariableIndex] = m_variableAge[m_incomingVariableIndex] + m_ageStep;
 //            LPINFO("AGE incremented: ("<<m_incomingVariableIndex<<") : "<<m_variableAge[m_incomingVariableIndex]);
         }

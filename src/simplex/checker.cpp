@@ -239,3 +239,164 @@ bool Checker::checkPrimalTheta(const Simplex& simplex,
         return true;
     }
 }
+
+bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Numerical::Double tolerance)
+{
+    bool okay = true;
+    for(unsigned int basisIndex=0; basisIndex<simplex.m_simplexModel->getRowCount(); basisIndex++){
+        unsigned int variableIndex = simplex.m_basisHead.at(basisIndex);
+        if(Numerical::lessthan(simplex.m_basicVariableValues.at(basisIndex),simplex.m_simplexModel->getVariable(variableIndex).getLowerBound(),tolerance) ||
+           Numerical::lessthan(simplex.m_simplexModel->getVariable(variableIndex).getUpperBound(),simplex.m_basicVariableValues.at(basisIndex),tolerance)){
+            if(print){
+                LPINFO("UNSATISFIED FEASIBILITY (basisIndex:" << basisIndex << " ; variableIndex: " << variableIndex<< "): "
+                   << " LB:   " << simplex.m_simplexModel->getVariable(variableIndex).getLowerBound()
+                   << " val:  " << simplex.m_basicVariableValues.at(basisIndex)
+                   << " UB:   " << simplex.m_simplexModel->getVariable(variableIndex).getUpperBound()
+                   << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        }
+    }
+    return okay;
+}
+
+bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Numerical::Double tolerance)
+{
+    bool okay = true;
+    for(unsigned int variableIndex=0; variableIndex<simplex.m_simplexModel->getColumnCount() + simplex.m_simplexModel->getRowCount(); variableIndex++){
+        if(simplex.m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+           Numerical::lessthan(simplex.m_reducedCosts.at(variableIndex),0,tolerance)){
+            if(print){
+                LPINFO("UNSATISFIED OPTIMALITY: "
+                       << " d_j:  " << simplex.m_reducedCosts.at(variableIndex)
+                       << " type: " << "NONBASIC_AT_LB"
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        } else if(simplex.m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+                  Numerical::lessthan(0,simplex.m_reducedCosts.at(variableIndex),tolerance)){
+            if(print){
+                LPINFO("UNSATISFIED OPTIMALITY: "
+                       << " d_j:  " << simplex.m_reducedCosts.at(variableIndex)
+                       << " type: " << "NONBASIC_AT_UB"
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        } else if(simplex.m_variableStates.where(variableIndex) == Simplex::NONBASIC_FREE &&
+                  (Numerical::lessthan(0,simplex.m_reducedCosts.at(variableIndex),tolerance) ||
+                   Numerical::lessthan(simplex.m_reducedCosts.at(variableIndex),0,tolerance))){
+            if(print){
+                LPINFO("UNSATISFIED OPTIMALITY: "
+                       << " d_j:  " << simplex.m_reducedCosts.at(variableIndex)
+                       << " type: " << "NONBASIC_FREE"
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        }
+    }
+    return okay;
+}
+
+bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical::Double tolerance)
+{
+    bool okay = true;
+    for(unsigned int rowIndex=0; rowIndex<simplex.m_simplexModel->getRowCount(); rowIndex++){
+        const Vector & row = simplex.m_simplexModel->getMatrix().row(rowIndex);
+        Vector::NonzeroIterator rowIter = row.beginNonzero();
+        Vector::NonzeroIterator rowIterEnd = row.endNonzero();
+        Numerical::Double minus = 0, plus = 0;
+        for(; rowIter != rowIterEnd; rowIter++){
+            Numerical::Double product = (*rowIter) * (*simplex.m_variableStates.getAttachedData(rowIter.getIndex()));
+            if(product > 0){
+                plus += product;
+            } else {
+                minus += product;
+            }
+        }
+
+        Numerical::Double logicalValue = *simplex.m_variableStates.getAttachedData(simplex.m_simplexModel->getColumnCount() + rowIndex);
+        if(logicalValue > 0){
+            plus += logicalValue;
+        } else {
+            minus += logicalValue;
+        }
+
+        Numerical::Double sum = plus + minus;
+        if(!Numerical::equal(sum, simplex.m_simplexModel->getRhs().at(rowIndex), tolerance)){
+            if(print){
+                LPINFO("UNSATISFIED CONSTRAINT: "
+                       << " sum:  " << sum
+                       << " rhs: "  << simplex.m_simplexModel->getRhs().at(rowIndex)
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        }
+    }
+    return okay;
+}
+
+bool Checker::checkNonbasicVariableStates(const Simplex &simplex, bool print)
+{
+    bool okay = true;
+    for(unsigned int variableIndex=0; variableIndex<simplex.m_simplexModel->getColumnCount() + simplex.m_simplexModel->getRowCount(); variableIndex++){
+        unsigned int state = simplex.m_variableStates.where(variableIndex);
+        const Variable & variable = simplex.m_simplexModel->getVariable(variableIndex);
+        if(state == Simplex::NONBASIC_AT_LB && *simplex.m_variableStates.getAttachedData(variableIndex)!=variable.getLowerBound()){
+            if(print){
+                LPINFO("UNSATISFIED VARIABLE STATE: "
+                       << " state:  " << "NONBASIC_AT_LB"
+                       << " LB: "  << variable.getLowerBound()
+                       << " val: " << *simplex.m_variableStates.getAttachedData(variableIndex));
+            }
+            okay = false;
+        } else if(state == Simplex::NONBASIC_AT_UB && *simplex.m_variableStates.getAttachedData(variableIndex) != variable.getUpperBound()){
+            if(print){
+                LPINFO("UNSATISFIED VARIABLE STATE: "
+                       << " state:  " << "NONBASIC_AT_UB"
+                       << " LB: "  << variable.getUpperBound()
+                       << " val: " << *simplex.m_variableStates.getAttachedData(variableIndex));
+            }
+            okay = false;
+        } else if(state == Simplex::NONBASIC_FIXED && *simplex.m_variableStates.getAttachedData(variableIndex) != variable.getLowerBound()
+                                                   && *simplex.m_variableStates.getAttachedData(variableIndex) != variable.getUpperBound()){
+            if(print){
+                LPINFO("UNSATISFIED VARIABLE STATE: "
+                       << " state:  " << "NONBASIC_FIXED"
+                       << " LB: "  << variable.getLowerBound()
+                       << " UB: "  << variable.getUpperBound()
+                       << " val: " << *simplex.m_variableStates.getAttachedData(variableIndex));
+            }
+            okay = false;
+        } else if(state == Simplex::NONBASIC_FREE && *simplex.m_variableStates.getAttachedData(variableIndex) != 0){
+            if(print){
+                LPINFO("UNSATISFIED VARIABLE STATE: "
+                       << " state:  " << "NONBASIC_FREE"
+                       << " val: " << *simplex.m_variableStates.getAttachedData(variableIndex));
+            }
+            okay = false;
+        } else if(state > Simplex::NONBASIC_FREE){
+            if(print){
+                LPINFO("UNSATISFIED VARIABLE STATE: "
+                       << " state:  " << "INVALID STATE");
+            }
+            okay = false;
+        }
+    }
+    return okay;
+}
+
+bool Checker::checkBasicVariableStates(const Simplex &simplex, bool print)
+{
+    bool okay = true;
+    for(unsigned int basisIndex=0; basisIndex<simplex.m_basisHead.size(); basisIndex++){
+        if(simplex.m_variableStates.where(simplex.m_basisHead.at(basisIndex))!=Simplex::BASIC){
+            if(print){
+                LPINFO("UNSATISFIED BASIC STATE: "
+                       << " state:  " << simplex.m_variableStates.getAttachedData(simplex.m_basisHead.at(basisIndex))
+                       << " val: " << *simplex.m_variableStates.getAttachedData(simplex.m_basisHead.at(basisIndex)));
+            }
+            okay = false;
+        }
+    }
+    return okay;
+}

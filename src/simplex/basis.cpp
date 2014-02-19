@@ -6,6 +6,7 @@
 
 #include <simplex/simplex.h>
 #include <simplex/simplexmodel.h>
+#include <simplex/simplexparameterhandler.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -93,6 +94,12 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
     eta->prepareForData(vector.nonZeros(), vector.length());
     //TODO Ezt vajon lehet gyorsabban?
     Numerical::Double atPivot = vector.at(pivotPosition);
+
+//#ifndef NDEBUG
+//    if(Numerical::fabs(atPivot) < SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")){
+//        LPWARNING("The pivot element is small: "<<atPivot);
+//    }
+//#endif
 
     if (Numerical::equals(atPivot, 0)) {
         throw NumericalException("NUMERICAL problem: Pivot element is zero at row " + pivotPosition );

@@ -119,8 +119,8 @@ void DualDantzigPricing::initPhase2() {
     m_updater->m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_updater->m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
 
-    Vector::NonzeroIterator iter = m_updater->m_basicVariableValues.beginNonzero();
-    Vector::NonzeroIterator iterEnd = m_updater->m_basicVariableValues.endNonzero();
+    Vector::Iterator iter = m_updater->m_basicVariableValues.begin();
+    Vector::Iterator iterEnd = m_updater->m_basicVariableValues.end();
     for(; iter < iterEnd ; iter++){
         const Variable & variable = m_model.getVariable(m_updater->m_basisHead[iter.getIndex()]);
         if(Numerical::lessthan(*iter, variable.getLowerBound(), feasibilityTolerance)) {
@@ -131,7 +131,6 @@ void DualDantzigPricing::initPhase2() {
             m_updater->m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
         }
     }
-
 }
 
 int DualDantzigPricing::performPricingPhase1() {

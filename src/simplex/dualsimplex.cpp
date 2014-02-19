@@ -9,6 +9,7 @@
 #include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pfibasis.h>
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/checker.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -320,10 +321,10 @@ void DualSimplex::update() {
     for(; it < itend; it++){
 //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
-        if(m_incomingIndex < (int)columnCount){
-            alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+        if(*it < columnCount){
+            alpha = m_simplexModel->getMatrix().column(*it);
         } else {
-            alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
+            alpha.setNewNonzero(*it - columnCount, 1);
         }
         m_basis->Ftran(alpha);
 
@@ -498,6 +499,24 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
             alpha->set(columnIndex, rho.at(columnIndex - columnCount));
         }
     }
+
+//    Vector alpha2(rowCount + columnCount);
+//    m_variableStates.getIterators(&it, &itEnd, 1, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
+//    for(; it != itEnd ; it++){
+//        unsigned int columnIndex = it.getData();
+//        if(columnIndex < columnCount){
+//            alpha2.set(columnIndex, rho.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+//        } else {
+//            alpha2.set(columnIndex, rho.at(columnIndex - columnCount));
+//        }
+//    }
+
+//    for(int i=0; i<alpha->length(); i++){
+//        if(alpha->at(i) != alpha2.at(i)){
+//            LPERROR("alpha->at(i): "<<alpha->at(i)<< " - alpha2->at(i): "<<alpha->at(i));
+//        }
+//    }
+
 
 //    LPINFO("rho: "<<rho);
 //    LPINFO("alpha: "<<*alpha);

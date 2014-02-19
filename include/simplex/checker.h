@@ -13,6 +13,12 @@ public:
     static bool checkPrimalTheta(const Simplex& simplex,
                                    int rowIndex, int columnIndex,
                                    Numerical::Double& thetaFromCol, Numerical::Double& thetaFromRow);
+    static bool checkFeasibilityConditions(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
+    static bool checkOptimalityConditions(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
+    static bool checkAllConstraints(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
+    static bool checkNonbasicVariableStates(const Simplex& simplex, bool print = true);
+    static bool checkBasicVariableStates(const Simplex& simplex, bool print = true);
+
 };
 
 #endif // CHECKER_H
