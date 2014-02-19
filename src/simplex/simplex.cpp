@@ -488,6 +488,14 @@ void Simplex::solve() {
 
             computeWorkingTolerance();
 
+//            if(m_iterationIndex>438){
+//                LPINFO("BEGIN FEASIBILITY OK: "<<Checker::checkFeasibilityConditions(*this, true));
+//                LPINFO("BEGIN OPTIMALITY OK: "<<Checker::checkOptimalityConditions(*this, true));
+//                LPINFO("BEGIN CONSTRAINTS OK: "<<Checker::checkAllConstraints(*this, true));
+//                LPINFO("BEGIN NONBASICS OK: "<<Checker::checkNonbasicVariableStates(*this, true));
+//                LPINFO("BEGIN BASICS OK: "<<Checker::checkBasicVariableStates(*this, true));
+//            }
+
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
                 releaseLocks();
@@ -670,14 +678,8 @@ void Simplex::solve() {
         filename.append("_last.").append(m_saveFormat);
         std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
         if(saveFormat.compare("BAS") == 0){
-            //TODO: Fix load order
-            saveBasis(filename.c_str(), new BasisHeadBAS, true);
-            loadBasis(filename.c_str(), new BasisHeadBAS, true);
             saveBasis(filename.c_str(), new BasisHeadBAS, true);
         } else if (saveFormat.compare("PBF") == 0){
-            //TODO: Fix load order
-            saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
-            loadBasis(filename.c_str(), new BasisHeadPanOpt, true);
             saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
         } else {
             throw ParameterException("Invalid save basis file format!");
@@ -758,6 +760,7 @@ void Simplex::computeBasicSolution() {
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
                                           Numerical::stableSub(m_basicVariableValues.at(it.getData() - columnCount), *(it.getAttached())));
+//                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
             }
         }
     }
@@ -807,5 +810,23 @@ void Simplex::computeReducedCosts() {
     }
 
     //TODO: Ez plusz egy csomo ido
-    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
+    //b-\SUM{U*x_U}-\SUM{L*x_L}
+    Vector modifiedRhs(m_simplexModel->getRhs());
+    IndexList<const Numerical::Double *>::Iterator it;
+    IndexList<const Numerical::Double *>::Iterator itend;
+    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
+
+    for(; it != itend; it++) {
+        if(*(it.getAttached()) != 0){
+            if(it.getData() < columnCount){
+                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
+            } else {
+                LPWARNING("MRARARAR");
+                modifiedRhs.set(it.getData() - columnCount,
+                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
+            }
+        }
+    }
+    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
+//    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }

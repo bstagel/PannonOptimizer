@@ -280,6 +280,24 @@ void PrimalSimplex::selectPivot() {
         }
         m_basis->Ftran(m_alpha);
 
+
+        //Test code to check primal ph_1 reduced cost
+//        Numerical::Double rcCheck=0;
+//        if(!m_feasible){
+//            for(int i=0; i<m_alpha.length(); i++){
+//                if(m_basicVariableFeasibilities.where(i) == Simplex::MINUS){
+//                    rcCheck += m_alpha.at(i);
+//                } else if(m_basicVariableFeasibilities.where(i) == Simplex::PLUS){
+//                    rcCheck -= m_alpha.at(i);
+//                }
+//            }
+
+//            if(!Numerical::equals(rcCheck, m_pricing->getReducedCost())){
+//                LPERROR("Phase 1 reduced cost error: pricing: "<<m_pricing->getReducedCost()<< " ; alpha: "<<rcCheck);
+//                exit(-1);
+//            }
+//        }
+
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
@@ -336,10 +354,12 @@ void PrimalSimplex::update() {
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
+        LPINFO("RC: "<<m_pricing->getReducedCost());
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
         Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
+        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
 
         if (typeOfIthVariable == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
@@ -352,7 +372,6 @@ void PrimalSimplex::update() {
             } else {
                 outgoingState = NONBASIC_AT_LB;
                 LPERROR("INVALID OUTGOING STATE");
-                LPWARNING("sum: "<<valueOfOutgoingVariable+m_primalTheta);
             }
         }
         else if (typeOfIthVariable == Variable::PLUS) {

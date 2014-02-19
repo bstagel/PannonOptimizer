@@ -110,15 +110,16 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                     currentRatio.value = (m_basicVariableValues.at(basisIndex) -
                             m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
-//                    LPINFO("M ratio L: "<<currentRatio.value << " index: "<< currentRatio.index);
+                    LPINFO("M ratio L: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                     m_breakpoints.push_back(currentRatio);
                     if (m_model.getVariable(variableIndex).getType() == Variable::FIXED) {
+                        LPINFO("M ratio U: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                         m_breakpoints.push_back(currentRatio);
                     } else if (m_model.getVariable(variableIndex).getType() == Variable::BOUNDED) {
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) -
                                               m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                         m_breakpoints.push_back(currentRatio);
-//                        LPINFO("M ratio U: "<<currentRatio.value << " index: "<< currentRatio.index);
+                        LPINFO("M ratio U: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                     }
                 }
             }
@@ -133,15 +134,16 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                     currentRatio.value = (m_basicVariableValues.at(basisIndex) -
                                           m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                     currentRatio.functionValue = 0;
-//                    LPINFO("P ratio L: "<<currentRatio.value << " index: "<< currentRatio.index);
+                    LPINFO("P ratio U: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                     m_breakpoints.push_back(currentRatio);
                     if (m_model.getVariable(variableIndex).getType() == Variable::FIXED) {
+                        LPINFO("P ratio L: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                         m_breakpoints.push_back(currentRatio);
                     } else if (m_model.getVariable(variableIndex).getType() == Variable::BOUNDED) {
                         currentRatio.value = (m_basicVariableValues.at(basisIndex) -
                                               m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                         m_breakpoints.push_back(currentRatio);
-//                        LPINFO("P ratio U: "<<currentRatio.value << " index: "<< currentRatio.index);
+                        LPINFO("P ratio L: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex));
                     }
                 }
             }
@@ -160,7 +162,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                                               m_model.getVariable(variableIndex).getUpperBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
-//                        LPINFO("F ratio P: "<<currentRatio.value << " index: "<< currentRatio.index);
+                        LPINFO("F ratio P: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex) << " type: "<<typeOfIthVariable << " basisindex " << basisIndex << " varindex " << variableIndex );
               //F->M
                 } else if (alpha.at(basisIndex) > 0 &&
                            m_model.getVariable(variableIndex).getLowerBound() != - Numerical::Infinity) {
@@ -169,7 +171,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                                               m_model.getVariable(variableIndex).getLowerBound()) / alpha.at(basisIndex);
                         currentRatio.functionValue = 0;
                         m_breakpoints.push_back(currentRatio);
-//                        LPINFO("F ratio M: "<<currentRatio.value << " index: "<< currentRatio.index);
+                        LPINFO("F ratio M: "<<currentRatio.value << " index: "<< currentRatio.index << " alpha " << alpha.at(basisIndex) << " type: "<<typeOfIthVariable << " basisindex " << basisIndex << " varindex " << variableIndex );
                     }
             }
 

@@ -50,6 +50,7 @@ void SimplexModel::makeComputationalForm()
         }
 
         case Constraint::RANGE: {
+            LPINFO("RANGE-------------");
             m_logicalVariables[i].setLowerBound(0.);
             m_logicalVariables[i].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
             m_rhs.set(i, constraints.at(i).getUpperBound());
