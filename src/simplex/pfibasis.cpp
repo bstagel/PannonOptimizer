@@ -231,6 +231,7 @@ void PfiBasis::invert() {
 
     //Invert the R, M, C parts separately
     clock_t invertRStart = clock();
+//    LPINFO("invertR");
     invertR();
     clock_t invertRStop = clock();
 
@@ -239,10 +240,12 @@ void PfiBasis::invert() {
     clock_t findCStop = clock();
 
     clock_t invertMStart = clock();
+//    LPINFO("invertM");
     invertM();
     clock_t invertMStop = clock();
 
     clock_t invertCStart = clock();
+//    LPINFO("invertC");
     invertC();
     clock_t invertCStop = clock();
 
@@ -576,7 +579,10 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
                     m_rowCounts.at(columnIt.getIndex())--;
                 }
             }
+//            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
             m_basicColumnCopies.at(*it)->elementaryFtran(*(m_basis->back().eta), m_basis->back().index);
+
+//            LPINFO("UPDATED COLUMN: "<<*m_basicColumnCopies.at(*it));
             //Add the changes back
             int newColumnCount = 0;
             columnIt = m_basicColumnCopies.at(*it)->beginNonzero();

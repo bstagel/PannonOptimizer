@@ -1166,7 +1166,6 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
 
 Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
 {
-    //OLD IMPLEMENTATION
     Numerical::Double pivotValue = at(pivot);
     if (pivotValue == 0.0) {
         CHECK;
@@ -1174,109 +1173,11 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     }
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
+//    LPWARNING("eta: "<<eta);
+//    LPWARNING("atPivot: "<<atPivot);
     addVector(pivotValue, eta, Numerical::ADD_ABS);
     set(pivot, atPivot * pivotValue);
     return *this;
-
-    //NEW IMPLEMENTATION
-    //    Numerical::Double * denseVector;
-    //
-    //    // 1. lepes: ha kell akkor atvaltjuk dense-re
-    //
-    //    if (m_vectorType == Vector::DENSE_VECTOR) {
-    //        denseVector = m_data;
-    //    } else {
-    //        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght,
-    //            m_data, m_index, m_size, m_dimension);
-    //        denseVector = Vector::sm_fullLengthVector;
-    //    }
-    //
-    //    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
-    //    const Numerical::Double pivotValue = denseVector[ pivot ];
-    //
-    //    if (eta.m_vectorType == Vector::DENSE_VECTOR) {
-    //        Numerical::Double * ptrValue2 = eta.m_data;
-    //        Numerical::Double * ptrValue1 = denseVector;
-    //        const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
-    //        while (ptrValue1 < ptrValueEnd) {
-    //            const Numerical::Double value = *ptrValue2;
-    //            if (value != 0.0) {
-    //                const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
-    //                if (*ptrValue1 == 0.0 && val != 0.0) {
-    //                    m_nonZeros++;
-    //                } else if (*ptrValue1 != 0.0 && val == 0.0) {
-    //                    m_nonZeros--;
-    //                }
-    //                *ptrValue1 = val;
-    //            }
-    //            ptrValue1++;
-    //            ptrValue2++;
-    //        }
-    //        //A vegen lerendezzuk a pivot poziciot is:
-    //        const Numerical::Double val = pivotValue * eta.m_data[pivot];
-    //        if (denseVector[pivot] == 0.0 && val != 0.0) {
-    //            m_nonZeros++;
-    //        } else if (denseVector[pivot] != 0.0 && val == 0.0) {
-    //            m_nonZeros--;
-    //        }
-    //        denseVector[pivot] = val;
-    //
-    //    } else {
-    //        Numerical::Double * ptrEta = eta.m_data;
-    //        unsigned int * ptrIndex = eta.m_index;
-    //        const unsigned int * ptrIndexEnd = ptrIndex + eta.m_size;
-    //        const unsigned int pivotPosition = pivot;
-    //        while (ptrIndex < ptrIndexEnd) {
-    //            Numerical::Double & originalValue = denseVector[*ptrIndex];
-    //            if (*ptrEta != 0.0) {
-    //                Numerical::Double val;
-    //                if (*ptrIndex != pivotPosition) {
-    //                    val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
-    //                    if (originalValue == 0.0 && val != 0.0) {
-    //                        m_nonZeros++;
-    //                    } else if (originalValue != 0.0 && val == 0.0) {
-    //                        m_nonZeros--;
-    //                    }
-    //                } else {
-    //                    val = pivotValue * *ptrEta;
-    //                }
-    //                originalValue = val;
-    //            }
-    //            ptrIndex++;
-    //            ptrEta++;
-    //        }
-    //    }
-    //
-    //    // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni
-    //    Vector::VECTOR_TYPE newType;
-    //
-    //    if (m_nonZeros < m_sparsityThreshold) {
-    //        newType = Vector::SPARSE_VECTOR;
-    //    } else {
-    //        newType = Vector::DENSE_VECTOR;
-    //    }
-    //
-    //    if (m_vectorType == Vector::DENSE_VECTOR) {
-    //        if (newType == Vector::DENSE_VECTOR) {
-    //
-    //        } else {
-    //            denseToSparse();
-    //        }
-    //    } else {
-    //        prepareForData(m_nonZeros, m_dimension, false);
-    //        Numerical::Double * ptrValue = denseVector;
-    //        const Numerical::Double * ptrValueEnd = denseVector + m_dimension;
-    //        unsigned int index = 0;
-    //        while (ptrValue < ptrValueEnd) {
-    //            if (*ptrValue != 0.0) {
-    //                newNonZero(*ptrValue, index);
-    //                *ptrValue = 0.0;
-    //            }
-    //            ptrValue++;
-    //            index++;
-    //        }
-    //    }
-
 }
 
 Vector & Vector::elementaryBtran(const Vector & eta, unsigned int pivot)

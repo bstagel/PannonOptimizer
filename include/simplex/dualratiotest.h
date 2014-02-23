@@ -58,6 +58,15 @@ public:
                                 const Vector& alpha,
                                 Numerical::Double phaseIIObjectiveValue);
 
+    inline int getStablePivotActivationPhase1() const {return m_stablePivotActivationPhase1;}
+    inline int getStablePivotBackwardStepsPhase1() const {return m_stablePivotBackwardStepsPhase1;}
+    inline int getStablePivotForwardStepsPhase1() const {return m_stablePivotForwardStepsPhase1;}
+    inline int getFakeFeasibilityActivationPhase1() const {return m_fakeFeasibilityActivationPhase1;}
+    inline int getFakeFeasibilityCounterPhase1() const {return m_fakeFeasibilityCounterPhase1;}
+    inline int getStablePivotNotFoundPhase2() const {return m_stablePivotNotFoundPhase2;}
+    inline int getFakeFeasibilityActivationPhase2() const {return m_fakeFeasibilityActivationPhase2;}
+    inline int getFakeFeasibilityCounterPhase2() const {return m_fakeFeasibilityCounterPhase2;}
+
 private:
     const SimplexModel& m_model;
     const Vector& m_reducedCosts;
@@ -79,6 +88,19 @@ private:
     std::vector <BreakPoint> m_breakpoints;
     Numerical::Double m_pivotThreshold;
 
+    int m_enableFakeFeasibility;
+
+    //Ratiotest research measures
+    int m_stablePivotActivationPhase1;
+    int m_stablePivotBackwardStepsPhase1;
+    int m_stablePivotForwardStepsPhase1;
+    int m_fakeFeasibilityActivationPhase1;
+    int m_fakeFeasibilityCounterPhase1;
+
+    int m_stablePivotNotFoundPhase2;
+    int m_fakeFeasibilityActivationPhase2;
+    int m_fakeFeasibilityCounterPhase2;
+
     //EXPAND
 //    void generateExpandedBreakpointsPhase1(const Vector& alpha,
 //                                           Numerical::Double phaseIReducedCost,
@@ -88,17 +110,22 @@ private:
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
     bool numericalCheckPhase1(const Vector& alpha, unsigned int alphaId);
-    void generateBreakpointsPhase1(const Vector& alpha,
-                                   Numerical::Double phaseIReducedCost);
+    void generateAbsoluteBreakpointsPhase1(const Vector& alpha,
+                                           Numerical::Double phaseIReducedCost);
+    void generateSignedBreakpointsPhase1(const Vector& alpha,
+                                         Numerical::Double phaseIReducedCost);
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int& iterationCounter,
                                Numerical::Double& functionSlope);
     void useNumericalThresholdPhase1(unsigned int iterationCounter,
                                const Vector& alpha,
                                Numerical::Double& functionSlope);
-    void generateBreakpointsPhase2(unsigned int outgoingVariableIndex,
-                                   const Vector& alpha,
-                                   Numerical::Double phaseIIObjectiveValue);
+    void generateAbsoluteBreakpointsPhase2(unsigned int outgoingVariableIndex,
+                                           const Vector& alpha,
+                                           Numerical::Double phaseIIObjectiveValue);
+    void generateSignedBreakpointsPhase2(unsigned int outgoingVariableIndex,
+                                         const Vector& alpha,
+                                         Numerical::Double phaseIIObjectiveValue);
     void computeFunctionPhase2(const Vector& alpha,
                                unsigned int& iterationCounter,
                                Numerical::Double& functionSlope,

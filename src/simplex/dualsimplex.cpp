@@ -21,10 +21,18 @@ const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PHASE_1_OBJ_VAL_STRING = "Dual infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
-const static char * DUAL_OBJ_VAL_STRING = "Dual Objectuve";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Primal theta";
 const static char * DUAL_THETA_STRING = "Dual theta";
+
+const static char * EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1 = "export_stable_pivot_activation_phase1";
+const static char * EXPORT_STABLE_PIVOT_BACKWARD_STEPS_PHASE1 = "export_stable_pivot_backward_steps_phase1";
+const static char * EXPORT_STABLE_PIVOT_FORWARD_STEPS_PHASE1 = "export_stable_pivot_forward_steps_phase1";
+const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE1 = "export_fake_feasibility_activation_phase1";
+const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE1 = "export_fake_feasibility_counter_phase1";
+const static char * EXPORT_STABLE_PIVOT_NOT_FOUND_PHASE2 = "export_stable_pivot_not_found_phase2";
+const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2 = "export_fake_feasibility_activation_phase2";
+const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasibility_counter_phase2";
 
 DualSimplex::DualSimplex():
     m_pricing(0),
@@ -33,7 +41,6 @@ DualSimplex::DualSimplex():
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
-
     m_workingTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
 }
 
@@ -74,10 +81,6 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
-        result.push_back(IterationReportField (DUAL_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
-                                               IterationReportField::IRF_FLOAT, *this,
-                                               10, IterationReportField::IRF_SCIENTIFIC));
-
         result.push_back(IterationReportField (PHASE_NAME, 6, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_STRING, *this));
     }
@@ -89,6 +92,32 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
         break;
+    }
+
+
+    case IterationReportProvider::IRF_EXPORT:
+    {
+        // Ratio test research set
+        if (m_exportType == 1) {
+            result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_BACKWARD_STEPS_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_FORWARD_STEPS_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_NOT_FOUND_PHASE2,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+        } else {
+            throw ParameterException("Invalid export type specified in the parameter file!");
+        }
     }
 
     default:
@@ -121,12 +150,6 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
             } else {
                 reply.m_double = -m_objectiveValue;
             }
-        } else if (name == DUAL_OBJ_VAL_STRING) {
-            if(m_simplexModel->getObjectiveType() == MINIMIZE){
-                reply.m_double = m_dualObjectiveValue;
-            } else {
-                reply.m_double = -m_dualObjectiveValue;
-            }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
                 reply.m_double = m_primalReducedCost;
@@ -155,6 +178,23 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
         return reply;
 
     default:
+        if (name == EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1) {
+            reply.m_integer = m_ratiotest->getStablePivotActivationPhase1();
+        } else if (name == EXPORT_STABLE_PIVOT_BACKWARD_STEPS_PHASE1) {
+            reply.m_integer = m_ratiotest->getStablePivotBackwardStepsPhase1();
+        } else if (name == EXPORT_STABLE_PIVOT_FORWARD_STEPS_PHASE1) {
+            reply.m_integer = m_ratiotest->getStablePivotForwardStepsPhase1();
+        } else if (name == EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE1) {
+            reply.m_integer = m_ratiotest->getFakeFeasibilityActivationPhase1();
+        } else if (name == EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE1) {
+            reply.m_integer = m_ratiotest->getFakeFeasibilityCounterPhase1();
+        } else if (name == EXPORT_STABLE_PIVOT_NOT_FOUND_PHASE2) {
+            reply.m_integer = m_ratiotest->getStablePivotNotFoundPhase2();
+        } else if (name == EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2) {
+            reply.m_integer = m_ratiotest->getFakeFeasibilityActivationPhase2();
+        } else if (name == EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2) {
+            reply.m_integer = m_ratiotest->getFakeFeasibilityCounterPhase2();
+        }
         break;
     }
 
@@ -243,6 +283,10 @@ void DualSimplex::checkFeasibility() {
     m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
         //Becomes feasible
+        if(m_phase1Iteration == -1){
+            m_phase1Iteration = m_iterationIndex;
+            m_phase1Time = m_solveTimer.getCPURunningTime();
+        }
         m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
@@ -262,6 +306,11 @@ void DualSimplex::price() {
         m_phaseName = PHASE_2_STRING;
         m_outgoingIndex = m_pricing->performPricingPhase2();
         if(m_outgoingIndex == -1){
+//            LPINFO("OPTIMAL SOLUTION found!");
+//            Checker::checkFeasibilityConditions(*this, true);
+//            Checker::checkNonbasicVariableStates(*this, true);
+//            Checker::checkBasicVariableStates(*this, true);
+//            Checker::checkBasicVariableFeasibilities(*this);
             throw OptimalException("OPTIMAL SOLUTION found!");
         }
     }
@@ -271,7 +320,27 @@ void DualSimplex::selectPivot() {
 
     Vector alpha;
 
+//    LPINFO("rc: "<<m_simplexModel->getRowCount());
+//    LPINFO("cc: "<<m_simplexModel->getColumnCount());
+//    Vector alpha151(m_simplexModel->getRowCount());
+//    alpha151.set(151-143,1);
+//    m_basis->Ftran(alpha151);
+//    LPINFO("alpha151 "<<alpha151);
+//    LPINFO("m_reducedCosts "<<m_reducedCosts);
 
+//    if(m_iterationIndex>171){
+//        for(int i=0; i<m_basicVariableValues.length(); i++){
+//            std::cout<<"xbi: ("<<i <<","<<m_basicVariableValues.at(i)<<")"<<"\n";
+//        }
+//        Checker::checkFeasibilityConditions(*this, true);
+//        Checker::checkNonbasicVariableStates(*this, true);
+//        Checker::checkBasicVariableStates(*this, true);
+//        Checker::checkBasicVariableFeasibilities(*this);
+//        Checker::checkPfiWithFtran(*this);
+//        Checker::checkPfiWithBtran(*this);
+//        Checker::checkPfiWithReducedCost(*this);
+//        LPINFO("FRESH "<<m_freshBasis);
+//    }
     m_incomingIndex = -1;
     while(m_incomingIndex == -1 ){
 
@@ -377,6 +446,8 @@ void DualSimplex::update() {
             }
         }
 
+//        Checker::checkPfiWithBtran(*this);
+
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
@@ -403,7 +474,7 @@ void DualSimplex::setReferenceObjective() {
     if(!m_feasible){
         m_referenceObjective = m_phaseIObjectiveValue;
     } else {
-        m_referenceObjective = m_dualObjectiveValue;
+        m_referenceObjective = m_objectiveValue;
     }
 //                LPINFO("m_referenceObjective " <<m_referenceObjective);
 }
@@ -418,10 +489,10 @@ void DualSimplex::checkReferenceObjective() {
             m_degenerateIterations++;
         }
     } else {
-        if(m_referenceObjective > m_dualObjectiveValue ){
+        if(m_referenceObjective > m_objectiveValue ){
             LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
-        } else if(m_referenceObjective == m_dualObjectiveValue){
+        } else if(m_referenceObjective == m_objectiveValue){
 //            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }

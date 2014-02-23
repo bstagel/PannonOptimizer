@@ -129,12 +129,19 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t! 2 = Piecewise linear function with numerical threshold \n"
                "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << std::endl;
 
+        out << "! Enable fake feasibility handling in Dual Phase I and II \n"
+               "\t! 0 = disabled \n"
+               "\t! 1 = enabled" << std::endl;
+        out << "\t" << "enable_fake_feasibility = " << writeParameter("enable_fake_feasibility")
+            << std::endl << std::endl;
+
         out << "! Numerical Threshold report in Dual Phase I and II \n"
                "\t! 0 = no report \n"
                "\t! 1 = report threshold active & sum of steps \n"
                "\t! 2 = report threshold step by step"<< std::endl;
         out << "\t" << "threshold_report_level = " << writeParameter("threshold_report_level")
             << std::endl << std::endl;
+
 
         out << "! EXPAND multiplier initializing value\n"
                "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI")
@@ -242,6 +249,8 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("nonlinear_dual_phaseI_function", DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
     createParameter("nonlinear_dual_phaseII_function", Entry::INTEGER);
     setParameterValue("nonlinear_dual_phaseII_function", DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
+    createParameter("enable_fake_feasibility", Entry::INTEGER);
+    setParameterValue("enable_fake_feasibility", DefaultParameters::ENABLE_FAKE_FEASIBILITY);
 
     createParameter("threshold_report_level", Entry::INTEGER);
     setParameterValue("threshold_report_level", DefaultParameters::THRESHOLD_REPORT_LEVEL);
