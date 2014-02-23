@@ -51,7 +51,6 @@ public:
     virtual ~Simplex();
 
     inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
-    inline const Numerical::Double & getDualObjectiveValue() const {return m_dualObjectiveValue;}
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
@@ -77,6 +76,8 @@ public:
 
 
 protected:
+    unsigned int m_iterationIndex;
+
     //Tolerance handling
     Numerical::Double m_masterTolerance;
     Numerical::Double m_workingTolerance;
@@ -92,7 +93,6 @@ protected:
     Vector m_basicVariableValues;
     Vector m_reducedCosts;
     Numerical::Double m_objectiveValue;
-    Numerical::Double m_dualObjectiveValue;
     Numerical::Double m_phaseIObjectiveValue;
 
     bool m_feasible;
@@ -124,6 +124,8 @@ protected:
     int m_exportType;
 
     Numerical::Double m_referenceObjective;
+    int m_phase1Iteration;
+    Numerical::Double m_phase1Time;
     int m_fallbacks;
     int m_triggeredReinversion;
     int m_badIterations;
@@ -147,7 +149,6 @@ protected:
     void reinvert();
     void computeBasicSolution();
     void computeReducedCosts();
-//    void computeDualObjective();
     virtual void computeFeasibility() = 0;
     virtual void checkFeasibility() = 0;
     virtual void price() = 0;
@@ -170,8 +171,6 @@ protected:
     void registerIntoIterationReport(const IterationReportProvider & provider);
 
 
-private:
-    unsigned int m_iterationIndex;
 };
 
 #endif /* SIMPLEX_H */

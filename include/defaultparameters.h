@@ -36,6 +36,7 @@ public:
     static const int NONLINEAR_PRIMAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEII_FUNCTION;
+    static const int ENABLE_FAKE_FEASIBILITY;
     static const int THRESHOLD_REPORT_LEVEL;
     static const double EXPAND_MULTIPLIER_DPH1;
     static const int EXPAND_DIVIDER_DPH1;

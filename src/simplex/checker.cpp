@@ -257,6 +257,13 @@ bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Num
             okay = false;
         }
     }
+    if(print){
+        if(okay){
+            LPINFO("checkFeasibilityConditions PASSED");
+        } else {
+            LPERROR("checkFeasibilityConditions FAILED");
+        }
+    }
     return okay;
 }
 
@@ -292,6 +299,13 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
                        << " (tol: " << tolerance << " )");
             }
             okay = false;
+        }
+    }
+    if(print){
+        if(okay){
+            LPINFO("checkOptimalityConditions PASSED");
+        } else {
+            LPERROR("checkOptimalityConditions FAILED");
         }
     }
     return okay;
@@ -330,6 +344,13 @@ bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical:
                        << " (tol: " << tolerance << " )");
             }
             okay = false;
+        }
+    }
+    if(print){
+        if(okay){
+            LPINFO("checkAllConstraints PASSED");
+        } else {
+            LPERROR("checkAllConstraints FAILED");
         }
     }
     return okay;
@@ -382,6 +403,13 @@ bool Checker::checkNonbasicVariableStates(const Simplex &simplex, bool print)
             okay = false;
         }
     }
+    if(print){
+        if(okay){
+            LPINFO("checkNonbasicVariableStates PASSED");
+        } else {
+            LPERROR("checkNonbasicVariableStates FAILED");
+        }
+    }
     return okay;
 }
 
@@ -396,6 +424,64 @@ bool Checker::checkBasicVariableStates(const Simplex &simplex, bool print)
                        << " val: " << *simplex.m_variableStates.getAttachedData(simplex.m_basisHead.at(basisIndex)));
             }
             okay = false;
+        }
+    }
+    if(print){
+        if(okay){
+            LPINFO("checkBasicVariableStates PASSED");
+        } else {
+            LPERROR("checkBasicVariableStates FAILED");
+        }
+    }
+    return okay;
+}
+
+bool Checker::checkBasicVariableFeasibilities(const Simplex &simplex, bool print, Numerical::Double tolerance)
+{
+    bool okay = true;
+    for(unsigned int basisIndex=0; basisIndex<simplex.m_basisHead.size(); basisIndex++){
+        const Variable & variable = simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(basisIndex));
+        unsigned int state = simplex.m_basicVariableFeasibilities.where(basisIndex);
+        Numerical::Double lb = variable.getLowerBound();
+        Numerical::Double ub = variable.getUpperBound();
+        Numerical::Double value = simplex.m_basicVariableValues.at(basisIndex);
+        if((Numerical::lessthan(value, lb, tolerance) &&  state != Simplex::MINUS)){
+            if(print){
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                       << " state : " << state << " - NOT MINUS"
+                       << " lb    : " << lb
+                       << " value : " << value
+                       << " ub    : " << ub
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        } else if((Numerical::lessthan(ub, value, tolerance) &&  state != Simplex::PLUS)){
+            if(print){
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                       << " state : " << state << " - NOT PLUS"
+                       << " lb    : " << lb
+                       << " value : " << value
+                       << " ub    : " << ub
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        } else if(Numerical::lessthan(lb, value, tolerance) && Numerical::lessthan(value, ub, tolerance) &&  state != Simplex::FEASIBLE){
+            if(print){
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                       << " state : " << state << " - NOT FEASIBLE"
+                       << " lb    : " << lb
+                       << " value : " << value
+                       << " ub    : " << ub
+                       << " (tol: " << tolerance << " )");
+            }
+            okay = false;
+        }
+    }
+    if(print){
+        if(okay){
+            LPINFO("checkBasicVariableFeasibilities PASSED");
+        } else {
+            LPERROR("checkBasicVariableFeasibilities FAILED");
         }
     }
     return okay;

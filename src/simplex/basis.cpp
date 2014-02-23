@@ -95,11 +95,11 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
     //TODO Ezt vajon lehet gyorsabban?
     Numerical::Double atPivot = vector.at(pivotPosition);
 
-//#ifndef NDEBUG
-//    if(Numerical::fabs(atPivot) < SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")){
-//        LPWARNING("The pivot element is small: "<<atPivot);
-//    }
-//#endif
+#ifndef NDEBUG
+    if(Numerical::fabs(atPivot) < SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")){
+        LPWARNING("The pivot element is small: "<<atPivot << " ; "<<pivotPosition);
+    }
+#endif
 
     if (Numerical::equals(atPivot, 0)) {
         throw NumericalException("NUMERICAL problem: Pivot element is zero at row " + pivotPosition );

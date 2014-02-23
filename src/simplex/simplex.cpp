@@ -38,10 +38,12 @@ const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
 
 const static char * EXPORT_FILENAME = "export_filename";
 const static char * EXPORT_ITERATION = "export_iteration";
+const static char * EXPORT_PHASE1_ITERATION = "export_phase1_iteration";
 const static char * EXPORT_TIME = "export_time";
+const static char * EXPORT_PHASE1_TIME = "export_phase1_time";
 const static char * EXPORT_SOLUTION = "export_solution";
 const static char * EXPORT_FALLBACK = "export_fallback";
-const static char * EXPORT_SINGULARITY = "export_simgulerity";
+const static char * EXPORT_SINGULARITY = "export_singularity";
 const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion";
 const static char * EXPORT_BAD_ITERATION = "export_bad_iteration";
 const static char * EXPORT_DEGENERATION = "export_degeneration";
@@ -51,8 +53,12 @@ const static char * EXPORT_E_FEASIBILITY = "export_e_feasibility";
 const static char * EXPORT_E_OPTIMALITY = "export_e_optimality";
 const static char * EXPORT_E_PIVOT = "export_e_pivot";
 const static char * EXPORT_PIVOT_THRESHOLD = "export_pivot_threshold";
+const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_dual_phaseI_function";
+const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
+const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
 
 Simplex::Simplex():
+    m_iterationIndex(0),
     m_masterTolerance(0),
     m_toleranceStep(0),
     m_simplexModel(NULL),
@@ -62,20 +68,20 @@ Simplex::Simplex():
     m_basicVariableValues(0),
     m_reducedCosts(0),
     m_objectiveValue(0),
-    m_dualObjectiveValue(0),
     m_phaseIObjectiveValue(-Numerical::Infinity),
     m_feasible(false),
     m_baseChanged(false),
     m_freshBasis(false),
     m_debugLevel(0),
     m_referenceObjective(0),
+    m_phase1Iteration(0),
+    m_phase1Time(0.0),
     m_fallbacks(0),
     m_triggeredReinversion(0),
     m_badIterations(0),
     m_degenerateIterations(0),
     m_startingBasisFinder(NULL),
-    m_basis(NULL),
-    m_iterationIndex(0)
+    m_basis(NULL)
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
@@ -166,8 +172,13 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         if(m_exportType == 0){
             result.push_back(IterationReportField(EXPORT_FILENAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   6, IterationReportField::IRF_FIXED));
@@ -202,9 +213,42 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
             result.push_back(IterationReportField(EXPORT_PIVOT_THRESHOLD, 20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
+        // Ratio test research set
+        } if (m_exportType == 1) {
+            result.push_back(IterationReportField(EXPORT_FILENAME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_STRING, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
+            result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
+            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
+            result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_SINGULARITY,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_BAD_ITERATION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_DEGENERATION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_ENABLE_FAKE_FEASIBILITY,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
-    }
+        }
         break;
     }
     default:
@@ -263,8 +307,12 @@ Entry Simplex::getIterationEntry(const string &name,
     case IterationReportProvider::IRF_EXPORT:
         if(name == EXPORT_FILENAME){
             reply.m_string = new std::string(m_simplexModel->getName());
+        } else if(name == EXPORT_PHASE1_ITERATION){
+            reply.m_integer = m_phase1Iteration;
         } else if(name == EXPORT_ITERATION){
             reply.m_integer = m_iterationIndex;
+        } else if(name == EXPORT_PHASE1_TIME){
+            reply.m_double = m_phase1Time;
         } else if(name == EXPORT_TIME){
             reply.m_double = m_solveTimer.getCPUTotalElapsed();
         } else if(name == EXPORT_SOLUTION){
@@ -272,7 +320,7 @@ Entry Simplex::getIterationEntry(const string &name,
         } else if(name == EXPORT_FALLBACK){
             reply.m_integer = m_fallbacks;
         } else if(name == EXPORT_SINGULARITY){
-//            reply.m_integer = m_basis->getSingularityCount();
+            reply.m_integer = m_basis->getSingularityCount();
         } else if(name == EXPORT_TRIGGERED_REINVERSION){
             reply.m_integer = m_triggeredReinversion;
         } else if(name == EXPORT_BAD_ITERATION){
@@ -291,6 +339,12 @@ Entry Simplex::getIterationEntry(const string &name,
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
         } else if(name == EXPORT_PIVOT_THRESHOLD){
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
+         }else if(name == EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION){
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function");
+        } else if(name == EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION){
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function");
+        } else if(name == EXPORT_ENABLE_FAKE_FEASIBILITY){
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility");
         }
         break;
 
@@ -811,22 +865,22 @@ void Simplex::computeReducedCosts() {
 
     //TODO: Ez plusz egy csomo ido
     //b-\SUM{U*x_U}-\SUM{L*x_L}
-    Vector modifiedRhs(m_simplexModel->getRhs());
-    IndexList<const Numerical::Double *>::Iterator it;
-    IndexList<const Numerical::Double *>::Iterator itend;
-    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
+//    Vector modifiedRhs;
+//    modifiedRhs = m_simplexModel->getRhs();
+//    IndexList<const Numerical::Double *>::Iterator it;
+//    IndexList<const Numerical::Double *>::Iterator itend;
+//    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
-    for(; it != itend; it++) {
-        if(*(it.getAttached()) != 0){
-            if(it.getData() < columnCount){
-                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
-            } else {
-                LPWARNING("MRARARAR");
-                modifiedRhs.set(it.getData() - columnCount,
-                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
-            }
-        }
-    }
-    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
+//    for(; it != itend; it++) {
+//        if(*(it.getAttached()) != 0){
+//            if(it.getData() < columnCount){
+//                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
+//            } else {
+//                modifiedRhs.set(it.getData() - columnCount,
+//                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
+//            }
+//        }
+//    }
+//    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
 //    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }
