@@ -79,7 +79,7 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     }
 }
 
-void DualFeasibilityChecker::feasiblityCorrection(Vector* basicVariableValues) {
+void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) {
 
 //    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();

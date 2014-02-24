@@ -23,7 +23,7 @@ public:
 
     bool checkFeasibility();
     void computeFeasibility(Numerical::Double tolerance);
-    void feasiblityCorrection(Vector* basicVariableValues);
+    void feasibilityCorrection(Vector* basicVariableValues);
 
     inline Numerical::Double getPhaseIObjectiveValue() {return m_phaseIObjectiveValue;}
 

@@ -55,9 +55,9 @@ std::vector<IterationReportField> PrimalSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED));
 
-        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 25, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
-                                               15, IterationReportField::IRF_SCIENTIFIC));
+                                               10, IterationReportField::IRF_SCIENTIFIC));
 
         result.push_back(IterationReportField (OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
@@ -339,44 +339,56 @@ void PrimalSimplex::update() {
         }
     }
 
+
+    //debug
+//    Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
+//    Numerical::Double ubOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound();
+
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
-        LPINFO("RC: "<<m_pricing->getReducedCost());
-
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
         Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
-        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
+//        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
 
         if (typeOfIthVariable == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
+//            LPINFO("ougoing variable fix, value: "<<valueOfOutgoingVariable);
         }
         else if (typeOfIthVariable == Variable::BOUNDED) {
-            if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex), m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound())){
+            if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex),
+                                 m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound())){
                 outgoingState = NONBASIC_AT_LB;
-            } else if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex), m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound())){
+//                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
+//                       " lb: "<<lbOfOutgoingVariable);
+            } else if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex),
+                                        m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound())){
                 outgoingState = NONBASIC_AT_UB;
+//                LPINFO("outgoing variable vounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
+//                       " ub: "<<ubOfOutgoingVariable);
             } else {
                 outgoingState = NONBASIC_AT_LB;
                 LPERROR("INVALID OUTGOING STATE");
             }
         }
         else if (typeOfIthVariable == Variable::PLUS) {
+//            LPINFO("outgoing variable PLUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_LB;
         }
         else if (typeOfIthVariable == Variable::FREE) {
+//            LPINFO("outgoing variable FREE type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_FREE;
         }
         else if (typeOfIthVariable == Variable::MINUS) {
+//            LPINFO("outgoing variable MINUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_UB;
         } else {
             throw PanOptException("Invalid variable type");
         }
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_alpha, Numerical::ADD_ABS);
-
 
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
@@ -405,6 +417,13 @@ void PrimalSimplex::update() {
     }
 
     m_updater->update(m_feasible ? 2 : 1);
+
+//    LPWARNING("outgoing variable val: "<<valueOfOutgoingVariable<<
+//              " lb: "<<lbOfOutgoingVariable<<
+//              " ub: "<<ubOfOutgoingVariable<<" state: " <<outgoingState<<" type: "<<typeOfIthVariable);
+//    LPWARNING("incoming variable LB: "<<m_simplexModel->getVariable(m_incomingIndex).getLowerBound()<<
+//              " UB: "<<m_simplexModel->getVariable(m_incomingIndex).getUpperBound());
+//    LPWARNING("teta: "<<m_primalTheta<< " sum: "<<valueOfOutgoingVariable+m_primalTheta);
 }
 
 void PrimalSimplex::setReferenceObjective() {
@@ -417,7 +436,7 @@ void PrimalSimplex::setReferenceObjective() {
 
 void PrimalSimplex::checkReferenceObjective() {
     if(!m_feasible){
-        if(m_referenceObjective > m_phaseIObjectiveValue){
+        if( Numerical::fabs(m_referenceObjective - m_phaseIObjectiveValue) > 1e10 ){
             LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
@@ -425,7 +444,7 @@ void PrimalSimplex::checkReferenceObjective() {
             m_degenerateIterations++;
         }
     } else {
-        if(m_referenceObjective < m_objectiveValue ){
+        if(Numerical::fabs(m_phaseIObjectiveValue - m_referenceObjective) > 1e10 ){
             LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){

@@ -279,7 +279,7 @@ void DualSimplex::computeFeasibility() {
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
-        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
+        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
     }
 }
 
@@ -292,7 +292,7 @@ void DualSimplex::checkFeasibility() {
             m_phase1Iteration = m_iterationIndex;
             m_phase1Time = m_solveTimer.getCPURunningTime();
         }
-        m_feasibilityChecker->feasiblityCorrection(&m_basicVariableValues);
+        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
         //Becomes infeasible

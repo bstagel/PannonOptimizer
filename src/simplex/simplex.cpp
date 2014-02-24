@@ -248,7 +248,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_INT, *this));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
-        }
+    }
         break;
     }
     default:
@@ -587,7 +587,7 @@ void Simplex::solve() {
 //                }
                 m_updateTimer.stop();
 
-                checkReferenceObjective();
+//                checkReferenceObjective();
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
                     m_iterationReport.writeIterationReport();
