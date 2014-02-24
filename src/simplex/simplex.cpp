@@ -587,7 +587,7 @@ void Simplex::solve() {
 //                }
                 m_updateTimer.stop();
 
-//                checkReferenceObjective();
+                checkReferenceObjective();
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     m_iterationReport.createIterationReport();
                     m_iterationReport.writeIterationReport();
