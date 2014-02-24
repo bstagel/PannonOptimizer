@@ -1150,11 +1150,12 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 //Handle fake feasible breakpoints
                 if(m_enableFakeFeasibility){
                     int fakeFesibilityCounter = 0;
-                while(m_breakpoints[length-1-iterationCounter].index != -1) {
-//                    LPWARNING("phase2 fakeFeas t_pos: " <<m_tPositive << " " << m_breakpoints[length-1-iterationCounter] << "\t alpha: \t" <<
-//                                alpha.at(m_breakpoints[length-1-iterationCounter].index) << "\t reducedcost: \t" <<
-//                                m_reducedCosts.at(m_breakpoints[length-1-iterationCounter].index)
-//                                );
+                    while(m_breakpoints[length-1-iterationCounter].index != -1) {
+                        fakeFesibilityCounter++;
+    //                    LPWARNING("phase2 fakeFeas t_pos: " <<m_tPositive << " " << m_breakpoints[length-1-iterationCounter] << "\t alpha: \t" <<
+    //                                alpha.at(m_breakpoints[length-1-iterationCounter].index) << "\t reducedcost: \t" <<
+    //                                m_reducedCosts.at(m_breakpoints[length-1-iterationCounter].index)
+    //                                );
 
                     const Variable & variable = m_model.getVariable(m_breakpoints[length-1-iterationCounter].index);
                     functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[length-1-iterationCounter].index)) *
@@ -1201,7 +1202,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     if(m_enableFakeFeasibility){
                         int fakeFesibilityCounter = 0;
                     while(m_breakpoints[length-1-iterationCounter].index != -1) {
-
+                            fakeFesibilityCounter++;
     //                        LPWARNING("phase2 fakeFeas t_pos: " <<m_tPositive << " " << m_breakpoints[length-1-iterationCounter] << "\t alpha: \t" <<
     //                                    alpha.at(m_breakpoints[length-1-iterationCounter].index) << "\t d: \t" <<
 //                                    m_reducedCosts.at(m_breakpoints[length-1-iterationCounter].index));
