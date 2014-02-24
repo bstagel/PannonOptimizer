@@ -22,7 +22,7 @@ public:
     static const double E_OPTIMALITY;
     //Starting procedures
     static const bool PRESOLVE;
-    static const bool SCALING;
+    static const int SCALING;
     static const int STARTING_BASIS;
     //Basis factorization
     static const int FACTORIZATION_TYPE;

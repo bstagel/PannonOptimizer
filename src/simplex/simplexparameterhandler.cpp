@@ -221,7 +221,7 @@ void SimplexParameterHandler::initParameters()
     //Starting procedures
     createParameter("presolve", Entry::BOOL);
     setParameterValue("presolve", DefaultParameters::PRESOLVE);
-    createParameter("scaling", Entry::BOOL);
+    createParameter("scaling", Entry::INTEGER);
     setParameterValue("scaling", DefaultParameters::SCALING);
     createParameter("starting_basis", Entry::INTEGER);
     setParameterValue("starting_basis", DefaultParameters::STARTING_BASIS);

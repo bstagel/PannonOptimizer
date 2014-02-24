@@ -13,11 +13,13 @@ CONFIG(release, debug|release) {
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -pthread -g
     DESTDIR = ../build-NewPanOpt/release
+    OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -pthread -Wextra -Wall
     DESTDIR = ../build-NewPanOpt/debug
+    OBJECTS_DIR = .o_debug
 }
 
 #Includes
@@ -171,4 +173,4 @@ SOURCES += src/linalg/matrix.cpp \
            src/defaultparameters.cpp \
            src/globals.cpp
 
-OBJECTS_DIR = .o
+#OBJECTS_DIR = .o

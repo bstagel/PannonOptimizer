@@ -17,7 +17,7 @@ const double DefaultParameters::E_FEASIBILITY = 1.0E-08;
 const double DefaultParameters::E_OPTIMALITY = 1.0E-08;
 //Starting procedures
 const bool DefaultParameters::PRESOLVE = false;
-const bool DefaultParameters::SCALING = false;
+const int DefaultParameters::SCALING = 0;
 const int DefaultParameters::STARTING_BASIS = 0;
 //Basis factorization
 const int DefaultParameters::FACTORIZATION_TYPE = 0;

@@ -320,7 +320,7 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
     } else {
         LPERROR("Invalid outgoing variable state!");
         cerr.unsetf(ios_base::floatfield);
-        throw NumericalException("Invalid outgoing variable state");
+        throw NumericalException(std::string("Invalid outgoing variable state"));
     }
     m_basisHead->at(pivotRow) = incoming;
     m_isFresh = false;
