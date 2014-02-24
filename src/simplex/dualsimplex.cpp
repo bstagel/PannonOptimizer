@@ -177,7 +177,7 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
         }
         return reply;
 
-    default:
+    case IterationReportProvider::IRF_EXPORT:
         if (name == EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1) {
             reply.m_integer = m_ratiotest->getStablePivotActivationPhase1();
         } else if (name == EXPORT_STABLE_PIVOT_BACKWARD_STEPS_PHASE1) {
@@ -194,7 +194,12 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
             reply.m_integer = m_ratiotest->getFakeFeasibilityActivationPhase2();
         } else if (name == EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2) {
             reply.m_integer = m_ratiotest->getFakeFeasibilityCounterPhase2();
+        } else {
+            break;
         }
+        return reply;
+
+    default:
         break;
     }
 
@@ -537,8 +542,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
     if (rowIndex == -1 || rowIndex > (int)rowCount){
-        LPERROR("Invalid row index!");
-        throw NumericalException("Invalid row index, the transformed row cannot be computed");
+        throw NumericalException(std::string("Invalid row index, the transformed row cannot be computed"));
     }
 
     alpha->reInit(rowCount + columnCount);

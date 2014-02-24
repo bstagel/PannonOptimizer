@@ -215,6 +215,6 @@ void DualDantzigPricing::lockLastIndex() {
     if (m_outgoingIndex != -1) {
         m_updater->m_used[m_outgoingIndex] = true;
     } else {
-        throw NumericalException("Invalid row lock index!");
+        throw NumericalException(std::string("Invalid row lock index!"));
     }
 }

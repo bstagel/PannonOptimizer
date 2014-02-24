@@ -258,7 +258,7 @@ void PrimalDantzigPricing::lockLastIndex() {
         m_updater->m_used[m_incomingIndex] = true;
     } else {
         // TODO: kell ez ide egyaltalan?
-        throw NumericalException("Invalid column lock index!");
+        throw NumericalException(std::string("Invalid column lock index!"));
     }
 }
 

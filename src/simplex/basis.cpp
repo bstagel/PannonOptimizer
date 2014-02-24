@@ -102,7 +102,7 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
 #endif
 
     if (Numerical::equals(atPivot, 0)) {
-        throw NumericalException("NUMERICAL problem: Pivot element is zero at row " + pivotPosition );
+        throw NumericalException(std::string("NUMERICAL problem: Pivot element is zero at row ") + std::to_string(pivotPosition) );
     } else {
         Vector::NonzeroIterator it = vector.beginNonzero();
         Vector::NonzeroIterator endit = vector.endNonzero();

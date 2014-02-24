@@ -36,7 +36,7 @@ const static char * SOLUTION_PRICE_TIMER_NAME = "Pricing time";
 const static char * SOLUTION_SELECT_PIVOT_TIMER_NAME = "Pivot selection time";
 const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
 
-const static char * EXPORT_FILENAME = "export_filename";
+const static char * EXPORT_PROBLEM_NAME = "export_problem_name";
 const static char * EXPORT_ITERATION = "export_iteration";
 const static char * EXPORT_PHASE1_ITERATION = "export_phase1_iteration";
 const static char * EXPORT_TIME = "export_time";
@@ -170,7 +170,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     {
         // Parameter study export set
         if(m_exportType == 0){
-            result.push_back(IterationReportField(EXPORT_FILENAME, 20, 0, IterationReportField::IRF_LEFT,
+            result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
@@ -215,7 +215,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   10, IterationReportField::IRF_SCIENTIFIC));
         // Ratio test research set
         } if (m_exportType == 1) {
-            result.push_back(IterationReportField(EXPORT_FILENAME, 20, 0, IterationReportField::IRF_LEFT,
+            result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
@@ -258,8 +258,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     return result;
 }
 
-Entry Simplex::getIterationEntry(const string &name,
-                                                     ITERATION_REPORT_FIELD_TYPE &type) const {
+Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE &type) const {
     Entry reply;
     reply.m_integer = 0;
     switch (type) {
@@ -305,7 +304,7 @@ Entry Simplex::getIterationEntry(const string &name,
         break;
 
     case IterationReportProvider::IRF_EXPORT:
-        if(name == EXPORT_FILENAME){
+        if(name == EXPORT_PROBLEM_NAME){
             reply.m_string = new std::string(m_simplexModel->getName());
         } else if(name == EXPORT_PHASE1_ITERATION){
             reply.m_integer = m_phase1Iteration;
@@ -339,7 +338,7 @@ Entry Simplex::getIterationEntry(const string &name,
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
         } else if(name == EXPORT_PIVOT_THRESHOLD){
             reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
-         }else if(name == EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION){
+        } else if(name == EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION){
             reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function");
         } else if(name == EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION){
             reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function");
