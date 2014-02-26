@@ -9,6 +9,7 @@ Model::Model()
 {
     m_costConstant = 0.0;
     m_objectiveType = MINIMIZE;
+    m_scaled = false;
 }
 
 void Model::build(const ModelBuilder & builder)
@@ -152,6 +153,9 @@ void Model::scale() {
     Scaler scaler;
     scaler.scale( &m_matrix, m_name.c_str() );
 
+    m_scaled = true;
+    m_rowMultipliers = scaler.getRowMultipliers();
+    m_columnMultipliers = scaler.getColumnMultipliers();
     const std::vector<Numerical::Double> & rowMultipliers = scaler.getRowMultipliers();
 
     const std::vector<Numerical::Double> & columnMultipliers = scaler.getColumnMultipliers();
