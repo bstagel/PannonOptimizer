@@ -86,7 +86,7 @@ Simplex::Simplex():
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
 
-//    fpu_fix_start(&m_old_cw);
+    //    fpu_fix_start(&m_old_cw);
 }
 
 Simplex::~Simplex() {
@@ -96,7 +96,7 @@ Simplex::~Simplex() {
         delete m_simplexModel;
         m_simplexModel = 0;
     }
-//    fpu_fix_end(&m_old_cw);
+    //    fpu_fix_end(&m_old_cw);
 }
 
 std::vector<IterationReportField> Simplex::getIterationReportFields(
@@ -110,14 +110,14 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     case IterationReportProvider::IRF_ITERATION:
     {
         IterationReportField inversionField(ITERATION_INVERSION_NAME, 3, 1, IterationReportField::IRF_CENTER,
-                                    IterationReportField::IRF_STRING, *this);
+                                            IterationReportField::IRF_STRING, *this);
         result.push_back(inversionField);
         IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
-                                    IterationReportField::IRF_INT, *this);
+                                            IterationReportField::IRF_INT, *this);
         result.push_back(iterationField);
         IterationReportField timeField(ITERATION_TIME_NAME, 10, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                       IterationReportField::IRF_FLOAT, *this,
+                                       4, IterationReportField::IRF_FIXED);
         result.push_back(timeField);
     }
         break;
@@ -125,43 +125,43 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     case IterationReportProvider::IRF_SOLUTION:
     {
         IterationReportField iterationField(SOLUTION_ITERATION_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_INT, *this);
+                                            IterationReportField::IRF_INT, *this);
         result.push_back(iterationField);
         IterationReportField solveTimerField(SOLUTION_SOLVE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                             IterationReportField::IRF_FLOAT, *this,
+                                             4, IterationReportField::IRF_FIXED);
         result.push_back(solveTimerField);
         IterationReportField inversionTimerField(SOLUTION_INVERSION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                 IterationReportField::IRF_FLOAT, *this,
+                                                 4, IterationReportField::IRF_FIXED);
         result.push_back(inversionTimerField);
         IterationReportField computeBasicSolutionTimerField(SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                            IterationReportField::IRF_FLOAT, *this,
+                                                            4, IterationReportField::IRF_FIXED);
         result.push_back(computeBasicSolutionTimerField);
         IterationReportField computeReducedCostsField(SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                      IterationReportField::IRF_FLOAT, *this,
+                                                      4, IterationReportField::IRF_FIXED);
         result.push_back(computeReducedCostsField);
         IterationReportField computeFeasibilityTimerField(SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                          IterationReportField::IRF_FLOAT, *this,
+                                                          4, IterationReportField::IRF_FIXED);
         result.push_back(computeFeasibilityTimerField);
         IterationReportField checkFeasibilityTimerField(SOLUTION_CHECK_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                        IterationReportField::IRF_FLOAT, *this,
+                                                        4, IterationReportField::IRF_FIXED);
         result.push_back(checkFeasibilityTimerField);
         IterationReportField priceTimerField(SOLUTION_PRICE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                             IterationReportField::IRF_FLOAT, *this,
+                                             4, IterationReportField::IRF_FIXED);
         result.push_back(priceTimerField);
         IterationReportField selectpivotTimerField(SOLUTION_SELECT_PIVOT_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                                   IterationReportField::IRF_FLOAT, *this,
+                                                   4, IterationReportField::IRF_FIXED);
         result.push_back(selectpivotTimerField);
         IterationReportField updateTimerField(SOLUTION_UPDATE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                    IterationReportField::IRF_FLOAT, *this,
-                                    4, IterationReportField::IRF_FIXED);
+                                              IterationReportField::IRF_FLOAT, *this,
+                                              4, IterationReportField::IRF_FIXED);
         result.push_back(updateTimerField);
         break;
     }
@@ -213,7 +213,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
             result.push_back(IterationReportField(EXPORT_PIVOT_THRESHOLD, 20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
-        // Ratio test research set
+            // Ratio test research set
         } if (m_exportType == 1) {
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
@@ -248,7 +248,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_INT, *this));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
-    }
+        }
         break;
     }
     default:
@@ -521,7 +521,7 @@ void Simplex::solve() {
 
             if(m_saveBasis){
                 if ((m_iterationIndex == m_saveIteration) ||
-                    (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
+                        (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
                     LPERROR("Saving basis "<<m_iterationIndex);
                     stringstream numStream;
                     numStream << m_iterationIndex;
@@ -541,13 +541,13 @@ void Simplex::solve() {
 
             computeWorkingTolerance();
 
-//            if(m_iterationIndex>438){
-//                LPINFO("BEGIN FEASIBILITY OK: "<<Checker::checkFeasibilityConditions(*this, true));
-//                LPINFO("BEGIN OPTIMALITY OK: "<<Checker::checkOptimalityConditions(*this, true));
-//                LPINFO("BEGIN CONSTRAINTS OK: "<<Checker::checkAllConstraints(*this, true));
-//                LPINFO("BEGIN NONBASICS OK: "<<Checker::checkNonbasicVariableStates(*this, true));
-//                LPINFO("BEGIN BASICS OK: "<<Checker::checkBasicVariableStates(*this, true));
-//            }
+            //            if(m_iterationIndex>438){
+            //                LPINFO("BEGIN FEASIBILITY OK: "<<Checker::checkFeasibilityConditions(*this, true));
+            //                LPINFO("BEGIN OPTIMALITY OK: "<<Checker::checkOptimalityConditions(*this, true));
+            //                LPINFO("BEGIN CONSTRAINTS OK: "<<Checker::checkAllConstraints(*this, true));
+            //                LPINFO("BEGIN NONBASICS OK: "<<Checker::checkNonbasicVariableStates(*this, true));
+            //                LPINFO("BEGIN BASICS OK: "<<Checker::checkBasicVariableStates(*this, true));
+            //            }
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
@@ -582,9 +582,9 @@ void Simplex::solve() {
                 m_updateTimer.start();
                 //TODO: Do not use the update formulas before reinversion
                 //TODO: UGY NEM JO AHOGY VOLT, az append is az update-be van!
-//                if(reinversionCounter+1 < reinversionFrequency){
+                //                if(reinversionCounter+1 < reinversionFrequency){
                 update();
-//                }
+                //                }
                 m_updateTimer.stop();
 
                 checkReferenceObjective();
@@ -601,7 +601,7 @@ void Simplex::solve() {
                     m_solveTimer.stop();
                     throw exception;
                 } else {
-//                    LPINFO("TRIGGERING REINVERSION TO CHECK OPTIMALITY! ");
+                    //                    LPINFO("TRIGGERING REINVERSION TO CHECK OPTIMALITY! ");
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
@@ -665,7 +665,7 @@ void Simplex::solve() {
     } catch ( const OptimalException & exception ) {
         LPINFO("OPTIMAL SOLUTION found! ");
         //TODO: Put this into the solution report
-//        LPINFO("The objective value: " << m_objectiveValue);
+        //        LPINFO("The objective value: " << m_objectiveValue);
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
@@ -773,8 +773,15 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
     std::vector<Numerical::Double> result;
     unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
     result.reserve(totalVariableCount);
-    for(unsigned int i = 0; i<totalVariableCount; i++) {
-        result[i] = *(m_variableStates.getAttachedData(i));
+    if ( m_simplexModel->getModel().isScaled() ) {
+        const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
+        for(unsigned int i = 0; i<totalVariableCount; i++) {
+            result[i] = *(m_variableStates.getAttachedData(i)) / columnMultipliers[i];
+        }
+    } else {
+        for(unsigned int i = 0; i<totalVariableCount; i++) {
+            result[i] = *(m_variableStates.getAttachedData(i));
+        }
     }
     return result;
 }
@@ -794,9 +801,9 @@ void Simplex::computeBasicSolution() {
     m_basicVariableValues = m_simplexModel->getRhs();
     m_objectiveValue = - m_simplexModel->getCostConstant();
 
-//    Checker::checkPfiWithFtran(*this);
-//    Checker::checkPfiWithBtran(*this);
-//    Checker::checkPfiWithReducedCost(*this);
+    //    Checker::checkPfiWithFtran(*this);
+    //    Checker::checkPfiWithBtran(*this);
+    //    Checker::checkPfiWithReducedCost(*this);
 
     const unsigned int columnCount = m_simplexModel->getColumnCount();
     //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})
@@ -813,7 +820,7 @@ void Simplex::computeBasicSolution() {
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
                                           Numerical::stableSub(m_basicVariableValues.at(it.getData() - columnCount), *(it.getAttached())));
-//                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+                //                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
             }
         }
     }
@@ -859,27 +866,27 @@ void Simplex::computeReducedCosts() {
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
-//        if (Numerical::fabs(reducedCost) < 1e-5 && Numerical::fabs(reducedCost) != 0 ) LPINFO("d_"<<i<<" "<<reducedCost);
+        //        if (Numerical::fabs(reducedCost) < 1e-5 && Numerical::fabs(reducedCost) != 0 ) LPINFO("d_"<<i<<" "<<reducedCost);
     }
 
     //TODO: Ez plusz egy csomo ido
     //b-\SUM{U*x_U}-\SUM{L*x_L}
-//    Vector modifiedRhs;
-//    modifiedRhs = m_simplexModel->getRhs();
-//    IndexList<const Numerical::Double *>::Iterator it;
-//    IndexList<const Numerical::Double *>::Iterator itend;
-//    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
+    //    Vector modifiedRhs;
+    //    modifiedRhs = m_simplexModel->getRhs();
+    //    IndexList<const Numerical::Double *>::Iterator it;
+    //    IndexList<const Numerical::Double *>::Iterator itend;
+    //    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
-//    for(; it != itend; it++) {
-//        if(*(it.getAttached()) != 0){
-//            if(it.getData() < columnCount){
-//                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
-//            } else {
-//                modifiedRhs.set(it.getData() - columnCount,
-//                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
-//            }
-//        }
-//    }
-//    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
-//    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
+    //    for(; it != itend; it++) {
+    //        if(*(it.getAttached()) != 0){
+    //            if(it.getData() < columnCount){
+    //                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
+    //            } else {
+    //                modifiedRhs.set(it.getData() - columnCount,
+    //                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
+    //            }
+    //        }
+    //    }
+    //    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
+    //    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }
