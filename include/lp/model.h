@@ -54,6 +54,18 @@ public:
         return m_history;
     }
 
+    bool isScaled() const {
+        return m_scaled;
+    }
+
+    const std::vector<Numerical::Double> & getRowMultipliers() const {
+        return m_rowMultipliers;
+    }
+
+    const std::vector<Numerical::Double> & getColumnMultipliers() const {
+        return m_columnMultipliers;
+    }
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
@@ -68,6 +80,12 @@ protected:
     void clear();
 
     std::vector<std::string> m_history;
+
+    std::vector<Numerical::Double> m_rowMultipliers;
+
+    std::vector<Numerical::Double> m_columnMultipliers;
+
+    bool m_scaled;
 
     // const getter functions can change this value
     // reason: it is unnecessary to compute in most cases
