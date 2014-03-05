@@ -15,6 +15,7 @@ CONFIG(release, debug|release) {
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt
+    OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     message("NewPanOptParameterAnalyzer: Debug mode!")
@@ -22,6 +23,7 @@ CONFIG(debug, debug|release) {
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt
+    OBJECTS_DIR = .o_debug
 }
 
 #Includes
