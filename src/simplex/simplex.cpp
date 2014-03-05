@@ -74,7 +74,7 @@ Simplex::Simplex():
     m_freshBasis(false),
     m_debugLevel(0),
     m_referenceObjective(0),
-    m_phase1Iteration(0),
+    m_phase1Iteration(-1),
     m_phase1Time(0.0),
     m_fallbacks(0),
     m_triggeredReinversion(0),

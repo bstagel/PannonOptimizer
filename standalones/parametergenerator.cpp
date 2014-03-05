@@ -65,6 +65,26 @@ struct ParameterRange {
     }
 };
 
+void removeOldParameterFiles() {
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (".")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            std::string entry(ent->d_name);
+            if(entry.size()>=4 && entry.find(std::string(".PAR")) != std::string::npos){
+                remove(entry.c_str());
+                std::cout << "File " << entry << " removed! \n";
+            }
+        }
+        closedir (dir);
+        SimplexParameterHandler::getInstance().initParameters();
+        LinalgParameterHandler::getInstance().initParameters();
+        std::cout << "Default paramterer files generated! \n";
+    } else {
+        std::cout << "Error opening the working directory.\n";
+    }
+}
+
 bool checkParameters(std::vector<ParameterRange> & ranges, const ParameterHandler & handler) {
     for(unsigned int i=0; i < ranges.size(); i++){
         if(! handler.hasParameter(ranges.at(i).name)){
@@ -114,6 +134,7 @@ void computeParameter(std::vector<ParameterRange> & ranges, unsigned int rangeIn
 }
 
 void generateParameters(std::vector<ParameterRange> & ranges, std::vector<ParameterValue> values, ParameterHandler & handler ) {
+    removeOldParameterFiles();
     if(checkParameters(ranges, handler)){
         for(unsigned int i=0; i<values.size(); i++){
             if(values.at(i).type.compare("double") == 0){
