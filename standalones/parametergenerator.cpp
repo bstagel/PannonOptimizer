@@ -14,7 +14,7 @@ static const std::string endpoint = "'http://mishra.lpds.sztaki.hu:9091'";
 static const std::string grid = "'edgidemo'";
 static const std::string tag = "'PanOptSolverTag'";
 static const std::string exeName = "NewPanOptSolver";
-static const std::string scriptName = "panopt_wsclient";
+static const std::string scriptName = "_3gb-metajob-";
 static const std::string filelist = "filelist.txt";
 static const std::string result = "result.txt";
 static const std::string exportResult = "export_result.txt";
@@ -134,7 +134,6 @@ void computeParameter(std::vector<ParameterRange> & ranges, unsigned int rangeIn
 }
 
 void generateParameters(std::vector<ParameterRange> & ranges, std::vector<ParameterValue> values, ParameterHandler & handler ) {
-    removeOldParameterFiles();
     if(checkParameters(ranges, handler)){
         for(unsigned int i=0; i<values.size(); i++){
             if(values.at(i).type.compare("double") == 0){
@@ -166,7 +165,7 @@ void generateParameters(std::vector<ParameterRange> & ranges, std::vector<Parame
 
 void generateNewGbacScript(std::string remoteDir) {
     std::ofstream gbac_script;
-    gbac_script.open(scriptName + "_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
+    gbac_script.open("_3gb-metajob-" + remoteDir, std::ios::out | std::ios::binary);
     gbac_script << "%Required 1" << "\n";
     gbac_script << "%SuccessAt 100%" << "\n";
     gbac_script << "\n";
@@ -205,7 +204,7 @@ void generateNewGbacScript(std::string remoteDir) {
 
 void generateOldGbacScript(std::string remoteDir) {
     std::ofstream gbac_script;
-    gbac_script.open(scriptName + "_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
+    gbac_script.open("panopt_wsclient_" + remoteDir + ".sh", std::ios::out | std::ios::binary);
     gbac_script << "ENDPOINT=" << endpoint << std::endl;
     gbac_script << "GRID=" << grid << std::endl;
     gbac_script << "TAG=" << tag << std::endl;
@@ -259,7 +258,8 @@ void printHelp() {
     std::cout << "Usage: NewPanOptParameterGenerator [OPTION] \n" <<
                  "Generate parameter file for the NewPanOpt solver. \n"<<
                  "\n"<<
-                 "  -f, --file      \t Two valid parameter values for the argument are `linalg.PAR` and `simplex.PAR`. \n"<<
+                 "  -f, --file      \t Two valid parameter values for the argument are `linalg.PAR` and `simplex.PAR`.\n"<<
+                 "  -c, --clear     \t Clear the working directory, remove all previously generated parameter files.\n "
                  "  -r, --range     \t Specifies a parameter range with a NAME TYPE FROM STEP NUMBER tuple.\n"<<
                  "  -p, --parameter \t Specifies a parameter range with a NAME TYPE VALUE.\n"<<
                  "  -s, --script    \t Generate GBAC script REMOTEDIR.\n"<<
@@ -306,6 +306,8 @@ int main(int argc, char** argv) {
 //            std::cout << "arg: "<< arg << "\n";
             if(arg.compare("-h") == 0 || arg.compare("--help") == 0){
                 printHelp();
+            } else if(arg.compare("-c") == 0 || arg.compare("--clear") == 0){
+                removeOldParameterFiles();
             } else if(arg.compare("-s") == 0 || arg.compare("--script") == 0){
                 if(argc < i+2 ){
                     printMissingOperandError(argv);
