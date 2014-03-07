@@ -29,16 +29,16 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 }
 
 ArchitectureX86::Registers ArchitectureX86::cpuid(Registers args) const {
-    asm("cpuid"
-    : "=a"(args.m_eax),
-            "=b"(args.m_ebx),
-            "=c"(args.m_ecx),
-            "=d"(args.m_edx)
-        : "a"(args.m_eax),
-          "b"(args.m_ebx),
-          "c"(args.m_ecx),
-          "d"(args.m_edx)
-        );
+//    asm("cpuid"
+//    : "=a"(args.m_eax),
+//            "=b"(args.m_ebx),
+//            "=c"(args.m_ecx),
+//            "=d"(args.m_edx)
+//        : "a"(args.m_eax),
+//          "b"(args.m_ebx),
+//          "c"(args.m_ecx),
+//          "d"(args.m_edx)
+//        );
     return args;
 }
 
