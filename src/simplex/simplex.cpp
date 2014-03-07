@@ -214,7 +214,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
             // Ratio test research set
-        } if (m_exportType == 1) {
+        } else if (m_exportType == 1) {
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
@@ -489,7 +489,6 @@ void Simplex::solve() {
     m_iterationReport.createStartReport();
     m_iterationReport.writeStartReport();
 
-
     try {
         m_solveTimer.start();
         m_basicVariableValues.prepareForData(m_simplexModel->getRhs().nonZeros(), m_basicVariableValues.length(), DENSE);
@@ -662,10 +661,10 @@ void Simplex::solve() {
             }
         }
 
+    } catch ( const ParameterException & exception ) {
+        LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
         LPINFO("OPTIMAL SOLUTION found! ");
-        //TODO: Put this into the solution report
-        //        LPINFO("The objective value: " << m_objectiveValue);
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
