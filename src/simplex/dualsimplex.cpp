@@ -98,7 +98,7 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     case IterationReportProvider::IRF_EXPORT:
     {
         // Ratio test research set
-        if (m_exportType == 1) {
+        if (m_exportType == 0) {
 
         } else if (m_exportType == 1) {
             result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
