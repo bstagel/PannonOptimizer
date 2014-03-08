@@ -31,7 +31,7 @@ public:
         LOWER_LOGICAL = 0,
         UPPER_LOGICAL = 1,
         MIXED_LOGICAL = 2,
-//        SYMBOLIC_CRASH = 3,
+        SYMBOLIC_CRASH = 3,
 //        LTSF_CRASH = 4,
 //        ADG_CRASH = 5,
 //        ADG_LTSF_CRASH = 6,
