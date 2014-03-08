@@ -110,7 +110,8 @@ HEADERS += include/debug.h \
            include/utils/tokenizer.h \
            include/utils/nodefile.h \
            include/defaultparameters.h \
-           include/globals.h
+           include/globals.h \
+    include/simplex/startingbasisfinder/sbf_crash.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -171,6 +172,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/flags.cpp \
            src/debug.cpp \
            src/defaultparameters.cpp \
-           src/globals.cpp
+           src/globals.cpp \
+    src/simplex/startingbasisfinder/sbf_crash.cpp
 
 #OBJECTS_DIR = .o

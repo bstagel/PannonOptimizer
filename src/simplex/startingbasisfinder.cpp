@@ -12,7 +12,7 @@
 #include <simplex/startingbasisfinder/sbf_logical.h>
 //#include <simplex/startingbasisfinder/sbf_crash_adg.h>
 //#include <simplex/startingbasisfinder/sbf_crash_ltsf.h>
-//#include <simplex/startingbasisfinder/sbf_crash_symbo.h>
+#include <simplex/startingbasisfinder/sbf_crash.h>
 
 #include <debug.h>
 
@@ -103,6 +103,12 @@ void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
         case MIXED_LOGICAL:
             /* First step: logical basis*/
             m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::MIXED_LOGICAL);
+            m_algorithm->run();
+            break;
+
+        case SYMBOLIC_CRASH:
+            m_algorithm = new SbfCrash(m_model, m_basisHead, m_variableStates, m_basicVariableValues);
+            m_algorithm->run();
             break;
 
 //        case SYMBOLIC_CRASH:
