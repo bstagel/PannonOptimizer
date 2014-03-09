@@ -13,8 +13,8 @@
 SbfCrash::SbfCrash(const SimplexModel& model,
                    std::vector<int>* basisHead,
                    IndexList<const Numerical::Double*>* variableStates,
-                   Vector* basicVaraibleValues):
-    SbfSuper(model, basisHead, variableStates, basicVaraibleValues)
+                   StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates):
+    SbfSuper(model, basisHead, variableStates, nonbasicStates)
 {
 
 }
@@ -199,7 +199,7 @@ void SbfCrash::run()
         //        LPINFO("index: " << m_basisHead->at(index));
         indices.insert(m_basisHead->at(index));
 
-        if (m_basisHead->at(index) < columnCount) {
+        if (m_basisHead->at(index) < (int)columnCount) {
             basis.appendColumn( matrix.column( m_basisHead->at(index) ) );
         } else {
             Vector unit(rowCount);
@@ -234,8 +234,8 @@ void SbfCrash::run()
     ofs.close();
 
     ofs.open("basispattern.txt");
-    for (int i = 0; i < basis.columnCount(); i++) {
-        for (int j = 0; j < basis.rowCount(); j++) {
+    for (int i = 0; i < (int)basis.columnCount(); i++) {
+        for (int j = 0; j < (int)basis.rowCount(); j++) {
             if (basis.get(i, j) == 0.0) {
                 ofs << " ";
             } else {

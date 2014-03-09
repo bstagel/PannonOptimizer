@@ -1167,15 +1167,11 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
 Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
 {
     Numerical::Double pivotValue = at(pivot);
-    if (pivotValue == 0.0) {
-        CHECK;
-        return *this;
-    }
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
 //    LPWARNING("eta: "<<eta);
 //    LPWARNING("atPivot: "<<atPivot);
-    addVector(pivotValue, eta, Numerical::ADD_ABS);
+    addVector(pivotValue, eta, Numerical::ADD_ABS_REL);
     set(pivot, atPivot * pivotValue);
     return *this;
 }

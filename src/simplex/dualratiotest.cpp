@@ -1115,6 +1115,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     } else {
         generateAbsoluteBreakpointsPhase2(outgoingVariableIndex,alpha,phaseIIObjectiveValue);
     }
+
     Numerical::Double primalSteplength;
     unsigned int iterationCounter = 0,length = m_breakpoints.size();
     Numerical::Double functionSlope = 0;
@@ -1241,10 +1242,14 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         } else{
             LPERROR(" - Ratiotest - No breakpoint found!");
         }
-        if(m_incomingVariableIndex != -1){
+//        if(m_incomingVariableIndex != -1){
+//            LPWARNING("Pivot element: "<<alpha.at(m_incomingVariableIndex));
 //            m_variableAge[m_incomingVariableIndex] = m_variableAge[m_incomingVariableIndex] + m_ageStep;
 //            LPINFO("AGE incremented: ("<<m_incomingVariableIndex<<") : "<<m_variableAge[m_incomingVariableIndex]);
-        }
+//        } else {
+//            LPERROR("No pivot element");
+//            LPINFO("Boundflip size: "<<m_boundflips.size());
+//        }
 
 }
 

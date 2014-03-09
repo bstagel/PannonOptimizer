@@ -453,7 +453,7 @@ void DualSimplex::update() {
             }
         }
 
-//        Checker::checkPfiWithBtran(*this);
+//        LPINFO("Good pivot element: "<<alpha.at(m_outgoingIndex));
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
@@ -567,7 +567,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
     //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
-    m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
+    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){

@@ -11,7 +11,7 @@ public:
     SbfCrash(const SimplexModel& model,
                std::vector<int>* basisHead,
                IndexList<const Numerical::Double*>* variableStates,
-               Vector* basicVaraibleValues);
+               StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates);
 
     virtual ~SbfCrash();
 
