@@ -19,11 +19,11 @@ typedef pair<int,int> intpair;
 SbfSuper::SbfSuper(const SimplexModel& model,
                    std::vector<int>* basisHead,
                    IndexList<const Numerical::Double *> *variableStates,
-                   Vector* basicVariableValues):
+                   StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates):
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
-    m_basicVariableValues(basicVariableValues)
+    m_nonbasicStates(nonbasicStates)
 {
 
 }

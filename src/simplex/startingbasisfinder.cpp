@@ -79,7 +79,7 @@ void StartingBasisFinder::print (int printLevel)
     }
 }
 
-void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
+void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy, STARTING_NONBASIC_STATES nonbasicStates)
 {
     if(m_algorithm != NULL){
         delete m_algorithm;
@@ -88,26 +88,13 @@ void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
     DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << strategy);
 
     switch(strategy) {
-        case LOWER_LOGICAL:
-            /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::LOWER_LOGICAL);
-            m_algorithm->run();
-            break;
-
-        case UPPER_LOGICAL:
-            /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::UPPER_LOGICAL);
-            m_algorithm->run();
-            break;
-
-        case MIXED_LOGICAL:
-            /* First step: logical basis*/
-            m_algorithm = new SbfLogical(m_model,m_basisHead,m_variableStates,m_basicVariableValues,SbfLogical::MIXED_LOGICAL);
+        case LOGICAL:
+            m_algorithm = new SbfLogical(m_model, m_basisHead, m_variableStates, nonbasicStates);
             m_algorithm->run();
             break;
 
         case SYMBOLIC_CRASH:
-            m_algorithm = new SbfCrash(m_model, m_basisHead, m_variableStates, m_basicVariableValues);
+            m_algorithm = new SbfCrash(m_model, m_basisHead, m_variableStates, nonbasicStates);
             m_algorithm->run();
             break;
 
@@ -187,8 +174,7 @@ void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy)
 //            break;
 
         default:
-            DEVWARNING(D::STARTINGBASISFINDER, "Unhandled basis finder algorithm selected.");
-            assert(false);
+            throw ParameterException("Invalid basis finder algorithm selected");
             break;
     }
 }

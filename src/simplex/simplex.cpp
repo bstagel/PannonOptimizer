@@ -456,7 +456,9 @@ void Simplex::solve() {
     const unsigned int iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
     const double timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
-            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getIntegerParameterValue("starting_basis");
+            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getIntegerParameterValue("starting_basis_strategy");
+    StartingBasisFinder::STARTING_NONBASIC_STATES startingNonbasicStates =
+            (StartingBasisFinder::STARTING_NONBASIC_STATES)simplexParameters.getIntegerParameterValue("starting_nonbasic_states");
     unsigned int reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
 
@@ -497,7 +499,7 @@ void Simplex::solve() {
         for(; it < itend; it++){
             m_basicVariableValues.newNonZero(*it, it.getIndex());
         }
-        m_startingBasisFinder->findStartingBasis(startingBasisStratgy);
+        m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
         if(m_loadBasis){
             std::string loadFormat = m_loadFormat;
             std::string filename = m_loadFilename;
@@ -677,8 +679,6 @@ void Simplex::solve() {
         LPERROR("The problem is DUAL UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
         LPERROR("Numerical error: "<<exception.getMessage());
-    } catch ( const ParameterException & exception ) {
-        LPERROR( exception.getMessage() );
     } catch ( const SyntaxErrorException & exception ) {
         exception.show();
     } catch ( const PanOptException & exception ) {
@@ -814,7 +814,7 @@ void Simplex::computeBasicSolution() {
     for(; it != itend; it++) {
         if(*(it.getAttached()) != 0){
             if(it.getData() < columnCount){
-                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
+                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS_REL);
                 m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
@@ -855,6 +855,9 @@ void Simplex::computeReducedCosts() {
 
     //For each variable
     for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+        if(m_variableStates.where(i) == Simplex::BASIC){
+            continue;
+        }
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
@@ -865,27 +868,5 @@ void Simplex::computeReducedCosts() {
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
-        //        if (Numerical::fabs(reducedCost) < 1e-5 && Numerical::fabs(reducedCost) != 0 ) LPINFO("d_"<<i<<" "<<reducedCost);
     }
-
-    //TODO: Ez plusz egy csomo ido
-    //b-\SUM{U*x_U}-\SUM{L*x_L}
-    //    Vector modifiedRhs;
-    //    modifiedRhs = m_simplexModel->getRhs();
-    //    IndexList<const Numerical::Double *>::Iterator it;
-    //    IndexList<const Numerical::Double *>::Iterator itend;
-    //    m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
-
-    //    for(; it != itend; it++) {
-    //        if(*(it.getAttached()) != 0){
-    //            if(it.getData() < columnCount){
-    //                modifiedRhs.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS);
-    //            } else {
-    //                modifiedRhs.set(it.getData() - columnCount,
-    //                                Numerical::stableSub(modifiedRhs.at(it.getData() - columnCount), *(it.getAttached())));
-    //            }
-    //        }
-    //    }
-    //    m_dualObjectiveValue = simplexMultiplier.dotProduct(modifiedRhs);
-    //    m_dualObjectiveValue = simplexMultiplier.dotProduct(m_simplexModel->getRhs());
 }

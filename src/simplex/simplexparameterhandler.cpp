@@ -66,10 +66,13 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "\t" << "scaling = " << writeParameter("scaling") << std::endl;
 
         out << "! Starting procedures" << std::endl;
-        out << "! 0 = Lower logical\n"
-               "! 1 = Upper logical\n"
-               "! 2 = Mixed logical" << std::endl;
-        out << "\t" << "starting_basis = " << writeParameter("starting_basis") << std::endl;
+        out << "! 0 = Non-basic variables at lower bound\n"
+               "! 1 = Non-basic variables at upper bound\n"
+               "! 2 = Mixed non-basic variable bounds" << std::endl;
+        out << "\t" << "starting_nonbasic_states = " << writeParameter("starting_nonbasic_states") << std::endl;
+        out << "! 0 = Logical basis\n"
+               "! 1 = CRASH basis" << std::endl;
+        out << "\t" << "starting_basis_strategy = " << writeParameter("starting_basis_strategy") << std::endl;
 
 
         out << std::fixed << std::endl;
@@ -223,8 +226,10 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("presolve", DefaultParameters::PRESOLVE);
     createParameter("scaling", Entry::INTEGER);
     setParameterValue("scaling", DefaultParameters::SCALING);
-    createParameter("starting_basis", Entry::INTEGER);
-    setParameterValue("starting_basis", DefaultParameters::STARTING_BASIS);
+    createParameter("starting_nonbasic_states", Entry::INTEGER);
+    setParameterValue("starting_nonbasic_states", DefaultParameters::STARTING_NONBASIC_STATES);
+    createParameter("starting_basis_strategy", Entry::INTEGER);
+    setParameterValue("starting_basis_strategy", DefaultParameters::STARTING_BASIS_STRATEGY);
 
     //Basis factorization
     createParameter("factorization_type", Entry::INTEGER);

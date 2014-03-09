@@ -1355,6 +1355,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
             for (int i = 0; i < blockNum; i++) {
                 previousBlocks += m_mmBlocks->at(i);
             }
+//            LPINFO("previousBlocks: "<<previousBlocks);
             //Activerows-ba kigyujtjuk a blokkhoz tartozo nemnullakat
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
@@ -1408,7 +1409,6 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
                 }
             }
         }
-
         //Choose the sparsest row among the candidates
         if (goodRows.size() > 0) {
             rowindex = goodRows[0];
@@ -1448,42 +1448,42 @@ void PfiBasis::printCounts() const {
 
 void PfiBasis::printMM() const {
 #ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, "MM pattern by rows");
+    LPWARNING( "MM pattern by rows");
     for (std::vector<Vector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); it++) {
         std::string s;
         for (int i = 0; i < (int) it->length(); i++) {
             s += Numerical::equals(it->at(i), 0) ? "-" : "X";
         }
-        DEVINFO(D::PFIMAKER, s);
+        LPWARNING( s);
     }
-    DEVINFO(D::PFIMAKER, "MM pattern by columns");
-    for (int i = 0; i < (int) m_mmColumns->size(); i++) {
-        std::string s;
-        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); it++) {
-            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
-        }
-        DEVINFO(D::PFIMAKER, s);
-    }
-    DEVINFO(D::PFIMAKER, "MM pattern with values");
-    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
-        int rowindex = m_mmRowIndices->at(*rowIt);
-        std::string s;
-        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
-            int columnindex = m_mmColumnIndices->at(*columnIt);
-            s += Numerical::equals(m_basicColumns.at(columnindex)->at(rowindex), 0) ? "-" : "X";
-        }
-        DEVINFO(D::PFIMAKER, s);
-    }
-    DEVINFO(D::PFIMAKER, "MM pattern with values without equals");
-    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
-        int rowindex = m_mmRowIndices->at(*rowIt);
-        std::string s;
-        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
-            int columnindex = m_mmColumnIndices->at(*columnIt);
-            s += m_basicColumns.at(columnindex)->at(rowindex) == 0 ? "-" : "X";
-        }
-        DEVINFO(D::PFIMAKER, s);
-    }
+//    LPWARNING( "MM pattern by columns");
+//    for (int i = 0; i < (int) m_mmColumns->size(); i++) {
+//        std::string s;
+//        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); it++) {
+//            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
+//        }
+//        LPWARNING( s);
+//    }
+//    LPWARNING( "MM pattern with values");
+//    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
+//        int rowindex = m_mmRowIndices->at(*rowIt);
+//        std::string s;
+//        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
+//            int columnindex = m_mmColumnIndices->at(*columnIt);
+//            s += Numerical::equals(m_basicColumns.at(columnindex)->at(rowindex), 0) ? "-" : "X";
+//        }
+//        LPWARNING( s);
+//    }
+//    LPWARNING( "MM pattern with values without equals");
+//    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
+//        int rowindex = m_mmRowIndices->at(*rowIt);
+//        std::string s;
+//        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
+//            int columnindex = m_mmColumnIndices->at(*columnIt);
+//            s += m_basicColumns.at(columnindex)->at(rowindex) == 0 ? "-" : "X";
+//        }
+//        LPWARNING( s);
+//    }
 
 #endif //!NDEBUG
 }
@@ -1536,9 +1536,9 @@ void PfiBasis::printStack() const {
 void PfiBasis::printBlocks() const {
 #ifndef NDEBUG
     //Print the outgoing edges
-    DEVINFO(D::PFIMAKER, "Block sizes:");
+    LPWARNING( "Block sizes:");
     for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); it++) {
-        DEVINFO(D::PFIMAKER, "Block #" << it - m_mmBlocks->begin() << ": " << *it);
+        LPWARNING( "Block #" << it - m_mmBlocks->begin() << ": " << *it);
     }
     //printMM();
 #endif //!NDEBUG

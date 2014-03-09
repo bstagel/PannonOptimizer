@@ -18,7 +18,8 @@ const double DefaultParameters::E_OPTIMALITY = 1.0E-08;
 //Starting procedures
 const bool DefaultParameters::PRESOLVE = false;
 const int DefaultParameters::SCALING = 0;
-const int DefaultParameters::STARTING_BASIS = 0;
+const int DefaultParameters::STARTING_NONBASIC_STATES = 0;
+const int DefaultParameters::STARTING_BASIS_STRATEGY = 0;
 //Basis factorization
 const int DefaultParameters::FACTORIZATION_TYPE = 0;
 const int DefaultParameters::NONTRIANGULAR_METHOD = 2;

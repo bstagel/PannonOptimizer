@@ -23,7 +23,8 @@ public:
     //Starting procedures
     static const bool PRESOLVE;
     static const int SCALING;
-    static const int STARTING_BASIS;
+    static const int STARTING_NONBASIC_STATES;
+    static const int STARTING_BASIS_STRATEGY;
     //Basis factorization
     static const int FACTORIZATION_TYPE;
     static const int NONTRIANGULAR_METHOD;

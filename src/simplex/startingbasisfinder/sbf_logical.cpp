@@ -9,10 +9,8 @@
 SbfLogical::SbfLogical(const SimplexModel& model,
                        std::vector<int>* basisHead,
                        IndexList<const Numerical::Double*>* variableStates,
-                       Vector* basicVaraibleValues,
-                       LOGICAL_BASIS_STRATEGY strategy):
-    SbfSuper(model, basisHead, variableStates, basicVaraibleValues),
-    m_strategy(strategy)
+                       StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates):
+    SbfSuper(model, basisHead, variableStates, nonbasicStates)
 {
 
 }
@@ -39,23 +37,23 @@ void SbfLogical::run()
     }
 
     /* Nonbasic variables: set state to NONBASIC_AT_UB/LB depending on the strategy used */
-    switch (m_strategy) {
+    switch (m_nonbasicStates) {
 
-    case LOWER_LOGICAL: {
+    case StartingBasisFinder::LOWER: {
         for (i=0; i<columnCount; i++) {
             adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
         }
         break;
     }
 
-    case UPPER_LOGICAL: {
+    case StartingBasisFinder::UPPER: {
         for (i=0; i<columnCount; i++) {
             adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
         }
         break;
     }
 
-    case MIXED_LOGICAL: {
+    case StartingBasisFinder::MIXED: {
         const Vector & costs = m_model.getCostVector();
         //Always minimize
         for (i=0; i<columnCount; i++) {
@@ -65,11 +63,11 @@ void SbfLogical::run()
                 adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
             }
         }
+        break;
     }
 
     default: {
-        /* */
-        DEVWARNING(D::SBF_LOGICAL, "Unhandled logical basis finder algorithm selected.");
+        throw ParameterException("Invalid starting nonbasic state given!");
         break;
     }
 
