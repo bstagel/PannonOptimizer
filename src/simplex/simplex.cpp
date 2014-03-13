@@ -390,12 +390,17 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     basisWriter->startWrting(fileName, m_simplexModel->getModel() );
     int variableIndex;
     unsigned int position = 0;
+
+    LPINFO("basic variables: " << m_basicVariableValues );
+
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
+        std::cout << variableIndex << " ";
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         basisWriter->addBasicVariable( variable, position, variableIndex, m_basicVariableValues.at(position) );
         position++;
     }
+    std::cout << std::endl;
 
     IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
 
@@ -445,6 +450,13 @@ void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool r
     if (releaseReader) {
         delete basisReader;
     }
+
+    LPINFO("basis head: ");
+    std::cout << std::dec;
+    for (int i = 0; i < m_basisHead.size(); i++) {
+        std::cout << m_basisHead[i] << " ";
+    }
+    std::cout << std::endl;
 }
 
 
