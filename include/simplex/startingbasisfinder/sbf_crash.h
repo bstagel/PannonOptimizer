@@ -16,6 +16,19 @@ public:
     virtual ~SbfCrash();
 
     virtual void run();
+
+    Numerical::Double getTime() const {
+        return m_time;
+    }
+
+    unsigned int getStructuralVariableCount() const {
+        return m_structuralVariables;
+    }
+private:
+
+    Numerical::Double m_time;
+
+    unsigned int m_structuralVariables;
 };
 
 #endif // SBF_CRASH_H
