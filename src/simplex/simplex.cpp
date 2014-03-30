@@ -444,7 +444,6 @@ void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool r
     for (index = 0; index < variableCount; index++) {
         basisReader->addVariable(m_simplexModel->getVariable(index));
     }
-
     basisReader->finishReading();
 
     if (releaseReader) {
@@ -526,7 +525,6 @@ void Simplex::solve() {
                 throw ParameterException("Invalid load basis file format!");
             }
         }
-
         initWorkingTolerance();
 
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
@@ -551,7 +549,6 @@ void Simplex::solve() {
                     }
                 }
             }
-
             computeWorkingTolerance();
 
             //            if(m_iterationIndex>438){

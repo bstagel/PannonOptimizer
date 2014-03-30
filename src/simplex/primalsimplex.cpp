@@ -303,10 +303,7 @@ void PrimalSimplex::selectPivot() {
         if(m_outgoingIndex == -1){
             //Ask for another column
 #ifndef NDEBUG
-            int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
-            if(thresholdReportLevel > 0){
-                LPERROR("Ask for another column, column is unstable: "<<m_incomingIndex);
-            }
+            LPERROR("Ask for another column, column is unstable: "<<m_incomingIndex);
 #endif
             m_pricing->lockLastIndex();
             price();

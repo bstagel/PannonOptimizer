@@ -11,28 +11,20 @@
 #include <utils/indexlist.h>
 #include <simplex/dualfeasibilitychecker.h>
 #include <simplex/dualratiotestupdater.h>
+#include <utils/breakpointhandler.h>
 
 class Model;
 
 class DualRatiotest{
     friend class DualRatiotestTestSuite;
 
-    struct BreakPoint{
-        int index;
-        Numerical::Double value;
-        Numerical::Double functionValue;
-
-        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint)
-        {
-            os << "(" << breakpoint.index << "; " << breakpoint.value << "; " << breakpoint.functionValue << ")";
-            return os;
-        }
-        bool operator !=(const BreakPoint& other){
-            return !( (other.index==index)&&(other.value==value)&&(other.functionValue==functionValue) );
-        }
+public:
+    enum DUAL_RATIOTEST_METHOD{
+        ONE_STEP = 0,
+        PIECEWISE_LINEAR_FUNCTION,
+        STABLE_PIVOT
     };
 
-public:
     DualRatiotest(const SimplexModel & model,
                   const Vector& reducedCosts,
                   const IndexList<>& reducedCostFeasibilities,
@@ -73,7 +65,6 @@ private:
     const IndexList<>& m_reducedCostFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
     bool m_tPositive;
-    bool m_transform;
 
     //Age vector to record transformation counts
     std::vector<double> m_variableAge;
@@ -85,7 +76,9 @@ private:
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
-    std::vector <BreakPoint> m_breakpoints;
+    Numerical::Double m_initialPhaseIObjectiveValue;
+    Numerical::Double m_initialPhaseIIObjectiveValue;
+    BreakpointHandler m_breakpointHandler;
     Numerical::Double m_pivotThreshold;
 
     int m_enableFakeFeasibility;
@@ -101,35 +94,19 @@ private:
     int m_fakeFeasibilityActivationPhase2;
     int m_fakeFeasibilityCounterPhase2;
 
-    //EXPAND
-//    void generateExpandedBreakpointsPhase1(const Vector& alpha,
-//                                           Numerical::Double phaseIReducedCost,
-//                                           Numerical::Double phaseIObjectiveValue,
-//                                           Numerical::Double expandingTolerance);
-
-    void shift(std::vector<BreakPoint>* breakpoints, unsigned int startid, unsigned int stopid);
-    void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
-    bool numericalCheckPhase1(const Vector& alpha, unsigned int alphaId);
-    void generateAbsoluteBreakpointsPhase1(const Vector& alpha,
-                                           Numerical::Double phaseIReducedCost);
-    void generateSignedBreakpointsPhase1(const Vector& alpha,
-                                         Numerical::Double phaseIReducedCost);
+    void generateSignedBreakpointsPhase1(const Vector& alpha);
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int& iterationCounter,
                                Numerical::Double& functionSlope);
     void useNumericalThresholdPhase1(unsigned int iterationCounter,
                                const Vector& alpha,
                                Numerical::Double& functionSlope);
-    void generateAbsoluteBreakpointsPhase2(unsigned int outgoingVariableIndex,
-                                           const Vector& alpha,
-                                           Numerical::Double phaseIIObjectiveValue);
-    void generateSignedBreakpointsPhase2(unsigned int outgoingVariableIndex,
-                                         const Vector& alpha,
-                                         Numerical::Double phaseIIObjectiveValue);
+    bool numericalCheckPhase1(const Vector& alpha, unsigned int alphaId);
+
+    void generateSignedBreakpointsPhase2(const Vector& alpha);
     void computeFunctionPhase2(const Vector& alpha,
                                unsigned int& iterationCounter,
-                               Numerical::Double& functionSlope,
-                               Numerical::Double& primalSteplength);
+                               Numerical::Double& functionSlope);
     void useNumericalThresholdPhase2(unsigned int iterationCounter,
                                const Vector& alpha);
 };
