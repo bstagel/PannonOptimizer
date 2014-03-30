@@ -138,14 +138,6 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "\t" << "enable_fake_feasibility = " << writeParameter("enable_fake_feasibility")
             << std::endl << std::endl;
 
-        out << "! Numerical Threshold report in Dual Phase I and II \n"
-               "\t! 0 = no report \n"
-               "\t! 1 = report threshold active & sum of steps \n"
-               "\t! 2 = report threshold step by step"<< std::endl;
-        out << "\t" << "threshold_report_level = " << writeParameter("threshold_report_level")
-            << std::endl << std::endl;
-
-
         out << "! EXPAND multiplier initializing value\n"
                "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI")
                << std::endl;
@@ -257,8 +249,6 @@ void SimplexParameterHandler::initParameters()
     createParameter("enable_fake_feasibility", Entry::INTEGER);
     setParameterValue("enable_fake_feasibility", DefaultParameters::ENABLE_FAKE_FEASIBILITY);
 
-    createParameter("threshold_report_level", Entry::INTEGER);
-    setParameterValue("threshold_report_level", DefaultParameters::THRESHOLD_REPORT_LEVEL);
     createParameter("expand_multiplier_dphI", Entry::DOUBLE);
     setParameterValue("expand_multiplier_dphI", DefaultParameters::EXPAND_MULTIPLIER_DPH1);
     createParameter("expand_divider_dphI", Entry::INTEGER);

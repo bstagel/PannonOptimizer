@@ -327,28 +327,8 @@ void DualSimplex::selectPivot() {
 
     Vector alpha;
 
-//    LPINFO("rc: "<<m_simplexModel->getRowCount());
-//    LPINFO("cc: "<<m_simplexModel->getColumnCount());
-//    Vector alpha151(m_simplexModel->getRowCount());
-//    alpha151.set(151-143,1);
-//    m_basis->Ftran(alpha151);
-//    LPINFO("alpha151 "<<alpha151);
-//    LPINFO("m_reducedCosts "<<m_reducedCosts);
-
-//    if(m_iterationIndex>171){
-//        for(int i=0; i<m_basicVariableValues.length(); i++){
-//            std::cout<<"xbi: ("<<i <<","<<m_basicVariableValues.at(i)<<")"<<"\n";
-//        }
-//        Checker::checkFeasibilityConditions(*this, true);
-//        Checker::checkNonbasicVariableStates(*this, true);
-//        Checker::checkBasicVariableStates(*this, true);
-//        Checker::checkBasicVariableFeasibilities(*this);
-//        Checker::checkPfiWithFtran(*this);
-//        Checker::checkPfiWithBtran(*this);
-//        Checker::checkPfiWithReducedCost(*this);
-//        LPINFO("FRESH "<<m_freshBasis);
-//    }
     m_incomingIndex = -1;
+
     while(m_incomingIndex == -1 ){
 
         computeTransformedRow(&alpha, m_outgoingIndex);
@@ -356,6 +336,7 @@ void DualSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
+//            Checker::checkOptimalityConditions(*this);
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
@@ -368,12 +349,8 @@ void DualSimplex::selectPivot() {
         //Row disabling control
         if(m_incomingIndex == -1){
             //Ask for another row
-#ifndef NDEBUG
-            int thresholdReportLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
-            if(thresholdReportLevel > 0){
-                LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
-            }
-#endif
+            LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
+
             m_pricing->lockLastIndex();
             price();
         }
@@ -488,16 +465,16 @@ void DualSimplex::setReferenceObjective() {
 
 void DualSimplex::checkReferenceObjective() {
     if(!m_feasible){
-        if(m_referenceObjective > m_phaseIObjectiveValue){
-            LPWARNING("BAD ITERATION - PHASE I");
+        if(Numerical::less(m_phaseIObjectiveValue,m_referenceObjective)){
+            LPWARNING("BAD ITERATION - PHASE I difference: "<<m_referenceObjective-m_phaseIObjectiveValue);
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
 //            LPWARNING("DEGENERATE - PHASE I");
             m_degenerateIterations++;
         }
     } else {
-        if(m_referenceObjective > m_objectiveValue ){
-            LPWARNING("BAD ITERATION - PHASE II");
+        if(Numerical::less(m_objectiveValue,m_referenceObjective)){
+            LPWARNING("BAD ITERATION - PHASE II difference: "<<m_referenceObjective-m_objectiveValue);
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
 //            LPWARNING("DEGENERATE - PHASE II");

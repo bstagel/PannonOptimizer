@@ -63,16 +63,9 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
                         m_phaseIObjectiveValue -= m_reducedCosts.at(variableIndex);
-                } else
+                } else{
 
     //nonbasic variables with F type infeasibility
-//                if (( !Numerical::lessthan(m_reducedCosts.at(variableIndex),0,tolerance) &&
-//                        typeOfIthVariable == Variable::PLUS) ||
-//                        (Numerical::lessOrEqual(m_reducedCosts.at(variableIndex),0,tolerance) &&
-//                        typeOfIthVariable == Variable::MINUS) ||
-//                        (Numerical::equal(m_reducedCosts.at(variableIndex),0,tolerance) &&
-//                        typeOfIthVariable == Variable::FREE))
-                {
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }
         }

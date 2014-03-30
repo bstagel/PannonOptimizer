@@ -4,8 +4,6 @@
 
 static const int nonlinearPrimalPhaseIFunction =
         SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function");
-static const int thresholdReportLevel =
-        SimplexParameterHandler::getInstance().getIntegerParameterValue("threshold_report_level");
 
 void PrimalRatiotest::shift(std::vector<BreakPoint>* breakpoints,
                             unsigned int startId,unsigned int stopId) {
@@ -296,22 +294,22 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     alphaId = length-1-iterationCounter, prevAlphaId = alphaId, nextAlphaId = alphaId,
     prevIterationCounter = 0, nextIterationCounter = 0;
 
-    if (thresholdReportLevel > 0.0){
-        if(m_breakpoints[alphaId].index != -1){
-        LPWARNING("BAD NUMERICAL VALUE IN PHASE I,  ACTIVATING THRESHOLD for"
-                                              "variable " << m_breakpoints[alphaId].index
-                                              <<" with alpha" <<alpha.at(m_breakpoints[alphaId].index)
-                                              <<" at f= "<<m_breakpoints[alphaId].functionValue);
-        } else {
-            LPWARNING("BAD NUMERICAL VALUE IN PHASE I for the INITIAL BREAKPOINT (-1)");
-        }
+#ifndef NDEBUG
+    if(m_breakpoints[alphaId].index != -1){
+    LPWARNING("BAD NUMERICAL VALUE IN PHASE I,  ACTIVATING THRESHOLD for"
+                                          "variable " << m_breakpoints[alphaId].index
+                                          <<" with alpha" <<alpha.at(m_breakpoints[alphaId].index)
+                                          <<" at f= "<<m_breakpoints[alphaId].functionValue);
+    } else {
+        LPWARNING("BAD NUMERICAL VALUE IN PHASE I for the INITIAL BREAKPOINT (-1)");
     }
+#endif
+
     Numerical::Double prevObjValue = m_phaseIObjectiveValue, nextObjValue = m_phaseIObjectiveValue;
     if (iterationCounter > 0) {
         prevAlphaId++;
         prevIterationCounter++;
         prevObjValue = m_breakpoints[prevAlphaId].functionValue;
-        if (thresholdReportLevel > 1.0) LPWARNING("previous step f: "<<prevObjValue);
     }
     if (iterationCounter < length-1) {
         nextAlphaId--;
@@ -324,7 +322,6 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         if(nextObjValue < m_breakpoints[length-1].functionValue){
             nextObjValue = -Numerical::Infinity;
         }
-        if (thresholdReportLevel > 1.0) LPWARNING("next step f: "<<nextObjValue);
     } else{
         nextObjValue = -Numerical::Infinity;
     }
@@ -336,7 +333,6 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         step = false;
         if (prevIsBetter) {
             if (iterationCounter - prevIterationCounter > 0) {
-                if (thresholdReportLevel > 1.0) LPWARNING("previous step f: "<<prevObjValue);
                 prevAlphaId++;
                 prevIterationCounter++;
                 prevObjValue = m_breakpoints[prevAlphaId].functionValue;
@@ -347,7 +343,6 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
             }
         } else {
             if (iterationCounter + nextIterationCounter < length -1 && nextObjValue != -Numerical::Infinity) {
-                if (thresholdReportLevel > 1.0) LPWARNING("next step f: "<<nextObjValue);
                 nextAlphaId--;
                 nextIterationCounter++;
                 getNextElement(&m_breakpoints, length - (iterationCounter+nextIterationCounter));
@@ -371,9 +366,9 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_outgoingVariableIndex = -1;
         m_primalSteplength = 0;
         m_phaseIObjectiveValue = m_breakpoints[length-1].functionValue;
-        if (thresholdReportLevel > 0.0){
-            LPERROR(" - Threshold Error - No breakpoint found! num of breakpoints: " << m_breakpoints.size());
-        }
+#ifndef NDEBUG
+        LPERROR(" - Threshold Error - No breakpoint found! num of breakpoints: " << m_breakpoints.size());
+#endif
     } else if (prevIsBetter) {
         m_phaseIObjectiveValue = m_breakpoints[prevAlphaId].functionValue;
         m_outgoingVariableIndex = m_breakpoints[prevAlphaId].index;
@@ -384,14 +379,11 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_primalSteplength = m_breakpoints[nextAlphaId].value;
     }
 
-    if (thresholdReportLevel > 1.0)  {
+#ifndef NDEBUG
         LPWARNING("steps(prev;next): " << prevIterationCounter<<
                                               " ; " << nextIterationCounter<<"\n");
         LPWARNING(m_breakpoints[alphaId+nextIterationCounter-prevIterationCounter]<<" chosen");
-    }
-//    LPWARNING("breakpoints\t\t|\talpha values");
-//    for(unsigned i=0;i<m_breakpoints.size();i++){LPWARNING(m_breakpoints[i]<<
-//                                                           "\t|\t"<<alpha.at(m_breakpoints[i].index));}
+#endif
 }
 
 void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
@@ -528,7 +520,7 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha,
 void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                                              const Vector &alpha,
                                              Numerical::Double reducedCost){
-    #ifdef NDEBUG
+    #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 

@@ -111,7 +111,8 @@ HEADERS += include/debug.h \
            include/utils/nodefile.h \
            include/defaultparameters.h \
            include/globals.h \
-    include/simplex/startingbasisfinder/sbf_crash.h
+    include/simplex/startingbasisfinder/sbf_crash.h \
+    include/utils/breakpointhandler.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -173,6 +174,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/debug.cpp \
            src/defaultparameters.cpp \
            src/globals.cpp \
-    src/simplex/startingbasisfinder/sbf_crash.cpp
+           src/simplex/startingbasisfinder/sbf_crash.cpp \
+           src/utils/breakpointhandler.cpp
 
 #OBJECTS_DIR = .o

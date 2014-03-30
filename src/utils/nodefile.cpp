@@ -15,7 +15,6 @@ void NodeFile::loadFromStream(std::istream & steram) {
     std::vector<Tokenizer::Token> tokens;
 
     Tokenizer::tokenize(steram, &tokens, &rows);
-
     m_document.build("", tokens.begin(), tokens.end(), rows);
 
 }

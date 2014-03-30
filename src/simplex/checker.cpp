@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <simplex/basis.h>
+#include <simplex/simplexparameterhandler.h>
 
 bool Checker::checkPfiWithFtran(const Simplex &simplex) {
     std::vector<int> unitVectors;
@@ -90,7 +91,7 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
                     maxIndex = badIt.getIndex();
                 }
             }
-            LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
+                LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
 //            LPINFO(*basisIt);
 //            exit(-1);
         }
@@ -269,6 +270,7 @@ bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Num
 
 bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Numerical::Double tolerance)
 {
+//    tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
     bool okay = true;
     for(unsigned int variableIndex=0; variableIndex<simplex.m_simplexModel->getColumnCount() + simplex.m_simplexModel->getRowCount(); variableIndex++){
         if(simplex.m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
@@ -276,6 +278,7 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
             if(print){
                 LPINFO("UNSATISFIED OPTIMALITY: "
                        << " d_j:  " << simplex.m_reducedCosts.at(variableIndex)
+                       << " variable index: " << variableIndex
                        << " type: " << "NONBASIC_AT_LB"
                        << " (tol: " << tolerance << " )");
             }
@@ -303,7 +306,7 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
     }
     if(print){
         if(okay){
-            LPINFO("checkOptimalityConditions PASSED");
+//            LPINFO("checkOptimalityConditions PASSED");
         } else {
             LPERROR("checkOptimalityConditions FAILED");
         }
