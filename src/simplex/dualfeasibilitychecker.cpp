@@ -112,7 +112,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
 //                LPINFO("CORRECT: UB -> LB ");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
-                m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getUpperBound()));
+                m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 //Compute (u_j-l_j)*a_j
                 Numerical::Double theta = variable.getLowerBound() - variable.getUpperBound();
                 if(variableIndex < columnCount){

@@ -450,12 +450,12 @@ void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool r
         delete basisReader;
     }
 
-    LPINFO("basis head: ");
-    std::cout << std::dec;
-    for (int i = 0; i < m_basisHead.size(); i++) {
-        std::cout << m_basisHead[i] << " ";
-    }
-    std::cout << std::endl;
+//    LPINFO("basis head: ");
+//    std::cout << std::dec;
+//    for (unsigned int i = 0; i < m_basisHead.size(); i++) {
+//        std::cout << m_basisHead[i] << " ";
+//    }
+//    std::cout << std::endl;
 }
 
 
