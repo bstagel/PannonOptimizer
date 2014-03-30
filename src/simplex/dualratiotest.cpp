@@ -204,7 +204,7 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
         m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
         m_incomingVariableIndex = actualBreakpoint->variableIndex;
     } else{
-        m_breakpointHandler.printBreakpoints();
+//        m_breakpointHandler.printBreakpoints();
         LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
     }
 }
@@ -289,6 +289,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     }
 
     if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
+        LPWARNING("No stable pivot found in phase 1!");
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0.0;
         m_phaseIObjectiveValue = m_initialPhaseIObjectiveValue;
@@ -371,7 +372,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
             if(maxFakeFeasibleIndex != -1 &&
                     (functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints())){
                 m_incomingVariableIndex = maxFakeFeasibleIndex;
-                LPINFO("Repairing most fake feasible variable: " << m_incomingVariableIndex << "(" << maxFakeFeasible << ")");
+                LPINFO("Repairing most fake feasible variable: " << m_incomingVariableIndex << " d: " << maxFakeFeasible);
             }
         }
 
@@ -487,7 +488,6 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
 
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
 
-//    LPINFO("s0: "<<functionSlope<<" iterCounter: "<<iterationCounter);
     while (iterationCounter < length) {
 
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
@@ -562,6 +562,10 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     if(maxAlphaAbs < m_pivotThreshold){
         m_stablePivotNotFoundPhase2++;
         m_incomingVariableIndex = -1;
+        LPWARNING("No stable pivot found in phase 2!");
+//        if (alpha.at(m_incomingVariableIndex) < 1.e-6){
+//            LPINFO("small pivot: "<<alpha.at(m_incomingVariableIndex));
+//        }
     }else{
         m_incomingVariableIndex = m_breakpointHandler.getBreakpoint(maxAlphaId)->variableIndex;
     }
