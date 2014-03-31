@@ -63,7 +63,8 @@ Numerical::Double * Vector::allocateData(unsigned int capacity)
     if (capacity == 0) {
         return 0;
     }
-    return new Numerical::Double[capacity];
+    return alloc<Numerical::Double, 32>(capacity);
+    //return new Numerical::Double[capacity];
 }
 
 unsigned int * Vector::allocateIndex(unsigned int capacity)
@@ -71,18 +72,21 @@ unsigned int * Vector::allocateIndex(unsigned int capacity)
     if (capacity == 0) {
         return 0;
     }
-    return new unsigned int[capacity];
+    return alloc<unsigned int, 32>(capacity);
+    //return new unsigned int[capacity];
 }
 
 void Vector::freeData(Numerical::Double * & data)
 {
-    delete [] data;
+    release(data);
+    //delete [] data;
     data = 0;
 }
 
 void Vector::freeIndex(unsigned int * & index)
 {
-    delete [] index;
+    release(index);
+    //delete [] index;
     index = 0;
 }
 
@@ -134,11 +138,13 @@ Vector::~Vector()
     freeIndex(m_index);
     sm_fullLenghtReferenceCounter--;
     if (sm_fullLenghtReferenceCounter == 0) {
-        delete [] sm_fullLengthVector;
+        release(sm_fullLengthVector);
+        //delete [] sm_fullLengthVector;
         sm_fullLengthVector = 0;
         sm_fullLengthVectorLenght = 0;
 
-        delete [] sm_countingSortBitVector;
+        release(sm_countingSortBitVector);
+        //delete [] sm_countingSortBitVector;
         sm_countingSortBitVector = 0;
         sm_countingSortBitVectorLength = 0;
     }
@@ -718,7 +724,10 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         return 0.0;
     }
 
-    Numerical::Summarizer summarizer;
+    //Numerical::Summarizer summarizer;
+    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+                                                       // annal pontosabb, de annal lassabb is
+
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
             m_sorted && vector.m_sorted) {
@@ -1433,9 +1442,10 @@ void Vector::countingSort() const
     const unsigned long * endBits = sm_countingSortBitVector + arraySize;
 
     if (sm_countingSortBitVectorLength < arraySize) {
-        delete [] sm_countingSortBitVector;
+        release(sm_countingSortBitVector);
+        // delete [] sm_countingSortBitVector;
         sm_countingSortBitVectorLength = arraySize;
-        sm_countingSortBitVector = new unsigned long[ arraySize ];
+        sm_countingSortBitVector = alloc<unsigned long, 32>(arraySize); //new unsigned long[ arraySize ];
         actualBits = sm_countingSortBitVector;
         endBits = sm_countingSortBitVector + arraySize;
         for (; actualBits < endBits; actualBits++) {
@@ -1741,7 +1751,8 @@ Numerical::Double * Vector::scatterWithPivot(Numerical::Double * & denseVector, 
     // sparse -> dense
     Numerical::Double * res = 0;
     if (denseLength < sparseMaxIndex) {
-        delete [] denseVector;
+        release(denseVector);
+        //delete [] denseVector;
         denseVector = allocateData(sparseMaxIndex + 1);
         Numerical::Double * ptrDense = denseVector;
         const Numerical::Double * const ptrDenseEnd = denseVector + sparseMaxIndex + 1;
@@ -1775,7 +1786,8 @@ void Vector::scatter(Numerical::Double * & denseVector, unsigned int & denseLeng
 {
     // sparse -> dense
     if (denseLength < sparseVector.m_dimension) {
-        delete [] denseVector;
+        release(denseVector);
+        //delete [] denseVector;
         denseVector = allocateData(sparseVector.m_dimension + 1);
         Numerical::Double * ptrDense = denseVector;
         const Numerical::Double * const ptrDenseEnd = denseVector + sparseVector.m_dimension + 1;

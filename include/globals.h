@@ -12,6 +12,9 @@
 #include <climits>
 #include <float.h>
 
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
+
 #define STATIC_ARRAY_SIZE(A) (sizeof(A) / sizeof(A[0]))
 
 #define __UNUSED(x) (void)x;

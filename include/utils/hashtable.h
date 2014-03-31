@@ -4,6 +4,10 @@
 #include <globals.h>
 #include <vector>
 
+#include <map>
+
+#include <iostream>
+
 extern const unsigned int hashTableSizes[];
 extern const unsigned int hashTableSizesSize;
 
@@ -23,7 +27,7 @@ public:
         unsigned int start = 0;
         unsigned int end = hashTableSizesSize - 1;
         unsigned int index = (start + end) >> 1;
-        while (start <= end && hashTableSizes[index] != size) {
+        while (start < end && hashTableSizes[index] != size) {
             if (hashTableSizes[index] < size) {
                 start = index + 1;
             } else if (hashTableSizes[index] > size) {
@@ -72,6 +76,20 @@ public:
 
     unsigned int getCount() const {
         return m_count;
+    }
+
+    void showCounters() {
+        typename std::vector< std::vector<TYPE> >::const_iterator iter = m_table.begin();
+        typename std::vector< std::vector<TYPE> >::const_iterator iterEnd = m_table.end();
+        unsigned int max = 0;
+        for (; iter != iterEnd; iter++) {
+            if (iter->size() > max) {
+                max = iter->size();
+            }
+            //std::cout << iter->size() << std::endl;
+            //std::cin.get();
+        }
+        std::cout << "MAX = " << max << std::endl;
     }
 
 private:

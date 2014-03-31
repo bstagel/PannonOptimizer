@@ -16,3 +16,13 @@ Buffer * Pool::sm_head = 0;
 bool MemoryManager::sm_initialized = false;
 
 #endif
+
+void release(void * ptr) {
+    if (ptr == 0) {
+        return;
+    }
+    char * ptr2 = (char*)ptr;
+    ptr2 -= sizeof(void*);
+    delete [] *((char**)ptr2);
+}
+

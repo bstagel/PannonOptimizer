@@ -14,6 +14,8 @@
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
 
+#include <utils/tokenizer.h>
+
 enum ALGORITHM {
     PRIMAL,
     DUAL
@@ -32,6 +34,8 @@ void solve(std::string filename, ALGORITHM algorithm) {
     MpsModelBuilder builder;
     builder.loadFromFile(filename.c_str());
     model.build(builder);
+
+    //model.print();
 
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
         model.scale();

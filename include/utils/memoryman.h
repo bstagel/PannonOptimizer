@@ -9,10 +9,15 @@
 
 #ifndef CLASSIC_NEW_DELETE
 
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
+
 #include <new>
 #include <cstdlib>
 #include <iostream>
 #include <cstdio>
+
+// TODO: cache hatarokra valo igazitast meg kell oldani
 
 struct ChunkStack;
 
@@ -56,12 +61,12 @@ public:
 
     inline static Chunk * getChunk(size_t size) {
         Buffer * actual = sm_head;
-        size += sizeof(Chunk) + 80;
+        size += sizeof(Chunk);
         while ( actual != 0 && ((actual->m_bufferEnd - actual->m_actual) < (long int)size) ) {
             actual = actual->m_next;
         }
-        if (actual == 0) {
-            printf("Uj buffer kell\n");
+        if (unlikely(actual == 0)) {
+            //printf("Uj buffer kell\n");
             Buffer * newBuffer = static_cast<Buffer*>(malloc(sizeof(Buffer)));
             newBuffer->m_next = sm_head;
             sm_head = newBuffer;
@@ -79,7 +84,7 @@ public:
     static Buffer * sm_head;
 
 private:
-    static const int sm_poolSize = 10485760*3;
+    static const int sm_poolSize = 10485760;
 
 };
 
@@ -106,34 +111,19 @@ public:
             m_head = m_head->m_previous;
         } else {
             //b = 1;
-            result = reinterpret_cast<Chunk*>(malloc(sizeof(Chunk) + size + 100));
-            //result = Pool::getChunk(size);
-            //if (size / 4 == 8) {
-            /*    FILE * fd = fopen("memlog2.txt", "a");
-                fprintf(fd, "result = %p\n", result);
-                fclose(fd);*/
-            //}
+            //result = reinterpret_cast<Chunk*>(malloc(sizeof(Chunk) + size + 100));
+            result = Pool::getChunk(size);
+
             result->m_stack = this;
             result->m_previous = 0;
         }
         //result->m_stack = this;
-        /*if (size / 4 == 8) {
-            FILE * fd = fopen("memlog.txt", "a");
-            fprintf(fd, " this: %p stack: %p branch: %d  RESULT: %p ",
-                    this, result->m_stack, b, result);
-            fclose(fd);
-        }*/
+
 
         return result;
     }
 
     inline void addChunk(Chunk * chunk) {
-        /*FILE * fd = fopen("addChunk.txt", "a");
-        fprintf(fd, "chunk = %p  stack = %p this = %p\n", chunk, chunk->m_stack, this);
-        fclose(fd);
-        if (chunk->m_stack != this) {
-            printf("PARAAAAAAAAAAAAAAAAAAAAA %p %p\n", chunk->m_stack, this);
-        }*/
         chunk->m_previous = m_head;
         m_head = chunk;
     }
@@ -159,35 +149,30 @@ public:
 
     inline static void * allocate(size_t size) {
         Chunk * chunk;
-        if (size <= (size_t)sm_maxSmallStackSize) {
+        if (likely(size <= (size_t)sm_maxSmallStackSize)) {
             chunk = sm_smallStacks[size >> 2].getChunk(size);
         } else if (size <= (size_t) sm_maxLargeStackSize) {
             chunk = sm_largeStacks[size >> 10].getChunk(size);
         } else {
-            chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size + 100));
+            chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size ));
             chunk->m_stack = 0;
         }
-        //FILE * fd = fopen("memlog.txt", "a");
-        //fprintf(fd, " STACK: %p   SIZE: %ld ", chunk->m_stack, size);
-        //fclose(fd);
-        //printf("pointers: %p %p %d %d\n", chunk, (chunk + 1), sizeof(Chunk), (chunk + 1) - chunk);
+
         chunk++;
+//        printf("address: %p\n", chunk);
+//        getchar();
         return static_cast<void*>(chunk);
-        //return chunk->m_start;
     }
 
     inline static void release(void * pointer) {
-        //return;
         Chunk * chunk = reinterpret_cast<Chunk*>(pointer);  //reinterpret_cast<Chunk*>(reinterpret_cast<char*>(pointer) - sizeof(Chunk));
         chunk--;
-        //FILE * fd = fopen("memlog.txt", "a");
-        //fprintf(fd, " STACK: %p\n", chunk->m_stack);
-        //fclose(fd);
-        if (chunk->m_stack != 0) {
+        if (likely(chunk->m_stack != 0)) {
             chunk->m_stack->addChunk(chunk);
         } else {
             free(chunk);
         }
+        //free(pointer);
     }
 
 private:
@@ -240,34 +225,24 @@ public:
 };
 
 inline void * operator new (size_t size) {
-    //return malloc(size + sizeof(Chunk));
-    //return MemoryManager::allocate(size);
-    void * result = MemoryManager::allocate(size);
-    /*FILE * fd = fopen("memlog.txt", "a");
-    fprintf(fd, "%s.: %p \n", __FUNCTION__, result);
-    fclose(fd);*/
-    return result;
+    //return malloc(size);
+    return MemoryManager::allocate(size);
 }
 
 inline void operator delete(void * p) {
-    //free(p);
-    //return;
+//    free(p);
     if (p != 0) {
-        /*FILE * fd = fopen("memlog.txt", "a");
-        fprintf(fd, "%s.: %p ", __FUNCTION__, p);
-        fclose(fd);*/
         MemoryManager::release(p);
-        //fd = fopen("memlog.txt", "a");
-        //fprintf(fd, " DELETED\n");
-        //fclose(fd);
     }
 }
 
 inline void * operator new [](size_t size) {
+    //return malloc(size);
     return MemoryManager::allocate(size);
 }
 
 inline void operator delete [](void * p) {
+    //free(p);
     if (p != 0) {
         MemoryManager::release(p);
     }
@@ -307,6 +282,47 @@ static void releaseMemory() {
     }
 }
 
+#undef likely
+#undef unlikely
+
 #endif
+
+union Pointer {
+    void * ptr;
+    unsigned long int bits;
+};
+
+// TODO: ezeket attenni egy meta.h fileba
+
+template <unsigned n>
+struct Logarithm
+{
+    enum { value = 1 + Logarithm<n / 2>::value };
+};
+
+template <>
+struct Logarithm<1>
+{
+  enum { value = 0 };
+};
+
+template <class T, unsigned alignment>
+T * alloc(int size) {
+    size *= sizeof(T);
+    char * originalPtr = new char[size + alignment + sizeof(void*)];
+    char * ptr2 = originalPtr + alignment + sizeof(void*);
+    Pointer ptr;
+    ptr.ptr = ptr2;
+    ptr.bits >>= Logarithm<alignment>::value;
+    ptr.bits <<= Logarithm<alignment>::value;
+    ptr2 = static_cast<char*>(ptr.ptr);
+    ptr2 -= sizeof(void*);
+    *((char**)ptr2) = originalPtr;
+    ptr2 = ptr2 + sizeof(void*);
+    return reinterpret_cast<T*>(ptr2);
+}
+
+void release(void * ptr);
+
 
 #endif // MEMORYMAN_H

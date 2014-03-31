@@ -26,15 +26,15 @@
 #define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
 #else
 #define COPY_DOUBLES(dest, src, count) {unsigned int _count = (count); \
-                                        for(unsigned int i = 0; i < _count; i++) { \
-                                            dest[i] = src[i]; \
-                                        } \
-                                        }
+    for(unsigned int i = 0; i < _count; i++) { \
+    dest[i] = src[i]; \
+    } \
+    }
 #endif
 
 class Numerical
 {
-    public:
+public:
 
     enum ADD_TYPE {
         ADD_FAST,
@@ -43,50 +43,50 @@ class Numerical
         ADD_ABS_REL
     };
 
-//    class QD_Summarizer
-//    {
-//        qd_real m_negpos[2];
+    //    class QD_Summarizer
+    //    {
+    //        qd_real m_negpos[2];
 
-//        union Number
-//        {
-//            double m_num;
-//            unsigned long long int m_bits;
-//        } m_number;
+    //        union Number
+    //        {
+    //            double m_num;
+    //            unsigned long long int m_bits;
+    //        } m_number;
 
-//    public:
+    //    public:
 
-//        QD_Summarizer()
-//        {
-//            m_negpos[0] = 0.0;
-//            m_negpos[1] = 0.0;
-//        }
+    //        QD_Summarizer()
+    //        {
+    //            m_negpos[0] = 0.0;
+    //            m_negpos[1] = 0.0;
+    //        }
 
-//        inline void add(const double & v)
-//        {
-//            m_number.m_num = v;
-//            *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
-//            /*if (v < 0.0) {
-//                m_negpos[0] += v;
-//            } else {
-//                m_negpos[1] += v;
-//            }*/
-//        }
+    //        inline void add(const double & v)
+    //        {
+    //            m_number.m_num = v;
+    //            *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
+    //            /*if (v < 0.0) {
+    //                m_negpos[0] += v;
+    //            } else {
+    //                m_negpos[1] += v;
+    //            }*/
+    //        }
 
-//        inline double getResult() const
-//        {
-//            return stableAdd(m_negpos[0], m_negpos[1]);
-//        }
+    //        inline double getResult() const
+    //        {
+    //            return stableAdd(m_negpos[0], m_negpos[1]);
+    //        }
 
-//        inline void clear()
-//        {
-//            m_negpos[0] = 0.0;
-//            m_negpos[1] = 0.0;
-//        }
+    //        inline void clear()
+    //        {
+    //            m_negpos[0] = 0.0;
+    //            m_negpos[1] = 0.0;
+    //        }
 
-////        inline const double * getData() const {
-////            return m_negpos;
-////        }
-//    };
+    ////        inline const double * getData() const {
+    ////            return m_negpos;
+    ////        }
+    //    };
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
     typedef double Double;
@@ -117,7 +117,7 @@ class Numerical
         ALWAYS_INLINE void add(const Double & v)
         {
             m_number.m_num = v;
-            *(m_negpos + ((m_number.m_bits & 0x8000000000000000LL) >> 63)) += v;
+            *(m_negpos + (m_number.m_bits >> 63)) += v;
             /*if (v < 0.0) {
                 m_negpos[0] += v;
             } else {
@@ -136,9 +136,70 @@ class Numerical
             m_negpos[1] = 0.0;
         }
         
-//        inline const double * getData() const {
-//            return m_negpos;
-//        }
+        //        inline const double * getData() const {
+        //            return m_negpos;
+        //        }
+    };
+
+    class BucketSummarizer {
+
+        double * m_buckets;
+
+
+        unsigned int m_shift;
+
+        unsigned int m_size;
+
+    public:
+
+        BucketSummarizer(int level) {
+            m_shift = 11 - level;
+            m_size = 1 << m_shift;
+            m_buckets = alloc<double, 32>(m_size);
+            m_shift = 53 + level;
+        }
+
+        ~BucketSummarizer() {
+            release(m_buckets);
+        }
+
+        ALWAYS_INLINE void add(double value) {
+            const unsigned int index = ((*(unsigned long long int*)(&value)) ) >> (m_shift);
+            m_buckets[ index ] += value;
+        }
+
+
+        ALWAYS_INLINE double getResult() {
+            double pos1 = 0;
+            double pos2 = 0;
+            double neg1 = 0;
+            double neg2 = 0;
+            unsigned int i;
+
+            if (m_size == 2) {
+                pos1 = m_buckets[0];
+                neg1 = m_buckets[1];
+                m_buckets[0] = 0;
+                m_buckets[1] = 0;
+                return stableAdd(pos1 + pos2, neg1 + neg2);
+            } else {
+                for (i = 0; i < m_size / 2; i += 2) {
+                    pos1 += m_buckets[i];
+                    pos2 += m_buckets[i + 1];
+                    m_buckets[i] = 0;
+                    m_buckets[i + 1] = 0;
+                }
+
+                for (; i < m_size; i += 2) {
+                    neg1 += m_buckets[i];
+                    neg2 += m_buckets[i + 1];
+                    m_buckets[i] = 0;
+                    m_buckets[i + 1] = 0;
+                }
+            }
+
+            return stableAdd(pos1 + pos2, neg1 + neg2);
+        }
     };
 
     ALWAYS_INLINE static Double fabs(Double val)
@@ -294,23 +355,23 @@ class Numerical
      */
     static ALWAYS_INLINE Double stableAdd(const Double & value1, const Double & value2)
     {
-//        if(value1 * value2 > 0){
-//            return value1 + value2;
-//        }
-//        *((unsigned long long int*)&num) = (0x7FFFFFFFFFFFFFFFULL & *((unsigned long long int*)(&num)));
+        //        if(value1 * value2 > 0){
+        //            return value1 + value2;
+        //        }
+        //        *((unsigned long long int*)&num) = (0x7FFFFFFFFFFFFFFFULL & *((unsigned long long int*)(&num)));
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         const Double result = value1 + value2;
         if ((value1abs + value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
-//        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+            //        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
             return 0.0;
         }
 
         else if(Numerical::fabs(result)<AbsoluteTolerance){
-//            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
+            //            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
             return 0.0;
         }
-//        LPINFO("result: "<<result);
+        //        LPINFO("result: "<<result);
         return result;
     }
 
@@ -353,24 +414,24 @@ class Numerical
 
         return result;
     }
-//    static inline Double stableAdd(const qd_real & value1, const qd_real & value2)
-//    {
-//        const qd_real value1abs = value1.is_positive()?value1:-value1;
-//        const qd_real value2abs = value2.is_positive()?value2:-value2;
-//        const qd_real result = value1 + value2;
-//        const qd_real resultabs = result.is_positive()?result:-result;
-////        LPINFO("result_before: "<<to_double(result));
-//        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= resultabs) {
-//            return 0.0;
-//        }
-//        else if(resultabs<AbsoluteTolerance){
-//////            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
-//            return 0.0;
-//        }
-////        LPINFO("result: "<<result);
-////        LPINFO("to_double(result): "<<to_double(result));
-//        return to_double(result);
-//    }
+    //    static inline Double stableAdd(const qd_real & value1, const qd_real & value2)
+    //    {
+    //        const qd_real value1abs = value1.is_positive()?value1:-value1;
+    //        const qd_real value2abs = value2.is_positive()?value2:-value2;
+    //        const qd_real result = value1 + value2;
+    //        const qd_real resultabs = result.is_positive()?result:-result;
+    ////        LPINFO("result_before: "<<to_double(result));
+    //        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= resultabs) {
+    //            return 0.0;
+    //        }
+    //        else if(resultabs<AbsoluteTolerance){
+    //////            LPWARNING("stableAdd RESULT IS BAAAD: "<<std::scientific<<result);
+    //            return 0.0;
+    //        }
+    ////        LPINFO("result: "<<result);
+    ////        LPINFO("to_double(result): "<<to_double(result));
+    //        return to_double(result);
+    //    }
     /**
      * Numerical stable add operation. Ensures that when the first operand
      * is negative of second one, the result will be zero.
@@ -387,7 +448,7 @@ class Numerical
             value1 = 0.0;
         }
         else if(Numerical::fabs(value1)<AbsoluteTolerance){
-//            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
+            //            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
             value1 = 0.0;
         }
     }
@@ -409,7 +470,7 @@ class Numerical
             return 0.0;
         }
         else if(Numerical::fabs(result)<AbsoluteTolerance){
-//            LPWARNING("stableSub RESULT IS BAAAD: "<<std::scientific<<result);
+            //            LPWARNING("stableSub RESULT IS BAAAD: "<<std::scientific<<result);
             return 0.0;
         }
         return result;
@@ -432,7 +493,7 @@ class Numerical
             value1 = 0.0;
         }
         else if(Numerical::fabs(value1)<AbsoluteTolerance){
-//            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
+            //            LPWARNING("stableAddTo RESULT IS BAAAD: "<<std::scientific<<value1);
             value1 = 0.0;
         }
     }
