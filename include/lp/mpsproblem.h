@@ -1,1005 +1,86 @@
-/**
- * @file mpsproblem.h
- */
-
 #ifndef MPSPROBLEM_H
-#define	MPSPROBLEM_H
+#define MPSPROBLEM_H
 
 #include <globals.h>
-
-#include <vector>
-#include <map>
+#include <string>
 #include <list>
-#include <iostream>
+#include <vector>
 #include <sstream>
-#include <fstream>
+#include <utils/file.h>
+#include <utils/hashtable.h>
+#include <utils/list.h>
+#include <linalg/vector.h>
+#include <lp/modelbuilder.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
-#include <utils/file.h>
-#include <debug.h>
-#include <linalg/vector.h>
-#include <utils/list.h>
-#include <lp/modelbuilder.h>
 
-#define MPS_RECORD_SIZE 80
-#define BUFF_SIZE 102400
-//#define BUFF_SIZE 51200
-//#define BUFF_SIZE 500
-//gf#define BUFF_SIZE 120
-#define MPS_KEY_SIZE 10
-#define KEY_COUNT 5000
-#define MPS_HASH_TABLE_SIZE_1 78953 //24989
-#define MPS_HASH_TABLE_SIZE_2 13
-
-#define FIELD_0_START  1
-#define FIELD_0_END    2
-#define FIELD_1_START  4
-#define FIELD_1_END   11
-#define FIELD_2_START 14
-#define FIELD_2_END   21
-#define FIELD_3_START 24
-#define FIELD_3_END   35
-#define FIELD_4_START 39
-#define FIELD_4_END   46
-#define FIELD_5_START 49
-#define FIELD_5_END   60
-
-#define MAX_ROW_WITH 61
-#define MPS_NAME_LENGTH 8
-
-#define LOWER_BOUND_READY_MASK 0x1
-#define UPPER_BOUND_READY_MASK 0x2
-
-#define INVALID_ROW_TYPE_LIMIT 10
-#define INVALID_ROW_NAME_LIMIT 10
-#define INVALID_FIELD_LIMIT    10
-#define UNNECESSARY_CONTENT_LIMIT 10
-#define TOO_LONG_WORD_LIMIT 10
-
-#define MPS_RETURN(ptr) m_carriageReturn = (ptr)[-1] == '\r'; checkTooLongRecord(ptr); return (ptr);
-#define MPS_RECORD_END_CHECK(ptr)   if (*ptr == '*') invalidComment(index); \
-    switch (*(ptr)) { \
-    case '\r': \
-    (ptr)++; \
-    case '\n': \
-    MPS_RETURN(ptr); \
-    case '*': \
-    info = COMMENT; \
-    ptr = goToEndLine(ptr); \
-    MPS_RETURN(ptr); \
-    }
-#define MPS_INCOMPLETE_RECORD_CHECK(ptr) if (*ptr == '*') invalidComment(index); \
-    switch (*(ptr)) { \
-    case '\r': \
-    (ptr)++; \
-    case '\n': \
-    incompleteRecordError(); \
-    MPS_RETURN(ptr); \
-    case '*': \
-    info = COMMENT; \
-    ptr = goToEndLine(ptr); \
-    incompleteRecordError(); \
-    MPS_RETURN(ptr); \
-    }
-#define MPS_MISSING_COMMENT_CHECK(ptr) if (*(ptr) != '\r' && *(ptr) != '\n' && *(ptr) != '*') { \
-    unnecessaryContentError(); \
-    ptr = goToEndLine(ptr); \
-    }
-
-/**
- */
-struct mps_hash_key_list
-{
-    int m_index;
-    char m_keys[MPS_KEY_SIZE * KEY_COUNT];
-    mps_hash_key_list * m_next;
-};
-
-/**
- */
-struct mps_hash_key_producer
-{
-    mps_hash_key_list * m_head;
-    mps_hash_key_list * m_actual;
-    int * m_counter;
-};
-
-void ReleaseHashKeyProducer(mps_hash_key_producer & hkp);
-
-/*class MpsNameStorer : public NameStorer
-{
-
-    void increase()
-    {
-        (*(m_hkp.m_counter))++;
-    }
-
-    void decrease()
-    {
-        ReleaseHashKeyProducer(m_hkp);
-    }
-
-    void copy(NameStorer * original)
-    {
-        set((dynamic_cast<MpsNameStorer*> (original))->m_hkp);
-    }
-
-    mps_hash_key_producer m_hkp;
-public:
-
-    MpsNameStorer()
-    {
-        m_hkp.m_counter = 0;
-        m_hkp.m_actual = 0;
-        m_hkp.m_head = 0;
-    }
-
-    MpsNameStorer(MpsNameStorer & original): NameStorer(original) {
-        copy(&original);
-    }
-    
-    void set(mps_hash_key_producer & hkp)
-    {
-        if (hkp.m_counter == 0) {
-            hkp.m_counter = new int;
-            *(hkp.m_counter) = 1;
-        }
-        m_hkp = hkp;
-        (*m_hkp.m_counter)++;
-    }
-
-    ~MpsNameStorer()
-    {
-        decrease();
-    }
-
-    NameStorer * getCopy()
-    {
-        MpsNameStorer * result = new MpsNameStorer(*this);
-        return result;
-    }
-};*/
-
-/**
- *
- * @param k1
- * @param k2
- * @return
- */
-inline bool key_comp(const char * k1, const char * k2)
-{
-    return *((unsigned long long int*) k1) < *((unsigned long long int*) k2);
+#define CREATE_STRING( result, expr ) { \
+    std::ostringstream stream; \
+    stream << expr; \
+    result = stream.str(); \
 }
 
-/**
- *
- */
-template<class KEY, class VALUE, class HASH_FUNC>
-class HashTable
-{
-    friend class MpsModelBuilder;
-public:
-
-    /**
-     *
-     */
-    HashTable()
-    {
-        m_count = 0;
-    }
-
-    /**
-     *
-     */
-    ~HashTable()
-    {
-    }
-
-    /**
-     *
-     * @param hash_func
-     * @param size
-     */
-    inline void init(HASH_FUNC hash_func, unsigned int size1, unsigned int size2)
-    {
-        m_hash_func = hash_func;
-        m_table.resize(size1);
-        unsigned int index;
-        for (index = 0; index < size1; index++) {
-            m_table[index].resize(size2);
-        }
-    }
-
-    /**
-     *
-     * @param key
-     * @param value
-     * @param hash
-     */
-    inline KEY * add(KEY & key, VALUE value, const int hash1, const int hash2)
-    {
-        // if (hash == -1)
-        //     hash = m_hash_func(key, m_table.size());
-        m_count++;
-
-        std::map<KEY, VALUE> & refMap = m_table[hash1][hash2];
-
-        return const_cast<KEY*> (&(refMap.insert(std::make_pair(key, value)).first->first));
-        //return const_cast<KEY*> (&(m_table[hash].insert(std::make_pair(key, value)).first->first));
-
-    }
-
-    /**
-     *
-     * @param key
-     * @param hash
-     * @return
-     */
-    inline bool exist(KEY & key, const int hash1, const int hash2 /*= -1*/)
-    {
-        // if (hash == -1)
-        //     hash = m_hash_func(key, m_table.size());
-        return m_table[hash1][hash2].find(key) != m_table[hash1][hash2].end();
-    }
-
-    /**
-     *
-     * @param key
-     * @param hash
-     * @return
-     */
-    inline VALUE * getValue(KEY & key, const int hash1, const int hash2 /*= -1*/)
-    {
-        //if (hash == -1)
-        //    hash = m_hash_func(key, m_table.size());
-        //if (!exist(key, hash))
-        //    return 0;
-        std::map<KEY, VALUE> & refMap = m_table[hash1][hash2];
-        typename std::map<KEY, VALUE >::iterator iter = refMap.find(key);
-        if (iter != refMap.end()) {
-            return &iter->second;
-        }
-        return 0;
-    }
-
-    /**
-     *
-     * @param key
-     * @param hash
-     * @return
-     */
-    inline KEY * getKey(KEY & key, const int hash1, const int hash2)
-    {
-        //if (hash == -1)
-        //    hash = m_hash_func(key, m_table.size());
-        /*if (!exist(key, hash))
-            return 0;*/
-        std::map<KEY, VALUE> & refMap = m_table[hash1][hash2];
-        typename std::map<KEY, VALUE >::const_iterator iter = refMap.find(key);
-        if (iter != refMap.end()) {
-            return const_cast<KEY*> (&iter->first);
-            //return const_cast<KEY*> (&m_table[hash].find(key)->first);
-        }
-        return 0;
-    }
-
-    inline VALUE * getValueAndKey(KEY & key, KEY * & resKey, const int hash1, const int hash2)
-    {
-        //if (hash == -1)
-        //    hash = m_hash_func(key, m_table.size());
-        //if (!exist(key, hash))
-        //    return 0;
-        std::map<KEY, VALUE> & refMap = m_table[hash1][hash2];
-        typename std::map<KEY, VALUE >::iterator iter = refMap.find(key);
-        if (iter != refMap.end()) {
-            resKey = const_cast<KEY*> (&iter->first);
-            return &iter->second;
-        }
-        return 0;
-    }
-
-    /**
-     *
-     * @return
-     */
-    inline unsigned int getCount() const
-    {
-        return m_count;
-    }
-private:
-    /**
-     */
-    std::vector< std::vector< std::map<KEY, VALUE> > > m_table;
-    /**
-     */
-    HASH_FUNC m_hash_func;
-    /**
-     */
-    unsigned int m_count;
-};
-
-/**
- *
- * @param key
- * @param max
- * @return
- */
-inline unsigned int mps_hash(const char * key, int max)
-{
-    unsigned int num = 0;
-    while (*key) {
-        num += *key;
-        num += (num << 10);
-        num ^= (num >> 6);
-        key++;
-    }
-    num += (num << 3);
-    num ^= (num >> 11);
-    num += (num << 15);
-
-    return num % max;
+#define CHECK_NAME_FULL(nameBits, wrong) { \
+    unsigned long long int maskedPattern = nameBits & 0x6060606060606060LLU; \
+    maskedPattern = (maskedPattern | (maskedPattern << 1LLU) | (maskedPattern >> 1LLU)) & 0x6060606060606060; \
+    wrong = wrong || maskedPattern != 0x6060606060606060LLU; \
 }
 
-/**
- *
- * @param v
- * @param max
- * @return
- */
-template<class T>
-class hash_function
-{
+#define MPS_FIELD_3_LENGTH 12
+
+class MpsModelBuilder: public ModelBuilder {
 public:
-
-    /**
-     *
-     * @param v
-     * @param max
-     * @return
-     */
-    int operator()(T & v, size_t max)
-    {
-        return mps_hash(v.getKey(), max);
-    }
-};
-
-/**
- */
-class MpsModelBuilder : public ModelBuilder
-{
-    // FIXME: CONFLICTING DEFINE AND ENUMERATED CONSTANTS
-    // NEM MUKODIK
-/*#ifdef _WINERROR_H
-#undef ERROR
-#undef NO_ERROR
-#endif*/
-
-#pragma pack(push)  /* push current alignment to stack */
-#pragma pack(1)     /* set alignment to 1 byte boundary */
-
-    struct ColumnFirstFields {
-        unsigned long long int m_space1: 32;
-        unsigned long long int m_columnName: 64;
-        unsigned long long int m_space2: 16;
-        unsigned long long int m_rowName: 64;
-        unsigned long long int m_space3: 16;
-        //unsigned long long int m_value1Part1: 64;
-        //unsigned long long int m_value1Part2: 32;
-    };
-
-    struct ColumnLastFields {
-        unsigned long long int m_space1: 24;
-        unsigned long long int m_rowName: 64;
-        unsigned long long int m_space2: 16;
-        //unsigned long long int m_value2Part1: 64;
-        //unsigned long long int m_value2Part2: 32;
-    };
-
-    struct ColumnFields {
-        ColumnFirstFields m_first;
-        ColumnLastFields m_last;
-    };
-
-#pragma pack(pop)   /* restore original alignment from stack */
-
-
-    static const char * sm_expectedSection[];
-
-    /**
-     */
-    enum SECTION_TYPE
-    {
-        SEC_NAME,
-        SEC_ROWS,
-        SEC_COLUMNS,
-        SEC_RHS,
-        SEC_RANGES,
-        SEC_BOUNDS,
-        SEC_ENDATA
-    };
-
-    /**
-     */
-    enum ROW_INFO
-    {
-        NAME_SECTION,
-        ROWS_SECTION,
-        COLUMNS_SECTION,
-        RHS_SECTION,
-        RANGES_SECTION,
-        BOUNDS_SECTION,
-        ENDATA_SECTION,
-        INVALID_SECTION,
-        COMMENT, NO_INFO
-    };
-
-    /**
-     */
-
-    enum MPS_ERROR_TYPE
-    {
-        MPS_NO_ERROR, // windowsnal nem jo
-        INVALID_ROW_TYPE,
-        INVALID_ROW_NAME,
-        INVALID_COLUMN_NAME,
-        INVALID_START_FIELD,
-        INVALID_END_FIELD,
-        UNNECESSARY_CONTENT,
-        TOO_LONG_WORD,
-        MISSING_COMMENT,
-        ROW_EXISTS,
-        COLUMN_EXISTS,
-        INCOMPLETE_RECORD,
-        TOO_LONG_RECORD,
-        INVALID_BOUND_TYPE,
-        NAME_MISSING,
-        ROWS_MISSING,
-        COLUMNS_MISSING,
-        RHS_MISSING,
-        RANGES_MISSING,
-        BOUNDS_MISSING,
-        ENDATA_MISSING,
-        BOUND_CHANGED,
-        INVALID_COMMENT,
-        INVALID_NUMBER_FORMAT,
-        UNKNOWN_SECTION_NAME,
-        INVALID_SECTION_NAME,
-        VALUE_OVERRIDED,
-
-        SECTION_ALREADY_PROCESSED
-    };
-
-    /**
-     */
-    class Exception
-    {
-    };
-
-    /**
-     */
-    class FatalErrorException : public Exception
-    {
-        std::string m_error;
-    public:
-
-        /**
-         *
-         * @param error
-         */
-        FatalErrorException(std::string error) : m_error(error)
-        {
-        }
-
-        /**
-         *
-         * @return
-         */
-        std::string getError() const
-        {
-            return m_error;
-        }
-    };
-
-    /*union Name
-    {
-        char m_name[8];
-        unsigned long long int m_bits;
-    };*/
-
-    typedef unsigned long long int Name;
-
-    std::string nameToString(Name name);
-
-    /**
-     */
-    class Row
-    {
-        friend class MpsModelBuilder;
-        /**
-         */
-        char m_type;
-        /**
-         */
-        //char * m_name;
-        //char m_name[8];
-        Name m_name;
-        /**
-         */
-        unsigned int m_nonZeros;
-    public:
-
-        Row()
-        {
-            m_nonZeros = 0;
-            //m_name.m_bits = 0;
-            //m_name = 0;
-        }
-
-        /**
-         *
-         * @return
-         */
-        inline Name getKey() const
-        {
-            return m_name;
-        }
-
-        /**
-         *
-         * @param r
-         * @return
-         */
-        inline bool operator<(const Row & r) const
-        {
-            //return key_comp(m_name, r.m_name);
-            return m_name < r.m_name;
-        }
-
-    } * _r;
-
-    /**
-     */
-    class Column
-    {
-        friend class MpsModelBuilder;
-
-        struct Pair
-        {
-            unsigned int m_index;
-            Numerical::Double m_value;
-        };
-
-        /**
-         */
-        char m_type;
-        /**
-         */
-        //char * m_name;
-        //char m_name[8];
-        Name m_name;
-        /**
-         */
-        List<Pair> m_coeffs;
-        //std::list<Pair> m_coeffs;
-        //AvlTree<unsigned int, Numerical::Double> m_coeffs;
-        //std::map<unsigned int, Numerical::Double> m_coeffs;
-        bool m_inCostVector;
-    public:
-
-        Column()
-        {
-            m_inCostVector = false;
-        }
-
-        inline void add(unsigned int index, Numerical::Double value)
-        {
-            Pair pair = {index, value};
-            m_coeffs.pushBack(pair);
-            //            m_coeffs.push_back(Pair{index, value});
-        }
-
-        inline Numerical::Double getValue(unsigned int rowIndex) const
-        {
-            List<Pair>::Iterator iter = m_coeffs.begin();
-            List<Pair>::Iterator iterEnd = m_coeffs.end();
-            for (; iter != iterEnd; iter++) {
-                if (iter.getData().m_index == rowIndex) {
-                    return iter.getData().m_value;
-                }
-            }
-            return 0.0;
-        }
-
-        /**
-         *
-         * @return
-         */
-        inline Name getKey() const
-        {
-            return m_name;
-        }
-
-        /**
-         *
-         * @param c
-         * @return
-         */
-        inline bool operator<(const Column & c) const
-        {
-            return m_name < c.m_name;
-            //return key_comp(m_name, c.m_name);
-        }
-    } * _c;
-
-    /**
-     */
-    class Bound
-    {
-        friend class MpsModelBuilder;
-
-        /**
-         */
-        enum BOUND_TYPE
-        {
-            INVALID, LO, UP, FX, FR, MI, PL, BV, LI, UI, SC
-        };
-
-        /**
-         */
-
-        /*struct Bound_ {
-            Numerical::Double m_value;
-        } * _b;*/
-
-        class BoundId
-        {
-        public:
-
-            BoundId()
-            {
-            }
-            unsigned int m_column;
-            BOUND_TYPE m_type;
-
-            inline bool operator<(const BoundId & id) const
-            {
-                return ((m_column << 4) | m_type) < ((id.m_column << 4) | id.m_type);
-            }
-        };
-
-        /**
-         */
-        Name m_name;
-        //char * m_name;
-        //char m_name[8];
-        /**
-         */
-        std::map<BoundId, Numerical::Double> m_bounds;
-    public:
-
-        /**
-         *
-         * @return
-         */
-        inline Name getKey() const
-        {
-            return m_name;
-        }
-
-        /**
-         *
-         * @param b
-         * @return
-         */
-        inline bool operator<(const Bound & b) const
-        {
-            return m_name < b.m_name;
-            //return key_comp(m_name, b.m_name);
-        }
-
-    };
-
-    std::vector<std::vector< Bound::BOUND_TYPE > > m_boundTypeMap;
-
-    void initBoundTypeMap();
-
-    /**
-     */
-    struct MpsErrorData
-    {
-
-        /**
-         */
-        enum MPS_ERROR_LEVEL
-        {
-           MPS_WARNING, MPS_ERROR, MPS_FATAL_ERROR
-        };
-        /**
-         */
-        unsigned int m_row;
-        /**
-         */
-        SECTION_TYPE m_section;
-        /**
-         */
-        std::string m_text;
-        /**
-         */
-        MPS_ERROR_LEVEL m_level;
-        /**
-         */
-        static unsigned int sm_warningCount;
-        /**
-         */
-        static unsigned int sm_errorCount;
-        /**
-         */
-        static unsigned int sm_fatalErrorCount;
-    };
-
-    /**
-     *
-     */
-    template <int type>
-    class MpsError
-    {
-    public:
-
-        /**
-         *
-         * @param row
-         * @param section
-         * @param text
-         * @param level
-         */
-        inline MpsError(unsigned int row, SECTION_TYPE section, std::string text,
-                        MpsErrorData::MPS_ERROR_LEVEL level, bool terminate = false)
-        {
-            m_data.m_row = row;
-            m_data.m_section = section;
-            m_data.m_text = text;
-            m_data.m_level = level;
-            switch (level) {
-            case MpsErrorData::MPS_WARNING:
-                MpsErrorData::sm_warningCount++;
-                break;
-            case MpsErrorData::MPS_ERROR:
-                MpsErrorData::sm_errorCount++;
-                break;
-            case MpsErrorData::MPS_FATAL_ERROR:
-                MpsErrorData::sm_fatalErrorCount++;
-                break;
-            }
-            std::stringstream str;
-            str << "row: [" << row << "], section: " << MpsModelBuilder::getSectionName(section) <<
-                   ", error code: " << type << " : " << text;
-            if (sm_count < sm_limit) {
-                if (level != MpsErrorData::MPS_WARNING) {
-                    LPERROR(str.str());
-                } else {
-                    LPWARNING(str.str());
-                }
-            } else if (sm_count == sm_limit) {
-                if (level != MpsErrorData::MPS_WARNING) {
-                    LPERROR("The number of type " << type << " errors is unless " << sm_limit);
-                } else {
-                    LPWARNING("The number of type " << type << " errors is unless " << sm_limit);
-                }
-            }
-            sm_count++;
-
-            if (level == MpsErrorData::MPS_FATAL_ERROR && terminate) {
-                throw FatalErrorException(std::string("fatal error: ") + str.str());
-            }
-        }
-
-        /**
-         *
-         * @return
-         */
-        inline MpsErrorData getData() const
-        {
-            return m_data;
-        }
-
-        /**
-         *
-         * @return
-         */
-        static unsigned int getLimit()
-        {
-            return sm_limit;
-        }
-
-        /**
-         *
-         * @param limit
-         */
-        static void setLimit(unsigned int limit)
-        {
-            sm_limit = limit;
-        }
-
-        /**
-         *
-         */
-        static void initCount()
-        {
-            sm_count = 0;
-        }
-
-    private:
-        /**
-         */
-        MpsErrorData m_data;
-        /**
-         */
-        static unsigned int sm_count;
-        /**
-         */
-        static unsigned int sm_limit;
-    };
-
-    /**
-     */
-    hash_function<Row> m_rowHashFunc;
-    /**
-     */
-    hash_function<Column> m_colHashFunc;
-    /**
-     */
-    hash_function<Bound> m_boundHashFunc;
-    /**
-     */
-    HashTable<Row, int, hash_function<Row> > m_rows;
-    /**
-     */
-    HashTable<Column, int, hash_function<Column> > m_columns;
-    /**
-     */
-    HashTable<Column, int, hash_function<Column> > m_rhs;
-    /**
-     */
-    HashTable<Column, int, hash_function<Column> > m_ranges;
-    /**
-     */
-    HashTable<Bound, int, hash_function<Bound> > m_bounds;
-    /**
-     */
-    std::vector<Row*> m_rowIndexTable;
-    /**
-     */
-    std::vector<Column*> m_columnIndexTable;
-    /**
-     */
-    std::vector<Column*> m_rhsIndexTable;
-    /**
-     */
-    std::vector<Column*> m_rangeIndexTable;
-    /**
-     */
-    std::vector<Column*> m_boundInexTable;
-    /**
-     */
-    Row m_costRow;
-    
-    Numerical::Double m_objectiveConstant;
-    /**
-    */
-    std::vector<Constraint> m_constraints;
-    /**
-     */
-    std::vector<Variable> m_variables;
-public:
-    /**
-     *
-     */
     MpsModelBuilder();
-    /**
-     *
-     * @param orig
-     */
-    MpsModelBuilder(const MpsModelBuilder& orig);
-    /**
-     *
-     */
-    virtual ~MpsModelBuilder();
-    /**
-     *
-     * @param filename
-     */
-    void loadFromFile(const char * filename);
 
-    /**
-     *
-     * @param filename
-     * @param model
-     */
-    //    static void saveToFile(const char * filename, const Model & model);
-    
-    /**
-     *
-     * @param fileName
-     * @param model
-     */
-    //    static void saveBasis(const char * fileName, const Model & model, unsigned int iterations);
-    /**
-     *
-     * @param rhsIndex
-     */
-    void setRhsIndex(int rhsIndex);
-    /**
-     *
-     * @param boundsIndex
-     */
-    void setBoundsIndex(int boundsIndex);
-    /**
-     *
-     * @param rangesIndex
-     */
-    void setRangesIndex(int rangesIndex);
+    void loadFromFile(const std::string & fileName);
+
+    // ********************************************************
+    // Inherited from MatrixBuilder
+    // ********************************************************
+
     /**
      *
      * @return
      */
-    int getRhsIndex() const;
-    /**
-     *
-     * @return
-     */
-    int getBoundsIndex() const;
-    /**
-     *
-     * @return
-     */
-    int getRangesIndex() const;
-    /**
-     *
-     * @return
-     */
-    int getRhsCount() const;
-    /**
-     *
-     * @return
-     */
-    int getBoundsCount() const;
-    /**
-     *
-     * @return
-     */
-    int getRangesCount() const;
-
-    /**
-     *
-     * @param problem
-     * @param rhsIndex
-     * @param boundsIndex
-     * @param rangesIndex
-     */
-    //    void buildModel(Model * model);
-
-    /**
-     * Name of the  problem defined in the corresponding MPS file
-     * @return the name of the problem
-     */
-    inline std::string name() const
-    {
-        return m_name;
-    }
-
-    /**
-     * Iteration report support.
-     */
-    void report(int debugLevel);
-
-    /**
-     * Total working time report support.
-     */
-    static clock_t lastReadingTime();
-
     unsigned int getColumnCount() const;
 
+    /**
+     *
+     * @return
+     */
     unsigned int getRowCount() const;
+
+    /**
+     *
+     * @param index
+     * @param rowVector
+     */
+    void buildRow(unsigned int index, Vector * rowVector,
+        std::vector<unsigned int> * nonzeros) const;
+
+    /**
+     *
+     * @param index
+     * @param columnVector
+     */
+    void buildColumn(unsigned int index, Vector * columnVector,
+        std::vector<unsigned int> * nonzeros) const;
+
+    /**
+     *
+     * @return
+     */
+    bool hasRowwiseRepresentation() const;
+
+    /**
+     *
+     * @return
+     */
+    bool hasColumnwiseRepresentation() const;
+
+    // ********************************************************
+    // Inherited from ModelBuilder
+    // ********************************************************
 
     /**
      *
@@ -1013,23 +94,7 @@ public:
      * @param index
      * @return
      */
-    const Constraint & getConstraint(unsigned int index) const;
-
-    /**
-     *
-     * @param index
-     * @param rowVector
-     */
-    void buildRow(unsigned int index, Vector * rowVector,
-                  std::vector<unsigned int> * nonzeros) const;
-
-    /**
-     *
-     * @param index
-     * @param columnVector
-     */
-    void buildColumn(unsigned int index, Vector * columnVector,
-                     std::vector<unsigned int> * nonzeros) const;
+    const Constraint & getConstraint(unsigned int index) const ;
 
     /**
      *
@@ -1048,482 +113,365 @@ public:
      * @return
      */
     std::string getName() const;
-    
+
     /**
-     *
-     * @return
-     */
-    bool hasRowwiseRepresentation() const;
-    
-    /**
-     *
-     * @return
-     */
-    bool hasColumnwiseRepresentation() const;
-    
-    /**
-     *
-     * @return
      */
     OBJECTIVE_TYPE getObjectiveType() const;
+
+
 private:
 
-    /**
-     * Mps reading time
-     */
-    static clock_t cl_mps;
-    /**
-     */
-    std::list<MpsErrorData> m_errors;
-    /**
-     */
-    unsigned int m_modifyNumericErrors;
-    /**
-     */
-    unsigned int m_modifyLogicErrors;
-    /**
-     */
-    mps_hash_key_producer m_hkp;
-    /**
-     */
-    File m_file;
-    /**
-     */
-    std::string m_name;
-    /**
-     */
-    SECTION_TYPE m_section;
-    /**
-     */
-    unsigned int m_line;
-    /**
-     */
-    Name m_actualColumn;
-    /**
-     */
-    Column * m_actualColumnData;
-    /**
-     */
-    bool * m_actualColumnNonzeros;
-    /**
-     */
-    const char * m_startPtr;
-    /**
-     */
-    int m_rowLength;
-    /**
-     */
-    bool m_carriageReturn;
-    /**
-     */
-    unsigned int m_nonZeros;
-    /**
-     */
-    std::vector<Numerical::Double> m_columnLower;
-    /**
-     */
-    std::vector<Numerical::Double> m_columnUpper;
-    /**
-     */
-    unsigned int m_columnLowerNonZeros;
-    /**
-     */
-    unsigned int m_columnUpperNonZeros;
-
-    /**
-     */
-    std::vector<char> m_boundReady;
-    /**
-     */
-    unsigned int m_plusTypeCount;
-    /**
-     */
-    unsigned int m_minusTypeCount;
-    /**
-     */
-    unsigned int m_fixTypeCount;
-    /**
-     */
-    unsigned int m_boundedTypeCount;
-    /**
-     */
-    unsigned int m_freeTypeCount;
-    /**
-     *
-     */
-    unsigned int m_costVectorIndex;
-    /**
-     */
-    bool m_costVectorReady;
-    
-    /**
-     */
-    List<Column::Pair> m_costVector;
-    /**
-     */
-    int m_rhsIndex;
-    /**
-     */
-    int m_boundsIndex;
-    /**
-     */
-    int m_rangesIndex;
-    /**
-     */
-    std::string m_fileName;
-
-    static char * saveEndLine(std::ofstream & ofs, char * actual, char * const buffer,
-                              const char * const bufferEnd);
-    //    static char * saveName(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveRows(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveColumns(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveRhs(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveRanges(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveBounds(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model);
-    //    static char * saveOneColumn(std::ofstream & ofs, char * actual, char * const buffer,
-    //            const char * const endBuffer, const Model & model,
-    //            const Vector & column, const char * columnName, int colIndex,
-    //            Numerical::Double costValue, const Vector & costVector);
-
-    void collectConstraintBounds();
-    void collectVariableBounds();
-    
-    void printVariableStatistics();
-    /**
-     *
-     * @param model
-     */
-    //    void makeMatrix(Model * model);
-    /**
-     *
-     * @param model
-     * @param rowCount
-     * @param rhsIndex
-     * @param rangesIndex
-     */
-    //    void makeRowBounds(Model * model, int rowCount, int rhsIndex, int rangesIndex);
-    /**
-     *
-     * @param model
-     * @param boundsIndex
-     */
-    //    void makeColumnBounds(Model * model, int boundsIndex);
-    /**
-     *
-     * @param model
-     */
-    //    void copyNames(Model * model);
-    /**
-     *
-     * @param columnIndex
-     * @param vector
-     * @param columnHashTable
-     * @param given
-     */
-    void getColumnVector(unsigned int columnIndex, Vector * vector,
-                         const HashTable<Column, int, hash_function<Column> > & columnHashTable,
-                         std::vector<char> * given);
-
-    /**
-     *
-     * @param columnIndex
-     * @param type
-     * @param bound
-     * @param newReady
-     */
-    void setBound(unsigned int columnIndex, Bound::BOUND_TYPE type, Numerical::Double bound,
-                  bool newReady = true);
-    /**
-     *
-     * @param msg1
-     * @param msg2
-     * @param line
-     */
-    const char * parseDouble(const char * ptr, Numerical::Double * val);
-    //Numerical::Double parseDouble(const char * str, const char * & ptr) const;
-    /**
-     *
-     * @param ptr
-     * @param length
-     * @return
-     */
-    const char * checkEmptyField(const char * ptr, int length);
-    /**
-     *
-     * @param ptr
-     * @return
-     */
-    const char * skipWhiteSpace(const char * ptr);
-
-    /**
-     *
-     * @param ptr
-     * @param dest
-     * @param length
-     * @param errorCode
-     * @return
-     */
-    const char * copyWord(const char * ptr, char * dest,
-                          int length, MPS_ERROR_TYPE & errorCode);
-
-    /**
-     *
-     * @param ptr
-     * @param dest
-     * @param length
-     * @param errorCode
-     * @param hash
-     * @return
-     */
-    inline const char * copyId(const char * ptr,
-                               Name & dest,
-                               int index,
-                               int fieldEnd,
-                               MPS_ERROR_TYPE & errorCode,
-                               unsigned int & hash1,
-                               unsigned int & hash2);
-    /**
-     *
-     * @param ptr
-     * @param dest
-     * @param end
-     * @param length
-     * @param errorCode
-     * @return
-     */
-    const char * copyName(const char * ptr, char * dest,
-                          int length, MPS_ERROR_TYPE & errorCode);
-    /**
-     *
-     * @param ptr
-     * @return
-     */
-    const char * goToEndLineOrWord(const char * ptr);
-    /**
-     *
-     * @param ptr
-     * @return
-     */
-    const char * goToEndLine(const char * ptr);
-    /**
-     *
-     * @param ptr
-     * @param info
-     * @return
-     */
-    const char * readRowRecord(const char * ptr, ROW_INFO & info);
-    /**
-     *
-     * @param ptr
-     * @param columns
-     * @param info
-     * @return
-     */
-    const char * readColumnRecord(const char * ptr, HashTable<Column, int,
-                                  hash_function<Column> > & columns, ROW_INFO & info,
-                                  std::vector<Column*> * indexTable);
-
-    const char * fastReadColumnRecord(const char * ptr, bool * wellFormed, ROW_INFO & info);
-    /**
-     *
-     * @param ptr
-     * @param info
-     * @return
-     */
-    const char * readBoundRecord(const char * ptr, ROW_INFO & info);
-    /**
-     *
-     * @param ptr
-     * @param info
-     * @param nextWord
-     * @return
-     */
-    const char * nextRowType(const char * ptr, ROW_INFO & info, bool nextRow = true);
-    /**
-     *
-     * @param ptr
-     * @param info
-     * @return
-     */
-    const char * readName(const char * ptr, ROW_INFO & info);
-
-    /**
-     *
-     */
-    void clearActualColumnData();
-
-    /**
-     *
-     * @param ptr
-     */
-    inline void initTooLongRecordSensor(const char * ptr)
+    enum MPS_ERROR_TYPE
     {
-        m_startPtr = ptr;
-        m_rowLength = 0;
-        m_carriageReturn = false;
-    }
+        MPS_NO_ERROR, // for Windows
+        INVALID_ROW_TYPE,
+        INVALID_ROW_NAME,
+        INVALID_COLUMN_NAME,
+        INVALID_START_FIELD,
+        INVALID_END_FIELD,
+        UNNECESSARY_CONTENT,
+        TOO_LONG_WORD,
+        MISSING_COMMENT,
+        ROW_EXISTS,
+        COLUMN_EXISTS,
+        INCOMPLETE_RECORD,
+        TOO_LONG_RECORD,
+        INVALID_BOUND_TYPE,
+        NAME_MISSING,
+        ROWS_MISSING,
+        COLUMNS_MISSING,
+        ENDATA_MISSING,
+        BOUND_REPEATED,
+        INVALID_COMMENT,
+        INVALID_NUMBER_FORMAT,
+        UNKNOWN_SECTION_NAME,
+        VALUE_REPEATED,
+        SECTION_ALREADY_PROCESSED
+    };
 
-    /**
-     *
-     * @param ptr
-     */
-    inline void checkTooLongRecord(const char * ptr)
+    enum MPS_ERROR_LEVEL
     {
-        unsigned int length = m_rowLength + (ptr - m_startPtr) - (m_carriageReturn ? 1 : 0);
-        if (length > MAX_ROW_WITH) {
-            tooLongRecordError(length);
+        MPS_WARNING,
+        MPS_ERROR,
+        MPS_FATAL_ERROR,
+        MPS_ERROR_LEVEL_COUNT
+    };
+
+    unsigned int m_levelCounters[MPS_ERROR_LEVEL_COUNT];
+
+    template <int TYPE, int LEVEL>
+    class Error {
+        struct Content {
+            unsigned int m_line;
+            std::string m_message;
+        };
+        unsigned int m_counter;
+        unsigned int m_printLimit;
+        std::list<Content> m_errors;
+        unsigned int * m_levelCounters;
+    public:
+        Error() {
+            m_counter = 0;
+            m_counter = 0;
+            m_levelCounters = 0;
         }
-    }
 
-    /**
-     *
-     * @return
-     */
-    const char * getActualSectionName();
-    /**
-     *
-     * @param type
-     * @return
-     */
-    static const char * getSectionName(SECTION_TYPE type);
+        void init(unsigned int limit,
+                  unsigned int * levelCounters) {
+            m_printLimit = limit;
+            m_counter = 0;
+            m_levelCounters = levelCounters;
+        }
 
-    /**
-     *
-     * @param index
-     * @param field_start
-     */
-    void invalidStartFieldError(int index, int field_start);
+        void clear() {
+            m_counter = 0;
+            m_errors.clear();
+        }
 
-    /**
-     *
-     * @param index
-     * @param field_end
-     */
-    void invalidEndFieldError(int index, int field_end);
-    /**
-     *
-     * @param type
-     */
-    void invalidRowTypeError(const char * type);
-    /**
-     *
-     * @param row
-     */
-    void invalidRowName(const char * row);
+        void increase() {
+            m_counter++;
+        }
 
-    /**
-     *
-     * @param column
-     * @param row
-     * @param original
-     * @param newValue
-     */
-    void valueOverridedError(const char * column, const char * row, Numerical::Double original,
-                             Numerical::Double newValue);
+        void getCount() {
+            return m_counter;
+        }
 
-    /**
-     *
-     * @param column
-     */
-    void invalidColumnName(const char * column);
-    /**
-     *
-     * @param bound
-     */
-    void invalidBoundType(const char * bound);
-    /**
-     *
-     * @param position
-     */
-    void invalidComment(unsigned int position);
-    /**
-     *
-     * @param number
-     * @param index
-     */
-    void invalidNumberFormat(const char * number, Numerical::Double parsed);
-    /**
-     *
-     * @param name
-     * @param expected
-     */
-    void invalidSectionName(const char * name, const char * expected);
-    /**
-     *
-     * @param name
-     * @param start
-     * @param end
-     */
-    void unknownSectionName(const char * name, int start, int end);
-    /**
-     *
-     */
-    void unnecessaryContentError();
-    /**
-     *
-     * @param word
-     */
-    void tooLongWordError(const char * word, bool logicModify = true);
-    /**
-     *
-     * @param length
-     */
-    void tooLongRecordError(unsigned int length);
-    /**
-     *
-     * @param word
-     */
-    void missingCommentError(const char * word);
-    /**
-     *
-     * @param row
-     */
-    void rowExistsError(const char * row);
-    /**
-     *
-     * @param column
-     */
-    void columnExistsError(const char * column);
-    /**
-     *
-     */
-    void incompleteRecordError();
-    /**
-     *
-     */
-    void missingNameSection();
-    /**
-     *
-     */
-    void missingRowsSection();
-    /**
-     *
-     */
-    void missingColumnsSection();
-    /**
-     *
-     */
-    void missingRhsSection();
-    /**
-     *
-     */
-    void missingRangesSection();
-    /**
-     *
-     */
-    void missingBoundsSection();
-    /**
-     *
-     */
-    void missingEndataSection();
+        void add(const std::string & message, unsigned int line) {
+            Content newError;
+            newError.m_line = line;
+            newError.m_message = message;
+            m_errors.push_back(newError);
+            if (m_counter < m_printLimit || m_printLimit == 0) {
+                switch (LEVEL) { // TODO: kijelzest megcsinalni
+                case MPS_WARNING:
+                    std::cout << "WARNING: ";
+                    break;
+                case MPS_ERROR:
+                    std::cout << "ERROR: ";
+                    break;
+                case MPS_FATAL_ERROR:
+                    std::cout << "FATAL ERROR: ";
+                    break;
+                }
+                std::cout << message << " (" << line << ")" << std::endl;
+            }
+            if (m_levelCounters != 0) {
+                m_levelCounters[LEVEL]++;
+            }
+            m_counter++;
+        }
+    };
+
+    unsigned int m_errorPrintLimit;
+
+    Error<INVALID_ROW_TYPE, MPS_ERROR> m_invalidRowType;
+    Error<INVALID_ROW_NAME, MPS_ERROR> m_invalidRowName;
+    Error<INVALID_COLUMN_NAME, MPS_ERROR> m_invalidColumnName;
+    Error<INVALID_START_FIELD, MPS_ERROR> m_invalidStartField;
+    Error<INVALID_END_FIELD, MPS_ERROR> m_invalidEndField;
+    Error<UNNECESSARY_CONTENT, MPS_WARNING> m_unnecessaryContent;
+    Error<TOO_LONG_WORD, MPS_ERROR> m_tooLongWord;
+    Error<MISSING_COMMENT, MPS_WARNING> m_missingComment;
+    Error<ROW_EXISTS, MPS_ERROR> m_rowExists;
+    Error<COLUMN_EXISTS, MPS_ERROR> m_columnExists;
+    Error<INCOMPLETE_RECORD, MPS_ERROR> m_incompleteRecord;
+    Error<TOO_LONG_RECORD, MPS_WARNING> m_tooLongRecord;
+    Error<INVALID_BOUND_TYPE, MPS_ERROR> m_invalidBoundType;
+    Error<NAME_MISSING, MPS_WARNING> m_nameMissing;
+    Error<ROWS_MISSING, MPS_FATAL_ERROR> m_rowsMissing;
+    Error<COLUMNS_MISSING, MPS_FATAL_ERROR> m_columnsMissing;
+    Error<ENDATA_MISSING, MPS_WARNING> m_endataMissing;
+    Error<BOUND_REPEATED, MPS_ERROR> m_boundRepeated;
+    Error<INVALID_COMMENT, MPS_ERROR> m_invalidComment;
+    Error<INVALID_NUMBER_FORMAT, MPS_ERROR> m_invalidNumberFormat;
+    Error<UNKNOWN_SECTION_NAME, MPS_ERROR> m_unknownSectionName;
+    Error<VALUE_REPEATED, MPS_ERROR> m_valueRepeated;
+    Error<SECTION_ALREADY_PROCESSED, MPS_ERROR> m_sectionAlreadyProcessed;
+
+    enum MPS_SECTION {
+        MPS_NAME,
+        MPS_ROWS,
+        MPS_COLUMNS,
+        MPS_RHS,
+        MPS_RANGES,
+        MPS_BOUNDS,
+        MPS_ENDATA,
+        MPS_UNKNOWN
+    } m_section;
+
+    template <class T>
+    class MpsErrors {
+
+    };
+
+    union MpsName {
+        char m_chars[8];
+        unsigned long long int m_bits;
+    };
+
+    union MpsRowType {
+        char m_chars[4];
+        unsigned int m_bits;
+    };
+
+    union EmptySection4 {
+        unsigned int m_bits;
+        char m_chars[4];
+    };
+
+    union EmptySection2 {
+        unsigned short m_bits;
+        char m_chars[2];
+    };
+
+#pragma pack(push)
+#pragma pack(1)
+
+    struct MpsRowRecord {
+        MpsRowType m_type;
+        MpsName m_name;
+        char m_endOfLine[2];
+    };
+
+    struct Row {
+        MpsName m_name;
+        double m_rhs;
+        double m_range;
+        unsigned int m_index;
+        unsigned int m_line;
+        char m_rowType;
+    };
+
+    struct MpsColumnRecordFirst {
+        EmptySection4 m_spaces1;
+        MpsName m_columnName;
+        EmptySection2 m_spaces2;
+        MpsName m_rowName;
+        EmptySection2 m_spaces3;
+    };
+
+    struct MpsBoundRecord {
+        EmptySection4 m_spaces1;
+        MpsName m_columnName;
+        EmptySection2 m_spaces2;
+        MpsName m_rowName;
+    };
+
+    struct MpsColumnRecordSecond {
+        MpsName m_rowName;
+        EmptySection2 m_spaces;
+        //char m_number[12];
+        //EmptySection4 m_end;
+    };
+
+    struct Column {
+        MpsName m_name;
+        double * m_firstValue;
+        unsigned int * m_firstIndex;
+        std::list<double*>::const_iterator m_beginValueIter;
+        std::list<unsigned int*>::const_iterator m_beginIndexIter;
+        unsigned int m_nonzeros;
+        unsigned int m_index;
+        double m_lowerBound;
+        double m_upperBound;
+        unsigned int m_line;
+        bool m_isInteger;
+    };
+
+#pragma pack(pop)
+
+    static const int sm_valueBufferSize = 131072;
+
+    std::list<double *> m_values;
+    std::list<unsigned int *> m_indices;
+    double * m_actualValue;
+    const double * m_actualValueEnd;
+    unsigned int * m_actualIndex;
+    const unsigned int * m_actualIndexEnd;
+
+    // cache optimization!
+    struct MpsRows {
+        std::list<std::vector<Row>* > m_rows;
+        unsigned int m_listSize;
+        unsigned int m_lastSize;
+        unsigned int m_lastCounter;
+        unsigned int m_totalCounter;
+    } m_rows;
+
+    struct Index {
+        MpsName m_name;
+
+    };
+
+    struct RowIndex: public Index {
+        //MpsName m_name;
+        Row * m_row;
+        bool operator != (const RowIndex & index) const {
+            return m_name.m_bits != index.m_name.m_bits;
+        }
+    };
+
+    struct MpsColumns {
+        std::list<std::vector<Column>* > m_columns;
+        unsigned int m_listSize;
+        unsigned int m_lastSize;
+        unsigned int m_lastCounter;
+        unsigned int m_totalCounter;
+    } m_columns;
+
+    struct ColumnIndex: public Index {
+        //MpsName m_name;
+        Column * m_column;
+        bool operator != (const ColumnIndex & index) const {
+            return m_name.m_bits != index.m_name.m_bits;
+        }
+    };
+
+    File m_inputFile;
+
+    unsigned int m_bufferSize;
+
+    const char * m_buffer;
+
+    const char * m_bufferEnd;
+
+    std::string m_name;
+
+    unsigned int m_currentLine;
+
+    class MpsNameHash {
+    public:
+        static unsigned long long int getHash(const Index & index) {
+            return index.m_name.m_bits;
+        }
+    };
+
+    HashTable<RowIndex, MpsNameHash> m_rowsTable;
+
+    HashTable<ColumnIndex, MpsNameHash> m_columnsTable;
+
+    std::vector<const Row*> m_rowsMap;
+
+    std::vector<const Column*> m_columnsMap;
+
+    MpsName m_costVectorName;
+
+    std::vector<std::pair<double, unsigned int> > m_costVector;
+
+    double m_costConstant;
+
+    void showBuffer(int count, bool newLine);
+
+    MPS_SECTION readSectionType();
+
+    void skipEndLine();
+
+    bool skipComments();
+
+    void skipSection();
+
+    void readName();
+
+    void readRows();
+
+    void finishRows();
+
+    void saveColumn(Column * actualColumnPtr,
+                    std::vector<Column> ** lastVectorPtr,
+                    bool * columnPattern);
+
+    bool parseRecordStart(double * value,
+                          MpsName * id1,
+                          MpsName * id2,
+                          EmptySection4 * startSection,
+                          bool *newLine);
+
+    bool parseBoundRecord(double * value,
+                          MpsName * id1,
+                          MpsName * id2,
+                          EmptySection4 * startSection);
+
+    bool parseRecordEnd(double * value,
+                        MpsName * id);
+
+    void readColumns();
+
+    void finishColumns();
+
+    void readRhsOrRanges( double Row::*range );
+
+    void readBounds();
+
+    double parseDouble(const char * ptr);
+
+    std::string getName(MpsName name) const;
+
+    void invalidRowType(char type, unsigned int line);
+
+    void invalidRowName(const std::string & name, unsigned int line);
+
+    void rowExists(const RowIndex & row);
+
 };
 
-
-
-#endif	/* MPSPROBLEM_H */
+#endif // MPSPROBLEM_H

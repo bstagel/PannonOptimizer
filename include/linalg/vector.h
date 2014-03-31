@@ -587,8 +587,10 @@ public:
      */
     inline void prepareForData(const unsigned int nonZeros, const unsigned int dimension, Numerical::Double ratio = -1)
     {
-        delete [] m_data;
-        delete [] m_index;
+        freeData(m_data);
+        freeIndex(m_index);
+        //delete [] m_data;
+        //delete [] m_index;
         /*if (ratio == -1) {
             m_sparsityRatio = SPARSITY_RATIO;
         } else {
