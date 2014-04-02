@@ -282,6 +282,7 @@ void DualSimplex::computeFeasibility() {
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
+//        Checker::checkOptimalityConditions(*this);
     }
 }
 
@@ -295,6 +296,7 @@ void DualSimplex::checkFeasibility() {
             m_phase1Time = m_solveTimer.getCPURunningTime();
         }
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
+//        Checker::checkOptimalityConditions(*this);
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
         //Becomes infeasible

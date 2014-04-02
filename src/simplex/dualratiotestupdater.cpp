@@ -2,8 +2,8 @@
  * @file dualratiotestupdater.cpp
  */
 
-#include "simplex/dualratiotestupdater.h"
-#include "simplex/simplex.h"
+#include <simplex/dualratiotestupdater.h>
+#include <simplex/simplex.h>
 
 DualRatiotestUpdater::DualRatiotestUpdater(IndexList<>* reducedcostFeasiblities):
     m_reducedcostFeasibilities(reducedcostFeasiblities)

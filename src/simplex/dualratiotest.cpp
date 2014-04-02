@@ -338,21 +338,13 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
         m_breakpointHandler.selectMethod();
         //fake feasible variables
+        bool askForAnotherRow = false;
         if (m_enableFakeFeasibility) {
             const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
             int fakeFesibilityCounter = 0;
 
-            Numerical::Double maxFakeFeasible = 0;
-            Numerical::Double maxFakeFeasibleIndex = -1;
             while (breakpoint->value < 0 ) {
-//                LPWARNING("Fake feasbility detected, value: "<<breakpoint->value);
                 fakeFesibilityCounter++;
-
-                if(alpha.at(breakpoint->variableIndex) > m_pivotThreshold &&
-                        maxFakeFeasible < Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex))){
-                    maxFakeFeasible = Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex));
-                    maxFakeFeasibleIndex = breakpoint->variableIndex;
-                }
 
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
                 iterationCounter++;
@@ -369,15 +361,14 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                 m_fakeFeasibilityCounterPhase1+=fakeFesibilityCounter;
             }
 
-            if(maxFakeFeasibleIndex != -1 &&
-                    (functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints())){
-                m_incomingVariableIndex = maxFakeFeasibleIndex;
-                LPINFO("Repairing most fake feasible variable: " << m_incomingVariableIndex << " d: " << maxFakeFeasible);
+            if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
+                m_incomingVariableIndex = -1;
+                askForAnotherRow = true;
             }
         }
 
 
-        if(m_incomingVariableIndex == -1 && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+        if(!askForAnotherRow && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
             switch (nonlinearDualPhaseIFunction){
                 case ONE_STEP:{
                     const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(0);
@@ -405,11 +396,11 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
             }
         }
     } else{
-        LPERROR(" - Ratiotest - No breakpoint found!");
+        LPWARNING(" - Ratiotest - No breakpoint found!");
     }
 
     if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < 1e-6){
-        LPERROR("small pivot in phase1: "<<alpha.at(m_incomingVariableIndex));
+        LPWARNING("small pivot in phase1: "<<alpha.at(m_incomingVariableIndex));
     }
 }
 
@@ -561,8 +552,8 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
 
     if(maxAlphaAbs < m_pivotThreshold){
         m_stablePivotNotFoundPhase2++;
-        m_incomingVariableIndex = -1;
-        LPWARNING("No stable pivot found in phase 2!");
+//        m_incomingVariableIndex = -1;
+//        LPWARNING("No stable pivot found in phase 2!");
 //        if (alpha.at(m_incomingVariableIndex) < 1.e-6){
 //            LPINFO("small pivot: "<<alpha.at(m_incomingVariableIndex));
 //        }
@@ -615,22 +606,13 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
             m_breakpointHandler.selectMethod();
             //Handle fake feasible breakpoints
+            bool askForAnotherRow = false;
             if (m_enableFakeFeasibility) {
                 const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
                 int fakeFesibilityCounter = 0;
 
-                Numerical::Double maxFakeFeasible = 0;
-                Numerical::Double maxFakeFeasibleIndex = -1;
                 while ( breakpoint->value < 0) {
-//                    LPWARNING("Fake feasible variable, d: "<<m_reducedCosts.at(breakpoint->variableIndex)<<
-//                              " alpha: "<<alpha.at(breakpoint->variableIndex));
                     fakeFesibilityCounter++;
-
-                    if(alpha.at(breakpoint->variableIndex) > m_pivotThreshold &&
-                            maxFakeFeasible < Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex))){
-                        maxFakeFeasible = Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex));
-                        maxFakeFeasibleIndex = breakpoint->variableIndex;
-                    }
 
                     const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
 
@@ -650,14 +632,13 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     m_fakeFeasibilityCounterPhase2+=fakeFesibilityCounter;
                 }
 
-                if(maxFakeFeasibleIndex != -1 &&
-                        (functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints())){
-                    m_incomingVariableIndex = maxFakeFeasibleIndex;
-                    LPINFO("Repairing most fake feasible variable: " << m_incomingVariableIndex << "(" << maxFakeFeasible << ")");
+                if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
+                    m_incomingVariableIndex = -1;
+                    askForAnotherRow = true;
                 }
             }
 
-            if(m_incomingVariableIndex == -1 && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+            if(!askForAnotherRow && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
                 switch (nonlinearDualPhaseIIFunction) {
                     case ONE_STEP:{
                         const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
@@ -682,8 +663,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 }
             }
         } else{
-            LPERROR(" - Ratiotest - No breakpoint found!");
-            throw DualUnboundedException("Ratiotest no breakpoint found");
+            LPWARNING(" - Ratiotest - No breakpoint found!");
+        }
+        if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < 1e-6){
+            LPWARNING("small pivot in phase2: "<<alpha.at(m_incomingVariableIndex));
         }
     }
 }
