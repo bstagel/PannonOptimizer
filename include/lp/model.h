@@ -66,6 +66,20 @@ public:
         return m_columnMultipliers;
     }
 
+    /********************************************************************
+     * PRESOLVER API
+     *******************************************************************/
+
+    void removeVariable(unsigned int index);
+
+    void removeConstraint(unsigned int index);
+
+    void addToConstraint(unsigned int dest, unsigned int source, Numerical::Double lambda);
+
+    void addToCostVector(unsigned int source, Numerical::Double lambda);
+
+    void addToCostCoefficient(unsigned int index, Numerical::Double value);
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;

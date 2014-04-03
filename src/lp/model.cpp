@@ -276,3 +276,35 @@ std::string Model::getHash() const {
     m_hash = SHA1Generator::convertHashToString( generator.end() );
     return m_hash;
 }
+
+/**************************************************************
+ * PRESOLVER API IMPLEMENTATION
+ *************************************************************/
+
+void Model::removeVariable(unsigned int index) {
+    m_matrix.removeColumn(index);
+    m_costVector.removeElement(index);
+    m_variables.erase( m_variables.begin() + index );
+}
+
+void Model::removeConstraint(unsigned int index) {
+    m_matrix.removeRow(index);
+    m_constraints.erase( m_constraints.begin() + index );
+}
+
+void Model::addToConstraint(unsigned int dest, unsigned int source, Numerical::Double lambda) {
+    Vector row = m_matrix.row(dest);
+    row.addVector(lambda, m_matrix.row(source));
+    unsigned int index;
+    for (index = 0; index < m_matrix.columnCount(); index++) {
+        m_matrix.set(dest, index, row.at(index));
+    }
+}
+
+void Model::addToCostVector(unsigned int source, Numerical::Double lambda) {
+    m_costVector.addVector(lambda, m_matrix.row(source));
+}
+
+void Model::addToCostCoefficient(unsigned int index, Numerical::Double value) {
+    m_costVector.set( index, m_costVector.at(index) + value );
+}

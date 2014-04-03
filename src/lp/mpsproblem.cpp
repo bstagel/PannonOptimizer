@@ -673,9 +673,6 @@ bool MpsModelBuilder::parseBoundRecord(double * value,
                                        MpsName * id1,
                                        MpsName * id2,
                                        EmptySection4 * startSection) {
-    MpsName emptyName;
-    emptyName.m_bits = 0x2020202020202020;
-
     unsigned int index;
     char number[MPS_FIELD_3_LENGTH + 1] = {0};
     bool wrong = false;

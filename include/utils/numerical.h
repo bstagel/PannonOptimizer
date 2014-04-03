@@ -164,7 +164,14 @@ public:
         }
 
         ALWAYS_INLINE void add(double value) {
-            const unsigned int index = ((*(unsigned long long int*)(&value)) ) >> (m_shift);
+            union Bits {
+                double m_value;
+                unsigned long long int m_bits;
+            } bits;
+            bits.m_value = value;
+
+            //const unsigned int index = ((*(unsigned long long int*)(&value)) ) >> (m_shift);
+            const unsigned int index = bits.m_bits >> m_shift;
             m_buckets[ index ] += value;
         }
 
