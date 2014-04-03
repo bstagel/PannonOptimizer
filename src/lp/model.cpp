@@ -308,3 +308,7 @@ void Model::addToCostVector(unsigned int source, Numerical::Double lambda) {
 void Model::addToCostCoefficient(unsigned int index, Numerical::Double value) {
     m_costVector.set( index, m_costVector.at(index) + value );
 }
+
+void Model::setCostConstant(Numerical::Double value) {
+    m_costConstant = value;
+}
