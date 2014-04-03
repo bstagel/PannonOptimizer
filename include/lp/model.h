@@ -80,6 +80,8 @@ public:
 
     void addToCostCoefficient(unsigned int index, Numerical::Double value);
 
+    void setCostConstant(Numerical::Double value);
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
