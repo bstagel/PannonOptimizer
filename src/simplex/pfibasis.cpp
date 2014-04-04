@@ -478,7 +478,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 //    const ETM * iterEnd = m_basis->data() - 1;
     for (; iter != iterEnd; iter++) {
         unsigned int nonZeros = vector.nonZeros();
-        Numerical::Summarizer summarizer;
+
+        //Numerical::Summarizer summarizer;
+        static Numerical::BucketSummarizer summarizer(8); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+                                                           // annal pontosabb, de annal lassabb is
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
             Numerical::Double * ptrValue2 = iter->eta->m_data;

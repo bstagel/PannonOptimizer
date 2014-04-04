@@ -725,7 +725,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     }
 
     //Numerical::Summarizer summarizer;
-    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+    static Numerical::BucketSummarizer summarizer(8); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
                                                        // annal pontosabb, de annal lassabb is
 
 

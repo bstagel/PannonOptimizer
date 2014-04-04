@@ -54,7 +54,6 @@ public:
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
 
-    //TODO Ezt hogyan implementaljuk?
     const std::vector<Numerical::Double> getPrimalSolution() const;
     const std::vector<Numerical::Double> getDualSolution() const;
 
@@ -64,9 +63,8 @@ public:
     void solve();
     void findStartingBasis();
 
-    void saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
-
-    void loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
+    void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
+    void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
 
     // Interface of the iteration report provider
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
@@ -145,6 +143,9 @@ protected:
 
     virtual void initModules();
     virtual void releaseModules();
+
+    void saveBasis();
+    void loadBasis();
 
     void reinvert();
     void computeBasicSolution();

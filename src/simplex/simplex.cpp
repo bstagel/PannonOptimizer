@@ -386,7 +386,7 @@ void Simplex::variableAdded()
 
 }
 
-void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
+void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
     basisWriter->startWrting(fileName, m_simplexModel->getModel() );
     int variableIndex;
     unsigned int position = 0;
@@ -435,7 +435,7 @@ void Simplex::saveBasis(const char * fileName, BasisHeadIO * basisWriter, bool r
     }
 }
 
-void Simplex::loadBasis(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
+void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
     const unsigned int variableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
     basisReader->setBasisHead(&m_basisHead);
     basisReader->setVariableStateList(&m_variableStates);
@@ -512,52 +512,19 @@ void Simplex::solve() {
         }
         m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
         if(m_loadBasis){
-            std::string loadFormat = m_loadFormat;
-            std::string filename = m_loadFilename;
-            filename.append(".").append(m_loadFormat);
-            //TODO: Exception when file not exits
-            std::transform(loadFormat.begin(),loadFormat.end(),loadFormat.begin(),::toupper);
-            if(loadFormat.compare("BAS") == 0){
-                loadBasis(filename.c_str(), new BasisHeadBAS, true);
-            } else if (loadFormat.compare("PBF") == 0){
-                loadBasis(filename.c_str(), new BasisHeadPanOpt, true);
-            } else {
-                throw ParameterException("Invalid load basis file format!");
-            }
+            loadBasis();
         }
         initWorkingTolerance();
 
+        //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
-                if ((m_iterationIndex == m_saveIteration) ||
-                        (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
-                    LPERROR("Saving basis "<<m_iterationIndex);
-                    stringstream numStream;
-                    numStream << m_iterationIndex;
-                    std::string saveFormat = m_saveFormat;
-                    std::string filename = m_saveFilename;
-                    filename.append("_").append(numStream.str()).append(".").append(m_saveFormat);
-                    std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
-                    if(saveFormat.compare("BAS") == 0){
-                        saveBasis(filename.c_str(), new BasisHeadBAS, true);
-                    } else if (saveFormat.compare("PBF") == 0){
-                        saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
-                    } else {
-                        throw ParameterException("Invalid save basis file format!");
-                    }
-                }
+                saveBasis();
             }
-            computeWorkingTolerance();
 
-            //            if(m_iterationIndex>438){
-            //                LPINFO("BEGIN FEASIBILITY OK: "<<Checker::checkFeasibilityConditions(*this, true));
-            //                LPINFO("BEGIN OPTIMALITY OK: "<<Checker::checkOptimalityConditions(*this, true));
-            //                LPINFO("BEGIN CONSTRAINTS OK: "<<Checker::checkAllConstraints(*this, true));
-            //                LPINFO("BEGIN NONBASICS OK: "<<Checker::checkNonbasicVariableStates(*this, true));
-            //                LPINFO("BEGIN BASICS OK: "<<Checker::checkBasicVariableStates(*this, true));
-            //            }
+            computeWorkingTolerance();
 
             if(reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
@@ -578,11 +545,13 @@ void Simplex::solve() {
                 m_computeFeasibilityTimer.stop();
             }
             try{
-                setReferenceObjective();
 
                 m_checkFeasibilityTimer.start();
                 checkFeasibility();
                 m_checkFeasibilityTimer.stop();
+
+                setReferenceObjective();
+
                 m_priceTimer.start();
                 price();
                 m_priceTimer.stop();
@@ -590,11 +559,7 @@ void Simplex::solve() {
                 selectPivot();
                 m_selectPivotTimer.stop();
                 m_updateTimer.start();
-                //TODO: Do not use the update formulas before reinversion
-                //TODO: UGY NEM JO AHOGY VOLT, az append is az update-be van!
-                //                if(reinversionCounter+1 < reinversionFrequency){
                 update();
-                //                }
                 m_updateTimer.stop();
 
                 checkReferenceObjective();
@@ -605,66 +570,30 @@ void Simplex::solve() {
                 m_freshBasis = false;
                 reinversionCounter++;
             }
-            catch ( const OptimalException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw exception;
-                } else {
-                    //                    LPINFO("TRIGGERING REINVERSION TO CHECK OPTIMALITY! ");
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
+
+            catch ( const FallbackException & exception ) {
+                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+                computeFeasibility();
+                m_iterationIndex--;
             }
-            catch ( const PrimalInfeasibleException & exception ) {
+
+            catch ( const OptimizationResultException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
-                    throw exception;
+                    throw;
                 } else {
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
             }
-            catch ( const DualInfeasibleException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw exception;
-                } else {
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
-            }
-            catch ( const PrimalUnboundedException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw exception;
-                } else {
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
-            }
-            catch ( const DualUnboundedException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw exception;
-                } else {
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
-            }
+
             catch ( const NumericalException & exception ) {
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
-                    throw exception;
+                    throw;
                 } else {
-#ifndef NDEBUG
-                    LPINFO("TRIGGERING REINVERSION TO HANDLE NUMERICAL ERROR! (" << exception.getMessage() <<")");
-#endif
                     m_triggeredReinversion++;
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
@@ -679,19 +608,19 @@ void Simplex::solve() {
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
-        LPERROR("The problem is PRIMAL INFEASIBLE.");
+        LPINFO("The problem is PRIMAL INFEASIBLE.");
     } catch ( const DualInfeasibleException & exception ) {
-        LPERROR("The problem is DUAL INFEASIBLE.");
+        LPINFO("The problem is DUAL INFEASIBLE.");
     } catch ( const PrimalUnboundedException & exception ) {
-        LPERROR("The problem is PRIMAL UNBOUNDED.");
+        LPINFO("The problem is PRIMAL UNBOUNDED.");
     } catch ( const DualUnboundedException & exception ) {
-        LPERROR("The problem is DUAL UNBOUNDED.");
+        LPINFO("The problem is DUAL UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
-        LPERROR("Numerical error: "<<exception.getMessage());
+        LPINFO("Numerical error: "<<exception.getMessage());
     } catch ( const SyntaxErrorException & exception ) {
         exception.show();
     } catch ( const PanOptException & exception ) {
-        LPERROR( exception.getMessage() );
+        LPERROR("PanOpt exception:"<< exception.getMessage() );
     } catch ( const std::bad_alloc & exception ) {
         LPERROR("STL bad alloc exception: " << exception.what() );
     } catch ( const std::bad_cast & exception ) {
@@ -734,17 +663,7 @@ void Simplex::solve() {
     m_iterationReport.writeSolutionReport();
 
     if(m_saveBasis && m_saveLastBasis){
-        std::string saveFormat = m_saveFormat;
-        std::string filename = m_saveFilename;
-        filename.append("_last.").append(m_saveFormat);
-        std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
-        if(saveFormat.compare("BAS") == 0){
-            saveBasis(filename.c_str(), new BasisHeadBAS, true);
-        } else if (saveFormat.compare("PBF") == 0){
-            saveBasis(filename.c_str(), new BasisHeadPanOpt, true);
-        } else {
-            throw ParameterException("Invalid save basis file format!");
-        }
+        saveBasis();
     }
 
     if(m_enableExport){
@@ -774,6 +693,43 @@ void Simplex::releaseModules() {
     if(m_basis){
         delete m_basis;
         m_basis = 0;
+    }
+}
+
+void Simplex::saveBasis()
+{
+    if ((m_iterationIndex == m_saveIteration) ||
+            (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
+        LPERROR("Saving basis "<<m_iterationIndex);
+        stringstream numStream;
+        numStream << m_iterationIndex;
+        std::string saveFormat = m_saveFormat;
+        std::string filename = m_saveFilename;
+        filename.append("_").append(numStream.str()).append(".").append(m_saveFormat);
+        std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
+        if(saveFormat.compare("BAS") == 0){
+            saveBasisToFile(filename.c_str(), new BasisHeadBAS, true);
+        } else if (saveFormat.compare("PBF") == 0){
+            saveBasisToFile(filename.c_str(), new BasisHeadPanOpt, true);
+        } else {
+            throw ParameterException("Invalid save basis file format!");
+        }
+    }
+}
+
+void Simplex::loadBasis()
+{
+    std::string loadFormat = m_loadFormat;
+    std::string filename = m_loadFilename;
+    filename.append(".").append(m_loadFormat);
+    //TODO: Exception when file does not exit
+    std::transform(loadFormat.begin(),loadFormat.end(),loadFormat.begin(),::toupper);
+    if(loadFormat.compare("BAS") == 0){
+        loadBasisFromFile(filename.c_str(), new BasisHeadBAS, true);
+    } else if (loadFormat.compare("PBF") == 0){
+        loadBasisFromFile(filename.c_str(), new BasisHeadPanOpt, true);
+    } else {
+        throw ParameterException("Invalid load basis file format!");
     }
 }
 

@@ -16,49 +16,67 @@ void SimplexModel::makeComputationalForm()
 
     unsigned int i;
 
+    //Set the matrix
     const Matrix & matrix = getMatrix();
+    //Set the constraints
     const std::vector<Constraint> & constraints = getConstraints();
 
+    //Set the cost vector
     const unsigned int rowCount = matrix.rowCount();
+    const unsigned int columnCount = matrix.columnCount();
+    const unsigned int variablesSize = rowCount + columnCount;
 
-//    const unsigned int columnCount = matrix.columnCount();
-//    const unsigned int variablesSize = rowCount + columnCount;
+    Vector::NonzeroIterator it = m_model.getCostVector().beginNonzero();
+    Vector::NonzeroIterator itEnd = m_model.getCostVector().endNonzero();
 
-//    variables.resize(variablesSize);
+    m_costVector.resize(variablesSize);
+    m_costVector.setSparsityRatio(DENSE);
+    for(;it != itEnd; it++){
+        m_costVector.setNewNonzero(it.getIndex(),*it);
+    }
+
+    //Set the variables
+    m_variables.resize(variablesSize);
 
     m_rhs.reInit(rowCount);
-    //TODO HA ez megjavul a sparsityratio itt nem kell
     m_rhs.setSparsityRatio(DENSE);
-    m_logicalVariables.resize(rowCount);
 
+
+    //Set the structural variables
+    for (i=0; i < columnCount; i++) {
+        //TODO: Is this fast enough?
+        m_variables[i] = m_model.getVariable(i);
+    }
+
+    //Set the logical variables
     for (i=0; i < rowCount; i++) {
-        m_logicalVariables[i].setName(constraints.at(i).getName());
-        switch(constraints.at(i).getType())
-        {
+        m_variables[columnCount + i].setName(constraints.at(i).getName());
+
+        switch(constraints.at(i).getType()) {
         case Constraint::LESS_OR_EQUAL: {
-            m_logicalVariables[i].setLowerBound(0.);
-            m_logicalVariables[i].setUpperBound(Numerical::Infinity);
+            m_variables[columnCount + i].setLowerBound(0.);
+            m_variables[columnCount + i].setUpperBound(Numerical::Infinity);
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
 
         case Constraint::GREATER_OR_EQUAL: {
-            m_logicalVariables[i].setLowerBound(-Numerical::Infinity);
-            m_logicalVariables[i].setUpperBound(0.);
+            m_variables[columnCount + i].setLowerBound(-Numerical::Infinity);
+            m_variables[columnCount + i].setUpperBound(0.);
             m_rhs.set(i, constraints.at(i).getLowerBound());
             break;
         }
 
         case Constraint::RANGE: {
-            m_logicalVariables[i].setLowerBound(0.);
-            m_logicalVariables[i].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
+            m_variables[columnCount + i].setLowerBound(0.);
+            m_variables[columnCount + i].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
 
         case Constraint::NON_BINDING: {
-            m_logicalVariables[i].setLowerBound(-Numerical::Infinity);
-            m_logicalVariables[i].setUpperBound(Numerical::Infinity);
+            m_variables[columnCount + i].setLowerBound(-Numerical::Infinity);
+            m_variables[columnCount + i].setUpperBound(Numerical::Infinity);
             m_rhs.set(i, 0.);
             Numerical::Double temp = constraints.at(i).getUpperBound();
             Numerical::Double temp2 = constraints.at(i).getLowerBound();
@@ -73,8 +91,8 @@ void SimplexModel::makeComputationalForm()
         }
 
         case Constraint::EQUALITY: {
-            m_logicalVariables[i].setLowerBound(0.);
-            m_logicalVariables[i].setUpperBound(0.);
+            m_variables[columnCount + i].setLowerBound(0.);
+            m_variables[columnCount + i].setUpperBound(0.);
             m_rhs.set(i, constraints.at(i).getUpperBound());
             break;
         }
@@ -106,12 +124,13 @@ void SimplexModel::print(std::ostream& out) const
         out << " + y" << i << " = " << m_rhs.at(i) <<"\n";
     }
     out << "\n";
-    for(unsigned int i = 0; i<getStructuralVariables().size();i++){
+    unsigned int columnCount = getColumnCount();
+    for(unsigned int i = 0; i<getVariables().size();i++){
         const Variable & variable = getVariable(i);
-        out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound()<<"\n";
-    }
-    for(unsigned int i = 0; i<getLogicalVariables().size();i++){
-        const Variable & variable = m_logicalVariables[i];
-        out << variable.getLowerBound() << " y" << i << " " << variable.getUpperBound()<<"\n";
+        if(i<columnCount){
+            out << variable.getLowerBound() << " x" << i << " " << variable.getUpperBound()<<"\n";
+        } else {
+            out << variable.getLowerBound() << " y" << i-columnCount << " " << variable.getUpperBound()<<"\n";
+        }
     }
 }

@@ -18,8 +18,9 @@ public:
     static bool checkAllConstraints(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
     static bool checkNonbasicVariableStates(const Simplex& simplex, bool print = true);
     static bool checkBasicVariableStates(const Simplex& simplex, bool print = true);
-    static bool checkBasicVariableFeasibilities(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
+    static bool checkBasicVariableFeasibilityStates(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
 
+    static void checkEverything(const Simplex& simplex, bool print = true);
 };
 
 #endif // CHECKER_H

@@ -164,17 +164,12 @@ void Model::scale() {
     std::vector<Constraint>::iterator constraintIter = m_constraints.begin();
     std::vector<Constraint>::iterator constraintIterEnd = m_constraints.end();
     for (; constraintIter < constraintIterEnd; constraintIter++, mulIter++) {
-        //        double r1 = rand() % 100000 / 10000000000.0;
-        //        double r2 = rand() % 100000 / 10000000000.0;
-        Numerical::Double a = constraintIter->getLowerBound();
-        Numerical::Double b = constraintIter->getUpperBound();
         lowerBound = constraintIter->getLowerBound() * *mulIter;
         upperBound = constraintIter->getUpperBound() * *mulIter;
 
         try {
             constraintIter->setBounds(lowerBound, upperBound);
         } catch ( Constraint::InvalidLowerBoundException & ex ) {
-            LPERROR( a << " " << b << " " << *mulIter );
             LPERROR(ex.getMessage());
             exit(1);
         }

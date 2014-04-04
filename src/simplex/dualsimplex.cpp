@@ -282,7 +282,6 @@ void DualSimplex::computeFeasibility() {
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
-//        Checker::checkOptimalityConditions(*this);
     }
 }
 
@@ -296,10 +295,10 @@ void DualSimplex::checkFeasibility() {
             m_phase1Time = m_solveTimer.getCPURunningTime();
         }
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
-//        Checker::checkOptimalityConditions(*this);
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
         //Becomes infeasible
+//        LPINFO("FALLED BACK");
         m_fallbacks++;
     }
 }
@@ -315,11 +314,6 @@ void DualSimplex::price() {
         m_phaseName = PHASE_2_STRING;
         m_outgoingIndex = m_pricing->performPricingPhase2();
         if(m_outgoingIndex == -1){
-//            LPINFO("OPTIMAL SOLUTION found!");
-//            Checker::checkFeasibilityConditions(*this, true);
-//            Checker::checkNonbasicVariableStates(*this, true);
-//            Checker::checkBasicVariableStates(*this, true);
-//            Checker::checkBasicVariableFeasibilities(*this);
             throw OptimalException("OPTIMAL SOLUTION found!");
         }
     }
@@ -387,11 +381,21 @@ void DualSimplex::update() {
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
+            Numerical::Double referenceObjective = m_objectiveValue;
+            m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
+            if(referenceObjective > m_objectiveValue){
+                LPERROR("Bad boundflip done!");
+            }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
+            Numerical::Double referenceObjective = m_objectiveValue;
+            m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
+            if(referenceObjective > m_objectiveValue){
+                LPERROR("Bad boundflip done!");
+            }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             LPERROR("Boundflipping variable in the basis (or superbasic)!");
