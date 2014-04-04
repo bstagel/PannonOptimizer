@@ -423,6 +423,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     while (it != endit) {
         variableIndex = it.getData();
         if (alpha.at(variableIndex) != 0) {
+            LPINFO("Free variable selected to enter basis");
             m_incomingVariableIndex = variableIndex;
             break;
         }
@@ -440,10 +441,12 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
 
                 if (it.getPartitionIndex() == Simplex::NONBASIC_AT_LB && alpha.at(variableIndex) > 0) {
                     valueOfVariable = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+//                    if (valueOfVariable < 0) LPWARNING("t>0, negative value: "<<valueOfVariable);
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
                 } else
                 if (it.getPartitionIndex() == Simplex::NONBASIC_AT_UB && alpha.at(variableIndex) < 0) {
                     valueOfVariable = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+//                    if (valueOfVariable < 0) LPWARNING("t<0, negative value: "<<valueOfVariable);
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
                 }
                 it++;
@@ -456,10 +459,12 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
 
                 if (it.getPartitionIndex() == Simplex::NONBASIC_AT_LB && alpha.at(variableIndex) < 0) {
                     valueOfVariable = - m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+//                    if (valueOfVariable < 0) LPWARNING("t<0,negative value: "<<valueOfVariable);
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
                 } else
                 if (it.getPartitionIndex() == Simplex::NONBASIC_AT_UB && alpha.at(variableIndex) > 0) {
                     valueOfVariable = - m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+//                    if (valueOfVariable < 0) LPWARNING("t<0, negative value: "<<valueOfVariable);
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
                 }
                 it++;
@@ -592,8 +597,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
     generateSignedBreakpointsPhase2(alpha);
 
-
-
     //Slope check should be enabled in debug mode
 #ifndef NDEBUG
     if (functionSlope < 0) {
@@ -612,6 +615,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 int fakeFesibilityCounter = 0;
 
                 while ( breakpoint->value < 0) {
+                    if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > optimalityTolerance){
+                        throw FallbackException("Infeasible variable in phase 2");
+                    }
                     fakeFesibilityCounter++;
 
                     const Variable & variable = m_model.getVariable(breakpoint->variableIndex);

@@ -3,6 +3,7 @@
 
 #include <utils/numerical.h>
 #include <vector>
+#include <ostream>
 using namespace std;
 
 class BreakpointHandler
@@ -12,8 +13,7 @@ public:
         int variableIndex;
         Numerical::Double value;
         mutable Numerical::Double functionValue;
-        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint)
-        {
+        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint){
             os << "(" << breakpoint.variableIndex << "; " << breakpoint.value <<
                   "; " << breakpoint.functionValue << ")";
             return os;
@@ -31,8 +31,7 @@ public:
     unsigned getNumberOfBreakpoints()const;
     void printBreakpoints() const;
 
-    enum SORTING_METHOD
-    {
+    enum SORTING_METHOD{
         SELECTION = 0,
         HEAP,
         SORTING_METHOD_ENUM_LENGTH
