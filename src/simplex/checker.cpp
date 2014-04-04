@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <simplex/basis.h>
+#include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
 
 bool Checker::checkPfiWithFtran(const Simplex &simplex) {
@@ -258,19 +259,18 @@ bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Num
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
             LPINFO("checkFeasibilityConditions PASSED");
         } else {
             LPERROR("checkFeasibilityConditions FAILED");
         }
-    }
+//    }
     return okay;
 }
 
 bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Numerical::Double tolerance)
 {
-//    tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
     bool okay = true;
     for(unsigned int variableIndex=0; variableIndex<simplex.m_simplexModel->getColumnCount() + simplex.m_simplexModel->getRowCount(); variableIndex++){
         if(simplex.m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
@@ -304,13 +304,13 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
-//            LPINFO("checkOptimalityConditions PASSED");
+            LPINFO("checkOptimalityConditions PASSED");
         } else {
             LPERROR("checkOptimalityConditions FAILED");
         }
-    }
+//    }
     return okay;
 }
 
@@ -349,13 +349,13 @@ bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical:
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
             LPINFO("checkAllConstraints PASSED");
         } else {
             LPERROR("checkAllConstraints FAILED");
         }
-    }
+//    }
     return okay;
 }
 
@@ -406,13 +406,13 @@ bool Checker::checkNonbasicVariableStates(const Simplex &simplex, bool print)
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
-            LPINFO("checkNonbasicVariableStates PASSED");
+//            LPINFO("checkNonbasicVariableStates PASSED");
         } else {
             LPERROR("checkNonbasicVariableStates FAILED");
         }
-    }
+//    }
     return okay;
 }
 
@@ -429,17 +429,17 @@ bool Checker::checkBasicVariableStates(const Simplex &simplex, bool print)
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
-            LPINFO("checkBasicVariableStates PASSED");
+//            LPINFO("checkBasicVariableStates PASSED");
         } else {
             LPERROR("checkBasicVariableStates FAILED");
         }
-    }
+//    }
     return okay;
 }
 
-bool Checker::checkBasicVariableFeasibilities(const Simplex &simplex, bool print, Numerical::Double tolerance)
+bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool print, Numerical::Double tolerance)
 {
     bool okay = true;
     for(unsigned int basisIndex=0; basisIndex<simplex.m_basisHead.size(); basisIndex++){
@@ -480,12 +480,22 @@ bool Checker::checkBasicVariableFeasibilities(const Simplex &simplex, bool print
             okay = false;
         }
     }
-    if(print){
+//    if(print){
         if(okay){
             LPINFO("checkBasicVariableFeasibilities PASSED");
         } else {
             LPERROR("checkBasicVariableFeasibilities FAILED");
         }
-    }
+//    }
     return okay;
+}
+
+void Checker::checkEverything(const Simplex& simplex, bool print)
+{
+    checkBasicVariableStates(simplex, print);
+    checkNonbasicVariableStates(simplex, print);
+//    checkBasicVariableFeasibilityStates(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
+//    checkAllConstraints(simplex, true, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
+//    checkFeasibilityConditions(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
+//    checkOptimalityConditions(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
 }

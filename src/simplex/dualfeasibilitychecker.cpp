@@ -84,15 +84,12 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
-            //TODO: Is tolerance necessary here? (Probably no)
-//            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB &&
-//                    Numerical::lessthan(m_reducedCosts.at(variableIndex), 0, tolerance))
             if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < 0){
                 //Do a bound flip LB -> UB (T+ set)
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 //Compute (l_j-u_j)*a_j
                 Numerical::Double theta = variable.getUpperBound() - variable.getLowerBound();
-//                LPINFO("L->U, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
+                LPINFO("L->U, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {
@@ -101,15 +98,13 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
                     transformVector.addVector(-1 * theta, logical);
                 }
             } else
-//                if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-//                   Numerical::lessthan(0,m_reducedCosts.at(variableIndex), tolerance))
                 if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB && m_reducedCosts.at(variableIndex) > 0){
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 //Compute (u_j-l_j)*a_j
                 Numerical::Double theta = variable.getLowerBound() - variable.getUpperBound();
-//                LPINFO("U->L, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
+                LPINFO("U->L, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {

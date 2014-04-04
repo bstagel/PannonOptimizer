@@ -82,6 +82,9 @@ public:
 
     void setCostConstant(Numerical::Double value);
 
+    inline std::vector<Variable> * getVariables() {return &m_variables;}
+    inline std::vector<Constraint> * getConstraints() {return &m_constraints;}
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;

@@ -35,8 +35,6 @@ void solve(std::string filename, ALGORITHM algorithm) {
     builder.loadFromFile(filename.c_str());
     model.build(builder);
 
-    //model.print();
-
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
         model.scale();
     }

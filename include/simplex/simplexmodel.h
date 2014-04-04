@@ -26,30 +26,31 @@ public:
     inline const Matrix & getMatrix()const {return m_model.getMatrix();}
     inline unsigned int getRowCount() const {return m_model.getMatrix().rowCount();}
     inline unsigned int getColumnCount() const {return m_model.getMatrix().columnCount();}
-    inline const Variable & getVariable(unsigned int index) const {
-        unsigned int columnCount = m_model.getMatrix().columnCount();
-        if(index<columnCount){
-            return m_model.getVariable(index);
-        } else {
-            return m_logicalVariables[index-columnCount];
-        }
-    }
-    inline const std::vector<Variable> & getStructuralVariables() const {return m_model.getVariables();}
-    inline const std::vector<Variable> & getLogicalVariables() const {return m_logicalVariables;}
-//    inline const Constraint & getConstraint(unsigned int index) const {return m_constraints[index];}
+    inline const Variable & getVariable(unsigned int index) const { return m_variables[index]; }
+
+    inline const std::vector<Variable> & getVariables() const {return m_variables;}
+    inline const Constraint & getConstraint(unsigned int index) const {return m_model.getConstraint(index);}
     inline const std::vector<Constraint> & getConstraints() const {return m_model.getConstraints();}
     inline const Vector & getCostVector() const {return m_model.getCostVector();}
     inline const std::string & getName() const {return m_model.getName();}
     inline const Numerical::Double & getCostConstant() const {return m_model.getCostConstant();}
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_model.getObjectiveType();}
     inline const std::string & getObjectiveRowname() const {return m_model.getObjectiveRowname();}
-    inline const Model & getModel() const {
-        return m_model;
-    }
+    inline const Model & getModel() const { return m_model; }
+
+    void perturbCostVector();
+    void perturbRHS();
+    void shiftBounds();
+
+    //Reset shifts and perturbations
+    void resetModel();
 
 private:
     const Model & m_model;
-    std::vector<Variable> m_logicalVariables;
+
+    Vector m_costVector;
+    std::vector<Variable> m_variables;
+
     Vector m_rhs;
 
     /**
