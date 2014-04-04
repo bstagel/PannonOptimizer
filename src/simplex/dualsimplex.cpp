@@ -338,7 +338,6 @@ void DualSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
-//            Checker::checkOptimalityConditions(*this);
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], alpha, m_objectiveValue);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
