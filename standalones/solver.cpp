@@ -9,6 +9,7 @@
 
 #include <lp/model.h>
 #include <lp/mpsproblem.h>
+#include <lp/presolver.h>
 #include <simplex/dualsimplex.h>
 #include <simplex/primalsimplex.h>
 #include <simplex/simplexparameterhandler.h>
@@ -34,6 +35,10 @@ void solve(std::string filename, ALGORITHM algorithm) {
     MpsModelBuilder builder;
     builder.loadFromFile(filename.c_str());
     model.build(builder);
+
+    Presolver presolver(&model);
+    presolver.presolve();
+    presolver.printStatistics();
 
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
         model.scale();
