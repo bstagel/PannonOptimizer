@@ -151,6 +151,27 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII")
                 << std::endl << std::endl;
 
+        out << "! Cost vector perturbation \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Active for structural variables \n"
+               "\t! 2 = Active for structural and logical variables \n"
+               "\t" << "perturb_cost_vector = " << writeParameter("perturb_cost_vector")
+                << std::endl;
+
+        out << "! Measure of perturbation \n"
+               "\t" << "epsilon_cost_vector = " << writeParameter("epsilon_cost_vector")
+               << std::endl << std::endl;
+
+        out << "! RHS perturbation \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Active \n"
+               "\t" << "perturb_rhs = " << writeParameter("perturb_rhs")
+                << std::endl;
+
+        out << "! Measure of perturbation \n"
+               "\t" << "epsilon_rhs = " << writeParameter("epsilon_rhs")
+               << std::endl << std::endl;
+
         out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
         out << "! Level of iteration report\n"
@@ -255,6 +276,16 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("expand_divider_dphI", DefaultParameters::EXPAND_DIVIDER_DPH1);
     createParameter("expand_dual_phaseII", Entry::INTEGER);
     setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
+
+    //Perturbation
+    createParameter("perturb_cost_vector",Entry::INTEGER);
+    setParameterValue("perturb_cost_vector",DefaultParameters::PERTURB_COST_VECTOR);
+    createParameter("epsilon_cost_vector",Entry::DOUBLE);
+    setParameterValue("epsilon_cost_vector",DefaultParameters::EPSILON_COST_VECTOR);
+    createParameter("perturb_rhs",Entry::INTEGER);
+    setParameterValue("perturb_rhs",DefaultParameters::PERTURB_RHS);
+    createParameter("epsilon_rhs",Entry::DOUBLE);
+    setParameterValue("epsilon_rhs",DefaultParameters::EPSILON_RHS);
 
     //Global
     createParameter("debug_level", Entry::INTEGER);

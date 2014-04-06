@@ -36,6 +36,11 @@ const int DefaultParameters::ENABLE_FAKE_FEASIBILITY = 1;
 const double DefaultParameters::EXPAND_MULTIPLIER_DPH1 = 1;
 const int DefaultParameters::EXPAND_DIVIDER_DPH1 = 1;
 const int DefaultParameters::EXPAND_DUAL_PHASEII = 0;
+//Perturbation
+const int DefaultParameters::PERTURB_COST_VECTOR = 0;
+const double DefaultParameters::EPSILON_COST_VECTOR = 1.e-6;
+const int DefaultParameters::PERTURB_RHS = 0;
+const double DefaultParameters::EPSILON_RHS = 1.e-6;
 //Global
 const int DefaultParameters::DEBUG_LEVEL = 1;
 const int DefaultParameters::ITERATION_LIMIT = 200000;

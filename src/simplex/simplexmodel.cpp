@@ -3,6 +3,8 @@
  */
 
 #include <simplex/simplexmodel.h>
+#include <random>
+#include <simplex/simplexparameterhandler.h>
 
 SimplexModel::SimplexModel(const Model & model):
     m_model(model)
@@ -52,7 +54,7 @@ void SimplexModel::makeComputationalForm()
     for (i=0; i < rowCount; i++) {
         m_variables[columnCount + i].setName(constraints.at(i).getName());
 
-        switch(constraints.at(i).getType()) {
+        switch (constraints.at(i).getType()) {
         case Constraint::LESS_OR_EQUAL: {
             m_variables[columnCount + i].setLowerBound(0.);
             m_variables[columnCount + i].setUpperBound(Numerical::Infinity);
@@ -133,4 +135,77 @@ void SimplexModel::print(std::ostream& out) const
             out << variable.getLowerBound() << " y" << i-columnCount << " " << variable.getUpperBound()<<"\n";
         }
     }
+}
+
+void SimplexModel::perturbCostVector()
+{
+    LPINFO("Cost vector perturbation");
+    m_originalCostVector = m_costVector;
+    //generate random epsilon values
+    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_cost_vector");
+    std::default_random_engine engine;
+    std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
+    Vector epsilonValues;
+
+    switch(SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector")){
+    //structural variables
+    case 1:
+    {
+        epsilonValues.resize(getColumnCount());
+        for(unsigned i=0;i < m_costVector.length();i++){
+            epsilonValues.insertElement(i,distribution(engine));
+//            LPINFO(distribution(engine));
+        }
+
+        //perturbation
+        m_costVector.addVector(1,epsilonValues);
+
+        break;
+    }
+    //all variable
+    case 2:
+        epsilonValues.resize(m_costVector.length());
+        for(unsigned i=0;i < m_costVector.length();i++){
+            epsilonValues.insertElement(i,distribution(engine));
+//            LPINFO(distribution(engine));
+        }
+
+        //perturbation
+        m_costVector.addVector(1,epsilonValues);
+        break;
+    }
+//    for(int i=0;i<5;i++){
+//        LPINFO("original: "<<m_originalCostVector.at(i)<<" perturbed: "<<m_costVector.at(i));
+//    }
+}
+
+void SimplexModel::perturbRHS()
+{
+    LPINFO("RHS perturbation");
+    m_originalRhs = m_rhs;
+    //generate random epsilon values
+    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_rhs");
+    std::default_random_engine engine;
+    std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
+    Vector epsilonValues;
+
+    epsilonValues.resize(m_rhs.length());
+    for(unsigned i=0;i < m_rhs.length();i++){
+        epsilonValues.insertElement(i,distribution(engine));
+    }
+
+    //perturbation
+    m_rhs.addVector(1,epsilonValues);
+
+//    for(int i=0;i<5;i++){
+//        LPINFO("original: "<<m_originalRhs.at(i)<<" perturbed: "<<m_rhs.at(i));
+//    }
+}
+
+
+void SimplexModel::resetModel()
+{
+    m_costVector.clear();
+    m_costVector = m_originalCostVector;
+//    m_rhs = m_originalRhs;
 }
