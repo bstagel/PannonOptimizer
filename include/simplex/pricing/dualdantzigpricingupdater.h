@@ -10,6 +10,7 @@
 #include <simplex/dualpricingupdater.h>
 #include <simplex/simplexmodel.h>
 #include <simplex/basis.h>
+#include <simplex/pricing/simpri.h>
 
 class DualDantzigPricingUpdater: public DualPricingUpdater
 {
@@ -35,6 +36,10 @@ private:
     Numerical::Double m_phase2ReducedCost;
 
     std::vector<char> m_used;
+
+    Simpri m_phase1Simpri;
+
+    Simpri m_phase2Simpri;
 
 };
 

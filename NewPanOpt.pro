@@ -44,6 +44,8 @@ HEADERS += include/debug.h \
            include/lp/mpsproblem.h \
            include/lp/scaler.h \
            include/lp/panoptstate.h \
+           include/lp/presolver.h \
+           include/lp/presolvermodule.h \
            include/simplex/pricing/dualdantzigpricing.h \
            include/simplex/pricing/dualdantzigpricingfactory.h \
            include/simplex/pricing/dualdantzigpricingupdater.h \
@@ -112,7 +114,8 @@ HEADERS += include/debug.h \
            include/defaultparameters.h \
            include/globals.h \
     include/simplex/startingbasisfinder/sbf_crash.h \
-    include/utils/breakpointhandler.h
+    include/utils/breakpointhandler.h \
+    include/simplex/pricing/simpri.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -124,6 +127,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/constraint.cpp \
            src/lp/mpsproblem.cpp \
            src/lp/scaler.cpp \
+           src/lp/presolver.cpp \
+           src/lp/presolvermodule.cpp \
            src/simplex/pricing/dualdantzigpricing.cpp \
            src/simplex/pricing/dualdantzigpricingfactory.cpp \
            src/simplex/pricing/dualdantzigpricingupdater.cpp \
@@ -175,6 +180,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/defaultparameters.cpp \
            src/globals.cpp \
            src/simplex/startingbasisfinder/sbf_crash.cpp \
-           src/utils/breakpointhandler.cpp
+           src/utils/breakpointhandler.cpp \
+    src/simplex/pricing/simpri.cpp
 
 #OBJECTS_DIR = .o

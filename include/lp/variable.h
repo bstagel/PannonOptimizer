@@ -236,7 +236,9 @@ public:
      * 
      * @return The lower bound of the variable.
      */
-    inline const Numerical::Double &getLowerBound() const;
+    ALWAYS_INLINE const Numerical::Double &getLowerBound() const {
+        return m_lowerBound;
+    }
 
     /**
      * Sets the lower bound of the variable.
@@ -254,7 +256,9 @@ public:
      *
      * @return The upper bound of the variable.
      */
-    inline const Numerical::Double &getUpperBound() const;
+    ALWAYS_INLINE const Numerical::Double &getUpperBound() const {
+        return m_upperBound;
+    }
 
     /**
      * Sets the upper bound of the variable.
@@ -283,7 +287,9 @@ public:
      *
      * @return The type of the variable.
      */
-    inline VARIABLE_TYPE getType() const;
+    ALWAYS_INLINE VARIABLE_TYPE getType() const {
+        return m_type;
+    }
 
     /**
      * Sets the variable's name.
@@ -304,7 +310,9 @@ public:
      *
      * @return The pointer of the corresponding vector.
      */
-    inline const Vector * getVector() const;
+    ALWAYS_INLINE const Vector * getVector() const {
+        return m_vector;
+    }
 
     /**
      * Returns with true when each data members are equal,
@@ -422,10 +430,10 @@ inline Variable::Variable(Numerical::Double lowerBound,
     adjustType();
 }
 
-inline const Numerical::Double& Variable::getLowerBound() const
+/*ALWAYS_INLINE const Numerical::Double& Variable::getLowerBound() const
 {
     return m_lowerBound;
-}
+}*/
 
 inline void Variable::setLowerBound(Numerical::Double lowerBound)
 {
@@ -434,15 +442,15 @@ inline void Variable::setLowerBound(Numerical::Double lowerBound)
     adjustType();
 }
 
-inline Variable::VARIABLE_TYPE Variable::getType() const
+/*ALWAYS_INLINE Variable::VARIABLE_TYPE Variable::getType() const
 {
     return m_type;
 }
 
-inline const Numerical::Double& Variable::getUpperBound() const
+ALWAYS_INLINE const Numerical::Double& Variable::getUpperBound() const
 {
     return m_upperBound;
-}
+}*/
 
 inline void Variable::setUpperBound(Numerical::Double upperBound)
 {
@@ -478,10 +486,10 @@ inline void Variable::setVector(const Vector & vector)
     m_vector = &vector;
 }
 
-inline const Vector * Variable::getVector() const
+/*inline const Vector * Variable::getVector() const
 {
     return m_vector;
-}
+}*/
 
 inline bool Variable::operator==(const Variable & variable) const
 {
