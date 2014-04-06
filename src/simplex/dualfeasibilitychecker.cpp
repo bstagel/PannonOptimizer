@@ -89,7 +89,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 //Compute (l_j-u_j)*a_j
                 Numerical::Double theta = variable.getUpperBound() - variable.getLowerBound();
-                LPINFO("L->U, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
+                //LPINFO("L->U, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {
@@ -104,7 +104,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
                 //Compute (u_j-l_j)*a_j
                 Numerical::Double theta = variable.getLowerBound() - variable.getUpperBound();
-                LPINFO("U->L, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
+                //LPINFO("U->L, d: "<<m_reducedCosts.at(variableIndex)<<" theta: "<<theta);
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {

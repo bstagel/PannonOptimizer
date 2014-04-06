@@ -140,7 +140,28 @@ int DualDantzigPricing::performPricingPhase1() {
     Numerical::Double max = 0;
     m_outgoingIndex = -1;
     unsigned int index;
-    for (index = 0; index < variableCount; index++) {
+    m_updater->m_phase1Simpri.start();
+
+    while (m_updater->m_phase1Simpri.getCandidateIndex(&index) ) {
+        if ( m_updater->m_used[index] == true ) {
+            continue;
+        }
+        //LPINFO("SIMPRI: " << index);
+        unsigned int variableIndex = m_basisHead.at(index);
+        Variable::VARIABLE_TYPE variableType = m_model.getVariable(variableIndex).getType();
+        if ( variableType == Variable::FIXED ||
+             variableType == Variable::BOUNDED ||
+             (variableType == Variable::PLUS && m_phase1ReducedCosts[index] > 0) ||
+             (variableType == Variable::MINUS && m_phase1ReducedCosts[index] < 0)) {
+            if ( Numerical::fabs(m_phase1ReducedCosts[index]) > max ) {
+                max = Numerical::fabs(m_phase1ReducedCosts[index]);
+                m_outgoingIndex = index;
+                m_updater->m_phase1Simpri.improvingIndexFound();
+            }
+        }
+    }
+
+    /*for (index = 0; index < variableCount; index++) {
         if ( m_updater->m_used[index] == true ) {
             continue;
         }
@@ -155,9 +176,9 @@ int DualDantzigPricing::performPricingPhase1() {
                 m_outgoingIndex = index;
             }
         }
-    }
+    }*/
     if (m_outgoingIndex != -1) {
-            m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
+        m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
     }
     return m_outgoingIndex;
 }
@@ -167,10 +188,39 @@ int DualDantzigPricing::performPricingPhase2() {
 
     IndexList<>::Iterator iter, iterEnd;
     Numerical::Double max = -1.0;
-    int rowIndex;
+    unsigned int rowIndex;
     m_outgoingIndex = -1;
-    m_updater->m_simplexModel.getVariable(0);
-    m_updater->m_basicVariableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
+    //m_updater->m_simplexModel.getVariable(0);
+    m_updater->m_phase2Simpri.start();
+    Numerical::Double difference;
+    while ( m_updater->m_phase2Simpri.getCandidateIndex(&rowIndex) ) {
+        if ( m_updater->m_used[rowIndex] == true ) {
+            continue;
+        }
+        int variableIndex = m_updater->m_basisHead[rowIndex];
+        switch ( m_updater->m_basicVariableFeasibilities->where( rowIndex ) ) {
+        case Simplex::MINUS:
+            difference =  m_updater->m_simplexModel.getVariable(variableIndex).getLowerBound() -
+                    m_updater->m_basicVariableValues.at(rowIndex);
+            if (difference > max) {
+                max = difference;
+                m_outgoingIndex = rowIndex;
+                m_updater->m_phase2Simpri.improvingIndexFound();
+            }
+            break;
+        case Simplex::PLUS:
+            difference = m_updater->m_basicVariableValues.at(rowIndex) -
+                    m_updater->m_simplexModel.getVariable(variableIndex).getUpperBound();
+            if (difference > max) {
+                max = difference;
+                m_outgoingIndex = rowIndex;
+                m_updater->m_phase2Simpri.improvingIndexFound();
+            }
+            break;
+        }
+    }
+
+    /*m_updater->m_basicVariableFeasibilities->getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
         rowIndex = (int)iter.getData();
         if ( m_updater->m_used[rowIndex] == true ) {
@@ -198,7 +248,7 @@ int DualDantzigPricing::performPricingPhase2() {
             max = difference;
             m_outgoingIndex = rowIndex;
         }
-    }
+    }*/
 
     m_reducedCost = max;
     return m_outgoingIndex;
