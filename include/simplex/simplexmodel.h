@@ -31,7 +31,7 @@ public:
     inline const std::vector<Variable> & getVariables() const {return m_variables;}
     inline const Constraint & getConstraint(unsigned int index) const {return m_model.getConstraint(index);}
     inline const std::vector<Constraint> & getConstraints() const {return m_model.getConstraints();}
-    inline const Vector & getCostVector() const {return m_model.getCostVector();}
+    inline const Vector & getCostVector() const {return m_costVector;}//m_model.getCostVector();}
     inline const std::string & getName() const {return m_model.getName();}
     inline const Numerical::Double & getCostConstant() const {return m_model.getCostConstant();}
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_model.getObjectiveType();}
@@ -52,6 +52,10 @@ private:
     std::vector<Variable> m_variables;
 
     Vector m_rhs;
+
+    //perturb
+    Vector m_originalCostVector;
+    Vector m_originalRhs;
 
     /**
      * Starts the computational form maker algorithm.

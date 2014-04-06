@@ -374,6 +374,13 @@ void Simplex::setModel(const Model &model) {
     //TODO: Ezt ne kelljen ujra beallitani egy init miatt
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
+
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0){
+        m_simplexModel->perturbCostVector();
+    }
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+        m_simplexModel->perturbRHS();
+    }
 }
 
 void Simplex::constraintAdded()
@@ -578,6 +585,12 @@ void Simplex::solve() {
             }
 
             catch ( const OptimizationResultException & exception ) {
+                if (exception.getMessage() == "OPTIMAL SOLUTION found!"){
+                        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0 ||
+                                SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+                            m_simplexModel->resetModel();
+                        }
+                }
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
@@ -604,9 +617,9 @@ void Simplex::solve() {
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
-        LPINFO("OPTIMAL SOLUTION found! ");
-        // TODO: postsovle, post scaling
-        // TODO: Save optimal basis if necessary
+            LPINFO("OPTIMAL SOLUTION found! ");
+            // TODO: postsovle, post scaling
+            // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
         LPINFO("The problem is PRIMAL INFEASIBLE.");
     } catch ( const DualInfeasibleException & exception ) {

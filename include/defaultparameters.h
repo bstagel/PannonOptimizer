@@ -41,6 +41,11 @@ public:
     static const double EXPAND_MULTIPLIER_DPH1;
     static const int EXPAND_DIVIDER_DPH1;
     static const int EXPAND_DUAL_PHASEII;
+    //Perturbation
+    static const int PERTURB_COST_VECTOR;
+    static const double EPSILON_COST_VECTOR;
+    static const int PERTURB_RHS;
+    static const double EPSILON_RHS;
     //Global
     static const int DEBUG_LEVEL;
     static const int ITERATION_LIMIT;
