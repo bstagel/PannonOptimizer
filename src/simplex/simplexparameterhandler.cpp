@@ -172,6 +172,16 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t" << "epsilon_rhs = " << writeParameter("epsilon_rhs")
                << std::endl << std::endl;
 
+        out << "! Bound shifting in primal \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Active \n"
+               "\t" << "shift_bounds = " << writeParameter("shift_bounds")
+                << std::endl;
+
+        out << "! Measure of shifting \n"
+               "\t" << "epsilon_bounds = " << writeParameter("epsilon_bounds")
+               << std::endl << std::endl;
+
         out << std::fixed << std::endl;
         out << "!!! Global !!!" <<  std::endl <<  std::endl;
         out << "! Level of iteration report\n"
@@ -286,6 +296,10 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("perturb_rhs",DefaultParameters::PERTURB_RHS);
     createParameter("epsilon_rhs",Entry::DOUBLE);
     setParameterValue("epsilon_rhs",DefaultParameters::EPSILON_RHS);
+    createParameter("shift_bounds",Entry::INTEGER);
+    setParameterValue("shift_bounds",DefaultParameters::SHIFT_BOUNDS);
+    createParameter("epsilon_bounds",Entry::DOUBLE);
+    setParameterValue("epsilon_bounds",DefaultParameters::EPSILON_BOUNDS);
 
     //Global
     createParameter("debug_level", Entry::INTEGER);

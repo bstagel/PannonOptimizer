@@ -36,9 +36,9 @@ void solve(std::string filename, ALGORITHM algorithm) {
     builder.loadFromFile(filename.c_str());
     model.build(builder);
 
-    Presolver presolver(&model);
-    presolver.presolve();
-    presolver.printStatistics();
+//    Presolver presolver(&model);
+//    presolver.presolve();
+//    presolver.printStatistics();
 
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
         model.scale();

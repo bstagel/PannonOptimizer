@@ -46,6 +46,8 @@ public:
     static const double EPSILON_COST_VECTOR;
     static const int PERTURB_RHS;
     static const double EPSILON_RHS;
+    static const int SHIFT_BOUNDS;
+    static const double EPSILON_BOUNDS;
     //Global
     static const int DEBUG_LEVEL;
     static const int ITERATION_LIMIT;
