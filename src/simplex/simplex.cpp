@@ -585,11 +585,10 @@ void Simplex::solve() {
             }
 
             catch ( const OptimizationResultException & exception ) {
-                if (exception.getMessage() == "OPTIMAL SOLUTION found!"){
-                        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0 ||
-                                SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
-                            m_simplexModel->resetModel();
-                        }
+                if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0 ||
+                        SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+                    LPINFO("Resetting perturbed model")
+                    m_simplexModel->resetModel();
                 }
                 //Check the result with triggering reinversion
                 if(m_freshBasis){

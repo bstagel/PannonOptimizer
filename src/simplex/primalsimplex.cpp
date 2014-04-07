@@ -394,16 +394,6 @@ void PrimalSimplex::update() {
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
-
-
-//        Vector checker = m_basicVariableValues;
-//        computeBasicSolution();
-//        for(int i=0; i<checker.length(); i++){
-//            if(!Numerical::equals(checker.at(i),m_basicVariableValues.at(i))){
-//                LPERROR("ASDASD: "<<checker.at(i) << " - "<<m_basicVariableValues.at(i));
-//            }
-//        }
-
     }
 
     computeReducedCosts();
