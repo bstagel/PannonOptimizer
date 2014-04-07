@@ -41,6 +41,8 @@ const int DefaultParameters::PERTURB_COST_VECTOR = 0;
 const double DefaultParameters::EPSILON_COST_VECTOR = 1.e-6;
 const int DefaultParameters::PERTURB_RHS = 0;
 const double DefaultParameters::EPSILON_RHS = 1.e-6;
+const int DefaultParameters::SHIFT_BOUNDS = 0;
+const double DefaultParameters::EPSILON_BOUNDS = 1.e-6;
 //Global
 const int DefaultParameters::DEBUG_LEVEL = 1;
 const int DefaultParameters::ITERATION_LIMIT = 200000;

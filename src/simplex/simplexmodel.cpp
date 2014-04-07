@@ -199,13 +199,57 @@ void SimplexModel::perturbRHS()
 
 //    for(int i=0;i<5;i++){
 //        LPINFO("original: "<<m_originalRhs.at(i)<<" perturbed: "<<m_rhs.at(i));
-//    }
+    //    }
+}
+
+void SimplexModel::shiftBounds()
+{
+    LPINFO("Bound shifting");
+    //generate random epsilon values
+    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_bounds");
+    std::default_random_engine engine;
+    std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
+    Vector epsilonValuesLower;
+    Vector epsilonValuesUpper;
+    for(unsigned i=0;i < getColumnCount();i++){
+        epsilonValuesLower.insertElement(i,distribution(engine));
+        epsilonValuesUpper.insertElement(i,distribution(engine));
+    }
+    Numerical::Double lb = 0;
+    Numerical::Double ub = 0;
+
+    for(unsigned i=0;i < getColumnCount();i++){
+        lb = m_model.getVariable(i).getLowerBound();
+        ub = m_model.getVariable(i).getUpperBound();
+        if (lb != -Numerical::Infinity){
+            m_variables.at(i).setLowerBound(lb+epsilonValuesLower.at(i));
+        }
+        if (ub != Numerical::Infinity){
+            m_variables.at(i).setUpperBound(ub+epsilonValuesUpper.at(i));
+        }
+    }
+
 }
 
 
 void SimplexModel::resetModel()
 {
-    m_costVector.clear();
-    m_costVector = m_originalCostVector;
-//    m_rhs = m_originalRhs;
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0){
+        m_costVector.clear();
+        m_costVector = m_originalCostVector;
+    }
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+        m_rhs.clear();
+        m_rhs = m_originalRhs;
+    }
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("shift_bounds") != 0){
+        Numerical::Double lb = 0;
+        Numerical::Double ub = 0;
+        for(unsigned i=0;i < getColumnCount();i++){
+            lb = m_model.getVariable(i).getLowerBound();
+            ub = m_model.getVariable(i).getUpperBound();
+            m_variables.at(i).setLowerBound(lb);
+            m_variables.at(i).setUpperBound(ub);
+        }
+    }
 }

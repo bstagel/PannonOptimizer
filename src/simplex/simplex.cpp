@@ -381,6 +381,9 @@ void Simplex::setModel(const Model &model) {
     if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
         m_simplexModel->perturbRHS();
     }
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("shift_bounds") != 0){
+        m_simplexModel->shiftBounds();
+    }
 }
 
 void Simplex::constraintAdded()
@@ -585,11 +588,7 @@ void Simplex::solve() {
             }
 
             catch ( const OptimizationResultException & exception ) {
-                if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0 ||
-                        SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
-                    LPINFO("Resetting perturbed model")
-                    m_simplexModel->resetModel();
-                }
+                m_simplexModel->resetModel();
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     m_solveTimer.stop();
