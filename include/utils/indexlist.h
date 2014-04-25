@@ -12,6 +12,7 @@
 #include <set>
 #include <iostream>
 #include <typeinfo>
+#include <vector>
 using namespace std;
 
 struct unused { int operator*() const {return 0;}};
@@ -422,6 +423,27 @@ public:
     }
 
     /**
+     * Reverses the order of elements in the given partition.
+     *
+     * @param partitionIndex The index of partition
+     */
+    void reversePartition(unsigned int partitionIndex) {
+        Iterator iter, iterEnd;
+        getIterators(&iter, &iterEnd, partitionIndex);
+        std::vector<unsigned int> elements;
+        std::vector<ATTACHED_TYPE> attached;
+        for (; iter != iterEnd; iter++) {
+            elements.push_back(iter.getData());
+            attached.push_back(iter.getAttached());
+        }
+        clearPartition(partitionIndex);
+        unsigned int index;
+        for (index = 0; index < elements.size(); index++) {
+            insert(partitionIndex, elements[index], attached[index]);
+        }
+    }
+
+    /**
      * Iterator class for listing elements of a linked list.
      */
     template <class TYPE>
@@ -480,6 +502,15 @@ public:
          */
         inline const TYPE & getAttached() const{
             return m_actual->m_attached;
+        }
+
+        /**
+         * Sets the attached value of the actual element.
+         *
+         * @param attached The attached value
+         */
+        inline void setAttached(const TYPE & attached) {
+            m_actual->m_attached = attached;
         }
 
         /**

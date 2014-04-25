@@ -15,9 +15,12 @@
 class DualDantzigPricing: public DualPricing
 {
 public:
-    DualDantzigPricing(const SimplexModel & model,
-                       DualPricingUpdater * updater,
-                       const std::vector<int> & basisHead);
+    DualDantzigPricing(const Vector &basicVariableValues,
+                       IndexList<> *basicVariableFeasibilities,
+                       const IndexList<> &reducedCostFeasibilities,
+                       const std::vector<int> & basisHead,
+                       const SimplexModel & simplexModel,
+                       const Basis &basis);
     DualDantzigPricing(const DualDantzigPricing& orig);
     virtual ~DualDantzigPricing();
 
@@ -28,9 +31,16 @@ public:
     void lockLastIndex();
 private:
 
-    DualDantzigPricingUpdater * m_updater;
+    int m_phase2Index;
 
-    const std::vector<int> & m_basisHead;
+    Numerical::Double m_phase2ReducedCost;
+
+    std::vector<char> m_used;
+
+    Simpri m_phase1Simpri;
+
+    Simpri m_phase2Simpri;
+
     Numerical::Double * m_phase1ReducedCosts;
 
     int m_outgoingIndex;
