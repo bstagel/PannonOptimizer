@@ -12,7 +12,12 @@ class SimplexModel;
 
 class DualPricing {
 public:
-    DualPricing(const SimplexModel & model);
+    DualPricing(const Vector &basicVariableValues,
+                IndexList<> * basicVariableFeasibilities,
+                const IndexList<> & reducedCostFeasibilities,
+                const std::vector<int> & basisHead,
+                const SimplexModel & simplexModel,
+                const Basis & basis);
 
     virtual ~DualPricing();
 
@@ -26,7 +31,17 @@ public:
     virtual void releaseUsed() = 0;
     virtual void lockLastIndex() = 0;
 protected:
-    const SimplexModel & m_model;
+    const Vector & m_basicVariableValues;
+
+    IndexList<> * m_basicVariableFeasibilities;
+
+    const IndexList<> & m_reducedCostFeasibilities;
+
+    const std::vector<int> & m_basisHead;
+
+    const SimplexModel & m_simplexModel;
+
+    const Basis & m_basis;
 
     Numerical::Double m_reducedCost;
 };

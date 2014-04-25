@@ -5,14 +5,6 @@
 #include <simplex/pricing/dualdantzigpricingupdater.h>
 #include <simplex/simplex.h>
 
-static const unsigned int dualPhase1ClusterCount = 1;
-static const unsigned int dualPhase1VisitedClusterCount = 1;
-static const unsigned int dualPhase1ImprovingVariableCount = 0;
-
-static const unsigned int dualPhase2ClusterCount = 1;
-static const unsigned int dualPhase2VisitedClusterCount = 1;
-static const unsigned int dualPhase2ImprovingVariableCount = 0;
-
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariableValues,
                                                      IndexList<> * basicVariableFeasibilities,
                                                      const IndexList<> & reducedCostFeasibilities,
@@ -23,7 +15,7 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
                        reducedCostFeasibilities, basisHead, simplexModel,
                        basis)
 {
-    m_phase2ReducedCost = 0;
+    /*m_phase2ReducedCost = 0;
     m_phase2Index = -1;
     m_used.clear();
     m_used.resize( m_basisHead.size(), false );
@@ -43,7 +35,7 @@ DualDantzigPricingUpdater::DualDantzigPricingUpdater(const Vector &basicVariable
                         simplexModel.getMatrix().rowCount());
     for (index = 0; index < simplexModel.getMatrix().rowCount(); index++) {
         m_phase2Simpri.insertCandidate(index);
-    }
+    }*/
 }
 
 DualDantzigPricingUpdater::DualDantzigPricingUpdater(const DualDantzigPricingUpdater& orig):

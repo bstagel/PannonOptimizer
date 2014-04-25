@@ -443,6 +443,57 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     if (releaseWriter == true) {
         delete basisWriter;
     }
+
+
+    // dump
+    /*std::ofstream log("log_save.txt");
+
+    log << "BASIS HEAD: ";
+    unsigned int index;
+    for (index = 0; index < m_basisHead.size(); index++) {
+        log << m_basisHead[index] << " ";
+    }
+    log << endl;
+
+    log << "VARIABLE STATES: " << endl;
+    {
+        IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+        m_variableStates.getIterators(&iter, &iterEnd, BASIC);
+        log << "BASIC: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
+        log << "NONBASIC_AT_LB: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
+        log << "NONBASIC_AT_UB: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
+        log << "NONBASIC_FIXED: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
+        log << "NONBASIC_FREE: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+    }
+    log.close();*/
 }
 
 void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
@@ -460,12 +511,93 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
         delete basisReader;
     }
 
-//    LPINFO("basis head: ");
-//    std::cout << std::dec;
-//    for (unsigned int i = 0; i < m_basisHead.size(); i++) {
-//        std::cout << m_basisHead[i] << " ";
-//    }
-//    std::cout << std::endl;
+    m_variableStates.reversePartition(BASIC);
+    m_variableStates.reversePartition(NONBASIC_AT_LB);
+    m_variableStates.reversePartition(NONBASIC_AT_UB);
+    m_variableStates.reversePartition(NONBASIC_FIXED);
+    m_variableStates.reversePartition(NONBASIC_FREE);
+
+    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    m_variableStates.getIterators(&iter, &iterEnd, BASIC);
+    for (; iter != iterEnd; iter++) {
+        iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
+    }
+    m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
+    for (; iter != iterEnd; iter++) {
+        iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
+    }
+
+    m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
+    for (; iter != iterEnd; iter++) {
+        iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getUpperBound() );
+    }
+
+    m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
+    for (; iter != iterEnd; iter++) {
+        iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
+    }
+
+    m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
+    for (; iter != iterEnd; iter++) {
+        iter.setAttached( &ZERO );
+    }
+
+
+    //    LPINFO("basis head: ");
+    //    std::cout << std::dec;
+    //    for (unsigned int i = 0; i < m_basisHead.size(); i++) {
+    //        std::cout << m_basisHead[i] << " ";
+    //    }
+    //    std::cout << std::endl;
+
+    // dump
+   /* std::ofstream log("log_load.txt");
+
+    log << "BASIS HEAD: ";
+
+    for (index = 0; index < m_basisHead.size(); index++) {
+        log << m_basisHead[index] << " ";
+    }
+    log << endl;
+    log << "VARIABLE STATES: " << endl;
+    {
+        IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+        m_variableStates.getIterators(&iter, &iterEnd, BASIC);
+        log << "BASIC: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
+        log << "NONBASIC_AT_LB: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
+        log << "NONBASIC_AT_UB: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
+        log << "NONBASIC_FIXED: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+
+        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
+        log << "NONBASIC_FREE: ";
+        for (; iter != iterEnd; iter++) {
+            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
+        }
+        log << endl;
+    }
+    log.close();*/
 }
 
 

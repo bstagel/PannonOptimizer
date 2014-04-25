@@ -6,6 +6,7 @@
 
 #include <simplex/dualsimplex.h>
 #include <simplex/dualpricingfactory.h>
+#include <simplex/pricing/dualdantzigpricing.h>
 #include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pfibasis.h>
 #include <simplex/simplexparameterhandler.h>
@@ -228,9 +229,12 @@ void DualSimplex::initModules() {
                 );
     m_updater->setPricingUpdater( pricingUpdater );
 
-    m_pricing = pricingFactory->createDualPricing(*m_simplexModel,
-                                                  pricingUpdater,
-                                                  m_basisHead);
+    m_pricing = new DualDantzigPricing (m_basicVariableValues,
+                                        &m_basicVariableFeasibilities,
+                                        m_reducedCostFeasibilities,
+                                        m_basisHead,
+                                        *m_simplexModel,
+                                        *m_basis);
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
                                                     &m_variableStates,
@@ -298,7 +302,7 @@ void DualSimplex::checkFeasibility() {
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
         //Becomes infeasible
-//        LPINFO("FALLED BACK");
+        //        LPINFO("FALLED BACK");
         m_fallbacks++;
     }
 }
@@ -367,7 +371,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -424,7 +428,7 @@ void DualSimplex::update() {
         } else{
             if(m_feasible &&
                     (m_basicVariableValues.at(m_outgoingIndex) -
-                    m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
+                     m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
                 //Phase-II: Bounded variable leaves at lower bound (comes from M)
                 outgoingState = NONBASIC_AT_LB;
                 m_primalTheta = computePrimalTheta(alpha, m_outgoingIndex, &outgoingState);
@@ -435,7 +439,7 @@ void DualSimplex::update() {
             }
         }
 
-//        LPINFO("Good pivot element: "<<alpha.at(m_outgoingIndex));
+        //        LPINFO("Good pivot element: "<<alpha.at(m_outgoingIndex));
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, alpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
@@ -465,7 +469,7 @@ void DualSimplex::setReferenceObjective() {
     } else {
         m_referenceObjective = m_objectiveValue;
     }
-//                LPINFO("m_referenceObjective " <<m_referenceObjective);
+    //                LPINFO("m_referenceObjective " <<m_referenceObjective);
 }
 
 void DualSimplex::checkReferenceObjective() {
@@ -474,7 +478,7 @@ void DualSimplex::checkReferenceObjective() {
             LPWARNING("BAD ITERATION - PHASE I difference: "<<m_referenceObjective-m_phaseIObjectiveValue);
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
-//            LPWARNING("DEGENERATE - PHASE I");
+            //            LPWARNING("DEGENERATE - PHASE I");
             m_degenerateIterations++;
         }
     } else {
@@ -482,7 +486,7 @@ void DualSimplex::checkReferenceObjective() {
             LPWARNING("BAD ITERATION - PHASE II difference: "<<m_referenceObjective-m_objectiveValue);
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
-//            LPWARNING("DEGENERATE - PHASE II");
+            //            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }
     }
@@ -495,7 +499,7 @@ void DualSimplex::initWorkingTolerance() {
         m_workingTolerance = m_masterTolerance *
                 SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) /
-            SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+                SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
     } else {
         m_workingTolerance = m_masterTolerance;
         m_toleranceStep = 0;
@@ -507,7 +511,7 @@ void DualSimplex::computeWorkingTolerance() {
     if (m_toleranceStep != 0)
     {
         m_workingTolerance += m_toleranceStep;
-         //reset the EXPAND tolerance
+        //reset the EXPAND tolerance
         if (m_workingTolerance >= m_masterTolerance) {
             m_workingTolerance = m_masterTolerance *
                     SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
@@ -537,14 +541,14 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     rho.setNewNonzero(rowIndex, 1);
     m_basis->Btran(rho);
 
-//    alpha = new Vector(columnCount);
-//    alpha->setSparsityRatio(DENSE);
-//    Vector::NonzeroIterator it = rho.beginNonzero();
-//    Vector::NonzeroIterator itend = rho.endNonzero();
-//    for(; it != itend; it++){
-//        alpha->addVector(*it,m_simplexModel->getMatrix().row(it.getIndex()));
-//    }
-//    alpha->appendVector(rho);
+    //    alpha = new Vector(columnCount);
+    //    alpha->setSparsityRatio(DENSE);
+    //    Vector::NonzeroIterator it = rho.beginNonzero();
+    //    Vector::NonzeroIterator itend = rho.endNonzero();
+    //    for(; it != itend; it++){
+    //        alpha->addVector(*it,m_simplexModel->getMatrix().row(it.getIndex()));
+    //    }
+    //    alpha->appendVector(rho);
 
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
@@ -559,35 +563,35 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
         }
     }
 
-//    Vector alpha2(rowCount + columnCount);
-//    m_variableStates.getIterators(&it, &itEnd, 1, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-//    for(; it != itEnd ; it++){
-//        unsigned int columnIndex = it.getData();
-//        if(columnIndex < columnCount){
-//            alpha2.set(columnIndex, rho.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
-//        } else {
-//            alpha2.set(columnIndex, rho.at(columnIndex - columnCount));
-//        }
-//    }
+    //    Vector alpha2(rowCount + columnCount);
+    //    m_variableStates.getIterators(&it, &itEnd, 1, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
+    //    for(; it != itEnd ; it++){
+    //        unsigned int columnIndex = it.getData();
+    //        if(columnIndex < columnCount){
+    //            alpha2.set(columnIndex, rho.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+    //        } else {
+    //            alpha2.set(columnIndex, rho.at(columnIndex - columnCount));
+    //        }
+    //    }
 
-//    for(int i=0; i<alpha->length(); i++){
-//        if(alpha->at(i) != alpha2.at(i)){
-//            LPERROR("alpha->at(i): "<<alpha->at(i)<< " - alpha2->at(i): "<<alpha->at(i));
-//        }
-//    }
+    //    for(int i=0; i<alpha->length(); i++){
+    //        if(alpha->at(i) != alpha2.at(i)){
+    //            LPERROR("alpha->at(i): "<<alpha->at(i)<< " - alpha2->at(i): "<<alpha->at(i));
+    //        }
+    //    }
 
 
-//    LPINFO("rho: "<<rho);
-//    LPINFO("alpha: "<<*alpha);
-//    LPINFO("alpha2: "<<alpha2);
+    //    LPINFO("rho: "<<rho);
+    //    LPINFO("alpha: "<<*alpha);
+    //    LPINFO("alpha2: "<<alpha2);
 
-//    Numerical::Double x1,x2;
-//    for(int i=0; i<alpha->length();i++){
-//        if(alpha->at(i) != alpha2.at(i)){
-//            checkAlphaValue(rowIndex,i,x1,x2);
-//            LPINFO("ALPHA: "<<alpha->at(i)<<" - "<<alpha2.at(i) << " col: "<<x1);
-//        }
-//    }
+    //    Numerical::Double x1,x2;
+    //    for(int i=0; i<alpha->length();i++){
+    //        if(alpha->at(i) != alpha2.at(i)){
+    //            checkAlphaValue(rowIndex,i,x1,x2);
+    //            LPINFO("ALPHA: "<<alpha->at(i)<<" - "<<alpha2.at(i) << " col: "<<x1);
+    //        }
+    //    }
 }
 
 Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex, Simplex::VARIABLE_STATE* outgoingState){

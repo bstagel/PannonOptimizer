@@ -267,11 +267,17 @@ void BasisHeadPanOpt::finishReading() {
     std::map<unsigned int, std::string>::const_iterator arrayIter;
     std::map<unsigned int, std::string>::const_iterator arrayIterEnd;
     basisNode.getArray(INDICES_STR, &arrayIter, &arrayIterEnd);
+    m_variableStatesPtr->clearPartition(Simplex::BASIC);
+    m_variableStatesPtr->clearPartition(Simplex::NONBASIC_AT_LB );
+    m_variableStatesPtr->clearPartition(Simplex::NONBASIC_AT_UB );
+    m_variableStatesPtr->clearPartition(Simplex::NONBASIC_FIXED );
+    m_variableStatesPtr->clearPartition(Simplex::NONBASIC_FREE );
     for (; arrayIter != arrayIterEnd; arrayIter++) {
         if (NodeFile::Node::checkInteger(arrayIter->second) == false ) {
             throw PanOptException("Invalid index format at the basis head: " + arrayIter->second);
         }
         m_basisHeadPtr->at( arrayIter->first ) = atoi( arrayIter->second.c_str() );
+        m_variableStatesPtr->insert(Simplex::BASIC, atoi( arrayIter->second.c_str() ), 0);
     }
 
     // read nonbasis part
@@ -290,19 +296,27 @@ void BasisHeadPanOpt::finishReading() {
         }
         unsigned int variableIndex = atoi( indexStr.c_str() );
         std::string stateStr = variableIter->getValue(STATE_STR);
-        m_variableStatesPtr->remove( variableIndex );
+        //m_variableStatesPtr->remove( variableIndex );
         if (stateStr == AT_LOWER_BOUND_STR) {
+            //LPINFO("LOWER_BOUND " << variableIndex);
+            //std::cin.get();
             m_variableStatesPtr->insert( Simplex::NONBASIC_AT_LB,
                                          variableIndex,
                                          &m_variables[variableIndex]->getLowerBound() );
         } else if (stateStr == AT_UPPER_BOUND_STR) {
+            //LPINFO("UPPER_BOUND " << variableIndex);
+            //std::cin.get();
             m_variableStatesPtr->insert( Simplex::NONBASIC_AT_UB,
                                          variableIndex,
                                          &m_variables[variableIndex]->getUpperBound() );
         } else if (stateStr == FREE_STR) {
+            //LPINFO("FREE " << variableIndex);
+            //std::cin.get();
             m_variableStatesPtr->insert( Simplex::NONBASIC_FREE,
                                          variableIndex, &ZERO );
         } else if (stateStr == FIXED_STR) {
+            //LPINFO("FIXED " << variableIndex);
+            //std::cin.get();
             m_variableStatesPtr->insert( Simplex::NONBASIC_FIXED,
                                          variableIndex, &ZERO );
         } else {
