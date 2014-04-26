@@ -167,7 +167,7 @@ void MpsModelBuilder::readRows() {
                 char rowType = record->m_type.m_chars[1];
                 if (unlikely(rowType != 'N' && rowType != 'G' && rowType != 'L' && rowType != 'E'
                              && record->m_type.m_chars[0] == ' ')) {
-                    invalidRowType(rowType, m_currentLine);
+                    //invalidRowType(rowType, m_currentLine);
                     wrong = true;
                 }
 
@@ -216,7 +216,9 @@ void MpsModelBuilder::readRows() {
         } while (wrong == false);
 
         if (*m_buffer == ' ') {
+            //showBuffer(60, false);
             //LPINFO("ROSSSSZ");
+            //cin.get();
             char type;
             MpsName name;
             name.m_bits = 0;
@@ -229,7 +231,7 @@ void MpsModelBuilder::readRows() {
                 m_buffer++;
             }
             unsigned int nameIndex = 0;
-            while (nameIndex < 8 && *m_buffer > ' ') {
+            while (nameIndex < 8 && *m_buffer >= ' ') {
                 name.m_chars[nameIndex] = *m_buffer;
                 nameIndex++;
                 m_buffer++;
@@ -1173,7 +1175,6 @@ void MpsModelBuilder::readBounds() {
     do {
         do {
             do {
-
                 //showBuffer(64, false);
 
                 // suppose that the records are correct!
@@ -1190,8 +1191,27 @@ void MpsModelBuilder::readBounds() {
                         boundName = currentBoundName;
                     }
 
+                    bool shortName = false;
+                    CHECK_NAME_FULL(columnIndex.m_name.m_bits, shortName);
+                    if (unlikely(shortName == true)) {
+                        unsigned int index = 0;
+                        while (index < 8 && columnIndex.m_name.m_chars[index] >= ' ') {
+                            index++;
+                        }
+                        for (; index < 8; index++) {
+                            columnIndex.m_name.m_chars[index] = ' ';
+                        }
+                        m_buffer = originalBuffer + 1 + 2 + 1 + 8 + 2;
+                        while (*m_buffer >= ' ') {
+                            m_buffer++;
+                        }
+                        while (*m_buffer < ' ') {
+                            m_buffer++;
+                        }
+                    }
                     columnIndexPtr = m_columnsTable.get( columnIndex );
                     if (unlikely(columnIndexPtr == 0)) {
+                        LPERROR("Column not exists: " << getName(columnIndex.m_name));
                         // TODO: error
                     }
 
@@ -1285,7 +1305,6 @@ void MpsModelBuilder::readBounds() {
         } while (wrong == false);
 
         if (*m_buffer == ' ') {
-
             skipEndLine();
         }
     } while (*m_buffer == ' ');
@@ -1314,7 +1333,7 @@ void MpsModelBuilder::skipSection() {
 
 void MpsModelBuilder::invalidRowType(char type, unsigned int line) {
     std::string message;
-    CREATE_STRING(message, "Invalid row type: " << type);
+    CREATE_STRING(message, "Invalid row type: '" << type << "'");
     m_invalidRowType.add(message, line);
 }
 
