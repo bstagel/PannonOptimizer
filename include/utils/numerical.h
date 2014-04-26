@@ -156,6 +156,7 @@ public:
             m_shift = 11 - level;
             m_size = 1 << m_shift;
             m_buckets = alloc<double, 32>(m_size);
+            memset(m_buckets, 0, sizeof(double) * m_size);
             m_shift = 53 + level;
         }
 
