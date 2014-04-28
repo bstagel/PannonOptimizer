@@ -244,14 +244,10 @@ void DualSimplex::initModules() {
                                                     m_reducedCosts,
                                                     *m_basis);
 
-    DualRatiotestUpdater * ratiotestUpdater = new DualRatiotestUpdater(&m_reducedCostFeasibilities);
-    m_updater->setRatiotestUpdater( ratiotestUpdater );
-
     m_ratiotest = new DualRatiotest(*m_simplexModel,
                                     m_reducedCosts,
                                     m_reducedCostFeasibilities,
-                                    m_variableStates,
-                                    *ratiotestUpdater);
+                                    m_variableStates);
 
     delete pricingFactory;
     pricingFactory = 0;

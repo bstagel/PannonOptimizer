@@ -47,7 +47,6 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
                                  const std::vector<int>& basishead,
                                  const IndexList<>& basicVariableFeasibilities,
                                  const IndexList<const Numerical::Double *>& variableStates
-                                 //PrimalRatiotestUpdater& primalRatiotestUpdater
                                  ):
     m_model(model),
     m_basicVariableValues(basicVariableValues),
@@ -61,7 +60,6 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_nonlinearPrimalPhaseIFunction(static_cast<PRIMAL_RATIOTEST_METHOD>
                                     (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function"))),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot"))
-    //m_primalRatiotestUpdater(primalRatiotestUpdater)
 {
 
 }

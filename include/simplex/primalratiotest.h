@@ -6,7 +6,6 @@
 #include <linalg/matrix.h>
 #include <utils/indexlist.h>
 #include <simplex/primalfeasibilitychecker.h>
-#include <simplex/primalratiotestupdater.h>
 
 class Model;
 
@@ -36,9 +35,7 @@ public:
                     const Vector& basicVariableValues,
                     const std::vector<int>& basishead,
                     const IndexList<>& basicVariableFeasibilities,
-                    const IndexList<const Numerical::Double*>& variableStates
-                    //PrimalRatiotestUpdater& primalRatiotestUpdater
-                    );
+                    const IndexList<const Numerical::Double*>& variableStates);
 
     inline unsigned int getOutgoingVariableIndex()const{return m_outgoingVariableIndex;}
 
@@ -65,7 +62,6 @@ private:
     const IndexList<>& m_basicVariableFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
 
-    //PrimalRatiotestUpdater& m_primalRatiotestUpdater;
     int m_outgoingVariableIndex;
     Numerical::Double m_primalSteplength;
     Numerical::Double m_phaseIObjectiveValue;

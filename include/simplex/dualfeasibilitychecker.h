@@ -25,6 +25,8 @@ public:
     void computeFeasibility(Numerical::Double tolerance);
     void feasibilityCorrection(Vector* basicVariableValues);
 
+    void updateFeasibilities(const std::vector<int> & updateVector);
+
     inline Numerical::Double getPhaseIObjectiveValue() {return m_phaseIObjectiveValue;}
 
 private:

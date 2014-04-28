@@ -20,7 +20,6 @@ public:
 private:
     IndexList<> * m_reducedcostFeasibilities;
 
-    std::vector<int> m_updateVector;
 };
 
 #endif // DUALRATIOTESTUPDATER_H
