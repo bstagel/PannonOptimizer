@@ -67,8 +67,8 @@ private:
     bool m_tPositive;
 
     //Age vector to record transformation counts
-    std::vector<double> m_variableAge;
-    double m_ageStep;
+    std::vector<Numerical::Double> m_variableAge;
+    Numerical::Double m_ageStep;
 
     DualRatiotestUpdater& m_dualRatiotestUpdater;
     int m_incomingVariableIndex;
@@ -79,9 +79,6 @@ private:
     Numerical::Double m_initialPhaseIObjectiveValue;
     Numerical::Double m_initialPhaseIIObjectiveValue;
     BreakpointHandler m_breakpointHandler;
-    Numerical::Double m_pivotThreshold;
-
-    int m_enableFakeFeasibility;
 
     //Ratiotest research measures
     int m_stablePivotActivationPhase1;
@@ -93,6 +90,13 @@ private:
     int m_stablePivotNotFoundPhase2;
     int m_fakeFeasibilityActivationPhase2;
     int m_fakeFeasibilityCounterPhase2;
+
+    //Parameter references
+    const DUAL_RATIOTEST_METHOD m_nonlinearDualPhaseIFunction;
+    const DUAL_RATIOTEST_METHOD m_nonlinearDualPhaseIIFunction;
+    const double & m_optimalityTolerance;
+    const double & m_pivotTolerance;
+    const int & m_enableFakeFeasibility;
 
     void generateSignedBreakpointsPhase1(const Vector& alpha);
     void computeFunctionPhase1(const Vector& alpha,

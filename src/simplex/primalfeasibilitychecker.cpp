@@ -4,9 +4,6 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
-static const Numerical::Double feasibilityTolerance =
-        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
-
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
                                                    IndexList<const Numerical::Double *> * variableStates,
                                                    IndexList<> * basicVariableFeasibilities,
@@ -14,7 +11,8 @@ PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
     m_model(model),
     m_variableStates(variableStates),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
-    m_basisHead(basisHead)
+    m_basisHead(basisHead),
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility"))
 {
 
 }
@@ -60,7 +58,7 @@ void PrimalFeasibilityChecker::computeFeasibilities()
 
     //basic variables with M type infeasibility
 
-        if ( Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) ) {
+        if ( Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, m_feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, basisIndex);
             m_phaseIObjectiveValue += (valueOfIthVariable - lbOfIthVariable);
 //            mindex.push_back(basisIndex);;
@@ -68,7 +66,7 @@ void PrimalFeasibilityChecker::computeFeasibilities()
 
     //basic variables with P type infeasibility
 
-        if ( Numerical::lessthan(ubOfIthVariable, valueOfIthVariable, feasibilityTolerance) ) {
+        if ( Numerical::lessthan(ubOfIthVariable, valueOfIthVariable, m_feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, basisIndex);
             m_phaseIObjectiveValue -= (valueOfIthVariable - ubOfIthVariable);
 //            pindex.push_back(basisIndex);

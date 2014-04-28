@@ -14,9 +14,6 @@ static const unsigned int dualPhase2ClusterCount = 1;
 static const unsigned int dualPhase2VisitedClusterCount = 1;
 static const unsigned int dualPhase2ImprovingVariableCount = 0;
 
-static const Numerical::Double feasibilityTolerance =
-        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
-
 DualDantzigPricing::DualDantzigPricing(const Vector & basicVariableValues,
                                        IndexList<> * basicVariableFeasibilities,
                                        const IndexList<> & reducedCostFeasibilities,
@@ -28,7 +25,8 @@ DualDantzigPricing::DualDantzigPricing(const Vector & basicVariableValues,
                 reducedCostFeasibilities,
                 basisHead,
                 simplexModel,
-                basis)
+                basis),
+	m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility"))
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_simplexModel.getRowCount() ];
     clearPhase1ReducedCosts();
@@ -56,7 +54,8 @@ DualDantzigPricing::DualDantzigPricing(const Vector & basicVariableValues,
 }
 
 DualDantzigPricing::DualDantzigPricing(const DualDantzigPricing& orig):
-    DualPricing(orig)
+    DualPricing(orig),
+    m_feasibilityTolerance(orig.m_feasibilityTolerance)
 {
     copy(orig);
 }
@@ -113,13 +112,13 @@ void DualDantzigPricing::initPhase1() {
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
         if (index >= variableCount) {
-            Numerical::stableSubFrom( m_phase1ReducedCosts[ index - variableCount ], 1 );
+            Numerical::stableAddTo( m_phase1ReducedCosts[ index - variableCount ], - 1 );
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; columnIter++) {
-                Numerical::stableSubFrom( m_phase1ReducedCosts[columnIter.getIndex()], *columnIter );
+                Numerical::stableAddTo( m_phase1ReducedCosts[columnIter.getIndex()], - *columnIter );
             }
         }
     }
@@ -156,9 +155,9 @@ void DualDantzigPricing::initPhase2() {
     Vector::Iterator iterEnd = m_basicVariableValues.end();
     for(; iter < iterEnd ; iter++){
         const Variable & variable = m_simplexModel.getVariable(m_basisHead[iter.getIndex()]);
-        if(Numerical::lessthan(*iter, variable.getLowerBound(), feasibilityTolerance)) {
+        if(Numerical::lessthan(*iter, variable.getLowerBound(), m_feasibilityTolerance)) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
-        } else if(Numerical::lessthan(variable.getUpperBound(), *iter, feasibilityTolerance)) {
+        } else if(Numerical::lessthan(variable.getUpperBound(), *iter, m_feasibilityTolerance)) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
         } else {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
@@ -169,7 +168,7 @@ void DualDantzigPricing::initPhase2() {
 int DualDantzigPricing::performPricingPhase1() {
     initPhase1();
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
-    const unsigned int variableCount = m_simplexModel.getMatrix().rowCount();
+//    const unsigned int variableCount = m_simplexModel.getMatrix().rowCount();
     Numerical::Double max = 0;
     m_outgoingIndex = -1;
     unsigned int index;

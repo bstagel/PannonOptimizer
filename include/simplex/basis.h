@@ -141,7 +141,8 @@ protected:
     bool m_isFresh;
     unsigned int m_basisNonzeros, m_inverseNonzeros;
     int m_singularityCounter;
-    clock_t cl_inversion;
+
+    const double & m_inversion;
 
     void setNewHead();
     void checkSingularity();

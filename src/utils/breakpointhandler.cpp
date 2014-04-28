@@ -3,12 +3,11 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
-static const int nonlinearDualPhaseIFunction =
-        SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function");
-
 BreakpointHandler::BreakpointHandler():
     m_sortingMethod(BreakpointHandler::SELECTION),m_unsorted(m_breakpoints.size())
-{}
+{
+
+}
 
 void BreakpointHandler::insertBreakpoint(int variableIndex, Numerical::Double value)
 {
@@ -61,7 +60,7 @@ void BreakpointHandler::selectMethod()
     //TODO: one stepnél harmadik ág
     m_unsorted = m_breakpoints.size();
 
-    if (m_breakpoints.size() < 1 || nonlinearDualPhaseIFunction == 0){
+    if (m_breakpoints.size() < 1 ){
         m_sortingMethod = SELECTION;
         selectionSort();
     } else{

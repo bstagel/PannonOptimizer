@@ -93,8 +93,6 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
                 }
             }
                 LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
-//            LPINFO(*basisIt);
-//            exit(-1);
         }
     }
     std::sort(unitVectors.begin(), unitVectors.end());
@@ -259,13 +257,11 @@ bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Num
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-            LPINFO("checkFeasibilityConditions PASSED");
-        } else {
-            LPERROR("checkFeasibilityConditions FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkFeasibilityConditions PASSED");
+    } else {
+        LPERROR("checkFeasibilityConditions FAILED");
+    }
     return okay;
 }
 
@@ -304,13 +300,11 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-            LPINFO("checkOptimalityConditions PASSED");
-        } else {
-            LPERROR("checkOptimalityConditions FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkOptimalityConditions PASSED");
+    } else {
+        LPERROR("checkOptimalityConditions FAILED");
+    }
     return okay;
 }
 
@@ -349,13 +343,11 @@ bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical:
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-            LPINFO("checkAllConstraints PASSED");
-        } else {
-            LPERROR("checkAllConstraints FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkAllConstraints PASSED");
+    } else {
+        LPERROR("checkAllConstraints FAILED");
+    }
     return okay;
 }
 
@@ -406,13 +398,11 @@ bool Checker::checkNonbasicVariableStates(const Simplex &simplex, bool print)
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-//            LPINFO("checkNonbasicVariableStates PASSED");
-        } else {
-            LPERROR("checkNonbasicVariableStates FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkNonbasicVariableStates PASSED");
+    } else {
+        LPERROR("checkNonbasicVariableStates FAILED");
+    }
     return okay;
 }
 
@@ -429,13 +419,11 @@ bool Checker::checkBasicVariableStates(const Simplex &simplex, bool print)
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-//            LPINFO("checkBasicVariableStates PASSED");
-        } else {
-            LPERROR("checkBasicVariableStates FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkBasicVariableStates PASSED");
+    } else {
+        LPERROR("checkBasicVariableStates FAILED");
+    }
     return okay;
 }
 
@@ -480,22 +468,10 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
             okay = false;
         }
     }
-//    if(print){
-        if(okay){
-            LPINFO("checkBasicVariableFeasibilities PASSED");
-        } else {
-            LPERROR("checkBasicVariableFeasibilities FAILED");
-        }
-//    }
+    if(okay){
+        LPINFO("checkBasicVariableFeasibilities PASSED");
+    } else {
+        LPERROR("checkBasicVariableFeasibilities FAILED");
+    }
     return okay;
-}
-
-void Checker::checkEverything(const Simplex& simplex, bool print)
-{
-    checkBasicVariableStates(simplex, print);
-    checkNonbasicVariableStates(simplex, print);
-//    checkBasicVariableFeasibilityStates(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
-//    checkAllConstraints(simplex, true, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
-//    checkFeasibilityConditions(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
-//    checkOptimalityConditions(simplex, print, LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative"));
 }

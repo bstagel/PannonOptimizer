@@ -45,6 +45,9 @@ private:
 
     int m_outgoingIndex;
 
+    //Parameter references
+    const double & m_feasibilityTolerance;
+
     void clearPhase1ReducedCosts();
 
     void copy(const DualDantzigPricing & orig);

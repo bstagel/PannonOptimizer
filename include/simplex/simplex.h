@@ -74,12 +74,7 @@ public:
 
 
 protected:
-    unsigned int m_iterationIndex;
-
-    //Tolerance handling
-    Numerical::Double m_masterTolerance;
-    Numerical::Double m_workingTolerance;
-    Numerical::Double m_toleranceStep;
+    int m_iterationIndex;
 
     SimplexModel * m_simplexModel;
 
@@ -96,7 +91,6 @@ protected:
     bool m_feasible;
     bool m_baseChanged;
     bool m_freshBasis;
-    int m_debugLevel;
 
     Timer m_solveTimer;
     Timer m_inversionTimer;
@@ -108,19 +102,29 @@ protected:
     Timer m_selectPivotTimer;
     Timer m_updateTimer;
 
-    bool m_saveBasis;
-    std::string m_saveFilename;
-    std::string m_saveFormat;
-    bool m_saveLastBasis;
-    unsigned int m_saveIteration;
-    unsigned int m_savePeriodically;
-    bool m_loadBasis;
-    std::string m_loadFilename;
-    std::string m_loadFormat;
-    bool m_enableExport;
-    std::string m_exportFilename;
-    int m_exportType;
+    //Parameter variables
+    const bool & m_saveBasis;
+    const std::string & m_saveFilename;
+    const std::string & m_saveFormat;
+    const bool & m_saveLastBasis;
+    const int & m_saveIteration;
+    const int & m_savePeriodically;
+    const bool & m_loadBasis;
+    const std::string & m_loadFilename;
+    const std::string & m_loadFormat;
+    const bool & m_enableExport;
+    const std::string & m_exportFilename;
+    const int & m_exportType;
+    const int & m_debugLevel;
 
+    //Tolerance handling
+    double m_masterTolerance; //Initialized in child classes
+    double m_toleranceMultiplier; //Initialized in child classes
+    double m_toleranceDivider; //Initialized in child classes
+    Numerical::Double m_workingTolerance;
+    Numerical::Double m_toleranceStep;
+
+    //Measure variables
     Numerical::Double m_referenceObjective;
     int m_phase1Iteration;
     Numerical::Double m_phase1Time;

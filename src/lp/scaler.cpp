@@ -42,7 +42,7 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     unsigned int stepCount = 0;
     Numerical::Double variance;
     variance = getVarianceBenichou(matrix, &rowMultipliers);
-    std::vector<double> variances;
+    std::vector<Numerical::Double> variances;
     variances.push_back(variance);
     LPINFO("Variance: " << variance);
 

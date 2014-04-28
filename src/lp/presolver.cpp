@@ -99,7 +99,7 @@ void Presolver::presolve() {
     int elim = 0;
     int i = 0;
     int last = -1;
-    while(elim > last && i < m_iterationLimit) {
+    while(elim > last && i < (int)m_iterationLimit) {
         last = elim;
         elim = 0;
         for(unsigned int i = 0; i < m_modules.size(); i++) {

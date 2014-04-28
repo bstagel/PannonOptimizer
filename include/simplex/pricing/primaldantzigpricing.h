@@ -39,6 +39,10 @@ private:
     std::vector<Numerical::Double> m_positiveSums;
     std::vector<Numerical::Double> m_phase1ReducedCosts;
 
+    //Parameter references
+    const double & m_feasibilityTolerance;
+    const double & m_optimalityTolerance;
+
     void copy(const PrimalDantzigPricing & orig);
 
     void release();

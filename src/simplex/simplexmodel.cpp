@@ -7,7 +7,10 @@
 #include <simplex/simplexparameterhandler.h>
 
 SimplexModel::SimplexModel(const Model & model):
-    m_model(model)
+    m_model(model),
+    m_perturbedCostVector(false),
+    m_perturbedRhs(false),
+    m_perturbedBounds(false)
 {
     m_rhs.setSparsityRatio(DENSE);
     makeComputationalForm();
@@ -142,7 +145,7 @@ void SimplexModel::perturbCostVector()
     LPINFO("Cost vector perturbation");
     m_originalCostVector = m_costVector;
     //generate random epsilon values
-    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_cost_vector");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_cost_vector");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     Vector epsilonValues;
@@ -174,6 +177,8 @@ void SimplexModel::perturbCostVector()
         m_costVector.addVector(1,epsilonValues);
         break;
     }
+
+    m_perturbedCostVector = true;
 //    for(int i=0;i<5;i++){
 //        LPINFO("original: "<<m_originalCostVector.at(i)<<" perturbed: "<<m_costVector.at(i));
 //    }
@@ -184,7 +189,7 @@ void SimplexModel::perturbRHS()
     LPINFO("RHS perturbation");
     m_originalRhs = m_rhs;
     //generate random epsilon values
-    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_rhs");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_rhs");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     Vector epsilonValues;
@@ -197,16 +202,17 @@ void SimplexModel::perturbRHS()
     //perturbation
     m_rhs.addVector(1,epsilonValues);
 
+    m_perturbedRhs = true;
 //    for(int i=0;i<5;i++){
 //        LPINFO("original: "<<m_originalRhs.at(i)<<" perturbed: "<<m_rhs.at(i));
-    //    }
+//    }
 }
 
 void SimplexModel::shiftBounds()
 {
     LPINFO("Bound shifting");
     //generate random epsilon values
-    Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_bounds");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_bounds");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     Vector epsilonValuesLower;
@@ -229,20 +235,21 @@ void SimplexModel::shiftBounds()
         }
     }
 
+    m_perturbedBounds = true;
 }
 
 
 void SimplexModel::resetModel()
 {
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0){
+    if (m_perturbedCostVector != 0){
         m_costVector.clear();
         m_costVector = m_originalCostVector;
     }
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+    if (m_perturbedRhs != 0){
         m_rhs.clear();
         m_rhs = m_originalRhs;
     }
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("shift_bounds") != 0){
+    if (m_perturbedBounds != 0){
         Numerical::Double lb = 0;
         Numerical::Double ub = 0;
         for(unsigned i=0;i < getColumnCount();i++){

@@ -24,13 +24,13 @@ public:
         m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type)));
     }
 
-    inline std::string getStringParameterValue(const std::string& name) const {
+    inline const std::string & getStringParameterValue(const std::string& name) const {
         return *(m_values.at(name).getEntry().m_string);}
-    inline int getIntegerParameterValue(const std::string& name) const {
+    inline const int & getIntegerParameterValue(const std::string& name) const {
         return m_values.at(name).getEntry().m_integer;}
-    inline double getDoubleParameterValue(const std::string& name) const {
+    inline const double & getDoubleParameterValue(const std::string& name) const {
         return m_values.at(name).getEntry().m_double;}
-    inline bool getBoolParameterValue(const std::string& name) const {
+    inline const bool & getBoolParameterValue(const std::string& name) const {
         return m_values.at(name).getEntry().m_bool;}
 
     inline void setParameterValue(const std::string name, const double value){
