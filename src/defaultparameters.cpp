@@ -5,7 +5,7 @@
 #include <defaultparameters.h>
 
 //Linalg Parameters
-const double DefaultParameters::E_ABSOLUTE = 1.0E-12;
+const double DefaultParameters::E_ABSOLUTE = 1.0E-14;
 const double DefaultParameters::E_RELATIVE = 1.0E-10;
 const double DefaultParameters::SPARSITY_RATIO = 0.05;
 const int DefaultParameters::ELBOWROOM = 5;

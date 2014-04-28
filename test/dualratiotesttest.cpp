@@ -2,7 +2,6 @@
 #include <indexlisttest.h>
 #include <linalg/matrix.h>
 #include <simplex/simplex.h>
-#include <simplex/dualratiotestupdater.h>
 #include <simplex/dualratiotest.h>
 
 #include <iostream>
@@ -113,7 +112,6 @@ void DualRatiotestTestSuite::testStagelPh1OneStep()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -194,7 +192,6 @@ void DualRatiotestTestSuite::testStagelPh1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -274,7 +271,6 @@ void DualRatiotestTestSuite::testMaros1Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(model,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -344,7 +340,6 @@ void DualRatiotestTestSuite::testMaros2Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(model,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -418,7 +413,6 @@ void DualRatiotestTestSuite::testStagelCf3Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(model,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -491,7 +485,6 @@ void DualRatiotestTestSuite::testNum1Ph1(){
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
     //performing
     DualRatiotest dualtest(model,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -567,7 +560,6 @@ void DualRatiotestTestSuite::testNum2Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
     //performing
     DualRatiotest dualtest(model,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -620,7 +612,6 @@ void DualRatiotestTestSuite::testNum3Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
     //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -688,7 +679,6 @@ void DualRatiotestTestSuite::testNum4Ph1()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
     //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -782,7 +772,6 @@ void DualRatiotestTestSuite::testStagelPh2(){
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -855,7 +844,6 @@ void DualRatiotestTestSuite::testMaros1Ph2(){
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -925,7 +913,6 @@ void DualRatiotestTestSuite::testMaros2Ph2(){
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -994,7 +981,6 @@ void DualRatiotestTestSuite::testStagelCf3Ph2(){
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -1065,7 +1051,6 @@ void DualRatiotestTestSuite::testStagelCf3Ph2OneStep()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -1126,7 +1111,6 @@ void DualRatiotestTestSuite::testNum1Ph2()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -1197,7 +1181,6 @@ void DualRatiotestTestSuite::testNum2Ph2()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -1272,7 +1255,6 @@ void DualRatiotestTestSuite::testNum3Ph2()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);
@@ -1347,7 +1329,6 @@ void DualRatiotestTestSuite::testNum4Ph2()
     Constraint con;
     model.addConstraint(con,alpha);
     SimplexModel mo(model);
-    DualRatiotestUpdater updater(&reducedCostFeasibilities);
 
 //performing
     DualRatiotest dualtest(mo,reducedCosts,reducedCostFeasibilities,variableStates,updater);

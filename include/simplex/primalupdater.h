@@ -8,7 +8,6 @@
 #include <globals.h>
 
 #include <simplex/primalpricingupdater.h>
-#include <simplex/primalratiotestupdater.h>
 
 class PrimalUpdater {
 public:
@@ -16,13 +15,11 @@ public:
     ~PrimalUpdater();
 
     void setPricingUpdater(PrimalPricingUpdater * pricingUpdater);
-    void setRatiotestUpdater(PrimalRatiotestUpdater *ratiotestUpdater);
 
     void update(int phase);
 
 protected:
     PrimalPricingUpdater * m_pricingUpdater;
-    PrimalRatiotestUpdater * m_ratiotestUpdater;
 };
 
 #endif	/* PRIMALUPDATER_H */

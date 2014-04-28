@@ -170,9 +170,6 @@ void PrimalSimplex::initModules() {
                                                         &m_basicVariableFeasibilities,
                                                         m_basisHead);
 
-    PrimalRatiotestUpdater * ratiotestUpdater = new PrimalRatiotestUpdater(&m_reducedCostFeasibilities);
-    m_updater->setRatiotestUpdater( ratiotestUpdater );
-
     //Todo: Add the updater to the ratiotest
     m_ratiotest = new PrimalRatiotest(*m_simplexModel,
                                       m_basicVariableValues,

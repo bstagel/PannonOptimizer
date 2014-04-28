@@ -13,7 +13,6 @@
 #include <simplex/dualupdater.h>
 #include <simplex/dualfeasibilitychecker.h>
 #include <simplex/dualratiotest.h>
-#include <simplex/dualratiotestupdater.h>
 #include <utils/iterationreportprovider.h>
 #include <utils/iterationreport.h>
 

@@ -13,8 +13,7 @@
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
                              const IndexList<>& reducedCostFeasibilities,
-                             const IndexList<const Numerical::Double*>& variableStates,
-                             DualRatiotestUpdater &dualRatiotestUpdater) :
+                             const IndexList<const Numerical::Double*>& variableStates) :
     m_model(model),
     m_reducedCosts(reducedCosts),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
@@ -22,7 +21,6 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_tPositive(false),
     m_variableAge(model.getColumnCount() + model.getRowCount(),1),
     m_ageStep(1),
-    m_dualRatiotestUpdater(dualRatiotestUpdater),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
     m_phaseIObjectiveValue(0),
@@ -62,8 +60,8 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
-    m_dualRatiotestUpdater.m_updateVector.clear();
-    m_dualRatiotestUpdater.m_updateVector.reserve(m_model.getMatrix().columnCount() + m_model.getMatrix().rowCount());
+    m_updateVector.clear();
+    m_updateVector.reserve(m_model.getMatrix().columnCount() + m_model.getMatrix().rowCount());
 
 
 //computing ratios

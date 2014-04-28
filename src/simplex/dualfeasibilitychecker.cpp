@@ -117,3 +117,36 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
     m_basis.Ftran(transformVector);
     basicVariableValues->addVector(1, transformVector);
 }
+
+void DualFeasibilityChecker::updateFeasibilities(const std::vector<int> & updateVector)
+{
+
+    for (unsigned int index = 0; index < updateVector.size(); index++) {
+        if (updateVector[index] == 1) {
+            if (m_reducedCostFeasibilities->where(index) == Simplex::MINUS) {
+                m_reducedCostFeasibilities->move(index,Simplex::FEASIBLE);
+            } else
+            if (m_reducedCostFeasibilities->where(index) == Simplex::FEASIBLE) {
+                m_reducedCostFeasibilities->move(index,Simplex::PLUS);
+            }
+        } else
+        if (updateVector[index] == -1) {
+            if (m_reducedCostFeasibilities->where(index) == Simplex::PLUS) {
+                m_reducedCostFeasibilities->move(index,Simplex::FEASIBLE);
+            } else
+            if (m_reducedCostFeasibilities->where(index) == Simplex::FEASIBLE) {
+                m_reducedCostFeasibilities->move(index,Simplex::MINUS);
+            }
+        } else
+        if (updateVector[index] == 2) {
+            if (m_reducedCostFeasibilities->where(index) == Simplex::MINUS) {
+                m_reducedCostFeasibilities->move(index,Simplex::PLUS);
+            }
+        } else
+        if (updateVector[index] == -2) {
+            if (m_reducedCostFeasibilities->where(index) == Simplex::PLUS) {
+                m_reducedCostFeasibilities->move(index,Simplex::MINUS);
+            }
+        }
+    }
+}

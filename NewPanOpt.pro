@@ -72,10 +72,8 @@ HEADERS += include/debug.h \
            include/simplex/startingbasisfinder.h \
            include/simplex/dualfeasibilitychecker.h \
            include/simplex/dualratiotest.h \
-           include/simplex/dualratiotestupdater.h \
            include/simplex/primalratiotest.h \
            include/simplex/primalfeasibilitychecker.h \
-           include/simplex/primalratiotestupdater.h \
            include/simplex/basisheadpanopt.h \
            include/simplex/checker.h \
            include/simplex/basisheadio.h \
@@ -149,12 +147,10 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/startingbasisfinder.cpp \
            src/simplex/dualfeasibilitychecker.cpp \
            src/simplex/dualratiotest.cpp \
-           src/simplex/dualratiotestupdater.cpp \
            src/simplex/dualpricing.cpp \
            src/simplex/dualpricingupdater.cpp \
            src/simplex/primalratiotest.cpp \
            src/simplex/primalfeasibilitychecker.cpp \
-           src/simplex/primalratiotestupdater.cpp \
            src/simplex/basisheadbas.cpp \
            src/simplex/basisheadpanopt.cpp \
            src/simplex/checker.cpp \

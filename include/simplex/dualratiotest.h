@@ -10,7 +10,6 @@
 #include <linalg/matrix.h>
 #include <utils/indexlist.h>
 #include <simplex/dualfeasibilitychecker.h>
-#include <simplex/dualratiotestupdater.h>
 #include <utils/breakpointhandler.h>
 
 class Model;
@@ -28,8 +27,8 @@ public:
     DualRatiotest(const SimplexModel & model,
                   const Vector& reducedCosts,
                   const IndexList<>& reducedCostFeasibilities,
-                  const IndexList<const Numerical::Double*>& variableStates,
-                  DualRatiotestUpdater& dualRatiotestUpdater);
+                  const IndexList<const Numerical::Double*>& variableStates);
+
     virtual ~DualRatiotest();
 
     inline int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
@@ -66,11 +65,12 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
     bool m_tPositive;
 
+    std::vector<int> m_updateVector;
+
     //Age vector to record transformation counts
     std::vector<Numerical::Double> m_variableAge;
     Numerical::Double m_ageStep;
 
-    DualRatiotestUpdater& m_dualRatiotestUpdater;
     int m_incomingVariableIndex;
     Numerical::Double m_dualSteplength;
     Numerical::Double m_phaseIObjectiveValue;
