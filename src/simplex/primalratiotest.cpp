@@ -2,9 +2,6 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 
-static const int nonlinearPrimalPhaseIFunction =
-        SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function");
-
 void PrimalRatiotest::shift(std::vector<BreakPoint>* breakpoints,
                             unsigned int startId,unsigned int stopId) {
     unsigned int i=startId,  j=2*i+1;
@@ -61,7 +58,9 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_primalSteplength(0),
     m_phaseIObjectiveValue(0),
     m_phaseIIObjectiveValue(0),
-    m_pivotThreshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot"))
+    m_nonlinearPrimalPhaseIFunction(static_cast<PRIMAL_RATIOTEST_METHOD>
+                                    (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function"))),
+    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot"))
     //m_primalRatiotestUpdater(primalRatiotestUpdater)
 {
 
@@ -328,8 +327,8 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     bool prevIsBetter = nextObjValue > prevObjValue ? false : true;
     bool step = true;
 
-    while (step &&( prevIsBetter ? Numerical::fabs(alpha.at(prevAlphaId)) > m_pivotThreshold:
-                    Numerical::fabs(alpha.at(nextAlphaId)) > m_pivotThreshold)) {
+    while (step &&( prevIsBetter ? Numerical::fabs(alpha.at(prevAlphaId)) > m_pivotTolerance:
+                    Numerical::fabs(alpha.at(nextAlphaId)) > m_pivotTolerance)) {
         step = false;
         if (prevIsBetter) {
             if (iterationCounter - prevIterationCounter > 0) {
@@ -410,7 +409,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     getNextElement(&m_breakpoints,length);
 
     if (m_breakpoints.size() > 1) {
-        int num = nonlinearPrimalPhaseIFunction;
+        int num = m_nonlinearPrimalPhaseIFunction;
         //fake feasible variables
         while(m_breakpoints[length-1-iterationCounter].index != -1) {
             functionSlope -= Numerical::fabs(alpha.at(m_breakpoints[length-1-iterationCounter].index));

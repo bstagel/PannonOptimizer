@@ -17,7 +17,13 @@ PfiBasis::PfiBasis(const SimplexModel& model,
                    std::vector<int>* basisHead,
                    IndexList<const Numerical::Double*>* variableStates,
                    const Vector& basicVariableValues) :
-    Basis(model, basisHead, variableStates, basicVariableValues) {
+    Basis(model, basisHead, variableStates, basicVariableValues),
+    m_nontriangularMethod(static_cast<NONTRIANGULAR_METHOD>
+                          (SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_method"))),
+    m_nontriangularPivotRule(static_cast<NONTRIANGULAR_PIVOT_RULE>
+                             (SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_pivot_rule"))),
+    m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold"))
+{
     m_basis = new std::vector<ETM>();
 
     m_transformationCount = 0;
@@ -39,21 +45,6 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_rowSwapHash = new std::vector<int>();
     m_columnSwapHash = new std::vector<int>();
     m_columnSwapLog = new std::vector<int>();
-
-    nontriangularMethod = (NONTRIANGULAR_METHOD) SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_method");
-    nontriangularPivotRule = (NONTRIANGULAR_PIVOT_RULE) SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_pivot_rule");
-    threshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
-
-
-    cl_inversion = 0;
-    cl_copy = 0;
-    cl_invertR = 0;
-    cl_invertM = 0;
-    cl_invertC = 0;
-    cl_transversal = 0;
-    cl_createBlockTriangular = 0;
-    cl_pivot = 0;
-    cl_updateColumns = 0;
 }
 
 PfiBasis::~PfiBasis() {
@@ -198,8 +189,6 @@ void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
 }
 
 void PfiBasis::invert() {
-    clock_t inversionStart = clock();
-
     m_transformationCount = 0;
     m_inversionCount++;
 
@@ -217,33 +206,17 @@ void PfiBasis::invert() {
     m_inverseNonzeros = 0;
 
     //Copy the basis for computation
-    clock_t copyStart = clock();
     copyBasis();
-    clock_t copyStop = clock();
 
     DEVINFO(D::PFIMAKER, "Basis copied");
 
 //    printActiveSubmatrix();
 
     //Invert the R, M, C parts separately
-    clock_t invertRStart = clock();
-//    LPINFO("invertR");
     invertR();
-    clock_t invertRStop = clock();
-
-    clock_t findCStart = clock();
     findC();
-    clock_t findCStop = clock();
-
-    clock_t invertMStart = clock();
-//    LPINFO("invertM");
     invertM();
-    clock_t invertMStop = clock();
-
-    clock_t invertCStart = clock();
-//    LPINFO("invertC");
     invertC();
-    clock_t invertCStop = clock();
 
     //Free the copied columns
     for(unsigned int i=0; i<m_basicColumnCopies.size(); i++){
@@ -260,15 +233,6 @@ void PfiBasis::invert() {
     setNewHead();
 
     m_isFresh = true;
-
-    clock_t inversionStop = clock();
-    //Save the inversion times
-    cl_inversion += inversionStop - inversionStart;
-    cl_copy += copyStop - copyStart;
-    cl_invertR += invertRStop - invertRStart;
-    cl_invertM += invertMStop - invertMStart;
-    cl_invertC += findCStop - findCStart;
-    cl_invertC += invertCStop - invertCStart;
 
     //printStatistics();
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
@@ -479,9 +443,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     for (; iter != iterEnd; iter++) {
         unsigned int nonZeros = vector.nonZeros();
 
-        //Numerical::Summarizer summarizer;
-        static Numerical::BucketSummarizer summarizer(8); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+//    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
                                                            // annal pontosabb, de annal lassabb is
+
+        Numerical::Summarizer summarizer;
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
             Numerical::Double * ptrValue2 = iter->eta->m_data;
@@ -559,8 +524,6 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 
 
 void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
-    clock_t updateStart = clock();
-
     std::list<int>::iterator it = m_basicNonzeroIndices.at(rowindex).begin();
     std::list<int>::iterator itend = m_basicNonzeroIndices.at(rowindex).end();
 
@@ -600,22 +563,14 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             m_columnCounts.at(*it) = newColumnCount;
         }
     }
-
-    clock_t updateStop = clock();
-    cl_updateColumns += updateStop - updateStart;
 }
 
 void PfiBasis::pivot(const Vector& column, int pivotRow) {
-    clock_t pivotStart = clock();
-
     ETM newEtm;
     newEtm.eta = createEta(column, pivotRow);
     newEtm.index = pivotRow;
     m_inverseNonzeros += newEtm.eta->nonZeros();
     m_basis->push_back(newEtm);
-
-    clock_t pivotStop = clock();
-    cl_pivot += pivotStop - pivotStart;
 }
 
 void PfiBasis::invertR() {
@@ -716,7 +671,7 @@ void PfiBasis::invertM() {
     //The middle (non-triangular) part is called M part
     DEVINFO(D::PFIMAKER, "Organize the M part and invert the columns");
     unsigned int mNum = 0;
-    switch (nontriangularMethod) {
+    switch (m_nontriangularMethod) {
     case SEARCH:{
             //containsOne represents the exit variable
             bool containsOne;
@@ -782,10 +737,7 @@ void PfiBasis::invertM() {
 
     }
     case BLOCK_TRIANGULAR:{
-        clock_t createBlockTriangularStart = clock();
         createBlockTriangular();
-        clock_t createBlockTriangularStop = clock();
-        cl_createBlockTriangular += createBlockTriangularStop - createBlockTriangularStart;
         if (m_mmBlocks->size() > 0) {
             int currentBlock = -1;
             int currentBlockSize = 0;
@@ -860,10 +812,7 @@ void PfiBasis::invertM() {
         break;
     }
     case BLOCK_ORDERED_TRIANGULAR:{
-        clock_t createBlockTriangularStart = clock();
         createBlockTriangular();
-        clock_t createBlockTriangularStop = clock();
-        cl_createBlockTriangular += createBlockTriangularStop - createBlockTriangularStart;
         {
             int blockStart = 0;
             for (std::vector<int>::iterator blockIt = m_mmBlocks->begin(); blockIt < m_mmBlocks->end(); blockIt++) {
@@ -1028,7 +977,7 @@ void PfiBasis::buildMM() {
 void PfiBasis::findTransversal() {
     DEVINFO(D::PFIMAKER, "Searching for transversal form");
     for (int i = 0; i < (int) m_rowSwapHash->size(); i++) {
-        if (Numerical::equals(m_mmRows->at(i).at(i), 0)) {
+        if (m_mmRows->at(i).at(i) == 0) {
             //Find some with bigger index
             bool nextRow = false;
             DEVINFO(D::PFIMAKER, "Searching for diagonal nonzero at row " << i);
@@ -1040,7 +989,7 @@ void PfiBasis::findTransversal() {
                     DEVINFO(D::PFIMAKER, "Nonzero found below index " << i);
                     swapRows(vectorIt.getIndex(), i);
                     break;
-                } else if (Numerical::equals(m_mmRows->at(vectorIt.getIndex()).at(vectorIt.getIndex()), 0)) {
+                } else if (m_mmRows->at(vectorIt.getIndex()).at(vectorIt.getIndex()) == 0) {
                     nextRow = true;
                     DEVINFO(D::PFIMAKER, "Nonzero found in singular row below index " << i);
                     swapRows(vectorIt.getIndex(), i);
@@ -1145,7 +1094,7 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
             int searchResult = it.getIndex();
             swapRows(columnIndex, searchResult);
             return searchResult;
-        } else if (Numerical::equals(m_mmRows->at(it.getIndex()).at(it.getIndex()), 0)) {
+        } else if (m_mmRows->at(it.getIndex()).at(it.getIndex()) == 0) {
             DEVINFO(D::PFIMAKER, "Nonzero found in singular row below index " << searchIndex);
             int searchResult = it.getIndex();
             swapRows(columnIndex, searchResult);
@@ -1308,14 +1257,8 @@ int PfiBasis::searchNode() {
 
 void PfiBasis::createBlockTriangular() {
     buildMM();
-
-    clock_t transversalStart = clock();
     findTransversal();
-    clock_t transversalStop = clock();
-    cl_transversal += transversalStop - transversalStart;
-
     createGraph();
-
     tarjan();
 
 #ifndef NDEBUG
@@ -1329,9 +1272,9 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
     std::vector<int> goodRows;
     Numerical::Double nontriangularMax = 0;
     int previousBlocks = 0;
-    switch (nontriangularPivotRule) {
+    switch (m_nontriangularPivotRule) {
     case NONE:
-        if (Numerical::isZero(currentColumn->at(rowindex))) {
+        if (currentColumn->at(rowindex) == 0) {
             rowindex = -1;
             return false;
         } else {
@@ -1390,11 +1333,11 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         //Levalogatjuk a thresholdnak megfeleloket
         for (std::vector<int>::iterator it = activeRows.begin(); it < activeRows.end(); it++) {
             if (currentColumn->at(*it) > 0) {
-                if (currentColumn->at(*it) > threshold * nontriangularMax) {
+                if (currentColumn->at(*it) > m_threshold * nontriangularMax) {
                     goodRows.push_back(*it);
                 }
             } else {
-                if (-(currentColumn->at(*it)) > threshold * nontriangularMax) {
+                if (-(currentColumn->at(*it)) > m_threshold * nontriangularMax) {
                     goodRows.push_back(*it);
                 }
             }
@@ -1537,7 +1480,7 @@ void PfiBasis::printBlocks() const {
 void PfiBasis::printStatistics() const {
     LPINFO("INVERSION FINISHED");
     LPINFO("Run parameters during the inversion:");
-    switch (nontriangularMethod) {
+    switch (m_nontriangularMethod) {
     case SEARCH:
         LPINFO("Used non-triangular method: SEARCH")
         ;
@@ -1555,7 +1498,7 @@ void PfiBasis::printStatistics() const {
         ;
         break;
     }
-    switch (nontriangularPivotRule) {
+    switch (m_nontriangularPivotRule) {
     case NONE:
         LPINFO("Used non-triangular pivot rule: NONE")
         ;
@@ -1573,18 +1516,6 @@ void PfiBasis::printStatistics() const {
     LPINFO("Nonzeros in the basis: " << m_basisNonzeros);
     LPINFO("Nonzeros in the inverse: " << m_inverseNonzeros);
     LPINFO("Fill in amount: " << ((Numerical::Double)m_inverseNonzeros / (Numerical::Double)m_basisNonzeros)*100.0 - 100 << "% )");
-    LPINFO("Inversion time statistics: ");
-    LPINFO("Total inversion time: " << ((Numerical::Double) (cl_inversion) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
-    LPINFO("Active submatrix copy: " << ((Numerical::Double) (cl_copy) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
-
-    LPINFO("Find transversal time:"<<(Numerical::Double) (cl_transversal) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
-    LPINFO("Create block triangular time:"<<(Numerical::Double) (cl_createBlockTriangular) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
-    LPINFO("Pivot time:"<<(Numerical::Double) (cl_pivot) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
-    LPINFO("Update columns time:"<<(Numerical::Double) (cl_updateColumns) / (Numerical::Double) CLOCKS_PER_SEC << " seconds.");
-
-    LPINFO("R part inversion: " << ((Numerical::Double) (cl_invertR) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
-    LPINFO("M part inversion: " << ((Numerical::Double) (cl_invertM) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
-    LPINFO("C part inversion: " << ((Numerical::Double) (cl_invertC) / (Numerical::Double) CLOCKS_PER_SEC) << " seconds.");
 }
 
 void PfiBasis::printTransformationStatistics() const {

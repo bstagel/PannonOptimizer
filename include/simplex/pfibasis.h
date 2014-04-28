@@ -116,33 +116,6 @@ public:
      */
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
-
-
-    //Parameters of the inversion algorithm
-
-    /**
-     * Setter to choose among the algorithms used to process the non-triangulat part.
-     *
-     * @param method the method to be used.
-     */
-    inline void setNontriangularMethod(const NONTRIANGULAR_METHOD method){nontriangularMethod=method;}
-
-    /**
-     * Setter to choose among the pivoting rules during the processing of the non-triangular part.
-     *
-     * @param method the method to be used.
-     */
-    inline void setNontriangularPivotRule(const NONTRIANGULAR_PIVOT_RULE rule){nontriangularPivotRule=rule;}
-
-    /**
-     * Setter to determine the threshold used when the non-triangular part uses threshold pivoting.
-     * The threshold multiplied by the absolute largest element of the active submatrix gives a
-     * lower bound on the pivot candidates.
-     *
-     * @param value the value of the threshold.
-     */
-    inline void setThreshold(const Numerical::Double value){threshold=value;}
-
 private:
 
     /**
@@ -209,17 +182,11 @@ private:
 
     //Run parameters
     //Non-triangular method parameter
-    NONTRIANGULAR_METHOD nontriangularMethod;
+    NONTRIANGULAR_METHOD m_nontriangularMethod;
     //Non-triangular pivot rule parameter
-    NONTRIANGULAR_PIVOT_RULE nontriangularPivotRule;
+    NONTRIANGULAR_PIVOT_RULE m_nontriangularPivotRule;
     //Threshold value for threshold pivoting
-    Numerical::Double threshold;
-
-    //Clocks for time measurement of the functional units
-    clock_t cl_copy;
-    //Profiling
-    clock_t cl_transversal, cl_createBlockTriangular, cl_pivot, cl_updateColumns;
-    clock_t cl_invertR, cl_invertM, cl_invertC;
+    double m_threshold;
 
     void copyBasis(bool buildIndexLists = true);
 

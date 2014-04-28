@@ -24,6 +24,9 @@ private:
     IndexList<>* m_basicVariableFeasibilities;
     const std::vector<int>& m_basisHead;
     Numerical::Double m_phaseIObjectiveValue;
+
+    //Parameter references
+    const double & m_feasibilityTolerance;
 };
 
 #endif // PRIMALFEASIBILITYCHECKER_H

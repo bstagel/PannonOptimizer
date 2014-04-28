@@ -57,6 +57,10 @@ private:
     Vector m_originalCostVector;
     Vector m_originalRhs;
 
+    bool m_perturbedCostVector;
+    bool m_perturbedRhs;
+    bool m_perturbedBounds;
+
     /**
      * Starts the computational form maker algorithm.
      * It will call the corresponding private function depending on

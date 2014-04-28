@@ -59,8 +59,6 @@ const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibi
 
 Simplex::Simplex():
     m_iterationIndex(0),
-    m_masterTolerance(0),
-    m_toleranceStep(0),
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_basicVariableFeasibilities(0,0),
@@ -72,7 +70,24 @@ Simplex::Simplex():
     m_feasible(false),
     m_baseChanged(false),
     m_freshBasis(false),
-    m_debugLevel(0),
+    //Parameter references
+    m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_basis")),
+    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("save_filename")),
+    m_saveFormat(SimplexParameterHandler::getInstance().getStringParameterValue("save_format")),
+    m_saveLastBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_last_basis")),
+    m_saveIteration(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_iteration")),
+    m_savePeriodically(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_periodically")),
+    m_loadBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("load_basis")),
+    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
+    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
+    m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_export")),
+    m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
+    m_exportType(SimplexParameterHandler::getInstance().getIntegerParameterValue("export_type")),
+    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
+    m_masterTolerance(0),
+    m_workingTolerance(0),
+    m_toleranceStep(0),
+    //Measures
     m_referenceObjective(0),
     m_phase1Iteration(-1),
     m_phase1Time(0.0),
@@ -80,6 +95,7 @@ Simplex::Simplex():
     m_triggeredReinversion(0),
     m_badIterations(0),
     m_degenerateIterations(0),
+    //Modules
     m_startingBasisFinder(NULL),
     m_basis(NULL)
 {
@@ -606,29 +622,14 @@ void Simplex::solve() {
 
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
-    const unsigned int iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
-    const double timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
+    const int & iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
+    const double & timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
             (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getIntegerParameterValue("starting_basis_strategy");
     StartingBasisFinder::STARTING_NONBASIC_STATES startingNonbasicStates =
             (StartingBasisFinder::STARTING_NONBASIC_STATES)simplexParameters.getIntegerParameterValue("starting_nonbasic_states");
-    unsigned int reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
+    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
-
-    m_saveBasis = simplexParameters.getBoolParameterValue("save_basis");
-    m_saveFilename = simplexParameters.getStringParameterValue("save_filename");
-    m_saveFormat = simplexParameters.getStringParameterValue("save_format");
-    m_saveLastBasis = simplexParameters.getBoolParameterValue("save_last_basis");
-    m_saveIteration = simplexParameters.getIntegerParameterValue("save_iteration");
-    m_savePeriodically = simplexParameters.getIntegerParameterValue("save_periodically");
-
-    m_loadBasis = simplexParameters.getBoolParameterValue("load_basis");
-    m_loadFilename = simplexParameters.getStringParameterValue("load_filename");
-    m_loadFormat = simplexParameters.getStringParameterValue("load_format");
-
-    m_enableExport = simplexParameters.getBoolParameterValue("enable_export");
-    m_exportFilename = simplexParameters.getStringParameterValue("export_filename");
-    m_exportType = simplexParameters.getIntegerParameterValue("export_type");
 
     m_iterationReport.addProviderForStart(*this);
     m_iterationReport.addProviderForIteration(*this);
@@ -638,7 +639,6 @@ void Simplex::solve() {
         m_iterationReport.addProviderForExport(*this);
     }
 
-    m_debugLevel = SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level");
     m_iterationReport.setDebugLevel(m_debugLevel);
 
     m_iterationReport.createStartReport();
@@ -668,7 +668,7 @@ void Simplex::solve() {
 
             computeWorkingTolerance();
 
-            if(reinversionCounter == reinversionFrequency){
+            if((int)reinversionCounter == reinversionFrequency){
                 m_freshBasis = true;
                 releaseLocks();
 
@@ -713,6 +713,11 @@ void Simplex::solve() {
                 reinversionCounter++;
             }
 
+            catch ( const BadPivotException & exception ) {
+                LPINFO("Bad Pivot detected: " << exception.getMessage());
+                m_iterationIndex--;
+            }
+
             catch ( const FallbackException & exception ) {
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
                 computeFeasibility();
@@ -737,6 +742,7 @@ void Simplex::solve() {
                     m_solveTimer.stop();
                     throw;
                 } else {
+                    LPINFO("Numerical error: "<<exception.getMessage());
                     m_triggeredReinversion++;
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
@@ -926,7 +932,7 @@ void Simplex::computeBasicSolution() {
                 m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
-                                          Numerical::stableSub(m_basicVariableValues.at(it.getData() - columnCount), *(it.getAttached())));
+                                          Numerical::stableAdd(m_basicVariableValues.at(it.getData() - columnCount), - *(it.getAttached())));
                 //                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
             }
         }
@@ -969,7 +975,7 @@ void Simplex::computeReducedCosts() {
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
-            reducedCost = Numerical::stableSub(costVector.at(i), simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
+            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
         } else {
             reducedCost = -1 * simplexMultiplier.at(i - columnCount);
         }

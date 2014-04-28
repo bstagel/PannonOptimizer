@@ -20,9 +20,13 @@ Basis::Basis(const SimplexModel& model,
     m_basisHead(basisHead),
     m_variableStates(variableStates),
     m_basicVariableValues(basicVariableValues),
-    m_singularityCounter(0)
+    m_isFresh(false),
+    m_basisNonzeros(0),
+    m_inverseNonzeros(0),
+    m_singularityCounter(0),
+    m_inversion(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot"))
 {
-    m_isFresh = false;
+
 }
 
 Basis::~Basis()
@@ -96,8 +100,8 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
     Numerical::Double atPivot = vector.at(pivotPosition);
 
 #ifndef NDEBUG
-    if(Numerical::fabs(atPivot) < SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")){
-        LPWARNING("The pivot element is small: "<<atPivot << " ; "<<pivotPosition);
+    if(Numerical::fabs(atPivot) < m_inversion){
+        LPWARNING("The eta vector pivot element is small: "<<atPivot << " ; "<<pivotPosition);
     }
 #endif
 

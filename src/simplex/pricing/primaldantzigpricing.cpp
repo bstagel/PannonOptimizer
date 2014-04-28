@@ -6,19 +6,6 @@
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/simplex.h>
 
-static const Numerical::Double feasibilityTolerance =
-        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
-
-static const Numerical::Double optimalityTolerance =
-        SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-
-PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
-    PrimalPricing(orig),
-    m_updater(orig.m_updater),
-    m_basisHead(orig.m_basisHead)
-{
-    copy(orig);
-}
 
 PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
                                            PrimalPricingUpdater * updater,
@@ -26,10 +13,23 @@ PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
                                            const Vector &reducedCosts):
     PrimalPricing(model, reducedCosts),
     m_updater(dynamic_cast<PrimalDantzigPricingUpdater *>(updater)),
-    m_basisHead(basisHead)
+    m_basisHead(basisHead),
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility")),
+    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
 {
     m_reducedCost = 0.0;
 }
+
+PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
+    PrimalPricing(orig),
+    m_updater(orig.m_updater),
+    m_basisHead(orig.m_basisHead),
+    m_feasibilityTolerance(orig.m_feasibilityTolerance),
+    m_optimalityTolerance(orig.m_optimalityTolerance)
+{
+    copy(orig);
+}
+
 PrimalDantzigPricing::~PrimalDantzigPricing()
 {
     release();
@@ -121,8 +121,8 @@ int PrimalDantzigPricing::performPricingPhase1()
     m_incomingIndex = -1;
 
     //TODO: What the hell is this? :O
-//    Numerical::Double maxReducedCost = feasibilityTolerance;
-//    Numerical::Double minReducedCost = -feasibilityTolerance;
+//    Numerical::Double maxReducedCost = m_feasibilityTolerance;
+//    Numerical::Double minReducedCost = -m_feasibilityTolerance;
 
 
     Numerical::Double maxReducedCost = 0;
@@ -187,8 +187,8 @@ int PrimalDantzigPricing::performPricingPhase2()
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
     // ????
-//    Numerical::Double maxReducedCost = optimalityTolerance;
-//    Numerical::Double minReducedCost = -optimalityTolerance;
+//    Numerical::Double maxReducedCost = m_optimalityTolerance;
+//    Numerical::Double minReducedCost = -m_optimalityTolerance;
 
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;

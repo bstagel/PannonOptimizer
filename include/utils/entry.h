@@ -3,7 +3,6 @@
 
 #include <string>
 
-
 union Entry {
     enum ENTRY_TYPE{
         STRING,

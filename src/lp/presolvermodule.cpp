@@ -73,7 +73,9 @@ void SingletonRowsModule::executeMethod() {
                 }
 
                 //fix variable if bounds are equal
-                Numerical::Double fixVal;
+                //TODO: Numerical::Double hasznalata eseten nem fordul le ambiguous conversion miatt (DoubleHistory -> bool)
+//                Numerical::Double fixVal;
+                double fixVal;
                 if((m_parent->getConstraints()->at(currentRow.getIndex()).getType() == Constraint::EQUALITY && (fixVal = 1)) ||
                    ((*it) > 0 && varLowerBound * (*it) == rowUpperBound && (fixVal = 1)) ||
                    ((*it) > 0 && varUpperBound * (*it) == rowLowerBound && (fixVal = 2)) ||

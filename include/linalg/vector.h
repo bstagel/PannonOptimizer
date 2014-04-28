@@ -20,12 +20,12 @@ class Matrix;
 /**
  *
  */
-extern unsigned int ELBOWROOM;
+extern const int & ELBOWROOM;
 
 /**
  *
  */
-extern Numerical::Double SPARSITY_RATIO;
+extern const double & SPARSITY_RATIO;
 
 
 /**

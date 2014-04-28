@@ -570,7 +570,7 @@ private:
      * @param right
      * @return
      */
-    friend Matrix operator*(double d, const Matrix& right);
+    friend Matrix operator*(Numerical::Double d, const Matrix& right);
 
     /**
      * Adds d to each element of right matrix and returns the result matrix.
@@ -579,7 +579,7 @@ private:
      * @param right
      * @return
      */
-    friend Matrix operator+(double d, const Matrix& right);
+    friend Matrix operator+(Numerical::Double d, const Matrix& right);
 
 };
 

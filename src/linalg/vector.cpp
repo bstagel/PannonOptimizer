@@ -17,8 +17,8 @@
 
 #include <utils/flags.h>
 
-unsigned int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
-Numerical::Double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+const int & ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+const double & SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
 THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLengthVectorLenght = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
@@ -724,10 +724,9 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
         return 0.0;
     }
 
-    //Numerical::Summarizer summarizer;
-    static Numerical::BucketSummarizer summarizer(8); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+//    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
                                                        // annal pontosabb, de annal lassabb is
-
+    Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
             m_sorted && vector.m_sorted) {

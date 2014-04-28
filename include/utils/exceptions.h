@@ -116,6 +116,11 @@ public:
     ParameterException(const std::string& message): PanOptException(message) {}
 };
 
+class BadPivotException: public PanOptException{
+public:
+    BadPivotException(const std::string &message): PanOptException(message){}
+};
+
 class FallbackException: public PanOptException{
 public:
     FallbackException(const std::string &message): PanOptException(message){}

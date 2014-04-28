@@ -25,6 +25,13 @@ class PrimalRatiotest{
     };
 
 public:
+
+    enum PRIMAL_RATIOTEST_METHOD{
+        ONE_STEP = 0,
+        PIECEWISE_LINEAR_FUNCTION,
+        STABLE_PIVOT
+    };
+
     PrimalRatiotest(const SimplexModel& model,
                     const Vector& basicVariableValues,
                     const std::vector<int>& basishead,
@@ -66,7 +73,10 @@ private:
     std::vector <unsigned int> m_boundflips;
     std::vector <BreakPoint> m_breakpoints;
     bool m_tPositive;
-    Numerical::Double m_pivotThreshold;
+
+    //Parameter references
+    const PRIMAL_RATIOTEST_METHOD m_nonlinearPrimalPhaseIFunction;
+    const double & m_pivotTolerance;
 
     void shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId);
     void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);

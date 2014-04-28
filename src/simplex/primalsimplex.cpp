@@ -26,7 +26,9 @@ PrimalSimplex::PrimalSimplex():
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
-    m_workingTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
+    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
+    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
+    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
 }
 
 
@@ -347,7 +349,7 @@ void PrimalSimplex::update() {
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
-        Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
+//        Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
 //        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
 
         if (typeOfIthVariable == Variable::FIXED) {
@@ -355,19 +357,14 @@ void PrimalSimplex::update() {
 //            LPINFO("ougoing variable fix, value: "<<valueOfOutgoingVariable);
         }
         else if (typeOfIthVariable == Variable::BOUNDED) {
-            if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex),
-                                 m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound())){
+            if(m_primalTheta*m_alpha.at(m_outgoingIndex) < 0){
                 outgoingState = NONBASIC_AT_LB;
 //                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
 //                       " lb: "<<lbOfOutgoingVariable);
-            } else if(Numerical::equals(valueOfOutgoingVariable - m_primalTheta*m_alpha.at(m_outgoingIndex),
-                                        m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound())){
+            } else {
                 outgoingState = NONBASIC_AT_UB;
 //                LPINFO("outgoing variable vounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
 //                       " ub: "<<ubOfOutgoingVariable);
-            } else {
-                outgoingState = NONBASIC_AT_LB;
-                LPERROR("INVALID OUTGOING STATE");
             }
         }
         else if (typeOfIthVariable == Variable::PLUS) {
@@ -443,12 +440,9 @@ void PrimalSimplex::checkReferenceObjective() {
 
 void PrimalSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
     if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function") == 3) {
-        m_workingTolerance = m_masterTolerance *
-                SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
-        m_toleranceStep = (m_masterTolerance - m_workingTolerance) /
-            SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+        m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {
         m_workingTolerance = m_masterTolerance;
         m_toleranceStep = 0;
@@ -457,13 +451,11 @@ void PrimalSimplex::initWorkingTolerance() {
 
 void PrimalSimplex::computeWorkingTolerance() {
     //increment the EXPAND tolerance
-    if (m_toleranceStep != 0)
-    {
+    if (m_toleranceStep != 0) {
         m_workingTolerance += m_toleranceStep;
          //reset the EXPAND tolerance
         if (m_workingTolerance >= m_masterTolerance) {
-            m_workingTolerance = m_masterTolerance *
-                    SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
+            m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         }
     }
 }

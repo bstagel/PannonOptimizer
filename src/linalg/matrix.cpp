@@ -875,7 +875,7 @@ void Matrix::operator+=(const Matrix& other)
     }
 }
 
-Matrix operator*(double d, const Matrix& right)
+Matrix operator*(Numerical::Double d, const Matrix& right)
 {
     Matrix m(0, 0);
     unsigned int index;
@@ -896,7 +896,7 @@ Matrix operator*(double d, const Matrix& right)
     return m;
 }
 
-Matrix operator+(double d, const Matrix& right)
+Matrix operator+(Numerical::Double d, const Matrix& right)
 {
     Matrix m = right;
     for (unsigned int i = 0; i < right.rowCount(); i++) {
