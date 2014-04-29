@@ -178,7 +178,6 @@ void redirectOutput(std::string path) {
 
 int main(int argc, char** argv) {
     setbuf(stdout, 0);
-
     std::vector<std::pair<std::string, std::string> > solvables;
 
     ALGORITHM algorithm = DUAL;
