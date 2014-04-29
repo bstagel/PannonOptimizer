@@ -8,7 +8,6 @@
 #include <globals.h>
 
 #include <simplex/dualpricing.h>
-#include <simplex/pricing/dualdantzigpricingupdater.h>
 #include <utils/exceptions.h>
 #include <vector>
 

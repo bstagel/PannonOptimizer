@@ -47,17 +47,12 @@ HEADERS += include/debug.h \
            include/lp/presolver.h \
            include/lp/presolvermodule.h \
            include/simplex/pricing/dualdantzigpricing.h \
-           include/simplex/pricing/dualdantzigpricingfactory.h \
-           include/simplex/pricing/dualdantzigpricingupdater.h \
            include/simplex/pricing/primaldantzigpricing.h \
            include/simplex/pricing/primaldantzigpricingfactory.h \
            include/simplex/pricing/primaldantzigpricingupdater.h \
            include/simplex/startingbasisfinder/sbf_super.h \
            include/simplex/startingbasisfinder/sbf_logical.h \
            include/simplex/dualpricing.h \
-           include/simplex/dualpricingfactory.h \
-           include/simplex/dualpricingupdater.h \
-           include/simplex/dualupdater.h \
            include/simplex/primalpricing.h \
            include/simplex/primalpricingfactory.h \
            include/simplex/primalpricingupdater.h \
@@ -128,14 +123,11 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/presolver.cpp \
            src/lp/presolvermodule.cpp \
            src/simplex/pricing/dualdantzigpricing.cpp \
-           src/simplex/pricing/dualdantzigpricingfactory.cpp \
-           src/simplex/pricing/dualdantzigpricingupdater.cpp \
            src/simplex/pricing/primaldantzigpricing.cpp \
            src/simplex/pricing/primaldantzigpricingfactory.cpp \
            src/simplex/pricing/primaldantzigpricingupdater.cpp \
            src/simplex/startingbasisfinder/sbf_super.cpp \
            src/simplex/startingbasisfinder/sbf_logical.cpp \
-           src/simplex/dualupdater.cpp \
            src/simplex/primalupdater.cpp \
            src/simplex/simplexmodel.cpp \
            src/simplex/simplex.cpp \
@@ -148,7 +140,6 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/dualfeasibilitychecker.cpp \
            src/simplex/dualratiotest.cpp \
            src/simplex/dualpricing.cpp \
-           src/simplex/dualpricingupdater.cpp \
            src/simplex/primalratiotest.cpp \
            src/simplex/primalfeasibilitychecker.cpp \
            src/simplex/basisheadbas.cpp \
