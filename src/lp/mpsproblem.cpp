@@ -15,6 +15,45 @@ MpsModelBuilder::MpsModelBuilder() {
     m_costVectorName.m_bits = 0;
 }
 
+MpsModelBuilder::~MpsModelBuilder() {
+    clear();
+}
+
+void MpsModelBuilder::clear(){
+
+    std::list<std::vector<Row>* >::iterator rowListIter = m_rows.m_rows.begin();
+    std::list<std::vector<Row>* >::iterator rowListIterEnd = m_rows.m_rows.end();
+    for (; rowListIter != rowListIterEnd; rowListIter++) {
+        delete *rowListIter;
+    }
+
+    m_rows.m_rows.clear();
+
+    std::list<std::vector<Column>* >::iterator columnListIter = m_columns.m_columns.begin();
+    std::list<std::vector<Column>* >::iterator columnListIterEnd = m_columns.m_columns.end();
+    for (; columnListIter != columnListIterEnd; columnListIter++) {
+        delete *columnListIter;
+    }
+
+    m_columns.m_columns.clear();
+
+    std::list<double *>::iterator doubleIter = m_values.begin();
+    std::list<double *>::iterator doubleIterEnd = m_values.end();
+    for (; doubleIter != doubleIterEnd; doubleIter++) {
+        release(*doubleIter);
+    }
+
+    m_values.clear();
+
+    std::list<unsigned int *>::iterator intIter = m_indices.begin();
+    std::list<unsigned int *>::iterator intIterEnd = m_indices.end();
+    for (; intIter != intIterEnd; intIter++) {
+        release(*intIter);
+    }
+
+    m_indices.clear();
+}
+
 void MpsModelBuilder::showBuffer(int count, bool newLine) {
     cout << "-------------------" << endl << ">";
     for (int i = 0; i < count; i++) {
@@ -933,6 +972,9 @@ void MpsModelBuilder::readColumns() {
                             if (unlikely(m_actualValue >= m_actualValueEnd)) {
                                 values = alloc<double, 64>( sm_valueBufferSize );
                                 indices = alloc<unsigned int, 64>( sm_valueBufferSize );
+//                                m_doublePointers.push_back(values);
+//                                m_intPointers.push_back(indices);
+
                                 m_values.push_back(values);
                                 m_indices.push_back(indices);
                                 m_actualValue = values;
@@ -988,7 +1030,7 @@ void MpsModelBuilder::readColumns() {
     } while (*m_buffer == ' ');
 
     saveColumn(&actualColumn, &lastVector, columnPattern);
-
+    delete [] columnPattern;
 }
 
 void MpsModelBuilder::finishColumns() {
@@ -1149,6 +1191,7 @@ void MpsModelBuilder::readRhsOrRanges(double Row::*range) {
         }
     } while (*m_buffer == ' ');
 
+    delete [] columnPattern;
 }
 
 void MpsModelBuilder::readBounds() {
@@ -1169,7 +1212,7 @@ void MpsModelBuilder::readBounds() {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-   // bool endLine;
+    // bool endLine;
     EmptySection4 startSection;
 
     do {
@@ -1308,7 +1351,7 @@ void MpsModelBuilder::readBounds() {
             skipEndLine();
         }
     } while (*m_buffer == ' ');
-
+    delete [] boundsPattern;
 }
 
 void MpsModelBuilder::skipSection() {
@@ -1355,6 +1398,8 @@ void MpsModelBuilder::rowExists(const RowIndex & row) {
 }
 
 void MpsModelBuilder::loadFromFile(const std::string & fileName) {
+
+    clear();
 
     m_invalidRowType.init(m_errorPrintLimit, m_levelCounters);
     m_invalidRowName.init(m_errorPrintLimit, m_levelCounters);
@@ -1530,8 +1575,8 @@ const Variable & MpsModelBuilder::getVariable(unsigned int index) const {
     const Column * column = m_columnsMap[index];
     static Variable result;
     result = Variable::createVariable(getName(column->m_name).c_str(),
-                                                      column->m_lowerBound,
-                                                      column->m_upperBound);
+                                      column->m_lowerBound,
+                                      column->m_upperBound);
     return result;
 }
 
@@ -1576,8 +1621,8 @@ const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const {
 
     static Constraint result;
     try {
-    result = Constraint::createConstraint( getName(row->m_name).c_str(),
-                                                             lowerBound, upperBound);
+        result = Constraint::createConstraint( getName(row->m_name).c_str(),
+                                               lowerBound, upperBound);
     } catch (const Constraint::InvalidLowerBoundException & ex) {
         LPERROR(row->m_rowType);
         LPERROR(ex.getMessage());

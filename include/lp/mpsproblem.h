@@ -32,7 +32,11 @@ class MpsModelBuilder: public ModelBuilder {
 public:
     MpsModelBuilder();
 
+    ~MpsModelBuilder();
+
     void loadFromFile(const std::string & fileName);
+
+    void clear();
 
     // ********************************************************
     // Inherited from MatrixBuilder

@@ -6,7 +6,10 @@
 #define	DUALPRICING_H
 
 #include <globals.h>
-#include <simplex/dualpricingupdater.h>
+#include <linalg/vector.h>
+#include <utils/indexlist.h>
+#include <simplex/basis.h>
+#include <simplex/pricing/simpri.h>
 
 class SimplexModel;
 

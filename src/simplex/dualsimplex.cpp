@@ -5,9 +5,7 @@
 #include <algorithm>
 
 #include <simplex/dualsimplex.h>
-#include <simplex/dualpricingfactory.h>
 #include <simplex/pricing/dualdantzigpricing.h>
-#include <simplex/pricing/dualdantzigpricingfactory.h>
 #include <simplex/pfibasis.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/checker.h>
@@ -37,7 +35,6 @@ const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasib
 
 DualSimplex::DualSimplex():
     m_pricing(0),
-    m_updater(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
@@ -217,19 +214,6 @@ void DualSimplex::initModules() {
 
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
-    DualPricingFactory * pricingFactory = new DualDantzigPricingFactory;
-
-    m_updater = new DualUpdater;
-
-    DualPricingUpdater * pricingUpdater = pricingFactory->createDualPricingUpdater(
-                m_basicVariableValues,
-                &m_basicVariableFeasibilities,
-                m_reducedCostFeasibilities,
-                m_basisHead,
-                *m_simplexModel,
-                *m_basis
-                );
-    m_updater->setPricingUpdater( pricingUpdater );
 
     m_pricing = new DualDantzigPricing (m_basicVariableValues,
                                         &m_basicVariableFeasibilities,
@@ -249,8 +233,6 @@ void DualSimplex::initModules() {
                                     m_reducedCostFeasibilities,
                                     m_variableStates);
 
-    delete pricingFactory;
-    pricingFactory = 0;
 }
 
 void DualSimplex::releaseModules() {
@@ -259,11 +241,6 @@ void DualSimplex::releaseModules() {
     if(m_pricing){
         delete m_pricing;
         m_pricing = 0;
-    }
-
-    if(m_updater){
-        delete m_updater;
-        m_updater = 0;
     }
 
     if(m_feasibilityChecker){
@@ -457,7 +434,6 @@ void DualSimplex::update() {
     }
 
     //Do dual specific using the updater
-    m_updater->update(m_feasible ? 2 : 1);
 }
 
 void DualSimplex::setReferenceObjective() {
