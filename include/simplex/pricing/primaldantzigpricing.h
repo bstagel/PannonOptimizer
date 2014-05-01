@@ -7,17 +7,22 @@
 
 #include <globals.h>
 
+#include <linalg/vector.h>
 #include <simplex/primalpricing.h>
-#include <simplex/pricing/primaldantzigpricingupdater.h>
 #include <utils/exceptions.h>
+#include <utils/indexlist.h>
 #include <vector>
 
 class PrimalDantzigPricing: public PrimalPricing
 {
 public:
-    PrimalDantzigPricing(const SimplexModel & model,
-                         PrimalPricingUpdater * updater,
+    PrimalDantzigPricing(const Vector & basicVariableValues,
+                         const IndexList<> & basicVariableFeasibilities,
+                         IndexList<> * reducedCostFeasibilities,
+                         const IndexList<const Numerical::Double*> & variableStates,
                          const std::vector<int> & basisHead,
+                         const SimplexModel & model,
+                         const Basis & basis,
                          const Vector & reducedCosts);
     PrimalDantzigPricing(const PrimalDantzigPricing& orig);
     virtual ~PrimalDantzigPricing();
@@ -28,10 +33,6 @@ public:
     void releaseUsed();
     void lockLastIndex();
 private:
-
-    PrimalDantzigPricingUpdater * m_updater;
-
-    const std::vector<int> & m_basisHead;
 
     int m_incomingIndex;
 
