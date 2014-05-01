@@ -48,15 +48,10 @@ HEADERS += include/debug.h \
            include/lp/presolvermodule.h \
            include/simplex/pricing/dualdantzigpricing.h \
            include/simplex/pricing/primaldantzigpricing.h \
-           include/simplex/pricing/primaldantzigpricingfactory.h \
-           include/simplex/pricing/primaldantzigpricingupdater.h \
            include/simplex/startingbasisfinder/sbf_super.h \
            include/simplex/startingbasisfinder/sbf_logical.h \
            include/simplex/dualpricing.h \
            include/simplex/primalpricing.h \
-           include/simplex/primalpricingfactory.h \
-           include/simplex/primalpricingupdater.h \
-           include/simplex/primalupdater.h \
            include/simplex/simplexmodel.h \
            include/simplex/simplex.h \
            include/simplex/primalsimplex.h \
@@ -124,11 +119,8 @@ SOURCES += src/linalg/matrix.cpp \
            src/lp/presolvermodule.cpp \
            src/simplex/pricing/dualdantzigpricing.cpp \
            src/simplex/pricing/primaldantzigpricing.cpp \
-           src/simplex/pricing/primaldantzigpricingfactory.cpp \
-           src/simplex/pricing/primaldantzigpricingupdater.cpp \
            src/simplex/startingbasisfinder/sbf_super.cpp \
            src/simplex/startingbasisfinder/sbf_logical.cpp \
-           src/simplex/primalupdater.cpp \
            src/simplex/simplexmodel.cpp \
            src/simplex/simplex.cpp \
            src/simplex/primalsimplex.cpp \
@@ -146,7 +138,6 @@ SOURCES += src/linalg/matrix.cpp \
            src/simplex/basisheadpanopt.cpp \
            src/simplex/checker.cpp \
            src/simplex/primalpricing.cpp \
-           src/simplex/primalpricingupdater.cpp \
            src/utils/arch/x86.cpp \
            src/utils/file.cpp \
            src/utils/numerical.cpp \

@@ -3,8 +3,7 @@
  */
 
 #include <simplex/primalsimplex.h>
-#include <simplex/primalpricingfactory.h>
-#include <simplex/pricing/primaldantzigpricingfactory.h>
+#include <simplex/pricing/primaldantzigpricing.h>
 
 #include <simplex/simplexparameterhandler.h>
 
@@ -21,7 +20,6 @@ const static char * PRIMAL_THETA_STRING = "Theta";
 
 PrimalSimplex::PrimalSimplex():
     m_pricing(0),
-    m_updater(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
@@ -145,25 +143,15 @@ void PrimalSimplex::initModules() {
 
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
-    PrimalPricingFactory * pricingFactory = new PrimalDantzigPricingFactory;
 
-    m_updater = new PrimalUpdater;
-
-    PrimalPricingUpdater * pricingUpdater = pricingFactory->createPrimalPricingUpdater(
-                m_basicVariableValues,
-                m_basicVariableFeasibilities,
-                &m_reducedCostFeasibilities,
-                m_variableStates,
-                m_basisHead,
-                *m_simplexModel,
-                *m_basis
-                );
-    m_updater->setPricingUpdater( pricingUpdater );
-
-    m_pricing = pricingFactory->createPrimalPricing(*m_simplexModel,
-                                                    pricingUpdater,
-                                                    m_basisHead,
-                                                    m_reducedCosts);
+    m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
+                                         m_basicVariableFeasibilities,
+                                         &m_reducedCostFeasibilities,
+                                         m_variableStates,
+                                         m_basisHead,
+                                         *m_simplexModel,
+                                         *m_basis,
+                                         m_reducedCosts);
 
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
@@ -177,8 +165,6 @@ void PrimalSimplex::initModules() {
                                       m_basicVariableFeasibilities,
                                       m_variableStates);
 
-    delete pricingFactory;
-    pricingFactory = 0;
 
     //The alpha vector for the column calculations
     m_alpha.resize(m_simplexModel->getRowCount());
@@ -191,11 +177,6 @@ void PrimalSimplex::releaseModules() {
     if (m_pricing) {
         delete m_pricing;
         m_pricing = 0;
-    }
-
-    if (m_updater) {
-        delete m_updater;
-        m_updater = 0;
     }
 
     if (m_feasibilityChecker){
@@ -396,8 +377,6 @@ void PrimalSimplex::update() {
     if(!m_feasible){
         computeFeasibility();
     }
-
-    m_updater->update(m_feasible ? 2 : 1);
 
 //    LPWARNING("outgoing variable val: "<<valueOfOutgoingVariable<<
 //              " lb: "<<lbOfOutgoingVariable<<

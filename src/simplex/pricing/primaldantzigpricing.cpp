@@ -7,13 +7,22 @@
 #include <simplex/simplex.h>
 
 
-PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
-                                           PrimalPricingUpdater * updater,
+PrimalDantzigPricing::PrimalDantzigPricing(const Vector & basicVariableValues,
+                                           const IndexList<> & basicVariableFeasibilities,
+                                           IndexList<> * reducedCostFeasibilities,
+                                           const IndexList<const Numerical::Double *> & variableStates,
                                            const std::vector<int> & basisHead,
+                                           const SimplexModel & model,
+                                           const Basis & basis,
                                            const Vector &reducedCosts):
-    PrimalPricing(model, reducedCosts),
-    m_updater(dynamic_cast<PrimalDantzigPricingUpdater *>(updater)),
-    m_basisHead(basisHead),
+    PrimalPricing(basicVariableValues,
+                  basicVariableFeasibilities,
+                  reducedCostFeasibilities,
+                  variableStates,
+                  basisHead,
+                  model,
+                  basis,
+                  reducedCosts),
     m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility")),
     m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
 {
@@ -22,8 +31,6 @@ PrimalDantzigPricing::PrimalDantzigPricing(const SimplexModel & model,
 
 PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
     PrimalPricing(orig),
-    m_updater(orig.m_updater),
-    m_basisHead(orig.m_basisHead),
     m_feasibilityTolerance(orig.m_feasibilityTolerance),
     m_optimalityTolerance(orig.m_optimalityTolerance)
 {
@@ -47,16 +54,16 @@ void PrimalDantzigPricing::release()
 
 void PrimalDantzigPricing::initPhase1() {
     m_negativeSums.clear();
-    m_negativeSums.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0 );
+    m_negativeSums.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0 );
     m_positiveSums.clear();
-    m_positiveSums.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0 );
+    m_positiveSums.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0 );
     m_phase1ReducedCosts.clear();
-    m_phase1ReducedCosts.resize( m_model.getColumnCount() + m_model.getRowCount(), 0.0);
+    m_phase1ReducedCosts.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0);
 
     unsigned int rowCount = m_basisHead.size();
     // get the h vector
     Vector auxVector( rowCount, Vector::DENSE_VECTOR );
-    const IndexList<> & basicVariableFeasibilities = m_updater->m_basicVariableFeasibilities;
+    const IndexList<> & basicVariableFeasibilities = m_basicVariableFeasibilities;
     IndexList<>::Iterator iter, iterEnd;
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; iter++) {
@@ -68,7 +75,7 @@ void PrimalDantzigPricing::initPhase1() {
         auxVector.setNewNonzero(iter.getData(), -1.0);
     }
     // compute the simplex multiplier
-    m_updater->m_basis.Btran(auxVector);
+    m_basis.Btran(auxVector);
 
     // compute the reduced costs
     std::vector<Numerical::Double>::iterator sumIter = m_negativeSums.begin();
@@ -81,7 +88,7 @@ void PrimalDantzigPricing::initPhase1() {
     for (; sumIter != sumIterEnd; sumIter++) {
         *sumIter = 0.0;
     }
-    const Matrix & matrix = m_updater->m_simplexModel.getMatrix();
+    const Matrix & matrix = m_simplexModel.getMatrix();
     Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
     Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
     for (; auxIter != auxIterEnd; auxIter++) {
@@ -98,9 +105,9 @@ void PrimalDantzigPricing::initPhase1() {
             }
         }
         if(lambda > 0.0){
-            m_positiveSums[m_model.getColumnCount() + auxIter.getIndex()] = lambda;
+            m_positiveSums[m_simplexModel.getColumnCount() + auxIter.getIndex()] = lambda;
         } else {
-            m_negativeSums[m_model.getColumnCount() + auxIter.getIndex()] = lambda;
+            m_negativeSums[m_simplexModel.getColumnCount() + auxIter.getIndex()] = lambda;
         }
     }
     unsigned int index;
@@ -128,11 +135,11 @@ int PrimalDantzigPricing::performPricingPhase1()
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
@@ -141,11 +148,11 @@ int PrimalDantzigPricing::performPricingPhase1()
         }
     }
 
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
 
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
@@ -154,10 +161,10 @@ int PrimalDantzigPricing::performPricingPhase1()
         }
     }
 
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
@@ -194,11 +201,11 @@ int PrimalDantzigPricing::performPricingPhase2()
     Numerical::Double minReducedCost = 0;
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
 
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
@@ -208,11 +215,11 @@ int PrimalDantzigPricing::performPricingPhase2()
         }
     }
 
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
 
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
@@ -222,10 +229,10 @@ int PrimalDantzigPricing::performPricingPhase2()
         }
     }
 
-    m_updater->m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
     for (; iter != iterEnd; iter++) {
         unsigned int variableIndex = iter.getData();
-        if (m_updater->m_used[variableIndex] == true) {
+        if (m_used[variableIndex] == true) {
             continue;
         }
         const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
@@ -248,14 +255,14 @@ int PrimalDantzigPricing::performPricingPhase2()
 }
 
 void PrimalDantzigPricing::releaseUsed() {
-    unsigned int size = m_updater->m_used.size();
-    m_updater->m_used.clear();
-    m_updater->m_used.resize( size, false );
+    unsigned int size = m_used.size();
+    m_used.clear();
+    m_used.resize( size, false );
 }
 
 void PrimalDantzigPricing::lockLastIndex() {
     if (m_incomingIndex != -1) {
-        m_updater->m_used[m_incomingIndex] = true;
+        m_used[m_incomingIndex] = true;
     } else {
         // TODO: kell ez ide egyaltalan?
         throw NumericalException(std::string("Invalid column lock index!"));
