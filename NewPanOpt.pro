@@ -103,7 +103,8 @@ HEADERS += include/debug.h \
            include/globals.h \
     include/simplex/startingbasisfinder/sbf_crash.h \
     include/utils/breakpointhandler.h \
-    include/simplex/pricing/simpri.h
+    include/simplex/pricing/simpri.h \
+    include/simplex/pricing/dualdevexpricing.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -159,6 +160,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/globals.cpp \
            src/simplex/startingbasisfinder/sbf_crash.cpp \
            src/utils/breakpointhandler.cpp \
-    src/simplex/pricing/simpri.cpp
+    src/simplex/pricing/simpri.cpp \
+    src/simplex/pricing/dualdevexpricing.cpp
 
 #OBJECTS_DIR = .o

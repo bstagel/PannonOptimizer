@@ -1,26 +1,19 @@
-/**
- * @file   dualdantzigpricing.h
- */
-
-#ifndef DUALDANTZIGPRICING_H
-#define	DUALDANTZIGPRICING_H
-
-#include <globals.h>
+#ifndef DUALDEVEXPRICING_H
+#define DUALDEVEXPRICING_H
 
 #include <simplex/dualpricing.h>
-#include <utils/exceptions.h>
 #include <vector>
 
-class DualDantzigPricing: public DualPricing
-{
+class DualDevexPricing: public DualPricing {
 public:
-    DualDantzigPricing(const Vector &basicVariableValues,
+    DualDevexPricing(const Vector &basicVariableValues,
                        IndexList<> *basicVariableFeasibilities,
                        const IndexList<> &reducedCostFeasibilities,
                        const std::vector<int> & basisHead,
                        const SimplexModel & simplexModel,
                        const Basis &basis);
-    virtual ~DualDantzigPricing();
+
+    virtual ~DualDevexPricing();
 
     int performPricingPhase1();
     int performPricingPhase2();
@@ -29,10 +22,15 @@ public:
                             int outgoingIndex,
                             const Vector & incomingAlpha,
                             const Vector & pivotRow);
+
 private:
+    std::vector<char> m_referenceFramework;
 
+    std::vector<Numerical::Double> m_weights;
 
+    unsigned int m_previousPhase;
+
+    void setReferenceFramework();
 };
 
-#endif	/* DUALDANTZIGPRICING_H */
-
+#endif // DUALDEVEXPRICING_H
