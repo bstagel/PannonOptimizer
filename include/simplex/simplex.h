@@ -87,6 +87,8 @@ protected:
     Vector m_reducedCosts;
     Numerical::Double m_objectiveValue;
     Numerical::Double m_phaseIObjectiveValue;
+    Vector m_incomingAlpha;
+    Vector m_pivotRow;
 
     bool m_feasible;
     bool m_baseChanged;
