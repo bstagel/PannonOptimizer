@@ -717,15 +717,17 @@ Numerical::Double Vector::euclidNorm() const
     return Numerical::sqrt(result);
 }
 
-Numerical::Double Vector::dotProduct(const Vector & vector) const
+Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, bool stableAddRel) const
 {
     if (m_size == 0 || vector.m_size == 0) {
         CHECK;
         return 0.0;
     }
 
+
 //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
                                                        // annal pontosabb, de annal lassabb is
+//    Numerical::BucketSummarizer summarizer(8);
     Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
@@ -753,8 +755,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
                 index2++;
             }
         }
-        return summarizer.getResult();
-
+        return summarizer.getResult(stableAddAbs, stableAddRel);
     }
     Numerical::Double temp;
     if (m_vectorType == DENSE_VECTOR && vector.m_vectorType == DENSE_VECTOR) {
@@ -767,7 +768,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
             ptr1++;
             ptr2++;
         }
-        return summarizer.getResult();
+        return summarizer.getResult(stableAddAbs, stableAddRel);
     }
 
     Numerical::Double * data;
@@ -831,7 +832,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector) const
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
-    return summarizer.getResult();
+    return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 
 Vector & Vector::addVector(Numerical::Double lambda,
@@ -1177,9 +1178,8 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     Numerical::Double pivotValue = at(pivot);
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
-//    LPWARNING("eta: "<<eta);
-//    LPWARNING("atPivot: "<<atPivot);
     addVector(pivotValue, eta, Numerical::ADD_ABS_REL);
+//    addVector(pivotValue, eta, Numerical::ADD_ABS);
     set(pivot, atPivot * pivotValue);
     return *this;
 }

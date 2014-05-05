@@ -13,15 +13,6 @@
 
 class SimplexModel;
 
-static const unsigned int dualPhase1ClusterCount = 1;
-static const unsigned int dualPhase1VisitedClusterCount = 1;
-static const unsigned int dualPhase1ImprovingVariableCount = 0;
-
-static const unsigned int dualPhase2ClusterCount = 1;
-static const unsigned int dualPhase2VisitedClusterCount = 1;
-static const unsigned int dualPhase2ImprovingVariableCount = 0;
-
-
 class DualPricing {
 public:
     DualPricing(const Vector &basicVariableValues,
@@ -76,6 +67,12 @@ protected:
 
     //Parameter references
     const double & m_feasibilityTolerance;
+    const int & m_phaseIClusters;
+    const int & m_phaseIVisitClusters;
+    const int & m_phaseIImprovingCandidates;
+    const int & m_phaseIIClusters;
+    const int & m_phaseIIVisitClusters;
+    const int & m_phaseIIImprovingCandidates;
 
     void clearPhase1ReducedCosts();
 

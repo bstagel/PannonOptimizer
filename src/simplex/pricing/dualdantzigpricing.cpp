@@ -53,7 +53,6 @@ int DualDantzigPricing::performPricingPhase1() {
             }
         }
     }
-
     if (m_outgoingIndex != -1) {
         m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
     }

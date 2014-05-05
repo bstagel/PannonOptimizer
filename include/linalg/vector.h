@@ -451,7 +451,7 @@ public:
      * @param vector The vector which with the operation have to be performed
      * @return Value of dot product
      */
-    Numerical::Double dotProduct(const Vector & vector) const;
+    Numerical::Double dotProduct(const Vector & vector, bool stableAddAbs = true, bool stableAddRel = true) const;
 
     Numerical::Double euclidNorm() const;
 

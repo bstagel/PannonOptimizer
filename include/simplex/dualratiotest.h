@@ -65,8 +65,6 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
     bool m_tPositive;
 
-    std::vector<int> m_updateVector;
-
     //Age vector to record transformation counts
     std::vector<Numerical::Double> m_variableAge;
     Numerical::Double m_ageStep;
@@ -105,7 +103,6 @@ private:
     void useNumericalThresholdPhase1(unsigned int iterationCounter,
                                const Vector& alpha,
                                Numerical::Double& functionSlope);
-    bool numericalCheck(const Vector& alpha, unsigned int alphaId);
 
     void generateSignedBreakpointsPhase2(const Vector& alpha);
     void computeFunctionPhase2(const Vector& alpha,

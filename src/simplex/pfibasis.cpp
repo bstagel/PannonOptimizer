@@ -329,7 +329,9 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             while (ptrValue1 < ptrValueEnd) {
                 const Numerical::Double value = *ptrValue2;
                 if (value != 0.0) {
-                    const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
+//                    const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
+                    const Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
+//                    const Numerical::Double val = *ptrValue1 + pivotValue * value;
                     if (*ptrValue1 == 0.0 && val != 0.0) {
                         vector.m_nonZeros++;
                     } else if (*ptrValue1 != 0.0 && val == 0.0) {
@@ -359,7 +361,9 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
                 if (*ptrEta != 0.0) {
                     Numerical::Double val;
                     if (*ptrIndex != pivotPosition) {
-                        val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
+//                        val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
+                        val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+//                        val = originalValue + pivotValue * *ptrEta;
                         if (originalValue == 0.0 && val != 0.0) {
                             vector.m_nonZeros++;
                         } else if (originalValue != 0.0 && val == 0.0) {
@@ -375,6 +379,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             }
         }
     }
+
     // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
 
     Vector::VECTOR_TYPE newType;
@@ -446,7 +451,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
                                                            // annal pontosabb, de annal lassabb is
 
-        Numerical::Summarizer summarizer;
+//    Numerical::BucketSummarizer summarizer(8);
+    Numerical::Summarizer summarizer;
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
             Numerical::Double * ptrValue2 = iter->eta->m_data;

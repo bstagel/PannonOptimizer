@@ -417,16 +417,16 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     int variableIndex;
     unsigned int position = 0;
 
-    LPINFO("basic variables: " << m_basicVariableValues );
+//    LPINFO("basic variables: " << m_basicVariableValues );
 
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
-        std::cout << variableIndex << " ";
+//        std::cout << variableIndex << " ";
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         basisWriter->addBasicVariable( variable, position, variableIndex, m_basicVariableValues.at(position) );
         position++;
     }
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
     IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
 
@@ -914,10 +914,6 @@ void Simplex::computeBasicSolution() {
     m_basicVariableValues = m_simplexModel->getRhs();
     m_objectiveValue = - m_simplexModel->getCostConstant();
 
-    //    Checker::checkPfiWithFtran(*this);
-    //    Checker::checkPfiWithBtran(*this);
-    //    Checker::checkPfiWithReducedCost(*this);
-
     const unsigned int columnCount = m_simplexModel->getColumnCount();
     //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})
     IndexList<const Numerical::Double *>::Iterator it;
@@ -975,7 +971,7 @@ void Simplex::computeReducedCosts() {
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
-            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
+            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
         } else {
             reducedCost = -1 * simplexMultiplier.at(i - columnCount);
         }

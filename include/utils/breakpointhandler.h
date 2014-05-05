@@ -10,9 +10,17 @@ class BreakpointHandler
 {
 public:
     struct BreakPoint{
+        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double functionValue):
+            variableIndex(variableIndex),
+            value(value),
+            functionValue(functionValue)
+        {}
+        ~BreakPoint(){}
+
         int variableIndex;
         Numerical::Double value;
         mutable Numerical::Double functionValue;
+
         friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint){
             os << "(" << breakpoint.variableIndex << "; " << breakpoint.value <<
                   "; " << breakpoint.functionValue << ")";
@@ -43,11 +51,16 @@ public:
 private:
     vector<BreakPoint> m_breakpoints;
     SORTING_METHOD m_sortingMethod;
-    void selectionSort();
+
     int m_unsorted;
+
+    void selectionSort();
     void heapify(int actual);
     void buildHeap();
-    void swapBreakpoints(int first, int second);
+    void checkHeap();
+
+    //Use inline Std::swap to take advantage of the move constructor of the BreakPoint struct
+    inline void swapBreakpoints(int first, int second){std::swap(m_breakpoints[first],m_breakpoints[second]);}
 };
 
 #endif // BREAKPOINTHANDLER_H
