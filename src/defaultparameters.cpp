@@ -28,6 +28,12 @@ const int DefaultParameters::REINVERSION_FREQUENCY = 30;
 const double DefaultParameters::PIVOT_THRESHOLD = 0.1;
 //Pricing
 const int DefaultParameters::PRICING_TYPE = 0;
+const int DefaultParameters::SIMPRI_PHASEI_CLUSTERS = 1;
+const int DefaultParameters::SIMPRI_PHASEI_VISIT_CLUSTERS = 1;
+const int DefaultParameters::SIMPRI_PHASEI_IMPROVING_CANDIDATES = 0;
+const int DefaultParameters::SIMPRI_PHASEII_CLUSTERS = 1;
+const int DefaultParameters::SIMPRI_PHASEII_VISIT_CLUSTERS = 1;
+const int DefaultParameters::SIMPRI_PHASEII_IMPROVING_CANDIDATES = 0;
 //Ratiotest
 const int DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 2;

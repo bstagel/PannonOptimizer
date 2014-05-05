@@ -44,25 +44,10 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
 
 }
 
-//returns false if alpha is numerical good
-bool DualRatiotest::numericalCheck(const Vector& alpha, unsigned int alphaId)
-{
-    if ( Numerical::fabs(alpha.at(alphaId)) > m_pivotTolerance)
-    {
-        return false;
-    }else{
-        return true;
-    }
-}
-
 void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
-
-    m_updateVector.clear();
-    m_updateVector.reserve(m_model.getMatrix().columnCount() + m_model.getMatrix().rowCount());
-
 
 //computing ratios
     IndexList<>::Iterator it;
@@ -107,9 +92,9 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
 
         for (; it!=endit; it++){
             variableIndex = it.getData();
-            typeOfIthVariable = m_model.getVariable(variableIndex).getType();
             if ( alpha.at(variableIndex) != 0 ) {
                 valueOfVariable = m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
                 if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) > 0) {
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
@@ -159,9 +144,9 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
 
         for (; it!=endit; it++) {
             variableIndex = it.getData();
-            typeOfIthVariable = m_model.getVariable(variableIndex).getType();
             if (alpha.at(variableIndex) != 0 ) {
                 valueOfVariable = - m_reducedCosts.at(variableIndex) / alpha.at(variableIndex);
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
                 if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) < 0) {
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
@@ -181,17 +166,18 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
                                           unsigned int& iterationCounter,
                                           Numerical::Double& functionSlope)
 {
-    unsigned int length = m_breakpointHandler.getNumberOfBreakpoints();
+    unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
 
-    while (functionSlope >= 0 && iterationCounter < length) {
+    while (functionSlope >= 0 && iterationCounter < numberOfBreakpoints) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
 
         m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = m_phaseIObjectiveValue;
+
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
 
         iterationCounter++;
@@ -211,79 +197,95 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                                           Numerical::Double& functionSlope)
 {
     m_stablePivotActivationPhase1++;
+    LPINFO("Stable pivot activated in phase 1");
 
-    unsigned int length = m_breakpointHandler.getNumberOfBreakpoints(),
-    breakpointId = iterationCounter, prevBreakpointId = breakpointId, nextBreakpointId = breakpointId,
-    prevIterationCounter = 0, nextIterationCounter = 0;
+    unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
+    unsigned int prevBreakpointId = iterationCounter;
+    unsigned int nextBreakpointId = iterationCounter;
+    Numerical::Double prevObjValue = - Numerical::Infinity;
+    Numerical::Double nextObjValue = - Numerical::Infinity;
+
 #ifndef NDEBUG
         LPWARNING("BAD NUMERICAL VALUE IN PHASE I,  ACTIVATING THRESHOLD for variable " <<
-                  m_breakpointHandler.getBreakpoint(breakpointId)->variableIndex <<
-                  " with alpha" <<alpha.at(m_breakpointHandler.getBreakpoint(breakpointId)->variableIndex)<<
-                  " at f= "<<m_breakpointHandler.getBreakpoint(breakpointId)->functionValue);
+                  m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex <<
+                  " with alpha" <<alpha.at(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex)<<
+                  " at f= "<<m_breakpointHandler.getBreakpoint(iterationCounter)->functionValue);
 #endif
-    Numerical::Double prevObjValue = m_phaseIObjectiveValue, nextObjValue = m_phaseIObjectiveValue;
-    if (iterationCounter > 0) {
+
+    //If there is any previous breakpoint, initalize the first one
+    if (prevBreakpointId > 0) {
         prevBreakpointId--;
-        prevIterationCounter++;
         prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
     }
-    if (iterationCounter < length-1) {
+    //If there is any next breakpoint, initalize the first one
+    if (iterationCounter < numberOfBreakpoints-1) {
+        Numerical::Double t_prev = m_breakpointHandler.getBreakpoint(iterationCounter)->value;
         nextBreakpointId++;
-        Numerical::Double t_prev = m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter)->value;
-        nextIterationCounter++;
 
-        const BreakpointHandler::BreakPoint * actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter);
+        const BreakpointHandler::BreakPoint * actualBreakpoint = m_breakpointHandler.getBreakpoint(nextBreakpointId);
         Numerical::Double t_actual = actualBreakpoint->value;
-        nextObjValue += functionSlope * (t_actual - t_prev);
+
+        nextObjValue = m_phaseIObjectiveValue + functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = nextObjValue;
+
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
         if(nextObjValue < m_initialPhaseIObjectiveValue){
             nextObjValue = -Numerical::Infinity;
         }
-    } else{
-        nextObjValue = -Numerical::Infinity;
     }
-    bool prevIsBetter = nextObjValue > prevObjValue ? false : true;
-    bool step = true;
 
-    while (step &&( prevIsBetter ? Numerical::fabs(alpha.at(prevBreakpointId)) < m_pivotTolerance :
-                    Numerical::fabs(alpha.at(nextBreakpointId)) < m_pivotTolerance) ) {
-        step = false;
-        if (prevIsBetter) {
-            m_stablePivotBackwardStepsPhase1++;
-            if (iterationCounter - prevIterationCounter > 0) {
-                prevBreakpointId--;
-                prevIterationCounter++;
-                prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
-                step = true;
-            } else if ( prevObjValue != -Numerical::Infinity) {
-                prevObjValue = -Numerical::Infinity;
-                step = true;
+    //Prefer the selection o the previous breakpoint hence it is already available
+    bool prevIsBetter = (prevObjValue >= nextObjValue ? true : false);
+
+    //Search while there is any potential positive step
+    while (prevObjValue > - Numerical::Infinity || nextObjValue > - Numerical::Infinity) {
+        //If the better objective value has a good pivot, stop searching
+        if(prevIsBetter){
+            if(Numerical::fabs(alpha.at(prevBreakpointId)) < m_pivotTolerance){
+                break;
             }
         } else {
+            if(Numerical::fabs(alpha.at(nextBreakpointId)) < m_pivotTolerance){
+                break;
+            }
+        }
+        //One step backward
+        if (prevIsBetter) {
+            m_stablePivotBackwardStepsPhase1++;
+            if (prevBreakpointId > 0) {
+                prevBreakpointId--;
+                prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
+            } else {
+                prevObjValue = -Numerical::Infinity;
+            }
+        //One step forward
+        } else {
             m_stablePivotForwardStepsPhase1++;
-            if (iterationCounter + nextIterationCounter < length && nextObjValue != -Numerical::Infinity) {
+            if (nextBreakpointId < numberOfBreakpoints - 1) {
+                Numerical::Double t_prev = m_breakpointHandler.getBreakpoint(nextBreakpointId)->value;
                 nextBreakpointId++;
-                Numerical::Double t_prev = m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter)->value;
-                nextIterationCounter++;
-                const BreakpointHandler::BreakPoint * actualBreakpoint =
-                        m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter);
+
+                const BreakpointHandler::BreakPoint * actualBreakpoint = m_breakpointHandler.getBreakpoint(nextBreakpointId);
                 Numerical::Double t_actual = actualBreakpoint->value;
+
                 nextObjValue += functionSlope * (t_actual - t_prev);
                 actualBreakpoint->functionValue = nextObjValue;
+
                 functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
+
                 if (nextObjValue < m_initialPhaseIObjectiveValue) {
                     nextObjValue = -Numerical::Infinity;
                 }
-                step = true;
-            } else if( nextObjValue != -Numerical::Infinity) {
+            } else {
                 nextObjValue = -Numerical::Infinity;
-                step = true;
             }
         }
-        prevIsBetter = nextObjValue > prevObjValue? false : true;
+
+        //Prefer the selection o the previous breakpoint hence it is already available
+        prevIsBetter = (prevObjValue >= nextObjValue ? true : false);
     }
 
+    //No acceptable pivot found with positive step
     if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
         LPWARNING("No stable pivot found in phase 1!");
         m_incomingVariableIndex = -1;
@@ -293,18 +295,21 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         LPERROR(" - Threshold Error - No breakpoint found! num of breakpoints: "<<
                 m_breakpointHandler.getNumberOfBreakpoints());
 #endif
+    //A good pivot is found backward
     } else if (prevIsBetter) {
-        m_phaseIObjectiveValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
-        m_incomingVariableIndex = m_breakpointHandler.getBreakpoint(prevBreakpointId)->variableIndex;
-        m_dualSteplength = m_tPositive ? m_breakpointHandler.getBreakpoint(prevBreakpointId)->value : - m_breakpointHandler.getBreakpoint(prevBreakpointId)->value;
+        const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(prevBreakpointId);
+        m_incomingVariableIndex = breakpoint->variableIndex;
+        m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
+        m_phaseIObjectiveValue = breakpoint->functionValue;
+    //A good pivot is found forward
     } else {
-        m_phaseIObjectiveValue = m_breakpointHandler.getBreakpoint(nextBreakpointId)->functionValue;
-        m_incomingVariableIndex = m_breakpointHandler.getBreakpoint(nextBreakpointId)->variableIndex;
-        m_dualSteplength = m_tPositive ? m_breakpointHandler.getBreakpoint(nextBreakpointId)->value : - m_breakpointHandler.getBreakpoint(nextBreakpointId)->value;
+        const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(nextBreakpointId);
+        m_incomingVariableIndex = breakpoint->variableIndex;
+        m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
+        m_phaseIObjectiveValue = breakpoint->functionValue;
     }
 #ifndef NDEBUG
-    LPWARNING("steps(prev;next): " << prevIterationCounter<<
-                                          " ; " << nextIterationCounter<<"\n");
+    LPWARNING("steps(prev;next): " << prevBreakpointId<< " ; " << nextBreakpointId<<"\n");
 #endif
 }
 
@@ -316,8 +321,8 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     unsigned iterationCounter = 0;
 
-    m_phaseIObjectiveValue = phaseIObjectiveValue;
     m_initialPhaseIObjectiveValue = phaseIObjectiveValue;
+    m_phaseIObjectiveValue = phaseIObjectiveValue;
     m_incomingVariableIndex = -1;
     m_dualSteplength = 0;
 
@@ -328,66 +333,71 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
         m_tPositive = true;
     }
 
+    //Generate the breakpoints of the piecewise linear concave function
     generateSignedBreakpointsPhase1(alpha);
 
+    //If is there any breakpoint
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
+        //Initialize the handler to provide sorted breakpoints
         m_breakpointHandler.selectMethod();
-        //fake feasible variables
+        //Handle fake feasible variables if enables
         if (m_enableFakeFeasibility) {
             const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
             int fakeFesibilityCounter = 0;
 
-            while (breakpoint->value < 0 ) {
+            //If the first breakpoint is fake feasible filter them
+            while (breakpoint->value < 0 && functionSlope >=0 ) {
                 fakeFesibilityCounter++;
 
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
                 iterationCounter++;
 
+                //Check the next breakpoint for fake feasibility
                 if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
                     breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
                 } else {
-                    break;
+                    //If all breakpoints were fake feasible return
+                    return;
                 }
             }
 
+            //Update the fake feasibility report
             if(fakeFesibilityCounter > 0){
                 m_fakeFeasibilityActivationPhase1++;
                 m_fakeFeasibilityCounterPhase1+=fakeFesibilityCounter;
             }
 
-            if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
-                m_incomingVariableIndex = -1;
-                m_dualSteplength = 0;
+            //If the slope gone to negative return
+            if( functionSlope < 0){
                 return;
             }
         }
 
+        //IterationCounter points to the first non-fake feasible breakpoint if there is any (otherwise returned)
+        switch (m_nonlinearDualPhaseIFunction){
+            case ONE_STEP:{
+                const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
 
-        if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
-            switch (m_nonlinearDualPhaseIFunction){
-                case ONE_STEP:{
-                    const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(0);
+                m_phaseIObjectiveValue += functionSlope * breakpoint->value;
+                breakpoint->functionValue = m_phaseIObjectiveValue;
 
-                    m_phaseIObjectiveValue += functionSlope * breakpoint->value;
-                    breakpoint->functionValue = m_phaseIObjectiveValue;
-                    m_incomingVariableIndex = breakpoint->variableIndex;
-                    m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
-                    break;
+                m_incomingVariableIndex = breakpoint->variableIndex;
+                m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
+                break;
+            }
+
+            case PIECEWISE_LINEAR_FUNCTION:{
+                computeFunctionPhase1(alpha, iterationCounter, functionSlope);
+                break;
+            }
+
+            case STABLE_PIVOT:{
+                computeFunctionPhase1(alpha, iterationCounter, functionSlope);
+
+                if( Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance ) {
+                    useNumericalThresholdPhase1(iterationCounter, alpha, functionSlope);
                 }
-
-                case PIECEWISE_LINEAR_FUNCTION:{
-                    computeFunctionPhase1(alpha, iterationCounter, functionSlope);
-                    break;
-                }
-
-                case STABLE_PIVOT:{
-                    computeFunctionPhase1(alpha, iterationCounter, functionSlope);
-
-                    if( Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance ) {
-                        useNumericalThresholdPhase1(iterationCounter, alpha, functionSlope);
-                    }
-                    break;
-                }
+                break;
             }
         }
     } else{
@@ -441,6 +451,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
         //t>=0 case
         if (m_tPositive) {
             while (it != endit) {
+
                 variableIndex = it.getData();
 
                 if (it.getPartitionIndex() == Simplex::NONBASIC_AT_LB && alpha.at(variableIndex) > 0) {

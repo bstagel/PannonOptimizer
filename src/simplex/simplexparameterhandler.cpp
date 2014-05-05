@@ -40,191 +40,202 @@ void SimplexParameterHandler::writeParameterFile(){
 
         if (!out.is_open()) throw -1;
 
-        out << "!!! Simplex parameter file for the Pannon Optimizer !!!" << std::endl;
-        out << "!\tIf this file is present, the values of the given parameters can be changed." << std::endl;
+        out << "!!! Simplex parameter file for the Pannon Optimizer !!! \n";
+        out << "! If this file is present, the values of the given parameters can be changed. \n";
 
-        out << std::scientific << std::endl;
-        out << "!!! Tolerances !!!" << std::endl << std::endl;
+        out << std::scientific << "\n";
 
-        out << "! Pivot tolerance for SSX iterations" << std::endl;
-        out << "\t" << "e_pivot = " <<writeParameter("e_pivot") << std::endl;
+        out << "!!! Tolerances !!! \n \n";
 
-        out << "! Feasibility tolerance" << std::endl;
-        out << "\t" << "e_feasibility = " << writeParameter("e_feasibility") << std::endl;
+        out << "! Pivot tolerance for SSX iterations \n";
+        out << "\t" << "e_pivot = " <<writeParameter("e_pivot") << "\n";
 
-        out << "! Optimality tolerance" << std::endl;
-        out << "\t" << "e_optimality = " << writeParameter("e_optimality") << std::endl;
+        out << "! Feasibility tolerance \n"
+               "\t" << "e_feasibility = " << writeParameter("e_feasibility") << "\n";
+
+        out << "! Optimality tolerance \n"
+               "\t" << "e_optimality = " << writeParameter("e_optimality") << "\n";
+
+        out << std::fixed << "\n";
+
+        out << "!!! Starting procedures !!! \n\n";
+
+        out << "! Presolve \n"
+               "\t" << "presolve = " << writeParameter("presolve") << "\n";
+
+        out << "! Benichou scaling with powers of 2 \n"
+               "\t" << "scaling = " << writeParameter("scaling") << "\n";
+
+        out << "! Starting procedures \n"
+               "! 0 = Non-basic variables at lower bound \n"
+               "! 1 = Non-basic variables at upper bound \n"
+               "! 2 = Mixed non-basic variable bounds \n"
+               "\t" << "starting_nonbasic_states = " << writeParameter("starting_nonbasic_states") << "\n";
+
+        out << "! Starting basis strategies \n"
+               "! 0 = Logical basis \n"
+               "! 1 = CRASH basis \n"
+               "\t" << "starting_basis_strategy = " << writeParameter("starting_basis_strategy") << "\n";
+
+        out << "\n";
+
+        out << "!!! Basis factorization !!! \n\n";
+        out << "! Type of basis factorization \n"
+               "! 0 = PFI \n"
+               "! 1 = LU factorization \n"
+               "\t" << "factorization_type = " << writeParameter("factorization_type") << "\n";
+
+        out << "! PFI specific parameters ! \n";
+        out << "! The method used to process the non-triangular kernel \n"
+               "! 0 = Simple search for potential pivot positions \n"
+               "! 1 = Create a block triangular form and pivot down the diagonal \n"
+               "! 2 = Create a block triangular form and order the blocks by column counts before pivoting \n"
+               "\t" << "nontriangular_method = " << writeParameter("nontriangular_method") << "\n";
+
+        out << "! Pivot rules for the non-triangular part \n"
+               "! 0 = Simple pivot tolerance is used \n"
+               "! 1 = Threshold pivoting \n"
+               "\t" << "nontriangular_pivot_rule = " << writeParameter("nontriangular_pivot_rule") << "\n";
+
+        out << "! Frequency of reinversions in # of iterations \n"
+               "\t" << "reinversion_frequency = " << writeParameter("reinversion_frequency") << "\n";
+
+        out << " ! Constant value used for threshold pivoting \n"
+               "\t" << "pivot_threshold = " << writeParameter("pivot_threshold") <<  "\n";
+
+        out << "\n";
+
+        out << "!!! Pricing !!! \n\n";
+        out << "! Pricing type \n"
+               "! 0 = Dantzig rule \n"
+               "! 1 = Devex rule \n"
+               "\t" << "pricing_type = " << writeParameter("pricing_type") << "\n";
+
+        out << "! Parameters of the SIMPRI partial pricing framework \n"
+               "! The range of vectors are divided into clusters during the pricing, which are \n"
+               "! scanned as a round robin in order to find improving candidates. \n"
+               "! With partial pricing it can be specified that only a certain number \n"
+               "! of clusters are visited to find improving candidates. If no candidates \n"
+               "! found, more clusters are involved until necessary. \n"
+               "! It is also possible to stop the cluster visit if enough candidates are found. \n"
+               "! Parameter valus 0 for improving candidates means this stop condition is turned off. \n"
+               "! All the three parameters can be specified both for phase I and phase II. \n"
+               "\t" << "simpri_phaseI_clusters = " << writeParameter("simpri_phaseI_clusters") << "\n"
+               "\t" << "simpri_phaseI_visit_clusters = " << writeParameter("simpri_phaseI_visit_clusters") << "\n"
+               "\t" << "simpri_phaseI_improving_candidates = " << writeParameter("simpri_phaseI_improving_candidates") << "\n"
+               "\t" << "simpri_phaseII_clusters = " << writeParameter("simpri_phaseII_clusters") << "\n"
+               "\t" << "simpri_phaseII_visit_clusters = " << writeParameter("simpri_phaseII_visit_clusters") << "\n"
+               "\t" << "simpri_phaseII_improving_candidates = " << writeParameter("simpri_phaseII_improving_candidates") << "\n";
 
 
-        out << std::fixed << std::endl;
-        out << "!!! Starting procedures !!!" << std::endl << std::endl;
+        out << "\n";
 
-        out << "! Presolve" << std::endl;
-        out << "\t" << "presolve = " << writeParameter("presolve") << std::endl;
-
-        out << "! Scaling" << std::endl;
-        out << "\t" << "scaling = " << writeParameter("scaling") << std::endl;
-
-        out << "! Starting procedures" << std::endl;
-        out << "! 0 = Non-basic variables at lower bound\n"
-               "! 1 = Non-basic variables at upper bound\n"
-               "! 2 = Mixed non-basic variable bounds" << std::endl;
-        out << "\t" << "starting_nonbasic_states = " << writeParameter("starting_nonbasic_states") << std::endl;
-        out << "! 0 = Logical basis\n"
-               "! 1 = CRASH basis" << std::endl;
-        out << "\t" << "starting_basis_strategy = " << writeParameter("starting_basis_strategy") << std::endl;
-
-
-        out << std::fixed << std::endl;
-        out << "!!! Basis factorization !!!" << std::endl << std::endl;
-
-        out << "! Type of basis factorization\n"
-               "! 0 = PFI" << std::endl;
-        out << "\t" << "factorization_type = " << writeParameter("factorization_type") << std::endl << std::endl;
-
-        out << "\t! PFI specific parameters" << std::endl;
-        out << "\t! The method used to process the non-triangular kernel\n"
-               "\t! 0 = Simple search for potential pivot positions\n"
-               "\t! 1 = Create a block triangular form and pivot down the diagonal\n"
-               "\t! 2 = Create a block triangular form and order the blocks by column counts before pivoting"<< std::endl;
-        out << "\t\t" << "nontriangular_method = " << writeParameter("nontriangular_method") <<  std::endl;
-
-        out << "\t! Pivot rules for the non-triangular part\n"
-               "\t! 0 = Simple pivot tolerance is used\n"
-               "\t! 1 = Threshold pivoting" <<  std::endl;
-        out << "\t\t" << "nontriangular_pivot_rule = " << writeParameter("nontriangular_pivot_rule") <<  std::endl;
-
-        out << "\t! Frequency of reinversions in # of iterations" <<  std::endl;
-        out << "\t\t" << "reinversion_frequency = " << writeParameter("reinversion_frequency") <<  std::endl;
-
-        out << "\t ! Constant value used for threshold pivoting" <<  std::endl;
-        out << "\t\t" << "pivot_threshold = " << writeParameter("pivot_threshold") <<  std::endl;
-
-
-        out << std::fixed << std::endl;
-        out << "!!! Pricing !!!" <<  std::endl <<  std::endl;
-
-        out << "! Pricing type\n"
-               "! 0 = Dantzig" << std::endl;
-        out << "\t" << "pricing_type = " << writeParameter("pricing_type") << std::endl;
-
-
-        out << std::fixed << std::endl;
-        out << "!!! Ratiotest !!!" <<  std::endl <<  std::endl;
-
+        out << "!!! Ratiotest !!!\n\n";
         out << "! Use the piecewise linear concave function in primal phase I. \n"
                "\t! 0 = Traditional one step method \n"
                "\t! 1 = Piecewise linear function \n"
                "\t! 2 = Piecewise linear function with numerical threshold \n"
-               "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") <<
-               std::endl << std::endl;
+               "\t" << "nonlinear_primal_phaseI_function = " << writeParameter("nonlinear_primal_phaseI_function") << "\n";
 
         out << "! Use the piecewise linear concave function in dual phase I. \n"
                "\t! 0 = Traditional one step method \n"
                "\t! 1 = Piecewise linear function \n"
                "\t! 2 = Piecewise linear function with numerical threshold \n"
                "\t! 3 = Piecewise linear function with EXPAND \n"
-               "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << std::endl;
+               "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << "\n";
 
         out << "! Use the piecewise linear concave function in dual phase II. \n"
                "\t! 0 = Traditional one step method \n"
                "\t! 1 = Piecewise linear function \n"
                "\t! 2 = Piecewise linear function with numerical threshold \n"
-               "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << std::endl;
+               "\t" << "nonlinear_dual_phaseII_function = " << writeParameter("nonlinear_dual_phaseII_function") << "\n";
 
         out << "! Enable fake feasibility handling in Dual Phase I and II \n"
                "\t! 0 = disabled \n"
-               "\t! 1 = enabled" << std::endl;
-        out << "\t" << "enable_fake_feasibility = " << writeParameter("enable_fake_feasibility")
-            << std::endl << std::endl;
+               "\t! 1 = enabled \n"
+               "\t" << "enable_fake_feasibility = " << writeParameter("enable_fake_feasibility") << "\n";
 
-        out << "! EXPAND multiplier initializing value\n"
-               "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI")
-               << std::endl;
-        out << "! EXPAND divider initializing value\n"
-               "\t" << "expand_divider_dphI = " << writeParameter("expand_divider_dphI")
-               << std::endl << std::endl;
+        out << "! EXPAND multiplier initializing value \n"
+               "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI") << "\n";
+
+        out << "! EXPAND divider initializing valu \n"
+               "\t" << "expand_divider_dphI = " << writeParameter("expand_divider_dphI") << "\n";
 
         out << "! EXPAND procedure in Dual Phase II \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Active \n"
-               "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII")
-                << std::endl << std::endl;
+               "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII") << "\n";
 
         out << "! Cost vector perturbation \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Active for structural variables \n"
                "\t! 2 = Active for structural and logical variables \n"
-               "\t" << "perturb_cost_vector = " << writeParameter("perturb_cost_vector")
-                << std::endl;
+               "\t" << "perturb_cost_vector = " << writeParameter("perturb_cost_vector") << "\n";
 
         out << "! Measure of perturbation \n"
-               "\t" << "epsilon_cost_vector = " << writeParameter("epsilon_cost_vector")
-               << std::endl << std::endl;
+               "\t" << "epsilon_cost_vector = " << writeParameter("epsilon_cost_vector") << "\n";
 
         out << "! RHS perturbation \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Active \n"
-               "\t" << "perturb_rhs = " << writeParameter("perturb_rhs")
-                << std::endl;
+               "\t" << "perturb_rhs = " << writeParameter("perturb_rhs") << "\n";
 
         out << "! Measure of perturbation \n"
-               "\t" << "epsilon_rhs = " << writeParameter("epsilon_rhs")
-               << std::endl << std::endl;
+               "\t" << "epsilon_rhs = " << writeParameter("epsilon_rhs") << "\n";
 
         out << "! Bound shifting in primal \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Active \n"
-               "\t" << "shift_bounds = " << writeParameter("shift_bounds")
-                << std::endl;
+               "\t" << "shift_bounds = " << writeParameter("shift_bounds") << "\n";
 
         out << "! Measure of shifting \n"
-               "\t" << "epsilon_bounds = " << writeParameter("epsilon_bounds")
-               << std::endl << std::endl;
+               "\t" << "epsilon_bounds = " << writeParameter("epsilon_bounds") << "\n";
 
-        out << std::fixed << std::endl;
-        out << "!!! Global !!!" <<  std::endl <<  std::endl;
-        out << "! Level of iteration report\n"
-               "! 0 = brief problem report    & solution only                   & only solution time\n"
-               "! 1 = brief problem report    & one line per inversion          & only solution time\n"
-               "! 2 = detailed problem report & one line per iteration          & brief time report\n"
-               "! 3 = detailed problem report & one detailed line per iteration & detailed time report" << std::endl;
-        out << "\t" << "debug_level = " << writeParameter("debug_level") << std::endl;
+        out << "\n";
 
-        out << "! Maximal # of iterations" <<  std::endl;
-        out << "\t" << "iteration_limit = " << writeParameter("iteration_limit") <<  std::endl;
+        out << "!!! Global !!! \n\n";
+        out << "! Level of iteration report \n"
+               "! 0 = brief problem report    & solution only                   & only solution time \n"
+               "! 1 = brief problem report    & one line per inversion          & only solution time \n"
+               "! 2 = detailed problem report & one line per iteration          & brief time report \n"
+               "! 3 = detailed problem report & one detailed line per iteration & detailed time report \n"
+               "\t" << "debug_level = " << writeParameter("debug_level") << "\n";
 
-        out << "! Time limit for a problem (sec)" <<  std::endl;
-        out << "\t" << "time_limit = " << writeParameter("time_limit") <<  std::endl;
+        out << "! Maximal # of iterations \n"
+               "\t" << "iteration_limit = " << writeParameter("iteration_limit") << "\n";
 
-        out << "! Previously specified states of the solution algorithm can be saved.\n"
+        out << "! Time limit for a problem (sec) \n"
+               "\t" << "time_limit = " << writeParameter("time_limit") << "\n";
+
+        out << "! Previously specified states of the solution algorithm can be saved. \n"
                "! After a filename is specified, there are four options. \n"
-               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format) .\n"
-               "! The last basis can be marked to be saved as `basis_filename`_last.`format` .\n"
+               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format) . \n"
+               "! The last basis can be marked to be saved as `basis_filename`_last.`format` . \n"
                "! A basis of a given iteration can be marked to be saved or basis can be saved periodically \n"
-               "! each output will follow the following syntax: `basis_filename`_`iteration_number`.`format` .\n"
-               "! Both parameters are integers, 0 means saving is turned off." << std::endl;
-        out << "\t" << "save_basis = " << writeParameter("save_basis") << std::endl;
-        out << "\t" << "save_filename = " << writeParameter("save_filename") << std::endl;
-        out << "\t" << "save_format = " << writeParameter("save_format") << std::endl;
-        out << "\t" << "save_last_basis = " << writeParameter("save_last_basis") << std::endl;
-        out << "\t" << "save_iteration = " << writeParameter("save_iteration") << std::endl;
-        out << "\t" << "save_periodically = " << writeParameter("save_periodically") << std::endl;
+               "! each output will follow the following syntax: `basis_filename`_`iteration_number`.`format` . \n"
+               "! Both parameters are integers, 0 means saving is turned off. \n"
+               "\t" << "save_basis = " << writeParameter("save_basis") << "\n"
+               "\t" << "save_filename = " << writeParameter("save_filename") << "\n"
+               "\t" << "save_format = " << writeParameter("save_format") << "\n"
+               "\t" << "save_last_basis = " << writeParameter("save_last_basis") << "\n"
+               "\t" << "save_iteration = " << writeParameter("save_iteration") << "\n"
+               "\t" << "save_periodically = " << writeParameter("save_periodically") << "\n";
 
-        out << "! The solver can start from a given basis.\n"
-               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format)." << std::endl;
-        out << "\t" << "load_basis = " << writeParameter("load_basis") << std::endl;
-        out << "\t" << "load_filename = " << writeParameter("load_filename") << std::endl;
-        out << "\t" << "load_format = " << writeParameter("load_format") << std::endl;
+        out << "! The solver can start from a given basis. \n"
+               "! The file format can be BAS (standard format) or PBF (PanOpt Basis Format). \n"
+               "\t" << "load_basis = " << writeParameter("load_basis") << "\n"
+               "\t" << "load_filename = " << writeParameter("load_filename") << "\n"
+               "\t" << "load_format = " << writeParameter("load_format") << "\n";
 
         out << "! The solver can export specific data in CSV format for research purposes.\n"
                "! The export type specifies the set of output to be written.\n"
                "! The export should be clean, it is appended with one line for each problem solved\n"
-               "! The available export types are the following:"
-               "! 0 = Parameter study (reporting numerical problems, tolerances and the solution)"<< std::endl;
-        out << "\t" << "enable_export = " << writeParameter("enable_export") << std::endl;
-        out << "\t" << "export_filename = " << writeParameter("export_filename") << std::endl;
-        out << "\t" << "export_type = " << writeParameter("export_type") << std::endl;
+               "! The available export types are the following: \n"
+               "! 0 = Parameter study (reporting numerical problems, tolerances and the solution) \n"
+               "! 1 = Ratiotest study (reporting measures of the ratio tests) \n"
+               "\t" << "enable_export = " << writeParameter("enable_export") << "\n"
+               "\t" << "export_filename = " << writeParameter("export_filename") << "\n"
+               "\t" << "export_type = " << writeParameter("export_type") << "\n";
 
 
         out.close();
@@ -269,6 +280,18 @@ void SimplexParameterHandler::initParameters()
     //Pricing
     createParameter("pricing_type", Entry::INTEGER);
     setParameterValue("pricing_type", DefaultParameters::PRICING_TYPE);
+    createParameter("simpri_phaseI_clusters", Entry::INTEGER);
+    setParameterValue("simpri_phaseI_clusters", DefaultParameters::SIMPRI_PHASEI_CLUSTERS);
+    createParameter("simpri_phaseI_visit_clusters", Entry::INTEGER);
+    setParameterValue("simpri_phaseI_visit_clusters", DefaultParameters::SIMPRI_PHASEI_VISIT_CLUSTERS);
+    createParameter("simpri_phaseI_improving_candidates", Entry::INTEGER);
+    setParameterValue("simpri_phaseI_improving_candidates", DefaultParameters::SIMPRI_PHASEI_IMPROVING_CANDIDATES);
+    createParameter("simpri_phaseII_clusters", Entry::INTEGER);
+    setParameterValue("simpri_phaseII_clusters", DefaultParameters::SIMPRI_PHASEII_CLUSTERS);
+    createParameter("simpri_phaseII_visit_clusters", Entry::INTEGER);
+    setParameterValue("simpri_phaseII_visit_clusters", DefaultParameters::SIMPRI_PHASEII_VISIT_CLUSTERS);
+    createParameter("simpri_phaseII_improving_candidates", Entry::INTEGER);
+    setParameterValue("simpri_phaseII_improving_candidates", DefaultParameters::SIMPRI_PHASEII_IMPROVING_CANDIDATES);
 
     //Ratiotest
     createParameter("nonlinear_primal_phaseI_function", Entry::INTEGER);

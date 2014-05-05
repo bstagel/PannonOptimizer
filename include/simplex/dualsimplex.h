@@ -53,7 +53,7 @@ private:
     virtual void releaseLocks();
 
     void computeTransformedRow(Vector* alpha, int rowIndex);
-    Numerical::Double computePrimalTheta(const Vector& alpha, int rowIndex, Simplex::VARIABLE_STATE *outgoingState);
+    Numerical::Double computePrimalTheta(const Vector& alpha, int outgoingIndex, VARIABLE_STATE outgoingState);
 
     void registerIntoIterationReport(IterationReport * iterationReport) const;
 

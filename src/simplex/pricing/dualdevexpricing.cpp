@@ -142,7 +142,7 @@ void DualDevexPricing::update(int incomingIndex,
     Vector::NonzeroIterator nonzIterEnd = incomingAlpha.endNonzero();
     for (; nonzIter != nonzIterEnd; nonzIter++) {
         index = nonzIter.getIndex();
-        if (unlikely(index == outgoingIndex)) {
+        if (unlikely((int)index == outgoingIndex)) {
             continue;
         }
         Numerical::Double actualWeight = m_weights[index];

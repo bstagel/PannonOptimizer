@@ -77,9 +77,17 @@ public:
             }*/
         }
 
-        inline Double getResult() const
+        inline Double getResult(bool abs = true, bool rel = true) const
         {
-            return stableAdd(m_negpos[0], m_negpos[1]);
+            if(abs && rel){
+                return stableAdd(m_negpos[0], m_negpos[1]);
+            } else if(abs){
+                return stableAddAbs(m_negpos[0], m_negpos[1]);
+            } else if(rel){
+                return stableAddRel(m_negpos[0], m_negpos[1]);
+            } else {
+                return m_negpos[0] + m_negpos[1];
+            }
         }
 
         inline void clear()
@@ -126,7 +134,7 @@ public:
         }
 
 
-        ALWAYS_INLINE double getResult() {
+        ALWAYS_INLINE double getResult(bool abs = true, bool rel = true) {
             double pos1 = 0;
             double pos2 = 0;
             double neg1 = 0;
@@ -138,7 +146,6 @@ public:
                 neg1 = m_buckets[1];
                 m_buckets[0] = 0;
                 m_buckets[1] = 0;
-                return stableAdd(pos1 + pos2, neg1 + neg2);
             } else {
                 for (i = 0; i < m_size / 2; i += 2) {
                     pos1 += m_buckets[i];
@@ -155,7 +162,15 @@ public:
                 }
             }
 
-            return stableAdd(pos1 + pos2, neg1 + neg2);
+            if(abs && rel){
+                return stableAdd(pos1 + pos2, neg1 + neg2);
+            } else if(abs){
+                return stableAddAbs(pos1 + pos2, neg1 + neg2);
+            } else if(rel){
+                return stableAddRel(pos1 + pos2, neg1 + neg2);
+            } else {
+                return (pos1 + pos2) + (neg1 + neg2);
+            }
         }
     };
 

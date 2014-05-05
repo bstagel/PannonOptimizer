@@ -62,8 +62,9 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     //nonbasic variables with P type infeasibility
                 if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), tolerance) &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
+//                    LPINFO("P type infeasibility, d: "<<m_reducedCosts.at(variableIndex)<<" variableIndex: "<<variableIndex);
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
-                        m_phaseIObjectiveValue -= m_reducedCosts.at(variableIndex);
+                    m_phaseIObjectiveValue -= m_reducedCosts.at(variableIndex);
                 } else{
 
     //nonbasic variables with F type infeasibility
@@ -73,7 +74,7 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     }
 }
 
-void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) {
+void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, Numerical::Double tolerance) {
 //    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
@@ -81,10 +82,12 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
     Vector transformVector(basicVariableValues->length());
     transformVector.setSparsityRatio(DENSE);
 
+    //TODO: Increase efficiency by checking only NONBASIC_AT_*B lists
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
-            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < 0){
+            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB
+                    && m_reducedCosts.at(variableIndex) < tolerance){
                 //Do a bound flip LB -> UB (T+ set)
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 //Compute (l_j-u_j)*a_j
@@ -97,7 +100,8 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues) 
                     transformVector.addVector(-1 * theta, logical);
                 }
             } else
-                if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB && m_reducedCosts.at(variableIndex) > 0){
+                if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB
+                        && m_reducedCosts.at(variableIndex) > tolerance){
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));

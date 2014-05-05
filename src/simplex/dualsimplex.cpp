@@ -213,9 +213,6 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
 void DualSimplex::initModules() {
     Simplex::initModules();
 
-    // TODO: ezt majd egy switch-case donti el, amit lehetne
-    // kulon fuggvenybe is tenni akar
-
     switch ( SimplexParameterHandler::getInstance().getIntegerParameterValue("pricing_type") ) {
     case 0:
         m_pricing = new DualDantzigPricing (m_basicVariableValues,
@@ -274,7 +271,7 @@ void DualSimplex::computeFeasibility() {
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //In phase II check whether the basic variables are correct or not
     if(m_feasible){
-        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
+        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
     }
 }
 
@@ -283,15 +280,16 @@ void DualSimplex::checkFeasibility() {
     m_feasible = m_feasibilityChecker->checkFeasibility();
     if(lastFeasible == false && m_feasible == true){
         //Becomes feasible
+        //Log the iteration and time when this first happens
         if(m_phase1Iteration == -1){
             m_phase1Iteration = m_iterationIndex;
             m_phase1Time = m_solveTimer.getCPURunningTime();
         }
-        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues);
+        //Do the feasibility correction
+        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues, m_workingTolerance);
         m_referenceObjective = m_objectiveValue;
     } else if(lastFeasible == true && m_feasible == false ){
-        //Becomes infeasible
-        //        LPINFO("FALLED BACK");
+        //Becomes infeasible, count the falback
         m_fallbacks++;
     }
 }
@@ -317,6 +315,11 @@ void DualSimplex::selectPivot() {
     //Vector alpha;
 
     m_incomingIndex = -1;
+
+//    if(m_simplexModel->getVariable(m_incomingIndex).getType() == Variable::PLUS
+//            && m_pricing->getReducedCost() > 0){
+//        LPINFO("t < 0, PLUS, error");
+//    }
 
     while(m_incomingIndex == -1 ){
 
@@ -360,7 +363,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -391,17 +394,17 @@ void DualSimplex::update() {
             }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
-            LPERROR("Boundflipping variable in the basis (or superbasic)!");
-            //TODO Throw some exception here
+            throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
         }
     }
 
+    //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
+        //Compute the transformed column
         m_incomingAlpha.reInit(rowCount);
-        //Vector alpha(rowCount);
         if(m_incomingIndex < (int)columnCount){
             m_incomingAlpha = m_simplexModel->getMatrix().column(m_incomingIndex);
         } else {
@@ -409,48 +412,72 @@ void DualSimplex::update() {
         }
         m_basis->Ftran(m_incomingAlpha);
 
-
+        //Compute the outgoing state
         Simplex::VARIABLE_STATE outgoingState;
+        Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
 
-        if(!m_feasible){
-            //Phase-I: Bounded variable leaves at lower bound (feasibility correction will handle it)
-            outgoingState = NONBASIC_AT_LB;
-            m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, &outgoingState);
-        } else{
-            if(m_feasible &&
-                    (m_basicVariableValues.at(m_outgoingIndex) -
-                     m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound()) < 0){
-                //Phase-II: Bounded variable leaves at lower bound (comes from M)
-                outgoingState = NONBASIC_AT_LB;
-                m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, &outgoingState);
-            }else{
-                //Phase-II: Bounded variable leaves at upper bound (comes from P)
-                outgoingState = NONBASIC_AT_UB;
-                m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, &outgoingState);
+        switch (outgoingType) {
+        case Variable::FIXED:
+            outgoingState = NONBASIC_FIXED;
+            break;
+        case Variable::BOUNDED:
+            if(!m_feasible){
+                //In Phase-I to maintain feasibility of the outgoing variable
+                if(m_ratiotest->getDualSteplength() < 0){
+                    outgoingState = NONBASIC_AT_UB;
+                } else {
+                    outgoingState = NONBASIC_AT_LB;
+                }
+            } else {
+                //In Phase-II
+                const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
+                if(m_basicVariableValues.at(m_outgoingIndex) - outgoingVariable.getLowerBound() < 0){
+                    //Phase-II: Bounded variable leaves at lower bound (comes from M)
+                    outgoingState = NONBASIC_AT_LB;
+                }else{
+                    //Phase-II: Bounded variable leaves at upper bound (comes from P)
+                    outgoingState = NONBASIC_AT_UB;
+                }
             }
+            break;
+        case Variable::PLUS:
+            outgoingState = NONBASIC_AT_LB;
+            break;
+        case Variable::FREE:
+            outgoingState = NONBASIC_FREE;
+            break;
+        case Variable::MINUS:
+            outgoingState = NONBASIC_AT_UB;
+            break;
+        default:
+            throw PanOptException("Invalid variable type");
         }
 
+        //Compute the primal theta
+        m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, outgoingState);
+
+        //Update the solution vector and the objective value
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
-        //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
+        //Perform the basis change
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
+        //Update the pricing
         m_pricing->update(m_incomingIndex, m_outgoingIndex,
                           m_incomingAlpha, m_pivotRow);
     }
 
+    //Update the reduced costs
     computeReducedCosts();
 
-    //Do this only in phase one
+    //Update the feasibility sets in phase I
     if(!m_feasible){
         computeFeasibility();
     }
-
-    //Do dual specific using the updater
 }
 
 void DualSimplex::setReferenceObjective() {
@@ -459,7 +486,6 @@ void DualSimplex::setReferenceObjective() {
     } else {
         m_referenceObjective = m_objectiveValue;
     }
-    //                LPINFO("m_referenceObjective " <<m_referenceObjective);
 }
 
 void DualSimplex::checkReferenceObjective() {
@@ -577,39 +603,23 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     //    }
 }
 
-Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha, int rowIndex, Simplex::VARIABLE_STATE* outgoingState){
-    Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getType();
-    Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(rowIndex);
+Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha,
+                                                  int outgoingIndex,
+                                                  Simplex::VARIABLE_STATE outgoingState){
+    Numerical::Double outgoingVariableValue = m_basicVariableValues.at(outgoingIndex);
+    const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(outgoingIndex));
 
-    if (typeOfIthVariable == Variable::FIXED) {
-        *outgoingState = NONBASIC_FIXED;
-        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
-                alpha.at(rowIndex);
+    switch (outgoingState) {
+    case NONBASIC_FIXED:
+        return (outgoingVariableValue - outgoingVariable.getLowerBound()) / alpha.at(outgoingIndex);
+    case NONBASIC_AT_LB:
+        return (outgoingVariableValue - outgoingVariable.getLowerBound()) / alpha.at(outgoingIndex);
+    case NONBASIC_AT_UB:
+        return (outgoingVariableValue - outgoingVariable.getUpperBound()) / alpha.at(outgoingIndex);
+    case NONBASIC_FREE:
+        LPWARNING("FREE variable is going to leave the basis!");
+        return outgoingVariableValue / alpha.at(outgoingIndex);
+    default:
+        throw PanOptException("Invalid outgoing state!");
     }
-    else if (typeOfIthVariable == Variable::BOUNDED) {
-        if(*outgoingState == Simplex::NONBASIC_AT_UB){
-            return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
-                    alpha.at(rowIndex);
-        } else if(*outgoingState == Simplex::NONBASIC_AT_LB){
-            return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
-                    alpha.at(rowIndex);
-        } else {
-            throw PanOptException("Outgoing variable state is not specified!");
-        }
-    }
-    else if (typeOfIthVariable == Variable::PLUS) {
-        *outgoingState = NONBASIC_AT_LB;
-        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getLowerBound()) /
-                alpha.at(rowIndex);
-    }
-    else if (typeOfIthVariable == Variable::FREE) {
-        *outgoingState = NONBASIC_FREE;
-        return valueOfOutgoingVariable / alpha.at(rowIndex);
-    }
-    else if (typeOfIthVariable == Variable::MINUS) {
-        *outgoingState = NONBASIC_AT_UB;
-        return (valueOfOutgoingVariable - m_simplexModel->getVariable(m_basisHead.at(rowIndex)).getUpperBound()) /
-                alpha.at(rowIndex);
-    }
-    return 0;
 }

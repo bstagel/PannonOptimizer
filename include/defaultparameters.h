@@ -33,6 +33,12 @@ public:
     static const double PIVOT_THRESHOLD;
     //Pricing
     static const int PRICING_TYPE;
+    static const int SIMPRI_PHASEI_CLUSTERS;
+    static const int SIMPRI_PHASEI_VISIT_CLUSTERS;
+    static const int SIMPRI_PHASEI_IMPROVING_CANDIDATES;
+    static const int SIMPRI_PHASEII_CLUSTERS;
+    static const int SIMPRI_PHASEII_VISIT_CLUSTERS;
+    static const int SIMPRI_PHASEII_IMPROVING_CANDIDATES;
     //Ratiotest
     static const int NONLINEAR_PRIMAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEI_FUNCTION;

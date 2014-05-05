@@ -18,7 +18,13 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
     m_simplexModel(simplexModel),
     m_basis(basis),
     m_reducedCost(0.0),
-    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility"))
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility")),
+    m_phaseIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_clusters")),
+    m_phaseIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_visit_clusters")),
+    m_phaseIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_improving_candidates")),
+    m_phaseIIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_clusters")),
+    m_phaseIIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_visit_clusters")),
+    m_phaseIIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_improving_candidates"))
 
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_simplexModel.getRowCount() ];
@@ -27,18 +33,18 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
     m_used.clear();
     m_used.resize( m_basisHead.size(), false );
 
-    m_phase1Simpri.init(dualPhase1ClusterCount,
-                        dualPhase1VisitedClusterCount,
-                        dualPhase1ImprovingVariableCount,
+    m_phase1Simpri.init(m_phaseIClusters,
+                        m_phaseIVisitClusters,
+                        m_phaseIImprovingCandidates,
                         simplexModel.getMatrix().rowCount());
     unsigned int index;
     for (index = 0; index < simplexModel.getMatrix().rowCount(); index++) {
         m_phase1Simpri.insertCandidate(index);
     }
 
-    m_phase2Simpri.init(dualPhase2ClusterCount,
-                        dualPhase2VisitedClusterCount,
-                        dualPhase2ImprovingVariableCount,
+    m_phase2Simpri.init(m_phaseIIClusters,
+                        m_phaseIIVisitClusters,
+                        m_phaseIIImprovingCandidates,
                         simplexModel.getMatrix().rowCount());
     for (index = 0; index < simplexModel.getMatrix().rowCount(); index++) {
         m_phase2Simpri.insertCandidate(index);
@@ -98,7 +104,6 @@ void DualPricing::initPhase1() {
     for (index = 0; index < matrix.rowCount(); index++) {
         nonzeros += m_phase1ReducedCosts[index] != 0.0;
     }
-
     //TODO: A temp mire kell kulon?
     Vector temp;
     temp.prepareForData( nonzeros, matrix.rowCount(), 0.0);

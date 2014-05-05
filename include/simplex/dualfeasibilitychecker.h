@@ -23,7 +23,7 @@ public:
 
     bool checkFeasibility();
     void computeFeasibility(Numerical::Double tolerance);
-    void feasibilityCorrection(Vector* basicVariableValues);
+    void feasibilityCorrection(Vector* basicVariableValues, Numerical::Double tolerance);
 
     void updateFeasibilities(const std::vector<int> & updateVector);
 

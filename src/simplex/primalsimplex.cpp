@@ -326,15 +326,15 @@ void PrimalSimplex::update() {
         m_baseChanged = true;
 
         Simplex::VARIABLE_STATE outgoingState;
-        Variable::VARIABLE_TYPE typeOfIthVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
+        Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
 //        Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
 //        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
 
-        if (typeOfIthVariable == Variable::FIXED) {
+        if (outgoingType == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
 //            LPINFO("ougoing variable fix, value: "<<valueOfOutgoingVariable);
         }
-        else if (typeOfIthVariable == Variable::BOUNDED) {
+        else if (outgoingType == Variable::BOUNDED) {
             if(m_primalTheta*m_alpha.at(m_outgoingIndex) < 0){
                 outgoingState = NONBASIC_AT_LB;
 //                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
@@ -345,15 +345,15 @@ void PrimalSimplex::update() {
 //                       " ub: "<<ubOfOutgoingVariable);
             }
         }
-        else if (typeOfIthVariable == Variable::PLUS) {
+        else if (outgoingType == Variable::PLUS) {
 //            LPINFO("outgoing variable PLUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_LB;
         }
-        else if (typeOfIthVariable == Variable::FREE) {
+        else if (outgoingType == Variable::FREE) {
 //            LPINFO("outgoing variable FREE type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_FREE;
         }
-        else if (typeOfIthVariable == Variable::MINUS) {
+        else if (outgoingType == Variable::MINUS) {
 //            LPINFO("outgoing variable MINUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_UB;
         } else {

@@ -11,25 +11,19 @@ BreakpointHandler::BreakpointHandler():
 
 void BreakpointHandler::insertBreakpoint(int variableIndex, Numerical::Double value)
 {
-    BreakPoint breakpoint;
-    breakpoint.value = value;
-    breakpoint.variableIndex = variableIndex;
-    breakpoint.functionValue = -Numerical::Infinity;
-    m_breakpoints.push_back(breakpoint);
-    //TODO plusz muvelet, igy nem hatekony
+    m_breakpoints.emplace_back(variableIndex,value,-Numerical::Infinity);
 }
 
 const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
 {
     int size = m_breakpoints.size();
-//    LPERROR("gbp: "<<index);
+
     if (index >= size){
         LPERROR("Kicimzett a getBreakpoint");
-//        LPERROR("index: "<<index);
-//        LPERROR(m_breakpoints);
         exit(-1);
     }
 
+//    checkHeap();
     if (m_sortingMethod == BreakpointHandler::HEAP){
         if (index < size-m_unsorted){
             return &m_breakpoints[size-1-index];
@@ -39,9 +33,14 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
             swapBreakpoints(0,m_unsorted);
             heapify(0);
         } else{
-            LPERROR("--BreakpointHandler ERROR--");
+            for(int i = size-m_unsorted; i<=index; i++){
+                m_unsorted--;
+                swapBreakpoints(0,m_unsorted);
+                heapify(0);
+            }
         }
     }
+//    checkHeap();
     return &m_breakpoints[size-1-index];
 }
 
@@ -60,16 +59,12 @@ void BreakpointHandler::selectMethod()
     //TODO: one stepnél harmadik ág
     m_unsorted = m_breakpoints.size();
 
-    if (m_breakpoints.size() < 1 ){
+    if (m_breakpoints.size() < 1){
         m_sortingMethod = SELECTION;
         selectionSort();
     } else{
         m_sortingMethod = HEAP;
         buildHeap();
-//        LPINFO("Heap built:");
-//        for(unsigned i=0;i<m_breakpoints.size();i++){
-//            LPINFO(m_breakpoints[i].value);
-//        }
     }
 }
 
@@ -89,10 +84,6 @@ void BreakpointHandler::selectionSort()
                 maxId = j;
             }
         }
-        LPINFO("maxid: "<<maxId);
-        LPINFO("i: "<<i);
-        LPINFO(" m_breakpoints.size(): "<< m_breakpoints.size() );
-
         swapBreakpoints(maxId,i);
     }
     m_unsorted = 0;
@@ -104,7 +95,7 @@ void BreakpointHandler::heapify(int actual)
     int right = left+1;
     int smallest = actual;
 
-    //chosing smallest element
+    //choosing smallest element
     if (left < m_unsorted && (m_breakpoints[left].value < m_breakpoints[smallest].value) ) {
         smallest = left;
     }
@@ -125,10 +116,26 @@ void BreakpointHandler::buildHeap()
     }
 }
 
-void BreakpointHandler::swapBreakpoints(int first, int second)
-{
-    BreakPoint temp;
-    temp = m_breakpoints[first];
-    m_breakpoints[first] = m_breakpoints[second];
-    m_breakpoints[second] = temp;
+void BreakpointHandler::checkHeap(){
+    double ref = m_breakpoints.at(0).value;
+    for(int i=0; i<m_unsorted; i++){
+        if(m_breakpoints.at(i).value < ref){
+            LPINFO("BAD HEAP: ");
+            LPINFO("ref: "<<ref);
+            LPINFO("val: "<<m_breakpoints.at(i).value);
+            LPINFO("unsorted: "<<m_unsorted);
+            printBreakpoints();
+            exit(-1);
+        }
+    }
+    for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
+        if(ref < m_breakpoints.at(i).value){
+            LPINFO("BAD SORT:");
+            LPINFO("ref: "<<ref);
+            LPINFO("val: "<<m_breakpoints.at(i).value);
+            LPINFO("unsorted: "<<m_unsorted);
+            printBreakpoints();
+            exit(-1);
+        }
+    }
 }
