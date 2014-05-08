@@ -104,10 +104,12 @@ int DualDantzigPricing::performPricingPhase2() {
 void DualDantzigPricing::update(int incomingIndex,
                                 int outgoingIndex,
                                 const Vector & incomingAlpha,
-                                const Vector & pivotRow)
+                                const Vector & pivotRow,
+                                const Vector & pivotRowOfBasisInverse)
 {
     __UNUSED(incomingIndex);
     __UNUSED(outgoingIndex);
     __UNUSED(incomingAlpha);
     __UNUSED(pivotRow);
+    __UNUSED(pivotRowOfBasisInverse);
 }

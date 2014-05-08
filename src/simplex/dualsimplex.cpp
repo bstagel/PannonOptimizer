@@ -7,6 +7,7 @@
 #include <simplex/dualsimplex.h>
 #include <simplex/pricing/dualdantzigpricing.h>
 #include <simplex/pricing/dualdevexpricing.h>
+#include <simplex/pricing/dualsteepestedgepricing.h>
 #include <simplex/pfibasis.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/checker.h>
@@ -216,11 +217,11 @@ void DualSimplex::initModules() {
     switch ( SimplexParameterHandler::getInstance().getIntegerParameterValue("pricing_type") ) {
     case 0:
         m_pricing = new DualDantzigPricing (m_basicVariableValues,
-                                          &m_basicVariableFeasibilities,
-                                          m_reducedCostFeasibilities,
-                                          m_basisHead,
-                                          *m_simplexModel,
-                                          *m_basis);
+                                            &m_basicVariableFeasibilities,
+                                            m_reducedCostFeasibilities,
+                                            m_basisHead,
+                                            *m_simplexModel,
+                                            *m_basis);
         break;
     case 1:
         m_pricing = new DualDevexPricing (m_basicVariableValues,
@@ -229,6 +230,14 @@ void DualSimplex::initModules() {
                                           m_basisHead,
                                           *m_simplexModel,
                                           *m_basis);
+        break;
+    case 2:
+        m_pricing = new DualSteepestEdgePricing (m_basicVariableValues,
+                                                 &m_basicVariableFeasibilities,
+                                                 m_reducedCostFeasibilities,
+                                                 m_basisHead,
+                                                 *m_simplexModel,
+                                                 *m_basis);
         break;
     }
 
@@ -468,7 +477,8 @@ void DualSimplex::update() {
 
         //Update the pricing
         m_pricing->update(m_incomingIndex, m_outgoingIndex,
-                          m_incomingAlpha, m_pivotRow);
+                          m_incomingAlpha, m_pivotRow,
+                          m_pivotRowOfBasisInverse);
     }
 
     //Update the reduced costs
@@ -545,10 +555,11 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     alpha->reInit(rowCount + columnCount);
     alpha->setSparsityRatio(DENSE);
 
-    Vector rho(rowCount); //Row of the inverse of the basis
-    rho.setSparsityRatio(DENSE);
-    rho.setNewNonzero(rowIndex, 1);
-    m_basis->Btran(rho);
+    //Vector rho(rowCount); //Row of the inverse of the basis
+    m_pivotRowOfBasisInverse.reInit(rowCount);
+    m_pivotRowOfBasisInverse.setSparsityRatio(DENSE);
+    m_pivotRowOfBasisInverse.setNewNonzero(rowIndex, 1);
+    m_basis->Btran(m_pivotRowOfBasisInverse);
 
     //    alpha = new Vector(columnCount);
     //    alpha->setSparsityRatio(DENSE);
@@ -566,9 +577,9 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
-            alpha->set(columnIndex, rho.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+            alpha->set(columnIndex, m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
         } else {
-            alpha->set(columnIndex, rho.at(columnIndex - columnCount));
+            alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
         }
     }
 

@@ -26,9 +26,10 @@ public:
     int performPricingPhase2();
 
     void update(int incomingIndex,
-                            int outgoingIndex,
-                            const Vector & incomingAlpha,
-                            const Vector & pivotRow);
+                int outgoingIndex,
+                const Vector & incomingAlpha,
+                const Vector & pivotRow,
+                const Vector & pivotRowOfBasisInverse);
 private:
 
 

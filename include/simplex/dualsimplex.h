@@ -35,6 +35,8 @@ private:
 
     const char * m_phaseName;
 
+    Vector m_pivotRowOfBasisInverse;
+
     void initModules();
     void releaseModules();
 
