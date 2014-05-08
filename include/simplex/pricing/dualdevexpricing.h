@@ -7,11 +7,11 @@
 class DualDevexPricing: public DualPricing {
 public:
     DualDevexPricing(const Vector &basicVariableValues,
-                       IndexList<> *basicVariableFeasibilities,
-                       const IndexList<> &reducedCostFeasibilities,
-                       const std::vector<int> & basisHead,
-                       const SimplexModel & simplexModel,
-                       const Basis &basis);
+                     IndexList<> *basicVariableFeasibilities,
+                     const IndexList<> &reducedCostFeasibilities,
+                     const std::vector<int> & basisHead,
+                     const SimplexModel & simplexModel,
+                     const Basis &basis);
 
     virtual ~DualDevexPricing();
 
@@ -19,9 +19,10 @@ public:
     int performPricingPhase2();
 
     void update(int incomingIndex,
-                            int outgoingIndex,
-                            const Vector & incomingAlpha,
-                            const Vector & pivotRow);
+                int outgoingIndex,
+                const Vector & incomingAlpha,
+                const Vector & pivotRow,
+                const Vector & pivotRowOfBasisInverse);
 
 private:
     std::vector<char> m_referenceFramework;

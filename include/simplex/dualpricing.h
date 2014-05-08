@@ -37,7 +37,8 @@ public:
     virtual void update(int incomingIndex,
                         int outgoingIndex,
                         const Vector & incomingAlpha,
-                        const Vector & pivotRow) = 0;
+                        const Vector & pivotRow,
+                        const Vector & pivotRowOfBasisInverse) = 0;
 protected:
     const Vector & m_basicVariableValues;
 

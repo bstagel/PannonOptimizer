@@ -124,8 +124,11 @@ int DualDevexPricing::performPricingPhase2() {
 void DualDevexPricing::update(int incomingIndex,
                               int outgoingIndex,
                               const Vector & incomingAlpha,
-                              const Vector & pivotRow)
+                              const Vector & pivotRow,
+                              const Vector & pivotRowOfBasisInverse)
 {
+    __UNUSED(pivotRowOfBasisInverse);
+
     Numerical::Double alphaPNorm = 0.0;
     unsigned int index = 0;
     for (index = 0; index < m_referenceFramework.size(); index++) {
