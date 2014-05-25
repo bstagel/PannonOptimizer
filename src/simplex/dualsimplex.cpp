@@ -241,6 +241,7 @@ void DualSimplex::initModules() {
         break;
     }
 
+    Simplex::m_pricing = m_pricing;
 
     m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
                                                     &m_variableStates,

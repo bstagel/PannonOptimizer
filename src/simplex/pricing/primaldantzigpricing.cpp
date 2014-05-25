@@ -3,7 +3,6 @@
  */
 
 #include <simplex/pricing/primaldantzigpricing.h>
-#include <simplex/simplexparameterhandler.h>
 #include <simplex/simplex.h>
 
 
@@ -22,29 +21,15 @@ PrimalDantzigPricing::PrimalDantzigPricing(const Vector & basicVariableValues,
                   basisHead,
                   model,
                   basis,
-                  reducedCosts),
-    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility")),
-    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality"))
+                  reducedCosts)
 {
     m_reducedCost = 0.0;
 }
 
-PrimalDantzigPricing::PrimalDantzigPricing(const PrimalDantzigPricing& orig):
-    PrimalPricing(orig),
-    m_feasibilityTolerance(orig.m_feasibilityTolerance),
-    m_optimalityTolerance(orig.m_optimalityTolerance)
-{
-    copy(orig);
-}
 
 PrimalDantzigPricing::~PrimalDantzigPricing()
 {
     release();
-}
-
-void PrimalDantzigPricing::copy(const PrimalDantzigPricing &orig)
-{
-    __UNUSED(orig);
 }
 
 void PrimalDantzigPricing::release()
@@ -52,75 +37,10 @@ void PrimalDantzigPricing::release()
 
 }
 
-void PrimalDantzigPricing::initPhase1() {
-    m_negativeSums.clear();
-    m_negativeSums.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0 );
-    m_positiveSums.clear();
-    m_positiveSums.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0 );
-    m_phase1ReducedCosts.clear();
-    m_phase1ReducedCosts.resize( m_simplexModel.getColumnCount() + m_simplexModel.getRowCount(), 0.0);
-
-    unsigned int rowCount = m_basisHead.size();
-    // get the h vector
-    Vector auxVector( rowCount, Vector::DENSE_VECTOR );
-    const IndexList<> & basicVariableFeasibilities = m_basicVariableFeasibilities;
-    IndexList<>::Iterator iter, iterEnd;
-    basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
-    for (; iter != iterEnd; iter++) {
-        auxVector.setNewNonzero(iter.getData(), 1.0);
-    }
-
-    basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
-    for (; iter != iterEnd; iter++) {
-        auxVector.setNewNonzero(iter.getData(), -1.0);
-    }
-    // compute the simplex multiplier
-    m_basis.Btran(auxVector);
-
-    // compute the reduced costs
-    std::vector<Numerical::Double>::iterator sumIter = m_negativeSums.begin();
-    std::vector<Numerical::Double>::iterator sumIterEnd = m_negativeSums.end();
-    for (; sumIter != sumIterEnd; sumIter++) {
-        *sumIter = 0.0;
-    }
-    sumIter = m_positiveSums.begin();
-    sumIterEnd = m_positiveSums.end();
-    for (; sumIter != sumIterEnd; sumIter++) {
-        *sumIter = 0.0;
-    }
-    const Matrix & matrix = m_simplexModel.getMatrix();
-    Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
-    Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
-    for (; auxIter != auxIterEnd; auxIter++) {
-        const unsigned int rowIndex = auxIter.getIndex();
-        const Numerical::Double lambda = *auxIter;
-        Vector::NonzeroIterator nonzIter = matrix.row(rowIndex).beginNonzero();
-        Vector::NonzeroIterator nonzIterEnd = matrix.row(rowIndex).endNonzero();
-        for (; nonzIter != nonzIterEnd; nonzIter++) {
-            Numerical::Double product = lambda * *nonzIter;
-            if (product > 0.0) {
-                m_positiveSums[nonzIter.getIndex()] += product;
-            } else {
-                m_negativeSums[nonzIter.getIndex()] += product;
-            }
-        }
-        if(lambda > 0.0){
-            m_positiveSums[m_simplexModel.getColumnCount() + auxIter.getIndex()] = lambda;
-        } else {
-            m_negativeSums[m_simplexModel.getColumnCount() + auxIter.getIndex()] = lambda;
-        }
-    }
-    unsigned int index;
-    for (index = 0; index < m_phase1ReducedCosts.size(); index++) {
-        m_phase1ReducedCosts[index] = Numerical::stableAdd( m_positiveSums[index], m_negativeSums[index] );
-    }
-    //TODO: az elso fazisu redukalt koltseget itt taroljuk
-    //        a masodik fazisu redukalt koltseghez behuzzuk
-    //        az m_reducedCosts vektort
-}
-
 int PrimalDantzigPricing::performPricingPhase1()
 {
+    static int __counter = 0;
+
     initPhase1();
     int maxIndex = -1;
     int minIndex = -1;
@@ -128,13 +48,90 @@ int PrimalDantzigPricing::performPricingPhase1()
     m_incomingIndex = -1;
 
     //TODO: What the hell is this? :O
-//    Numerical::Double maxReducedCost = m_feasibilityTolerance;
-//    Numerical::Double minReducedCost = -m_feasibilityTolerance;
+    //    Numerical::Double maxReducedCost = m_feasibilityTolerance;
+    //    Numerical::Double minReducedCost = -m_feasibilityTolerance;
 
+    m_phase1Simpri.start();
 
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;
-    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+
+    /*if (__counter == 2371) {
+        int i;
+        for (i = 0; i < m_phase1ReducedCosts.size(); i++) {
+            if (m_phase1ReducedCosts[i] != 0) {
+                LPERROR(i << "  " << m_phase1ReducedCosts[i] << "  " << this->m_variableStates.where(i));
+
+                std::cin.get();
+            }
+        }
+        //exit(1);
+    }*/
+
+    unsigned int variableIndex;
+    unsigned int mennyi = 0;
+    std::vector<char> volt( m_simplexModel.getVariables().size(), 0 );
+    while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
+        mennyi++;
+        /*if (volt[variableIndex] == 1) {
+            LPERROR("VOLT MAR");
+            exit(1);
+        }*/
+        volt[variableIndex] = 1;
+        if ( m_used[variableIndex] == true ) {
+            continue;
+        }
+        /*if (__counter == 2371) {
+            if (variableIndex == 45 || variableIndex == 2037 || variableIndex == 2070 || variableIndex == 2131
+                    || variableIndex == 2139 || variableIndex == 2146) {
+                LPINFO("MEGVAN where: " << m_variableStates.where(variableIndex) << "  " << m_phase1ReducedCosts[variableIndex]);
+                LPINFO("used: " << m_used[variableIndex]  << "  " << Simplex::NONBASIC_FREE);
+                std::cin.get();
+            }
+            LPINFO(variableIndex << "  " << m_phase1ReducedCosts[variableIndex]);
+        }*/
+
+
+        // LPINFO(variableIndex);
+        switch ( m_variableStates.where(variableIndex) ) {
+        case Simplex::NONBASIC_AT_LB:
+
+            if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
+                minIndex = variableIndex;
+                minReducedCost = m_phase1ReducedCosts[variableIndex];
+                m_phase1Simpri.improvingIndexFound();
+            }
+            break;
+        case Simplex::NONBASIC_AT_UB:
+            if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
+                maxIndex = variableIndex;
+                maxReducedCost = m_phase1ReducedCosts[variableIndex];
+                m_phase1Simpri.improvingIndexFound();
+            }
+            break;
+        case Simplex::NONBASIC_FREE:
+      //      if (__counter == 2371)
+      //          LPINFO("FREE: " << m_phase1ReducedCosts[variableIndex]);
+            if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
+                minIndex = variableIndex;
+                minReducedCost = m_phase1ReducedCosts[variableIndex];
+                m_phase1Simpri.improvingIndexFound();
+
+            } else if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
+                maxIndex = variableIndex;
+                maxReducedCost = m_phase1ReducedCosts[variableIndex];
+                m_phase1Simpri.improvingIndexFound();
+
+            }
+            break;
+        }
+    }
+    /*if (__counter == 2371) {
+        LPINFO("probak: " << mennyi << "  " << m_simplexModel.getMatrix().columnCount());
+    }*/
+    // TODO: fixed valtozokat be se rakjuk a szakaszokba
+
+    /*IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
     for (; iter != iterEnd; iter++) {
@@ -174,14 +171,19 @@ int PrimalDantzigPricing::performPricingPhase1()
             maxIndex = variableIndex;
             maxReducedCost = m_phase1ReducedCosts[variableIndex];
         }
-    }
+    }*/
+
+    //LPINFO(minIndex << ", " << maxIndex << "  " << __counter);
+    __counter++;
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
+        //LPINFO("\t\tminIndex = " << minIndex << "  " << m_reducedCost);
         return minIndex;
     }
     m_reducedCost = maxReducedCost;
     m_incomingIndex = maxIndex;
+    //LPINFO("\t\tmaxIndex = " << maxIndex << "  " << m_reducedCost);
     return maxIndex;
 }
 
@@ -194,8 +196,8 @@ int PrimalDantzigPricing::performPricingPhase2()
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
     // ????
-//    Numerical::Double maxReducedCost = m_optimalityTolerance;
-//    Numerical::Double minReducedCost = -m_optimalityTolerance;
+    //    Numerical::Double maxReducedCost = m_optimalityTolerance;
+    //    Numerical::Double minReducedCost = -m_optimalityTolerance;
 
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;
@@ -254,18 +256,25 @@ int PrimalDantzigPricing::performPricingPhase2()
     return maxIndex;
 }
 
-void PrimalDantzigPricing::releaseUsed() {
-    unsigned int size = m_used.size();
-    m_used.clear();
-    m_used.resize( size, false );
-}
-
-void PrimalDantzigPricing::lockLastIndex() {
-    if (m_incomingIndex != -1) {
-        m_used[m_incomingIndex] = true;
-    } else {
-        // TODO: kell ez ide egyaltalan?
-        throw NumericalException(std::string("Invalid column lock index!"));
+void PrimalDantzigPricing::update(int incomingIndex,
+                                  int outgoingIndex,
+                                  const Vector * incomingAlpha,
+                                  const Vector * pivotRow) {
+    unsigned int outgoingVariable = m_basisHead[outgoingIndex];
+    /*if (outgoingVariable == 45) {
+        LPINFO("most kimegy a bazisbol");
+        std::cin.get();
     }
-}
+    if (incomingIndex == 45) {
+        LPINFO("most bemegy a bazisba");
+        std::cin.get();
+    }*/
 
+    m_phase1Simpri.removeCandidate(incomingIndex);
+    m_phase2Simpri.removeCandidate(incomingIndex);
+    m_phase1Simpri.insertCandidate( outgoingVariable );
+    m_phase2Simpri.insertCandidate( outgoingVariable );
+
+    __UNUSED(incomingAlpha);
+    __UNUSED(pivotRow);
+}

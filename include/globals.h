@@ -12,6 +12,8 @@
 #include <climits>
 #include <float.h>
 
+//#define ANALISYE_DOT_PRODUCT
+
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
 

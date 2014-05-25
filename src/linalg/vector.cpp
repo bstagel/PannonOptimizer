@@ -25,6 +25,10 @@ THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
 THREAD_STATIC_DEF unsigned long * Vector::sm_countingSortBitVector = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
+#ifdef ANALISYE_DOT_PRODUCT
+    std::vector<int> diffs(3000);
+#endif
+
 Vector::Vector(unsigned int dimension, VECTOR_TYPE type)
 {
     sm_fullLenghtReferenceCounter++;
@@ -147,6 +151,16 @@ Vector::~Vector()
         //delete [] sm_countingSortBitVector;
         sm_countingSortBitVector = 0;
         sm_countingSortBitVectorLength = 0;
+
+
+#ifdef ANALISYE_DOT_PRODUCT
+        std::ofstream ofs("diffs.txt");
+        unsigned int index = 0;
+        for (index = 0; index < diffs.size(); index++) {
+            ofs << index << ";" << diffs[index] << endl;
+        }
+        ofs.close();
+#endif
     }
 }
 
@@ -724,10 +738,84 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         return 0.0;
     }
 
+#ifdef ANALISYE_DOT_PRODUCT
+    {
+        Vector vector1 = *this;
+        Vector vector2 = vector;
+        vector1.setSparsityRatio(0.0);
+        vector2.setSparsityRatio(0.0);
+        Vector::Iterator iter1 = vector1.begin();
+        Vector::Iterator iter2 = vector2.begin();
+        Vector::Iterator endIter1 = vector1.end();
+        Vector::Iterator endIter2 = vector2.end();
 
-//    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
-                                                       // annal pontosabb, de annal lassabb is
-//    Numerical::BucketSummarizer summarizer(8);
+        Numerical::Double neg = 0, pos = 0;
+        unsigned int maxExponent = 0;
+        unsigned int minExponent = 0;
+
+        static unsigned int maxExponentGlobal = 0;
+        static unsigned int minExponentGlobal = 0;
+
+        Numerical::Double minValue;
+        Numerical::Double maxValue;
+        Numerical::Double min1, min2, max1, max2;
+        for (; iter1 != endIter1 && iter2 != endIter2; iter1++, iter2++) {
+            Numerical::Double value = *iter1 * *iter2;
+            Numerical::Float64 bits;
+            bits.m_value = value;
+            if (value != 0.0) {
+                if (maxExponent < bits.m_bits.m_exponent) {
+                    maxExponent = bits.m_bits.m_exponent;
+                    maxValue = value;
+                    max1 = *iter1;
+                    max2 = *iter2;
+                }
+                if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
+                    minExponent = bits.m_bits.m_exponent;
+                    minValue = value;
+                    min1 = *iter1;
+                    min2 = *iter2;
+                }
+            }
+        }
+        if (minExponent != 0) {
+            static unsigned int counter = 0;
+            bool fresh = false;
+            if (minExponentGlobal == 0 || minExponentGlobal > minExponent) {
+                minExponentGlobal = minExponent;
+                fresh = true;
+            }
+            if (maxExponentGlobal == 0 || maxExponentGlobal < maxExponent) {
+                maxExponentGlobal = maxExponent;
+                fresh = true;
+            }
+            if (minExponent <= maxExponent) {
+                /*LPINFO(minExponent << "  " << maxExponent << "  " <<
+                       min1 << " * " << min2 << " = " << minValue << "   " << max1 <<
+                       " * " << max2 << " = " << maxValue);*/
+                //diffs[ maxExponent - minExponent ]++;
+                counter++;
+                if (counter >= 5000) {
+                    counter = 0;
+                    std::ofstream ofs("diffs.txt");
+                    unsigned int index = 0;
+                    for (index = 0; index < diffs.size(); index++) {
+                        ofs << index << ";" << diffs[index] << endl;
+                    }
+                    ofs.close();
+                }
+                //std::cin.get();
+
+            }
+
+        }
+    }
+
+#endif
+
+    //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+    // annal pontosabb, de annal lassabb is
+    //Numerical::BucketSummarizer summarizer(5);
     Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
@@ -1179,7 +1267,7 @@ Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
     addVector(pivotValue, eta, Numerical::ADD_ABS_REL);
-//    addVector(pivotValue, eta, Numerical::ADD_ABS);
+    //    addVector(pivotValue, eta, Numerical::ADD_ABS);
     set(pivot, atPivot * pivotValue);
     return *this;
 }

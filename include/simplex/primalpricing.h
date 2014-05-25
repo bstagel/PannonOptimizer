@@ -8,10 +8,12 @@
 #include <globals.h>
 #include <utils/indexlist.h>
 #include <simplex/basis.h>
+#include <simplex/pricing/simpri.h>
+#include <simplex/pricing.h>
 
 class SimplexModel;
 
-class PrimalPricing {
+class PrimalPricing: public Pricing {
 public:
     PrimalPricing(const Vector & basicVariableValues,
                   const IndexList<> & basicVariableFeasibilities,
@@ -31,8 +33,15 @@ public:
         return m_reducedCost;
     }
 
-    virtual void releaseUsed() = 0;
-    virtual void lockLastIndex() = 0;
+    void releaseUsed();
+    void lockLastIndex();
+
+    virtual void update(int incomingIndex,
+                        int outgoingIndex,
+                        const Vector * incomingAlpha,
+                        const Vector * pivotRow) = 0;
+
+    void init();
 protected:
     const Vector & m_basicVariableValues;
 
@@ -57,6 +66,28 @@ protected:
     Numerical::Double m_phase2ReducedCost;
 
     std::vector<char> m_used;
+
+    int m_incomingIndex;
+
+    std::vector<Numerical::Double> m_negativeSums;
+    std::vector<Numerical::Double> m_positiveSums;
+    std::vector<Numerical::Double> m_phase1ReducedCosts;
+
+    Simpri m_phase1Simpri;
+
+    Simpri m_phase2Simpri;
+
+    //Parameter references
+    const double & m_feasibilityTolerance;
+    const double & m_optimalityTolerance;
+    const int & m_phaseIClusters;
+    const int & m_phaseIVisitClusters;
+    const int & m_phaseIImprovingCandidates;
+    const int & m_phaseIIClusters;
+    const int & m_phaseIIVisitClusters;
+    const int & m_phaseIIImprovingCandidates;
+
+    void initPhase1();
 };
 
 
