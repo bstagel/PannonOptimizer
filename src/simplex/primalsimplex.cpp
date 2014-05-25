@@ -153,6 +153,8 @@ void PrimalSimplex::initModules() {
                                          *m_basis,
                                          m_reducedCosts);
 
+    Simplex::m_pricing = m_pricing;
+
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
                                                         &m_basicVariableFeasibilities,
@@ -359,6 +361,8 @@ void PrimalSimplex::update() {
         } else {
             throw PanOptException("Invalid variable type");
         }
+
+        m_pricing->update( m_incomingIndex, m_outgoingIndex, 0, 0);
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_alpha, Numerical::ADD_ABS);
 

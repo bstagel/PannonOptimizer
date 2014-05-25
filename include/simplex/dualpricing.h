@@ -10,10 +10,11 @@
 #include <utils/indexlist.h>
 #include <simplex/basis.h>
 #include <simplex/pricing/simpri.h>
+#include <simplex/pricing.h>
 
 class SimplexModel;
 
-class DualPricing {
+class DualPricing: public Pricing {
 public:
     DualPricing(const Vector &basicVariableValues,
                 IndexList<> * basicVariableFeasibilities,
@@ -39,6 +40,8 @@ public:
                         const Vector & incomingAlpha,
                         const Vector & pivotRow,
                         const Vector & pivotRowOfBasisInverse) = 0;
+
+    void init() {}
 protected:
     const Vector & m_basicVariableValues;
 

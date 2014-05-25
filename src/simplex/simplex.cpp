@@ -656,6 +656,9 @@ void Simplex::solve() {
         if(m_loadBasis){
             loadBasis();
         }
+
+        m_pricing->init();
+
         initWorkingTolerance();
 
         //Simplex iterations

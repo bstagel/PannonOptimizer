@@ -24,31 +24,19 @@ public:
                          const SimplexModel & model,
                          const Basis & basis,
                          const Vector & reducedCosts);
-    PrimalDantzigPricing(const PrimalDantzigPricing& orig);
     virtual ~PrimalDantzigPricing();
 
     int performPricingPhase1();
     int performPricingPhase2();
 
-    void releaseUsed();
-    void lockLastIndex();
+    void update(int incomingIndex,
+                int outgoingIndex,
+                const Vector * incomingAlpha,
+                const Vector * pivotRow);
+
 private:
 
-    int m_incomingIndex;
-
-    std::vector<Numerical::Double> m_negativeSums;
-    std::vector<Numerical::Double> m_positiveSums;
-    std::vector<Numerical::Double> m_phase1ReducedCosts;
-
-    //Parameter references
-    const double & m_feasibilityTolerance;
-    const double & m_optimalityTolerance;
-
-    void copy(const PrimalDantzigPricing & orig);
-
     void release();
-
-    void initPhase1();
 
 };
 

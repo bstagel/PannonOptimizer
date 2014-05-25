@@ -105,7 +105,8 @@ HEADERS += include/debug.h \
     include/utils/breakpointhandler.h \
     include/simplex/pricing/simpri.h \
     include/simplex/pricing/dualdevexpricing.h \
-    include/simplex/pricing/dualsteepestedgepricing.h
+    include/simplex/pricing/dualsteepestedgepricing.h \
+    include/simplex/pricing.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

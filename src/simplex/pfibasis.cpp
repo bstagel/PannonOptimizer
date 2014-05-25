@@ -455,6 +455,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     Numerical::Summarizer summarizer;
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
+#ifdef ANALISYE_DOT_PRODUCT
+    unsigned int maxExponent = 0;
+    unsigned int minExponent = 0;
+#endif
             Numerical::Double * ptrValue2 = iter->eta->m_data;
             Numerical::Double * ptrValue1 = denseVector;
             const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
@@ -463,24 +467,68 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                 const Numerical::Double value = *ptrValue1;
                 if (value != 0.0) {
                     nonZeros--;
+#ifdef ANALISYE_DOT_PRODUCT
+                    Numerical::Double product = value * *ptrValue2;
+                    Numerical::Float64 bits;
+                    bits.m_value = product;
+                    if (product != 0.0) {
+                        if (maxExponent < bits.m_bits.m_exponent) {
+                            maxExponent = bits.m_bits.m_exponent;
+                        }
+                        if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
+                            minExponent = bits.m_bits.m_exponent;
+                        }
+                    }
+#endif
+
                     summarizer.add(value * *ptrValue2);
                 }
                 ptrValue1++;
                 ptrValue2++;
             }
+#ifdef ANALISYE_DOT_PRODUCT
+            if (minExponent != 0) {
+                diffs[maxExponent - minExponent]++;
+            }
+#endif
         } else {
             Numerical::Double * ptrValue = iter->eta->m_data;
             unsigned int * ptrIndex = iter->eta->m_index;
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+#ifdef ANALISYE_DOT_PRODUCT
+            unsigned int maxExponent = 0;
+            unsigned int minExponent = 0;
+#endif
             while (ptrIndex < ptrIndexEnd && nonZeros) {
                 const Numerical::Double value = denseVector[*ptrIndex];
                 if (value != 0.0) {
                     nonZeros--;
                     summarizer.add(value * *ptrValue);
+
+#ifdef ANALISYE_DOT_PRODUCT
+                    Numerical::Double product = value * *ptrValue;
+                    Numerical::Float64 bits;
+                    bits.m_value = product;
+                    if (product != 0.0) {
+                        if (maxExponent < bits.m_bits.m_exponent) {
+                            maxExponent = bits.m_bits.m_exponent;
+                        }
+                        if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
+                            minExponent = bits.m_bits.m_exponent;
+                        }
+                    }
+#endif
+
+
                 }
                 ptrIndex++;
                 ptrValue++;
             }
+#ifdef ANALISYE_DOT_PRODUCT
+            if (minExponent != 0) {
+                diffs[maxExponent - minExponent]++;
+            }
+#endif
         }
 
         Numerical::Double dotProduct = summarizer.getResult();

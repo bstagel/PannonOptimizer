@@ -414,7 +414,6 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
             iterationCounter++;
             getNextElement(&m_breakpoints,length-iterationCounter);
-
             if (functionSlope < 0) {
                 LPERROR("functionSlope < 0 in the beginning (PHASE I) - ougoing index: "<<m_outgoingVariableIndex);
 

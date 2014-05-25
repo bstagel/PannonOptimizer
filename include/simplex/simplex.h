@@ -15,7 +15,7 @@
 #include <utils/iterationreport.h>
 #include <utils/iterationreportprovider.h>
 #include <utils/timer.h>
-//#include <simplex/basisheadio.h>
+#include <simplex/pricing.h>
 
 class StartingBasisFinder;
 class Basis;
@@ -141,6 +141,7 @@ protected:
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
     Basis* m_basis;
+    Pricing * m_pricing;
 
     IterationReport m_iterationReport;
 
