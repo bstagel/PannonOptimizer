@@ -547,7 +547,12 @@ void Vector::setNewNonzero(unsigned int index, Numerical::Double value)
         //            denseToSparse();
         //        }
     } else {
-        m_sorted = false;
+        //TODO: Is this okay here?
+        if(m_nonZeros == 1){
+            m_sorted = true;
+        } else {
+            m_sorted = false;
+        }
         if (m_capacity <= m_size) {
             resizeSparse(m_size + 1 + ELBOWROOM);
         }

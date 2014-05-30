@@ -140,6 +140,7 @@ protected:
     //Modules
     StartingBasisFinder* m_startingBasisFinder;
     Basis* m_basis;
+
     Pricing * m_pricing;
 
     void constraintAdded();

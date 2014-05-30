@@ -76,21 +76,6 @@ void Basis::setNewHead() {
     }
 }
 
-void Basis::checkSingularity() {
-    DEVINFO(D::PFIMAKER, "Checking singularity");
-    int singularity = 0;
-    for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); it++) {
-        if (*it == -1) {
-            DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
-            *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
-            singularity++;
-        }
-    }
-    if (singularity != 0) {
-        m_singularityCounter += singularity;
-        LPWARNING("The given basis is singular, the measure of singularity is " << singularity);
-    }
-}
 
 Vector* Basis::createEta(const Vector& vector, int pivotPosition)
 {

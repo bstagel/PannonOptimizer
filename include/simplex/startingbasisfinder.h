@@ -43,8 +43,7 @@ public:
 
     StartingBasisFinder(const SimplexModel& model,
                         std::vector<int>* basisHead,
-                        IndexList<const Numerical::Double*>* variableStates,
-                        Vector* basicVariableValues);
+                        IndexList<const Numerical::Double*>* variableStates);
     ~StartingBasisFinder();
 
     /**

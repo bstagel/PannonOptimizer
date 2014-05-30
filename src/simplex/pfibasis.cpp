@@ -84,14 +84,13 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     m_basicColumns.clear();
     m_basicColumns.reserve(rowCount);
     m_basicColumnCopies.resize(rowCount, NULL);
+    m_rowNonzeroIndices.clear();
+    m_rowNonzeroIndices.resize(rowCount);
     m_basicColumnIndices.clear();
     m_basicColumnIndices.reserve(rowCount);
-    m_basicNonzeroIndices.clear();
-    m_basicNonzeroIndices.resize(rowCount);
     //NEW//
 
     m_columnCounts.reserve(rowCount);
-    m_rowCounts.clear();
     m_rowCounts.resize(rowCount, 0);
     m_basisNewHead.resize(rowCount, -1);
 
@@ -101,7 +100,6 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
         if (headChecker.at(*it) == 0) {
             headChecker.at(*it) = 1;
         } else {
-            //TODO: throw exception here, DEBUG MODE ONLY
             //TODO: Ennek az esetnek a kezelese vmiert nem jo
             LPWARNING("Duplicate index in basis head: " << *it);
         }
@@ -136,7 +134,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
             int rowIndex = vectorIt.getIndex();
             if(m_rowCounts.at(rowIndex) != -1){
                 m_rowCounts.at(rowIndex)++;
-                m_basicNonzeroIndices.at(rowIndex).push_back(columnIndex);
+                m_rowNonzeroIndices.at(rowIndex).push_back(columnIndex);
             } else {
                 m_columnCounts.at(columnIndex)--;
             }
@@ -209,8 +207,6 @@ void PfiBasis::invert() {
     copyBasis();
 
     DEVINFO(D::PFIMAKER, "Basis copied");
-
-//    printActiveSubmatrix();
 
     //Invert the R, M, C parts separately
     invertR();
@@ -572,8 +568,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 
 
 void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
-    std::list<int>::iterator it = m_basicNonzeroIndices.at(rowindex).begin();
-    std::list<int>::iterator itend = m_basicNonzeroIndices.at(rowindex).end();
+    std::list<int>::iterator it = m_rowNonzeroIndices.at(rowindex).begin();
+    std::list<int>::iterator itend = m_rowNonzeroIndices.at(rowindex).end();
 
     for (; it != itend; it++) {
         if (*it != (int) columnindex) {
@@ -587,7 +583,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             Vector::NonzeroIterator columnItend = m_basicColumnCopies.at(*it)->endNonzero();
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts.at(columnIt.getIndex()) > -1){
-                    m_basicNonzeroIndices.at(columnIt.getIndex()).remove(*it);
+                    m_rowNonzeroIndices.at(columnIt.getIndex()).remove(*it);
                     m_rowCounts.at(columnIt.getIndex())--;
                 }
             }
@@ -601,7 +597,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             columnItend = m_basicColumnCopies.at(*it)->endNonzero();
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts.at(columnIt.getIndex()) > -1){
-                    m_basicNonzeroIndices.at(columnIt.getIndex()).push_back(*it);
+                    m_rowNonzeroIndices.at(columnIt.getIndex()).push_back(*it);
                     m_rowCounts.at(columnIt.getIndex())++;
                     newColumnCount++;
                 }
@@ -614,11 +610,11 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
 }
 
 void PfiBasis::pivot(const Vector& column, int pivotRow) {
-    ETM newEtm;
-    newEtm.eta = createEta(column, pivotRow);
-    newEtm.index = pivotRow;
-    m_inverseNonzeros += newEtm.eta->nonZeros();
-    m_basis->push_back(newEtm);
+    ETM newETM;
+    newETM.eta = createEta(column, pivotRow);
+    newETM.index = pivotRow;
+    m_inverseNonzeros += newETM.eta->nonZeros();
+    m_basis->push_back(newETM);
 }
 
 void PfiBasis::invertR() {
@@ -631,7 +627,7 @@ void PfiBasis::invertR() {
             while (m_rowCountIndexList.firstElement(1) != -1 ) {
                 int rowindex = m_rowCountIndexList.firstElement(1);
                 //This part searches for rows with row count 1 and order them to the upper triangular part
-                int columnindex = m_basicNonzeroIndices.at(rowindex).front();
+                int columnindex = m_rowNonzeroIndices.at(rowindex).front();
 
                 const Vector *currentColumn = m_basicColumns.at(columnindex);
                 //Invert the chosen R column
@@ -649,7 +645,7 @@ void PfiBasis::invertR() {
                     if (m_rowCounts.at(index) > -1) {
                         m_rowCounts.at(index)--;
                         m_rowCountIndexList.move(index, m_rowCounts.at(index));
-                        m_basicNonzeroIndices.at(index).remove(columnindex);
+                        m_rowNonzeroIndices.at(index).remove(columnindex);
                     }
                 }
 
@@ -692,8 +688,8 @@ void PfiBasis::findC() {
             DEVINFO(D::PFIMAKER, "Submatrix column " << columnindex << " stored for C part with pivot index " << rowindex);
 
             //Update the column counts but the columns remains untouched
-            std::list<int>::iterator listIt = m_basicNonzeroIndices.at(rowindex).begin();
-            std::list<int>::iterator listItend = m_basicNonzeroIndices.at(rowindex).end();
+            std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
+            std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
             for (; listIt != listItend; listIt++) {
                 int index = *listIt;
                 if (m_columnCounts.at(index) > -1) {
@@ -701,7 +697,7 @@ void PfiBasis::findC() {
                     m_columnCountIndexList.move(index, m_columnCounts.at(index));
                 }
             }
-            m_basicNonzeroIndices.at(rowindex).clear();
+            m_rowNonzeroIndices.at(rowindex).clear();
             //Set the row count set to zero to represent that which row has been chosen.
             m_rowCounts.at(rowindex) = -1;
             m_rowCountIndexList.remove(rowindex);
@@ -730,7 +726,7 @@ void PfiBasis::invertM() {
                     if (*it > 0) {
                         DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
                         int rowindex = it - m_rowCounts.begin();
-                        int columnindex = m_basicNonzeroIndices.at(rowindex).front();
+                        int columnindex = m_rowNonzeroIndices.at(rowindex).front();
                         const Vector* currentColumn = m_basicColumns.at(columnindex);
                         if (nontriangularCheck(rowindex, currentColumn, -1)) {
                             //Invert the chosen M column
@@ -746,12 +742,12 @@ void PfiBasis::invertM() {
                             for (; vectorIt < vectorItend; vectorIt++) {
                                 if (m_rowCounts.at(vectorIt.getIndex()) >= 0) {
                                     m_rowCounts.at(vectorIt.getIndex())--;
-                                    m_basicNonzeroIndices.at(vectorIt.getIndex()).remove(columnindex);
+                                    m_rowNonzeroIndices.at(vectorIt.getIndex()).remove(columnindex);
                                 }
                             }
                             //Update the column counts too
-                            std::list<int>::iterator listIt = m_basicNonzeroIndices.at(rowindex).begin();
-                            std::list<int>::iterator listItend = m_basicNonzeroIndices.at(rowindex).end();
+                            std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
+                            std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
                             for (; listIt != listItend; listIt++) {
                                 int index = *listIt;
                                 if (m_columnCounts.at(index) > -1) {
@@ -771,7 +767,7 @@ void PfiBasis::invertM() {
                                 //If the row of the iterated element is still active
                                 if (m_rowCounts.at(index) > -1) {
                                     m_rowCounts.at(index)--;
-                                    m_basicNonzeroIndices.at(index).remove(columnindex);
+                                    m_rowNonzeroIndices.at(index).remove(columnindex);
                                 }
                             }
                             //Set the column count to zero to represent that which column is unstable.
@@ -819,19 +815,19 @@ void PfiBasis::invertM() {
                         //If the row of the iterated element is still active
                         if (m_rowCounts.at(index) > -1) {
                             m_rowCounts.at(index)--;
-                            m_basicNonzeroIndices.at(index).remove(columnindex);
+                            m_rowNonzeroIndices.at(index).remove(columnindex);
                         }
                     }
                     //Update the column counts too
-                    std::list<int>::iterator listIt = m_basicNonzeroIndices.at(rowindex).begin();
-                    std::list<int>::iterator listItend = m_basicNonzeroIndices.at(rowindex).end();
+                    std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
+                    std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
                     for (; listIt != listItend; listIt++) {
                         int index = *listIt;
                         if (m_columnCounts.at(index) > -1) {
                             m_columnCounts.at(index)--;
                         }
                     }
-                    m_basicNonzeroIndices.at(rowindex).clear();
+                    m_rowNonzeroIndices.at(rowindex).clear();
                     //Set the column and row count to zero to represent that which column and row has been chosen.
                     m_rowCounts.at(rowindex) = -1;
                     m_columnCounts.at(columnindex) = -1;
@@ -847,7 +843,7 @@ void PfiBasis::invertM() {
                         //If the row of the iterated element is still active
                         if (m_rowCounts.at(index) > -1) {
                             m_rowCounts.at(index)--;
-                            m_basicNonzeroIndices.at(index).remove(columnindex);
+                            m_rowNonzeroIndices.at(index).remove(columnindex);
                         }
                     }
                     //Set the column count to zero to represent that which column is unstable.
@@ -895,19 +891,19 @@ void PfiBasis::invertM() {
                             //If the row of the iterated element is still active
                             if (m_rowCounts.at(index) > -1) {
                                 m_rowCounts.at(index)--;
-                                m_basicNonzeroIndices.at(index).remove(columnindex);
+                                m_rowNonzeroIndices.at(index).remove(columnindex);
                             }
                         }
                         //Update the column counts too
-                        std::list<int>::iterator listIt = m_basicNonzeroIndices.at(rowindex).begin();
-                        std::list<int>::iterator listItend = m_basicNonzeroIndices.at(rowindex).end();
+                        std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
+                        std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
                         for (; listIt != listItend; listIt++) {
                             int index = *listIt;
                             if (m_columnCounts.at(index) > -1) {
                                 m_columnCounts.at(index)--;
                             }
                         }
-                        m_basicNonzeroIndices.at(rowindex).clear();
+                        m_rowNonzeroIndices.at(rowindex).clear();
                         //Set the column and row count to zero to represent that which column and row has been chosen.
                         m_rowCounts.at(rowindex) = -1;
                         m_columnCounts.at(columnindex) = -1;
@@ -921,7 +917,7 @@ void PfiBasis::invertM() {
                             //If the row of the iterated element is still active
                             if (m_rowCounts.at(index) > -1) {
                                 m_rowCounts.at(index)--;
-                                m_basicNonzeroIndices.at(index).remove(columnindex);
+                                m_rowNonzeroIndices.at(index).remove(columnindex);
                             }
                         }
                         //Set the column count to zero to represent that which column is unstable.
@@ -1411,7 +1407,21 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
     return true;
 }
 
-
+void PfiBasis::checkSingularity() {
+    DEVINFO(D::PFIMAKER, "Checking singularity");
+    int singularity = 0;
+    for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); it++) {
+        if (*it == -1) {
+            DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
+            *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
+            singularity++;
+        }
+    }
+    if (singularity != 0) {
+        m_singularityCounter += singularity;
+        LPWARNING("The given basis is singular, the measure of singularity is " << singularity);
+    }
+}
 
 void PfiBasis::printCounts() const {
 #ifndef NDEBUG
