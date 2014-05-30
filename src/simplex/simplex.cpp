@@ -9,6 +9,7 @@
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/startingbasisfinder.h>
 #include <simplex/pfibasis.h>
+#include <simplex/lubasis.h>
 #include <globals.h>
 #include <simplex/basisheadbas.h>
 #include <simplex/basisheadpanopt.h>
@@ -581,13 +582,15 @@ void Simplex::findStartingBasis()
 }
 
 void Simplex::initModules() {
-    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates, &m_basicVariableValues);
+    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
     int factorizationType = SimplexParameterHandler::getInstance().getIntegerParameterValue("factorization_type");
     if (factorizationType == 0){
         m_basis = new PfiBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
+    } else if (factorizationType == 1){
+        m_basis = new LuBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
     } else {
         LPERROR("Wrong parameter: factorization_type");
-        //TODO: Throw parameter exception
+        throw ParameterException("Wrong factorization type parameter");
     }
 
     m_iterationReport->addProviderForStart(*this);
@@ -680,6 +683,11 @@ void Simplex::reinvert() {
     releaseLocks();
     m_inversionTimer.start();
     m_basis->invert();
+
+//    Checker::checkBasisWithFtran(*this);
+//    Checker::checkBasisWithBtran(*this);
+//    Checker::checkBasisWithReducedCost(*this);
+//    Checker::checkBasisWithNonbasicReducedCost(*this);
     m_inversionTimer.stop();
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();

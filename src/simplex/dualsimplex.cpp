@@ -380,6 +380,7 @@ void DualSimplex::update() {
         } else {
             alpha.setNewNonzero(*it - columnCount, 1);
         }
+
         m_basis->Ftran(alpha);
 
         const Variable& variable = m_simplexModel->getVariable(*it);
@@ -410,6 +411,9 @@ void DualSimplex::update() {
 
     //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
+        //TODO DEBUG
+//        LPINFO("pricing reduced cost: "<<m_pricing->getReducedCost());
+//        LPINFO("outgoing var (original index): "<<m_basisHead.at(m_outgoingIndex));
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
@@ -420,8 +424,8 @@ void DualSimplex::update() {
         } else {
             m_incomingAlpha.setNewNonzero(m_incomingIndex - columnCount, 1);
         }
-        m_basis->Ftran(m_incomingAlpha);
 
+        m_basis->Ftran(m_incomingAlpha);
         //Compute the outgoing state
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();

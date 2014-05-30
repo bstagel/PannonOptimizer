@@ -44,21 +44,23 @@ void LinalgParameterHandler::writeParameterFile()
 
         if (!out.is_open()) throw -1;
 
-        out << "!!! Linear Algebraic parameter file for the Pannon Optimizer !!!" << std::endl;
-        out << "!\tIf this file is present, the values of the given parameters can be changed." << std::endl;
+        out << "!!! Linear Algebraic parameter file for the Pannon Optimizer !!! \n";
+        out << "!\tIf this file is present, the values of the given parameters can be changed. \n";
 
-        out << std::scientific << std::endl;
-        out << "!!! Tolerances !!!" << std::endl << std::endl;
-        out << "! Absolute tolerance" << std::endl;
-        out << "\t" << "e_absolute = " << writeParameter("e_absolute") << std::endl;
-        out << "! Relative tolerance for additive operations" << std::endl;
-        out << "\t" << "e_relative = " << writeParameter("e_relative") << std::endl << std::endl;
+        out << std::scientific << "\n";
 
-        out << std::fixed << std::endl;
-        out << "! Nonzero ratio used as a bound between sparse and dense vector forms" << std::endl;
-        out << "\t" << "sparsity_ratio = " << writeParameter("sparsity_ratio") << std::endl;
-        out << "! The number of extra spaces reserved in vectors for new elements" << std::endl;
-        out << "\t" << "elbowroom = " << writeParameter("elbowroom") << std::endl;
+        out << "!!! Tolerances !!! \n\n";
+        out << "! Absolute tolerance \n"
+               "\t" << "e_absolute = " << writeParameter("e_absolute") << "\n";
+        out << "! Relative tolerance for additive operations \n"
+               "\t" << "e_relative = " << writeParameter("e_relative") << "\n";
+
+        out << std::fixed << "\n";
+
+        out << "! Nonzero ratio used as a bound between sparse and dense vector forms \n"
+               "\t" << "sparsity_ratio = " << writeParameter("sparsity_ratio") << "\n";
+        out << "! The number of extra spaces reserved in vectors for new elements \n"
+               "\t" << "elbowroom = " << writeParameter("elbowroom") << "\n";
 
         out.close();
     }

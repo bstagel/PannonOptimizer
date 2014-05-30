@@ -6,13 +6,15 @@
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
 
-bool Checker::checkPfiWithFtran(const Simplex &simplex) {
-    std::vector<int> unitVectors;
-    Vector v;
-    v.reInit(simplex.m_simplexModel->getRowCount());
-    DEVINFO(D::PFIMAKER, "Check inverse with FTRAN");
+bool Checker::checkBasisWithFtran(const Simplex &simplex) {
+    unsigned int basisSize = simplex.m_basisHead.size();
+    Vector v(basisSize);
+
+    bool success = true;
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
+        Vector resultVector(basisSize);
+        resultVector.setNewNonzero(it - simplex.m_basisHead.begin(), 1.0);
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             v = simplex.m_simplexModel->getMatrix().column(*it);
         } else {
@@ -20,23 +22,17 @@ bool Checker::checkPfiWithFtran(const Simplex &simplex) {
             v.setNewNonzero((*it) - simplex.m_simplexModel->getMatrix().columnCount(), 1);
         }
         simplex.m_basis->Ftran(v);
-        if (v.nonZeros() == 1 && Numerical::equals(*(v.beginNonzero()), 1.0)) {
-            DEVINFO(D::PFIMAKER, "Unit vector reinverted with index: " << v.beginNonzero().getIndex());
-            unitVectors.push_back(v.beginNonzero().getIndex());
-        }
-    }
-    std::sort(unitVectors.begin(), unitVectors.end());
-    bool success = true;
-    for (std::vector<int>::const_iterator cit = unitVectors.begin(); cit < unitVectors.end(); cit++) {
-        if (*cit == cit - unitVectors.begin() ||
-            *cit == cit - unitVectors.begin()+(int) simplex.m_simplexModel->getMatrix().columnCount()) {
-            DEVINFO(D::PFIMAKER, *cit << " FTRAN VECTOR PASSED");
-        } else {
-            DEVINFO(D::PFIMAKER, *cit << " FTRAN VECTOR FAILED");
+        if (!(v.nonZeros() == 1 &&
+              v.beginNonzero().getIndex() == resultVector.beginNonzero().getIndex() &&
+              Numerical::equals(*v.beginNonzero(), *resultVector.beginNonzero()))) {
+            LPWARNING("FTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
+            LPWARNING("Result vector: "<< v  );
+            LPWARNING("Insted of: "<< resultVector );
             success = false;
         }
     }
-    if (success && unitVectors.size() == simplex.m_basisHead.size() && simplex.m_basisHead.size() > 0) {
+
+    if (success) {
         LPINFO("FTRAN CHECK PASSED");
         return true;
     } else {
@@ -45,10 +41,10 @@ bool Checker::checkPfiWithFtran(const Simplex &simplex) {
     }
 }
 
-bool Checker::checkPfiWithBtran(const Simplex& simplex) {
+bool Checker::checkBasisWithBtran(const Simplex& simplex) {
     std::vector<int> unitVectors;
-    DEVINFO(D::PFIMAKER, "Check inverse with BTRAN");
-    DEVINFO(D::PFIMAKER, "BTRAN copy");
+    unsigned int basisSize = simplex.m_basisHead.size();
+    bool success = true;
     //Copy the basis columns
     std::vector<Vector> basisCopy;
     std::vector<int>::const_iterator it;
@@ -62,27 +58,30 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
         }
     }
     //Prepare the rows
-    DEVINFO(D::PFIMAKER, "BTRAN prepare rows");
     std::vector<Vector> rowbasis;
-    for (unsigned int i = 0; i < simplex.m_basisHead.size(); i++) {
-        Vector row = Vector(simplex.m_simplexModel->getMatrix().rowCount());
+    for (unsigned int i = 0; i < basisSize; i++) {
+        Vector row = Vector(basisSize);
         rowbasis.push_back(row);
     }
     std::vector<Vector>::iterator basisIt;
     for (basisIt = basisCopy.begin(); basisIt < basisCopy.end(); basisIt++) {
         for (Vector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); vectorIt++) {
-            rowbasis.at(vectorIt.getIndex()).set(basisIt - basisCopy.begin(), *vectorIt);
+            rowbasis.at(vectorIt.getIndex()).setNewNonzero(basisIt - basisCopy.begin(), *vectorIt);
         }
     }
     //Use BTRAN to check the inverse
-    DEVINFO(D::PFIMAKER, "Do the BTRAN check on the rows");
     for (basisIt = rowbasis.begin(); basisIt < rowbasis.end(); basisIt++) {
+        Vector resultVector(basisSize);
+        resultVector.setNewNonzero(basisIt - rowbasis.begin(), 1.0);
         simplex.m_basis->Btran(*basisIt);
-        // DEVINFO(D::PFIMAKER, "V with Vector print form" <<v);
-        if (basisIt->nonZeros() == 1 && Numerical::equals(*(basisIt->beginNonzero()), 1)) {
-            DEVINFO(D::PFIMAKER, "Unit vector reinverted with index: " << basisIt - rowbasis.begin());
-            unitVectors.push_back(basisIt - rowbasis.begin());
-        } else {
+
+        if (!((basisIt->nonZeros() == 1 &&
+              basisIt->beginNonzero().getIndex() == resultVector.beginNonzero().getIndex() &&
+              Numerical::equals(*basisIt->beginNonzero(), *resultVector.beginNonzero())))) {
+            LPWARNING("BTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
+            LPWARNING("Result vector: "<< *basisIt );
+            LPWARNING("Insted of: "<< resultVector );
+            success = false;
             Vector::NonzeroIterator badIt = basisIt->beginNonzero();
             double max = 0;
             int maxIndex = 0;
@@ -92,22 +91,11 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
                     maxIndex = badIt.getIndex();
                 }
             }
-                LPERROR ("Rossz vektor, a legnagyobb elteres: " << basisIt->at(maxIndex));
+            LPERROR ("Bad vector, the max difference: " << basisIt->at(maxIndex));
         }
     }
-    std::sort(unitVectors.begin(), unitVectors.end());
-    bool success = true;
-    for (std::vector<int>::iterator cit = unitVectors.begin(); cit < unitVectors.end(); cit++) {
-        DEVINFO(D::PFIMAKER, *cit);
-        if (*cit == cit - unitVectors.begin() ||
-            *cit == cit - unitVectors.begin()-(int) simplex.m_simplexModel->getMatrix().columnCount()) {
-            DEVINFO(D::PFIMAKER, *cit << " BTRAN VECTOR PASSED");
-        } else {
-            DEVINFO(D::PFIMAKER, *cit << " BTRAN VECTOR FAILED");
-            success = false;
-        }
-    }
-    if (success && unitVectors.size() == simplex.m_basisHead.size() && simplex.m_basisHead.size() > 0) {
+
+    if (success) {
         LPINFO("BTRAN CHECK PASSED");
         return true;
     } else {
@@ -116,7 +104,7 @@ bool Checker::checkPfiWithBtran(const Simplex& simplex) {
     }
 }
 
-bool Checker::checkPfiWithReducedCost(const Simplex& simplex) {
+bool Checker::checkBasisWithReducedCost(const Simplex& simplex) {
     Vector pi(simplex.m_simplexModel->getMatrix().rowCount());
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
@@ -148,6 +136,61 @@ bool Checker::checkPfiWithReducedCost(const Simplex& simplex) {
     }
 }
 
+bool Checker::checkBasisWithNonbasicReducedCost(const Simplex& simplex) {
+    unsigned int rowCount = simplex.m_simplexModel->getRowCount();
+    unsigned int columnCount = simplex.m_simplexModel->getColumnCount();
+
+    //Get the c_B vector
+    Vector cB(rowCount);
+    cB.setSparsityRatio(DENSE);
+    const Vector& costVector = simplex.m_simplexModel->getCostVector();
+    for(unsigned int i = 0; i<simplex.m_basisHead.size(); i++){
+        if(simplex.m_basisHead[i] < (int) columnCount && costVector.at(simplex.m_basisHead[i]) != 0.0){
+            cB.setNewNonzero(i, costVector.at(simplex.m_basisHead[i]));
+        }
+    }
+    Vector simplexMultiplier(cB);
+    //Compute simplex multiplier
+    simplex.m_basis->Btran(simplexMultiplier);
+
+    //For each variable
+    bool success = true;
+    for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+        if(simplex.m_variableStates.where(i) == Simplex::BASIC){
+            continue;
+        }
+        //Compute the dot product and the reduced cost
+        Numerical::Double btranreducedCost;
+        Numerical::Double ftranreducedCost;
+        if(i < columnCount){
+            btranreducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(simplex.m_simplexModel->getMatrix().column(i),true,true));
+            Vector column(simplex.m_simplexModel->getMatrix().column(i));
+            simplex.m_basis->Ftran(column);
+            ftranreducedCost = Numerical::stableAdd(costVector.at(i), - cB.dotProduct(column));
+        } else {
+            btranreducedCost = -1 * simplexMultiplier.at(i - columnCount);
+            Vector column(rowCount);
+            column.setNewNonzero(i-columnCount, 1);
+            simplex.m_basis->Ftran(column);
+            ftranreducedCost = -1 * cB.dotProduct(column);
+        }
+        if(!Numerical::equals(btranreducedCost, ftranreducedCost)){
+            LPERROR("REDUCED COST ERROR AT COLUMN "<<i);
+            LPERROR("btranreducedCost "<<btranreducedCost);
+            LPERROR("ftranreducedCost "<<ftranreducedCost);
+            success = false;
+        }
+    }
+
+    if (success && simplex.m_basisHead.size() > 0) {
+        LPINFO("NONZERO REDUCED COST CHECK PASSED");
+        return true;
+    } else {
+        LPWARNING("NONZERO REDUCED COST CHECK FAILED");
+        return false;
+    }
+}
+
 
 bool Checker::checkAlphaValue(const Simplex& simplex,
                               int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha){
@@ -162,7 +205,7 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
     simplex.m_basis->Btran(rho);
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
-    //TODO: A bazisvaltozo egyeset kulon kellene majd bebillenteni hogy gyorsabb legyen
+
     simplex.m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();

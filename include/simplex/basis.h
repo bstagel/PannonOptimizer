@@ -27,6 +27,8 @@ class SimplexModel;
  */
 struct ETM
 {
+    ETM(): eta(NULL), index(0) {}
+    ETM(Vector* eta, unsigned int index): eta(eta), index(index){}
     /**
      * Eta vector.
      * The nontrivial column of the ETM is the eta column. This is a pointer of
@@ -38,6 +40,7 @@ struct ETM
      * Index of the nontrivial column.
      */
     unsigned int index;
+
 };
 
 /**
@@ -75,7 +78,6 @@ public:
     virtual void invert() = 0;
     virtual void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) = 0;
 
-    virtual int lastPivotIndex() const = 0;
     virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
@@ -99,20 +101,6 @@ protected:
      */
     std::vector<const Vector*> m_basicColumns;
     std::vector<Vector*> m_basicColumnCopies;
-    /**
-     * Stores the original variable indices for each column in the submatrix.
-     */
-    std::vector<int> m_basicColumnIndices;
-    std::vector<std::list<int> > m_basicNonzeroIndices;
-
-
-    /**
-     * The vector of the column counts (c_i).
-     * The column count represents the number of nonzeros in a column. A column count of
-     * an inactive column (used) is -1, the column count of a column of the active submatrix
-     * is a natural number.
-     */
-    std::vector<int> m_columnCounts;
 
     /**
      * The vector of linked lists of column indices.
@@ -122,21 +110,11 @@ protected:
     IndexList<> m_columnCountIndexList;
 
     /**
-     * The vector of the row counts (r_i).
-     * The row count represents the number of nonzeros in a row. A row count of
-     * an  inactive row (used or logical) is -1, the row count of a row of the
-     * active submatrix is a natural number.
-     */
-    std::vector<int> m_rowCounts;
-
-    /**
      * The vector of linked lists of row indices.
      * Each linked list represents a group of rows that have the same row count.
      * The first list has rows with a row count of 1, the second with 2, etc.
      */
     IndexList<> m_rowCountIndexList;
-
-
 
     bool m_isFresh;
     unsigned int m_basisNonzeros, m_inverseNonzeros;
@@ -145,8 +123,9 @@ protected:
     const double & m_inversion;
 
     void setNewHead();
-    void checkSingularity();
     Vector* createEta(const Vector& vector, int pivotPosition);
+
+    virtual void checkSingularity() = 0;
 
     virtual void printStatistics() const = 0;
     void printActiveSubmatrix() const;

@@ -5,9 +5,10 @@
 
 class Checker {
 public:
-    static bool checkPfiWithFtran(const Simplex& simplex);
-    static bool checkPfiWithBtran(const Simplex& simplex);
-    static bool checkPfiWithReducedCost(const Simplex& simplex);
+    static bool checkBasisWithFtran(const Simplex& simplex);
+    static bool checkBasisWithBtran(const Simplex& simplex);
+    static bool checkBasisWithReducedCost(const Simplex& simplex);
+    static bool checkBasisWithNonbasicReducedCost(const Simplex& simplex);
     static bool checkAlphaValue(const Simplex& simplex,
                                int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha);
     static bool checkPrimalTheta(const Simplex& simplex,

@@ -81,13 +81,6 @@ public:
     void invert();
 
     /**
-     * Returns the last pivot index from the basis inverse.
-     *
-     * @return the row of the last pivot.
-     */
-    inline int lastPivotIndex() const {return m_basis->back().index;}
-
-    /**
      * It creates a new inverse after a basis change.
      *
      * @param v the alpha vector of the incoming variable.
@@ -131,6 +124,29 @@ private:
      * Stores the basis inverse in the PFI form (as a vector of ETMs).
      */
     std::vector<ETM>* m_basis;
+
+    /**
+     * Stores the original variable indices for each column in the submatrix.
+     */
+    std::vector<int> m_basicColumnIndices;
+
+    std::vector<std::list<int> > m_rowNonzeroIndices;
+
+    /**
+     * The vector of the column counts (c_i).
+     * The column count represents the number of nonzeros in a column. A column count of
+     * an inactive column (used) is -1, the column count of a column of the active submatrix
+     * is a natural number.
+     */
+    std::vector<int> m_columnCounts;
+
+    /**
+     * The vector of the row counts (r_i).
+     * The row count represents the number of nonzeros in a row. A row count of
+     * an  inactive row (used or logical) is -1, the row count of a row of the
+     * active submatrix is a natural number.
+     */
+    std::vector<int> m_rowCounts;
 
     /**
      * Columns for the C part.
@@ -186,7 +202,7 @@ private:
     //Non-triangular pivot rule parameter
     NONTRIANGULAR_PIVOT_RULE m_nontriangularPivotRule;
     //Threshold value for threshold pivoting
-    double m_threshold;
+    const double & m_threshold;
 
     void copyBasis(bool buildIndexLists = true);
 
@@ -211,6 +227,8 @@ private:
     void createBlockTriangular();
     void updateColumns(unsigned int rowindex,unsigned int columnindex);
     bool nontriangularCheck(int& rowindex, const Vector *currentColumn, int blockNum);
+
+    void checkSingularity();
 
     void printCounts() const;
     void printMM() const;

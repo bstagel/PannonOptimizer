@@ -48,6 +48,7 @@ class Vector
     friend class ModelIO;
     friend class MpsModelBuilder;
     friend class PfiBasis;
+    friend class LuBasis;
     friend class VectorTestSuite;
 public:
 
