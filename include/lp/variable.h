@@ -29,11 +29,17 @@ public:
      */
     enum VARIABLE_TYPE
     {
-        PLUS = 0, /* Finite lower bound, infinity upper bound */
-        MINUS, /* -Infinity lower bound, finite upper bound */
+//        PLUS = 0, /* Finite lower bound, infinity upper bound */
+//        MINUS, /* -Infinity lower bound, finite upper bound */
+//        BOUNDED, /* Finite lower and upper bounds */
+//        FIXED, /* The finite lower and upper bounds are the same */
+//        FREE, /* The variable has no finite bounds */
+        //CF-1 order
+        FIXED = 0, /* The finite lower and upper bounds are the same */
         BOUNDED, /* Finite lower and upper bounds */
-        FIXED, /* The finite lower and upper bounds are the same */
+        PLUS, /* Finite lower bound, infinity upper bound */
         FREE, /* The variable has no finite bounds */
+        MINUS, /* -Infinity lower bound, finite upper bound */
         VARIABLE_TYPE_ENUM_LENGTH
     };
 

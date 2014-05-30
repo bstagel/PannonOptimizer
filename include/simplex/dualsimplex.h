@@ -17,6 +17,7 @@
 
 class DualSimplex: public Simplex
 {
+    friend class SimplexController;
 public:
     DualSimplex();
 

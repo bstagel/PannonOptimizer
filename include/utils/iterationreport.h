@@ -44,8 +44,6 @@ public:
 
     void writeExportReport(std::string filename) const;
 
-    void setDebugLevel(int level);
-
     int getDebugLevel() const;
 
 private:
@@ -76,7 +74,8 @@ private:
 
     bool m_refreshHeader;
 
-    int m_debugLevel;
+    const int & m_debugLevel;
+    int m_lastDebugLevel;
 
     void showHeader();
 

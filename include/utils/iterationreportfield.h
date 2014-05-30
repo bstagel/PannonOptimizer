@@ -2,6 +2,7 @@
 #define ITERATIONREPORTFIELD_H
 
 #include <globals.h>
+#include <string>
 
 class IterationReportProvider;
 

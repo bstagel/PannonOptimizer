@@ -21,12 +21,6 @@
 
 #include <algorithm>
 
-const static char * ITERATION_INDEX_NAME = "Iteration";
-const static char * ITERATION_TIME_NAME = "Time";
-const static char * ITERATION_INVERSION_NAME = "Inv";
-
-const static char * SOLUTION_ITERATION_NAME = "Total iterations";
-const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
 const static char * SOLUTION_INVERSION_TIMER_NAME = "Inversion time";
 const static char * SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME = "Compute basic solution time";
 const static char * SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME = "Compute reduced costs time";
@@ -37,14 +31,11 @@ const static char * SOLUTION_SELECT_PIVOT_TIMER_NAME = "Pivot selection time";
 const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
 
 const static char * EXPORT_PROBLEM_NAME = "export_problem_name";
-const static char * EXPORT_ITERATION = "export_iteration";
 const static char * EXPORT_PHASE1_ITERATION = "export_phase1_iteration";
-const static char * EXPORT_TIME = "export_time";
 const static char * EXPORT_PHASE1_TIME = "export_phase1_time";
 const static char * EXPORT_SOLUTION = "export_solution";
 const static char * EXPORT_FALLBACK = "export_fallback";
 const static char * EXPORT_SINGULARITY = "export_singularity";
-const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion";
 const static char * EXPORT_BAD_ITERATION = "export_bad_iteration";
 const static char * EXPORT_DEGENERATION = "export_degeneration";
 const static char * EXPORT_E_ABSOLUTE = "export_e_absolute";
@@ -58,7 +49,6 @@ const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_d
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
 
 Simplex::Simplex():
-    m_iterationIndex(0),
     m_simplexModel(NULL),
     m_variableStates(0,0),
     m_basicVariableFeasibilities(0,0),
@@ -69,21 +59,16 @@ Simplex::Simplex():
     m_phaseIObjectiveValue(-Numerical::Infinity),
     m_feasible(false),
     m_baseChanged(false),
-    m_freshBasis(false),
     //Parameter references
-    m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_basis")),
-    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("save_filename")),
-    m_saveFormat(SimplexParameterHandler::getInstance().getStringParameterValue("save_format")),
-    m_saveLastBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_last_basis")),
-    m_saveIteration(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_iteration")),
-    m_savePeriodically(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_periodically")),
-    m_loadBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("load_basis")),
-    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
-    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_export")),
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
     m_exportType(SimplexParameterHandler::getInstance().getIntegerParameterValue("export_type")),
-    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
+    m_saveFormat(SimplexParameterHandler::getInstance().getStringParameterValue("save_format")),
+    m_saveIteration(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_iteration")),
+    m_savePeriodically(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_periodically")),
+    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("save_filename")),
+    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
+    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
     m_masterTolerance(0),
     m_workingTolerance(0),
     m_toleranceStep(0),
@@ -92,7 +77,6 @@ Simplex::Simplex():
     m_phase1Iteration(-1),
     m_phase1Time(0.0),
     m_fallbacks(0),
-    m_triggeredReinversion(0),
     m_badIterations(0),
     m_degenerateIterations(0),
     //Modules
@@ -124,29 +108,10 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         break;
 
     case IterationReportProvider::IRF_ITERATION:
-    {
-        IterationReportField inversionField(ITERATION_INVERSION_NAME, 3, 1, IterationReportField::IRF_CENTER,
-                                            IterationReportField::IRF_STRING, *this);
-        result.push_back(inversionField);
-        IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
-                                            IterationReportField::IRF_INT, *this);
-        result.push_back(iterationField);
-        IterationReportField timeField(ITERATION_TIME_NAME, 10, 1, IterationReportField::IRF_RIGHT,
-                                       IterationReportField::IRF_FLOAT, *this,
-                                       4, IterationReportField::IRF_FIXED);
-        result.push_back(timeField);
-    }
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
     {
-        IterationReportField iterationField(SOLUTION_ITERATION_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                            IterationReportField::IRF_INT, *this);
-        result.push_back(iterationField);
-        IterationReportField solveTimerField(SOLUTION_SOLVE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                             IterationReportField::IRF_FLOAT, *this,
-                                             4, IterationReportField::IRF_FIXED);
-        result.push_back(solveTimerField);
         IterationReportField inversionTimerField(SOLUTION_INVERSION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
                                                  IterationReportField::IRF_FLOAT, *this,
                                                  4, IterationReportField::IRF_FIXED);
@@ -190,12 +155,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_FLOAT, *this,
-                                                  6, IterationReportField::IRF_FIXED));
-            result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
@@ -204,8 +164,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
             result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_SINGULARITY,  20, 0, IterationReportField::IRF_RIGHT,
-                                                  IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_BAD_ITERATION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
@@ -235,12 +193,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_FLOAT, *this,
-                                                  6, IterationReportField::IRF_FIXED));
-            result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
@@ -249,8 +202,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
             result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_SINGULARITY,  20, 0, IterationReportField::IRF_RIGHT,
-                                                  IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_BAD_ITERATION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
@@ -282,25 +233,10 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
         break;
 
     case IterationReportProvider::IRF_ITERATION:
-        if (name == ITERATION_INDEX_NAME) {
-            reply.m_integer = m_iterationIndex;
-        } else if (name == ITERATION_TIME_NAME) {
-            reply.m_double = m_solveTimer.getCPURunningTime();
-        } else if (name == ITERATION_INVERSION_NAME) {
-            if(m_freshBasis){
-                reply.m_string = new std::string("*I*");
-            } else {
-                reply.m_string = new std::string("");
-            }
-        }
         break;
 
     case IterationReportProvider::IRF_SOLUTION:
-        if (name == SOLUTION_ITERATION_NAME) {
-            reply.m_integer = m_iterationIndex;
-        } else if (name == SOLUTION_SOLVE_TIMER_NAME) {
-            reply.m_double = m_solveTimer.getCPUTotalElapsed();
-        } else if (name == SOLUTION_INVERSION_TIMER_NAME) {
+        if (name == SOLUTION_INVERSION_TIMER_NAME) {
             reply.m_double = m_inversionTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME) {
             reply.m_double = m_computeBasicSolutionTimer.getCPUTotalElapsed();
@@ -324,20 +260,14 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
             reply.m_string = new std::string(m_simplexModel->getName());
         } else if(name == EXPORT_PHASE1_ITERATION){
             reply.m_integer = m_phase1Iteration;
-        } else if(name == EXPORT_ITERATION){
-            reply.m_integer = m_iterationIndex;
         } else if(name == EXPORT_PHASE1_TIME){
             reply.m_double = m_phase1Time;
-        } else if(name == EXPORT_TIME){
-            reply.m_double = m_solveTimer.getCPUTotalElapsed();
         } else if(name == EXPORT_SOLUTION){
             reply.m_double = m_objectiveValue;
         } else if(name == EXPORT_FALLBACK){
             reply.m_integer = m_fallbacks;
         } else if(name == EXPORT_SINGULARITY){
             reply.m_integer = m_basis->getSingularityCount();
-        } else if(name == EXPORT_TRIGGERED_REINVERSION){
-            reply.m_integer = m_triggeredReinversion;
         } else if(name == EXPORT_BAD_ITERATION){
             reply.m_integer = m_badIterations;
         } else if(name == EXPORT_DEGENERATION){
@@ -400,6 +330,29 @@ void Simplex::setModel(const Model &model) {
     if (SimplexParameterHandler::getInstance().getIntegerParameterValue("shift_bounds") != 0){
         m_simplexModel->shiftBounds();
     }
+}
+
+void Simplex::iterate()
+{
+    computeWorkingTolerance();
+
+        m_checkFeasibilityTimer.start();
+        checkFeasibility();
+        m_checkFeasibilityTimer.stop();
+
+        setReferenceObjective();
+
+        m_priceTimer.start();
+        price();
+        m_priceTimer.stop();
+        m_selectPivotTimer.start();
+        selectPivot();
+        m_selectPivotTimer.stop();
+        m_updateTimer.start();
+        update();
+        m_updateTimer.stop();
+
+        checkReferenceObjective();
 }
 
 void Simplex::constraintAdded()
@@ -616,214 +569,15 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
     log.close();*/
 }
 
-
-void Simplex::solve() {
-    initModules();
-
-    ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
-
-    const int & iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
-    const double & timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
+void Simplex::findStartingBasis()
+{
     StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
-            (StartingBasisFinder::STARTING_BASIS_STRATEGY)simplexParameters.getIntegerParameterValue("starting_basis_strategy");
+            (StartingBasisFinder::STARTING_BASIS_STRATEGY)
+            SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_basis_strategy");
     StartingBasisFinder::STARTING_NONBASIC_STATES startingNonbasicStates =
-            (StartingBasisFinder::STARTING_NONBASIC_STATES)simplexParameters.getIntegerParameterValue("starting_nonbasic_states");
-    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
-    unsigned int reinversionCounter = reinversionFrequency;
-
-    m_iterationReport.addProviderForStart(*this);
-    m_iterationReport.addProviderForIteration(*this);
-    m_iterationReport.addProviderForSolution(*this);
-
-    if(m_enableExport){
-        m_iterationReport.addProviderForExport(*this);
-    }
-
-    m_iterationReport.setDebugLevel(m_debugLevel);
-
-    m_iterationReport.createStartReport();
-    m_iterationReport.writeStartReport();
-
-    try {
-        m_solveTimer.start();
-        m_basicVariableValues.prepareForData(m_simplexModel->getRhs().nonZeros(), m_basicVariableValues.length(), DENSE);
-        Vector::NonzeroIterator it = m_simplexModel->getRhs().beginNonzero();
-        Vector::NonzeroIterator itend = m_simplexModel->getRhs().endNonzero();
-        for(; it < itend; it++){
-            m_basicVariableValues.newNonZero(*it, it.getIndex());
-        }
-        m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
-        if(m_loadBasis){
-            loadBasis();
-        }
-
-        m_pricing->init();
-
-        initWorkingTolerance();
-
-        //Simplex iterations
-        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
-
-            if(m_saveBasis){
-                saveBasis();
-            }
-
-            computeWorkingTolerance();
-
-            if((int)reinversionCounter == reinversionFrequency){
-                m_freshBasis = true;
-                releaseLocks();
-
-                reinversionCounter = 0;
-                m_inversionTimer.start();
-                reinvert();
-                m_inversionTimer.stop();
-                m_computeBasicSolutionTimer.start();
-                computeBasicSolution();
-                m_computeBasicSolutionTimer.stop();
-                m_computeReducedCostsTimer.start();
-                computeReducedCosts();
-                m_computeReducedCostsTimer.stop();
-                m_computeFeasibilityTimer.start();
-                computeFeasibility();
-                m_computeFeasibilityTimer.stop();
-            }
-            try{
-
-                m_checkFeasibilityTimer.start();
-                checkFeasibility();
-                m_checkFeasibilityTimer.stop();
-
-                setReferenceObjective();
-
-                m_priceTimer.start();
-                price();
-                m_priceTimer.stop();
-                m_selectPivotTimer.start();
-                selectPivot();
-                m_selectPivotTimer.stop();
-                m_updateTimer.start();
-                update();
-                m_updateTimer.stop();
-
-                checkReferenceObjective();
-                if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                    m_iterationReport.createIterationReport();
-                    m_iterationReport.writeIterationReport();
-                }
-                m_freshBasis = false;
-                reinversionCounter++;
-            }
-
-            catch ( const BadPivotException & exception ) {
-                LPINFO("Bad Pivot detected: " << exception.getMessage());
-                m_iterationIndex--;
-            }
-
-            catch ( const FallbackException & exception ) {
-                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
-                computeFeasibility();
-                m_iterationIndex--;
-            }
-
-            catch ( const OptimizationResultException & exception ) {
-                m_simplexModel->resetModel();
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw;
-                } else {
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
-            }
-
-            catch ( const NumericalException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    m_solveTimer.stop();
-                    throw;
-                } else {
-                    LPINFO("Numerical error: "<<exception.getMessage());
-                    m_triggeredReinversion++;
-                    reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
-                }
-            }
-        }
-
-    } catch ( const ParameterException & exception ) {
-        LPERROR("Parameter error: "<<exception.getMessage());
-    } catch ( const OptimalException & exception ) {
-            LPINFO("OPTIMAL SOLUTION found! ");
-            // TODO: postsovle, post scaling
-            // TODO: Save optimal basis if necessary
-    } catch ( const PrimalInfeasibleException & exception ) {
-        LPINFO("The problem is PRIMAL INFEASIBLE.");
-    } catch ( const DualInfeasibleException & exception ) {
-        LPINFO("The problem is DUAL INFEASIBLE.");
-    } catch ( const PrimalUnboundedException & exception ) {
-        LPINFO("The problem is PRIMAL UNBOUNDED.");
-    } catch ( const DualUnboundedException & exception ) {
-        LPINFO("The problem is DUAL UNBOUNDED.");
-    } catch ( const NumericalException & exception ) {
-        LPINFO("Numerical error: "<<exception.getMessage());
-    } catch ( const SyntaxErrorException & exception ) {
-        exception.show();
-    } catch ( const PanOptException & exception ) {
-        LPERROR("PanOpt exception:"<< exception.getMessage() );
-    } catch ( const std::bad_alloc & exception ) {
-        LPERROR("STL bad alloc exception: " << exception.what() );
-    } catch ( const std::bad_cast & exception ) {
-        LPERROR("STL bad cast exception: " << exception.what() );
-    } catch ( const std::bad_exception & exception ) {
-        LPERROR("STL bad exception exception: " << exception.what() );
-    } catch ( const std::bad_typeid & exception ) {
-        LPERROR("STL bad typeid exception: " << exception.what() );
-    } catch (const std::ios_base::failure & exception ) {
-        LPERROR("STL ios_base::failure exception: " << exception.what() );
-    } catch (const std::logic_error & exception ) {
-        LPERROR("STL logic error exception: " << exception.what() );
-    } catch ( const std::range_error & exception ) {
-        LPERROR("STL range error: " << exception.what() );
-    } catch ( const std::overflow_error & exception ) {
-        LPERROR("STL arithmetic overflow error: " << exception.what() );
-    } catch ( const std::underflow_error & exception ) {
-        LPERROR("STL arithmetic underflow error: " << exception.what() );
-#if __cplusplus > 199711L
-    } catch ( const std::system_error & exception ) {
-        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
-        LPERROR("STL system error: " << std::endl);
-        LPERROR("\tError: " << exception.what() << std::endl);
-        LPERROR("\tCode: " << exception.code().value() << std::endl);
-        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
-        LPERROR("\tMessage: " << exception.code().message() << std::endl);
-    } catch ( const std::bad_function_call & exception ) {
-        LPERROR("STL bad function call exception: " << exception.what() );
-#endif
-    } catch (const std::runtime_error & exception ) {
-        LPERROR("STL runtime error: " << exception.what() );
-    }
-    catch (const std::exception & exception) {
-        LPERROR("General STL exception: " << exception.what());
-    } catch (...) {
-        LPERROR("Unknown exception");
-    }
-
-    m_iterationReport.createSolutionReport();
-    m_iterationReport.writeSolutionReport();
-
-    if(m_saveBasis && m_saveLastBasis){
-        saveBasis();
-    }
-
-    if(m_enableExport){
-        m_iterationReport.createExportReport();
-        m_iterationReport.writeExportReport(m_exportFilename);
-    }
-
-    releaseModules();
+            (StartingBasisFinder::STARTING_NONBASIC_STATES)
+            SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_nonbasic_states");
+    m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
 }
 
 void Simplex::initModules() {
@@ -835,6 +589,19 @@ void Simplex::initModules() {
         LPERROR("Wrong parameter: factorization_type");
         //TODO: Throw parameter exception
     }
+
+    m_iterationReport->addProviderForStart(*this);
+    m_iterationReport->addProviderForIteration(*this);
+    m_iterationReport->addProviderForSolution(*this);
+
+    if(m_enableExport){
+        m_iterationReport->addProviderForExport(*this);
+    }
+
+    m_iterationReport->createStartReport();
+    m_iterationReport->writeStartReport();
+
+    initWorkingTolerance();
 }
 
 void Simplex::releaseModules() {
@@ -910,7 +677,19 @@ const std::vector<Numerical::Double> Simplex::getDualSolution() const {
 
 
 void Simplex::reinvert() {
+    releaseLocks();
+    m_inversionTimer.start();
     m_basis->invert();
+    m_inversionTimer.stop();
+    m_computeBasicSolutionTimer.start();
+    computeBasicSolution();
+    m_computeBasicSolutionTimer.stop();
+    m_computeReducedCostsTimer.start();
+    computeReducedCosts();
+    m_computeReducedCostsTimer.stop();
+    m_computeFeasibilityTimer.start();
+    computeFeasibility();
+    m_computeFeasibilityTimer.stop();
 }
 
 void Simplex::computeBasicSolution() {

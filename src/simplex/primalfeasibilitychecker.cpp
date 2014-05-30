@@ -19,6 +19,7 @@ PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
 
 bool PrimalFeasibilityChecker::checkFeasibility()
 {
+//    computeFeasibilities();
     IndexList<>::Iterator setMit;
     IndexList<>::Iterator setMendit;
     IndexList<>::Iterator setPit;
@@ -43,43 +44,29 @@ void PrimalFeasibilityChecker::computeFeasibilities()
 
     m_phaseIObjectiveValue = 0;
 
-    Numerical::Double lbOfIthVariable = 0;
-    Numerical::Double ubOfIthVariable = 0;
-    Numerical::Double valueOfIthVariable = 0;
-
-//    std::vector<int> mindex;
-//    std::vector<int> pindex;
+    Numerical::Double lbOfVariable = 0;
+    Numerical::Double ubOfVariable = 0;
+    Numerical::Double valueOfVariable = 0;
 
     for(unsigned int basisIndex = 0; basisIndex < m_basisHead.size(); basisIndex++){
         const Variable & basicVariable = m_model.getVariable(m_basisHead.at(basisIndex));
-        lbOfIthVariable = basicVariable.getLowerBound();
-        ubOfIthVariable = basicVariable.getUpperBound();
-        valueOfIthVariable = *(m_variableStates->getAttachedData(m_basisHead.at(basisIndex)));
+        lbOfVariable = basicVariable.getLowerBound();
+        ubOfVariable = basicVariable.getUpperBound();
+        valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead.at(basisIndex)));
 
     //basic variables with M type infeasibility
-
-        if ( Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, m_feasibilityTolerance) ) {
+        if ( Numerical::lessthan(valueOfVariable, lbOfVariable, m_feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, basisIndex);
-            m_phaseIObjectiveValue += (valueOfIthVariable - lbOfIthVariable);
-//            mindex.push_back(basisIndex);;
+            m_phaseIObjectiveValue += (valueOfVariable - lbOfVariable);
         } else
 
     //basic variables with P type infeasibility
-
-        if ( Numerical::lessthan(ubOfIthVariable, valueOfIthVariable, m_feasibilityTolerance) ) {
+        if ( Numerical::lessthan(ubOfVariable, valueOfVariable, m_feasibilityTolerance) ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, basisIndex);
-            m_phaseIObjectiveValue -= (valueOfIthVariable - ubOfIthVariable);
-//            pindex.push_back(basisIndex);
-        } else
-
+            m_phaseIObjectiveValue -= (valueOfVariable - ubOfVariable);
     //basic variables with F type infeasibility
-
-//        if ( Numerical::lessOrEqual(valueOfIthVariable, ubOfIthVariable, feasibilityTolerance) &&
-//             !Numerical::lessthan(valueOfIthVariable, lbOfIthVariable, feasibilityTolerance) )
-        {
+        } else {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, basisIndex);
         }
     }
-//    LPINFO("mindex "<<mindex);
-//    LPINFO("pindex "<<pindex);
 }

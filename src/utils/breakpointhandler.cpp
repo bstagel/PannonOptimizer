@@ -19,7 +19,7 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
     int size = m_breakpoints.size();
 
     if (index >= size){
-        LPERROR("Kicimzett a getBreakpoint");
+        LPERROR("Invalid index in getBreakpoint()");
         exit(-1);
     }
 
@@ -54,17 +54,21 @@ void BreakpointHandler::printBreakpoints() const
     LPINFO(m_breakpoints);
 }
 
-void BreakpointHandler::selectMethod()
+void BreakpointHandler::selectMethod(int method)
 {
-    //TODO: one stepnél harmadik ág
     m_unsorted = m_breakpoints.size();
-
-    if (m_breakpoints.size() < 1){
-        m_sortingMethod = SELECTION;
-        selectionSort();
-    } else{
+    //one step method
+    if (method == 0){
         m_sortingMethod = HEAP;
         buildHeap();
+    }else{
+        if (m_breakpoints.size() < 1){
+            m_sortingMethod = SELECTION;
+            selectionSort();
+        } else{
+            m_sortingMethod = HEAP;
+            buildHeap();
+        }
     }
 }
 
@@ -84,6 +88,7 @@ void BreakpointHandler::selectionSort()
                 maxId = j;
             }
         }
+
         swapBreakpoints(maxId,i);
     }
     m_unsorted = 0;

@@ -292,8 +292,8 @@ void DualSimplex::checkFeasibility() {
         //Becomes feasible
         //Log the iteration and time when this first happens
         if(m_phase1Iteration == -1){
-            m_phase1Iteration = m_iterationIndex;
-            m_phase1Time = m_solveTimer.getCPURunningTime();
+//            m_phase1Iteration = m_iterationIndex;
+            m_phase1Time = m_solveTimer->getCPURunningTime();
         }
         //Do the feasibility correction
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues, m_workingTolerance);
@@ -373,7 +373,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);

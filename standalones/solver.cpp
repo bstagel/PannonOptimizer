@@ -14,23 +14,11 @@
 #include <simplex/primalsimplex.h>
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
+#include <simplex/simplexcontroller.h>
 
 #include <utils/tokenizer.h>
 
-enum ALGORITHM {
-    PRIMAL,
-    DUAL
-};
-
-void solve(std::string filename, ALGORITHM algorithm) {
-    //Init
-    Simplex* simplex = NULL;
-    //TODO: Csinal maganak parameter fajlt, akkor is ha nem fut le
-     if(algorithm == PRIMAL){
-        simplex = new PrimalSimplex();
-    } else if(algorithm == DUAL){
-        simplex = new DualSimplex();
-    }
+void solve(std::string filename, Simplex::ALGORITHM algorithm) {
     Model model;
     MpsModelBuilder builder;
     builder.loadFromFile(filename.c_str());
@@ -44,14 +32,9 @@ void solve(std::string filename, ALGORITHM algorithm) {
         model.scale();
     }
 
-    simplex->setModel(model);
-    simplex->solve();
-
-    //Release
-    if(simplex != NULL){
-        delete simplex;
-        simplex = NULL;
-    }
+    //init simplexController
+    SimplexController simplexController;
+    simplexController.solve(model,algorithm);
 }
 
 void printHelp() {
@@ -132,7 +115,7 @@ void generateParameterFiles() {
     }
 }
 
-void solveDir(std::string dirPath, ALGORITHM algorithm) {
+void solveDir(std::string dirPath, Simplex::ALGORITHM algorithm) {
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir (dirPath.c_str())) != NULL) {
@@ -151,7 +134,7 @@ void solveDir(std::string dirPath, ALGORITHM algorithm) {
     }
 }
 
-void solveFileList(std::string fileListPath, ALGORITHM algorithm) {
+void solveFileList(std::string fileListPath, Simplex::ALGORITHM algorithm) {
     std::string line;
     std::ifstream fileList(fileListPath);
     if(fileList.is_open()) {
@@ -180,7 +163,7 @@ int main(int argc, char** argv) {
     setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
 
-    ALGORITHM algorithm = DUAL;
+    Simplex::ALGORITHM algorithm = Simplex::DUAL;
 
     if(argc < 2){
         printHelp();
@@ -197,9 +180,9 @@ int main(int argc, char** argv) {
                 } else {
                     std::string alg(argv[i+1]);
                     if(alg.compare("primal") == 0){
-                        algorithm = PRIMAL;
+                        algorithm = Simplex::PRIMAL;
                     } else if(alg.compare("dual") == 0){
-                        algorithm = DUAL;
+                        algorithm = Simplex::DUAL;
                     } else {
                         std::cout << "Unknown algorithm, please use `primal` or `dual` (default).\n";
                     }

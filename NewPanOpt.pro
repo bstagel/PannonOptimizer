@@ -106,7 +106,8 @@ HEADERS += include/debug.h \
     include/simplex/pricing/simpri.h \
     include/simplex/pricing/dualdevexpricing.h \
     include/simplex/pricing/dualsteepestedgepricing.h \
-    include/simplex/pricing.h
+    include/simplex/pricing.h \
+    include/simplex/simplexcontroller.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -164,6 +165,7 @@ SOURCES += src/linalg/matrix.cpp \
            src/utils/breakpointhandler.cpp \
     src/simplex/pricing/simpri.cpp \
     src/simplex/pricing/dualdevexpricing.cpp \
-    src/simplex/pricing/dualsteepestedgepricing.cpp
+    src/simplex/pricing/dualsteepestedgepricing.cpp \
+    src/simplex/simplexcontroller.cpp
 
 #OBJECTS_DIR = .o

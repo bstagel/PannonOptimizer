@@ -194,6 +194,17 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "\n";
 
         out << "!!! Global !!! \n\n";
+
+        out << "! ALGORITHM \n"
+               "! 0 = dual (default)\n"
+               "! 1 = primal \n"
+               "\t " << "algorithm = " << writeParameter("algorithm") << "\n";
+
+        out << "! SWITCH ALGORITHM \n"
+               "! 0 = inactive \n"
+               "! 1 = active for each reinversion \n"
+               "\t " << "switch_algorithm = " << writeParameter("switch_algorithm") << "\n\n";
+
         out << "! Level of iteration report \n"
                "! 0 = brief problem report    & solution only                   & only solution time \n"
                "! 1 = brief problem report    & one line per inversion          & only solution time \n"
@@ -325,6 +336,11 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("epsilon_bounds",DefaultParameters::EPSILON_BOUNDS);
 
     //Global
+    createParameter("algorithm",Entry::INTEGER);
+    setParameterValue("algorithm",DefaultParameters::ALGORITHM);
+    createParameter("switch_algorithm",Entry::INTEGER);
+    setParameterValue("switch_algorithm",DefaultParameters::SWITCHALGORITHM);
+
     createParameter("debug_level", Entry::INTEGER);
     setParameterValue("debug_level", DefaultParameters::DEBUG_LEVEL);
     createParameter("iteration_limit", Entry::INTEGER);
