@@ -6,22 +6,11 @@
 #include <linalg/matrix.h>
 #include <utils/indexlist.h>
 #include <simplex/primalfeasibilitychecker.h>
+#include <utils/breakpointhandler.h>
 
 class Model;
 
 class PrimalRatiotest{
-
-    struct BreakPoint{
-        int index;
-        Numerical::Double value;
-        Numerical::Double functionValue;
-
-        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint)
-        {
-            os << "(" << breakpoint.index << "; " << breakpoint.value << "; " << breakpoint.functionValue << ")";
-            return os;
-        }
-    };
 
 public:
 
@@ -55,6 +44,8 @@ public:
                                 const Vector& alpha,
                                 Numerical::Double reducedCost);
 
+    inline bool outgoingAtUpperBound(){return m_outgoingAtUpperBound;}
+
 private:
     const SimplexModel& m_model;
     const Vector& m_basicVariableValues;
@@ -62,31 +53,43 @@ private:
     const IndexList<>& m_basicVariableFeasibilities;
     const IndexList<const Numerical::Double*>& m_variableStates;
 
+    bool m_outgoingAtUpperBound;
+
     int m_outgoingVariableIndex;
     Numerical::Double m_primalSteplength;
     Numerical::Double m_phaseIObjectiveValue;
     Numerical::Double m_phaseIIObjectiveValue;
     std::vector <unsigned int> m_boundflips;
-    std::vector <BreakPoint> m_breakpoints;
+    Numerical::Double m_initialPhaseIObjectiveValue;
+    Numerical::Double m_initialPhaseIIObjectiveValue;
+    BreakpointHandler m_breakpointHandler;
     bool m_tPositive;
+
+    //Ratiotest research measures
+    int m_stablePivotActivationPhase1;
+    int m_stablePivotBackwardStepsPhase1;
+    int m_stablePivotForwardStepsPhase1;
+    int m_fakeFeasibilityActivationPhase1;
+    int m_fakeFeasibilityCounterPhase1;
+
+    int m_stablePivotNotFoundPhase2;
+    int m_fakeFeasibilityActivationPhase2;
+    int m_fakeFeasibilityCounterPhase2;
 
     //Parameter references
     const PRIMAL_RATIOTEST_METHOD m_nonlinearPrimalPhaseIFunction;
     const double & m_pivotTolerance;
+    const int & m_enableFakeFeasibility;
 
-    void shift(std::vector<BreakPoint>* breakpoints, unsigned int startId, unsigned int stopId);
-    void getNextElement(std::vector<BreakPoint>* breakpoints, unsigned int length);
     void generateBreakpointsPhase1(const Vector& alpha,
-                                   int incomingVariableIndex,
-                                   Numerical::Double phaseIReducedCost);
+                                   int incomingVariableIndex);
     void computeFunctionPhase1(const Vector& alpha,
                                unsigned int &iterationCounter,
                                Numerical::Double functionSlope);
     void useNumericalThresholdPhase1(unsigned int iterationCounter,
                                      const Vector& alpha,
                                      Numerical::Double& functionSlope);
-    void generateBreakpointsPhase2(const Vector& alpha,
-                                   Numerical::Double reducedCost);
+    void generateBreakpointsPhase2(const Vector& alpha);
 };
 
 #endif // PRIMALRATIOTEST_H

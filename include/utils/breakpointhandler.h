@@ -4,7 +4,7 @@
 #include <utils/numerical.h>
 #include <vector>
 #include <ostream>
-using namespace std;
+//#include <simplex/dualratiotest.h>
 
 class BreakpointHandler
 {
@@ -21,7 +21,7 @@ public:
         Numerical::Double value;
         mutable Numerical::Double functionValue;
 
-        friend ostream & operator<<(ostream & os, const BreakPoint & breakpoint){
+        friend std::ostream & operator<<(std::ostream & os, const BreakPoint & breakpoint){
             os << "(" << breakpoint.variableIndex << "; " << breakpoint.value <<
                   "; " << breakpoint.functionValue << ")";
             return os;
@@ -45,11 +45,11 @@ public:
         SORTING_METHOD_ENUM_LENGTH
     };
 
-    void selectMethod();
+    void selectMethod(int method);
     void init(unsigned maxNumberOfBreakpoints);
 
 private:
-    vector<BreakPoint> m_breakpoints;
+    std::vector<BreakPoint> m_breakpoints;
     SORTING_METHOD m_sortingMethod;
 
     int m_unsorted;

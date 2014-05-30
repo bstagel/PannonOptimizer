@@ -55,6 +55,9 @@ public:
     static const int SHIFT_BOUNDS;
     static const double EPSILON_BOUNDS;
     //Global
+    static const int ALGORITHM;
+    static const int SWITCHALGORITHM;
+
     static const int DEBUG_LEVEL;
     static const int ITERATION_LIMIT;
     static const double TIME_LIMIT;

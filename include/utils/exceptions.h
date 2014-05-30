@@ -126,6 +126,11 @@ public:
     FallbackException(const std::string &message): PanOptException(message){}
 };
 
+class SwitchAlgorithmException: public PanOptException{
+public:
+    SwitchAlgorithmException(const std::string &message):PanOptException(message){}
+};
+
 class SyntaxErrorException: public PanOptException {
 public:
     SyntaxErrorException(const std::string & message,

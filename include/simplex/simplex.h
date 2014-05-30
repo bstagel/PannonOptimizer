@@ -25,6 +25,7 @@ class Simplex : public Method, public IterationReportProvider
 {
     friend class BasisHeadIO;
     friend class Checker;
+    friend class SimplexController;
 public:
 
     enum FEASIBILITY
@@ -33,6 +34,12 @@ public:
         MINUS,
         PLUS,
         FEASIBILITY_ENUM_LENGTH
+    };
+
+    enum ALGORITHM
+    {
+        PRIMAL = 0,
+        DUAL
     };
 
     enum VARIABLE_STATE
@@ -57,11 +64,8 @@ public:
     const std::vector<Numerical::Double> getPrimalSolution() const;
     const std::vector<Numerical::Double> getDualSolution() const;
 
-
+    //TODO: should be protected
     void setModel(const Model & model);
-
-    void solve();
-    void findStartingBasis();
 
     void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
     void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
@@ -72,9 +76,9 @@ public:
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
-
 protected:
-    int m_iterationIndex;
+
+    IterationReport * m_iterationReport;
 
     SimplexModel * m_simplexModel;
 
@@ -92,9 +96,9 @@ protected:
 
     bool m_feasible;
     bool m_baseChanged;
-    bool m_freshBasis;
 
-    Timer m_solveTimer;
+    int m_iterationIndex;
+    const Timer * m_solveTimer;
     Timer m_inversionTimer;
     Timer m_computeBasicSolutionTimer;
     Timer m_computeReducedCostsTimer;
@@ -105,19 +109,15 @@ protected:
     Timer m_updateTimer;
 
     //Parameter variables
-    const bool & m_saveBasis;
-    const std::string & m_saveFilename;
-    const std::string & m_saveFormat;
-    const bool & m_saveLastBasis;
-    const int & m_saveIteration;
-    const int & m_savePeriodically;
-    const bool & m_loadBasis;
-    const std::string & m_loadFilename;
-    const std::string & m_loadFormat;
     const bool & m_enableExport;
     const std::string & m_exportFilename;
     const int & m_exportType;
-    const int & m_debugLevel;
+    const std::string & m_saveFormat;
+    const int & m_saveIteration;
+    const int & m_savePeriodically;
+    const std::string & m_saveFilename;
+    const std::string & m_loadFilename;
+    const std::string & m_loadFormat;
 
     //Tolerance handling
     double m_masterTolerance; //Initialized in child classes
@@ -131,7 +131,6 @@ protected:
     int m_phase1Iteration;
     Numerical::Double m_phase1Time;
     int m_fallbacks;
-    int m_triggeredReinversion;
     int m_badIterations;
     int m_degenerateIterations;
 
@@ -143,13 +142,27 @@ protected:
     Basis* m_basis;
     Pricing * m_pricing;
 
-    IterationReport m_iterationReport;
-
     void constraintAdded();
     void variableAdded();
 
     virtual void initModules();
     virtual void releaseModules();
+
+    void findStartingBasis();
+    void iterate();
+    void resetModel();
+
+    inline void setSolveTimer(const Timer * solveTimer){
+        m_solveTimer = solveTimer;
+    }
+
+    inline void setIterationIndex(const int& iteration){
+        m_iterationIndex = iteration;
+    }
+
+    inline void setIterationReport(IterationReport * iterationReport){
+        m_iterationReport = iterationReport;
+    }
 
     void saveBasis();
     void loadBasis();

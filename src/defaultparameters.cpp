@@ -50,6 +50,8 @@ const double DefaultParameters::EPSILON_RHS = 1.e-6;
 const int DefaultParameters::SHIFT_BOUNDS = 0;
 const double DefaultParameters::EPSILON_BOUNDS = 1.e-6;
 //Global
+const int DefaultParameters::ALGORITHM = 0;
+const int DefaultParameters::SWITCHALGORITHM = 0;
 const int DefaultParameters::DEBUG_LEVEL = 1;
 const int DefaultParameters::ITERATION_LIMIT = 200000;
 const double DefaultParameters::TIME_LIMIT = 3600.0;

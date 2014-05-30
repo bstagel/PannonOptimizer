@@ -7,13 +7,17 @@
 #include <iostream>
 #include <simplex/simplexparameterhandler.h>
 
-IterationReport::IterationReport() {
-    m_refreshHeader = true;
-    m_debugLevel = 0;
+IterationReport::IterationReport():
+    m_refreshHeader(true),
+    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
+    m_lastDebugLevel(m_debugLevel)
+{
     m_lastOutputEvent = IR_NONE;
 }
 
-IterationReport::IterationReport(const IterationReport & orig) {
+IterationReport::IterationReport(const IterationReport & orig):
+    m_debugLevel(orig.m_debugLevel)
+{
     copy(orig);
 }
 
@@ -38,7 +42,6 @@ void IterationReport::copy(const IterationReport & orig) {
     m_startTable = orig.m_startTable;
     m_solutionTable = orig.m_solutionTable;
     m_refreshHeader = orig.m_refreshHeader;
-    m_debugLevel = orig.m_debugLevel;
     m_lastOutputEvent = orig.m_lastOutputEvent;
 
     unsigned int columnIndex = 0;
@@ -97,16 +100,6 @@ void IterationReport::clear() {
         }
         columnIndex++;
     }*/
-}
-
-void IterationReport::setDebugLevel(int level) {
-    if (m_debugLevel == level) {
-        return;
-    }
-    m_debugLevel = level;
-    if (m_lastOutputEvent != IR_NONE) {
-        showHeader();
-    }
 }
 
 int IterationReport::getDebugLevel() const {
@@ -282,8 +275,9 @@ void IterationReport::writeIterationReport() {
         return;
     }
 
-    if (m_iterationTable.size() == 1) {
+    if (m_iterationTable.size() == 1 || m_lastDebugLevel != m_debugLevel) {
         showHeader();
+        m_lastDebugLevel = m_debugLevel;
     }
 
     std::ostringstream row;

@@ -4,6 +4,7 @@
 
 #include <simplex/pricing/primaldantzigpricing.h>
 #include <simplex/simplex.h>
+#include <prettyprint.h>
 
 
 PrimalDantzigPricing::PrimalDantzigPricing(const Vector & basicVariableValues,
@@ -175,6 +176,8 @@ int PrimalDantzigPricing::performPricingPhase1()
 
     //LPINFO(minIndex << ", " << maxIndex << "  " << __counter);
     __counter++;
+//    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
+//    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
@@ -246,6 +249,8 @@ int PrimalDantzigPricing::performPricingPhase2()
             maxReducedCost = reducedCost;
         }
     }
+//    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
+//    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;

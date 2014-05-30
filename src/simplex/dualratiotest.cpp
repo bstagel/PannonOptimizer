@@ -187,7 +187,6 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
         m_incomingVariableIndex = actualBreakpoint->variableIndex;
         m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
     } else{
-//        m_breakpointHandler.printBreakpoints();
         LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
     }
 }
@@ -339,15 +338,15 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     //If is there any breakpoint
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
         //Initialize the handler to provide sorted breakpoints
-        m_breakpointHandler.selectMethod();
+        m_breakpointHandler.selectMethod(m_nonlinearDualPhaseIFunction);
         //Handle fake feasible variables if enables
         if (m_enableFakeFeasibility) {
             const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
-            int fakeFesibilityCounter = 0;
+            int fakeFeasibilityCounter = 0;
 
             //If the first breakpoint is fake feasible filter them
             while (breakpoint->value < 0 && functionSlope >=0 ) {
-                fakeFesibilityCounter++;
+                fakeFeasibilityCounter++;
 
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
                 iterationCounter++;
@@ -362,9 +361,9 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
             }
 
             //Update the fake feasibility report
-            if(fakeFesibilityCounter > 0){
+            if(fakeFeasibilityCounter > 0){
                 m_fakeFeasibilityActivationPhase1++;
-                m_fakeFeasibilityCounterPhase1+=fakeFesibilityCounter;
+                m_fakeFeasibilityCounterPhase1+=fakeFeasibilityCounter;
             }
 
             //If the slope gone to negative return
@@ -376,7 +375,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
         //IterationCounter points to the first non-fake feasible breakpoint if there is any (otherwise returned)
         switch (m_nonlinearDualPhaseIFunction){
             case ONE_STEP:{
-                const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+                const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
 
                 m_phaseIObjectiveValue += functionSlope * breakpoint->value;
                 breakpoint->functionValue = m_phaseIObjectiveValue;
@@ -644,17 +643,17 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     //free variables always enter the basis
     if (m_incomingVariableIndex == -1) {
         if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
-            m_breakpointHandler.selectMethod();
+            m_breakpointHandler.selectMethod(m_nonlinearDualPhaseIIFunction);
             //Handle fake feasible breakpoints
             if (m_enableFakeFeasibility) {
                 const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
-                int fakeFesibilityCounter = 0;
+                int fakeFeasibilityCounter = 0;
 
                 while ( breakpoint->value < 0) {
                     if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > m_optimalityTolerance){
                         throw FallbackException("Infeasible variable in phase 2");
                     }
-                    fakeFesibilityCounter++;
+                    fakeFeasibilityCounter++;
 
                     const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
 
@@ -669,9 +668,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
                 }
 
-                if(fakeFesibilityCounter > 0){
+                if(fakeFeasibilityCounter > 0){
                     m_fakeFeasibilityActivationPhase2++;
-                    m_fakeFeasibilityCounterPhase2+=fakeFesibilityCounter;
+                    m_fakeFeasibilityCounterPhase2+=fakeFeasibilityCounter;
                 }
 
                 if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){

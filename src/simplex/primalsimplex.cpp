@@ -154,6 +154,7 @@ void PrimalSimplex::initModules() {
                                          m_reducedCosts);
 
     Simplex::m_pricing = m_pricing;
+    m_pricing->init();
 
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,
@@ -251,7 +252,6 @@ void PrimalSimplex::selectPivot() {
         }
         m_basis->Ftran(m_alpha);
 
-
         //Test code to check primal ph_1 reduced cost
 //        Numerical::Double rcCheck=0;
 //        if(!m_feasible){
@@ -272,21 +272,29 @@ void PrimalSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
+            for(unsigned i=0;i<m_basicVariableValues.length();i++){
+                const Variable& var = m_simplexModel->getVariable(m_basisHead[i]);
+                Numerical::Double value = m_basicVariableValues.at(i);
+                Numerical::Double lb = var.getLowerBound();
+                Numerical::Double ub = var.getUpperBound();
+                if (value < lb || value > ub){
+                    LPWARNING("Infeasible variable in phase 2: "<<i);
+                    LPINFO("value: "<<value<<" lb: "<<lb<<" ub: "<<ub);
+                }
+            }
             m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha, m_reducedCosts.at(m_incomingIndex));
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
 
         //If a boundflip is found, perform it
-        if(m_feasible && !m_ratiotest->getBoundflips().empty()){
+        if(!m_ratiotest->getBoundflips().empty()){
             break;
         }
 
         //Column disabling control
         if(m_outgoingIndex == -1){
             //Ask for another column
-#ifndef NDEBUG
-            LPERROR("Ask for another column, column is unstable: "<<m_incomingIndex);
-#endif
+            LPWARNING("Ask for another column, column is unstable: "<<m_incomingIndex);
             m_pricing->lockLastIndex();
             price();
         }
@@ -304,11 +312,13 @@ void PrimalSimplex::update() {
         LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+//            LPINFO("LB->UB");
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+//            LPINFO("UB->LB");
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
@@ -322,6 +332,7 @@ void PrimalSimplex::update() {
     //debug
 //    Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
 //    Numerical::Double ubOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound();
+//    Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(m_outgoingIndex);
 
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
         //Save whether the basis is to be changed
@@ -329,23 +340,22 @@ void PrimalSimplex::update() {
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
-//        Numerical::Double valueOfOutgoingVariable = *(m_variableStates.getAttachedData(m_basisHead.at(m_outgoingIndex)));
-//        LPERROR("typeOfIthVariable "<<typeOfIthVariable;);
 
         if (outgoingType == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
 //            LPINFO("ougoing variable fix, value: "<<valueOfOutgoingVariable);
         }
         else if (outgoingType == Variable::BOUNDED) {
-            if(m_primalTheta*m_alpha.at(m_outgoingIndex) < 0){
-                outgoingState = NONBASIC_AT_LB;
+            if(m_ratiotest->outgoingAtUpperBound()){
+                outgoingState = NONBASIC_AT_UB;
 //                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
 //                       " lb: "<<lbOfOutgoingVariable);
             } else {
-                outgoingState = NONBASIC_AT_UB;
+                outgoingState = NONBASIC_AT_LB;
 //                LPINFO("outgoing variable vounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
 //                       " ub: "<<ubOfOutgoingVariable);
             }
+//            LPWARNING("state out: "<<outgoingState);
         }
         else if (outgoingType == Variable::PLUS) {
 //            LPINFO("outgoing variable PLUS type, val:"<<valueOfOutgoingVariable);
