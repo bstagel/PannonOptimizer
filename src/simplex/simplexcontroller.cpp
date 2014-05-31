@@ -1,5 +1,6 @@
 #include <simplex/simplexcontroller.h>
 #include <simplex/simplexparameterhandler.h>
+#include <prettyprint.h>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";
 const static char * ITERATION_TIME_NAME = "Time";
@@ -16,6 +17,7 @@ const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion
 SimplexController::SimplexController():
     m_primalSimplex(NULL),
     m_dualSimplex(NULL),
+    m_currentSimplex(NULL),
     m_freshBasis(false),
     //Parameter references
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
@@ -28,7 +30,7 @@ SimplexController::SimplexController():
     m_exportType(SimplexParameterHandler::getInstance().getIntegerParameterValue("export_type")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_export")),
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
-  m_triggeredReinversion(0)
+    m_triggeredReinversion(0)
 {
     m_iterationReport.addProviderForStart(*this);
     m_iterationReport.addProviderForIteration(*this);
@@ -36,6 +38,21 @@ SimplexController::SimplexController():
 
     if(m_enableExport){
         m_iterationReport.addProviderForExport(*this);
+    }
+}
+
+SimplexController::~SimplexController()
+{
+    if (m_primalSimplex){
+        delete m_primalSimplex;
+        m_primalSimplex = NULL;
+    }
+    if (m_dualSimplex){
+        delete m_dualSimplex;
+        m_dualSimplex = NULL;
+    }
+    if (m_currentSimplex){
+        m_currentSimplex = NULL;
     }
 }
 
@@ -163,6 +180,36 @@ void SimplexController::writeSolutionReport()
     }
 }
 
+const Numerical::Double &SimplexController::getObjectiveValue() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getObjectiveValue() :
+                                                   m_dualSimplex->getObjectiveValue();
+}
+
+const Numerical::Double &SimplexController::getPhaseIObjectiveValue() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getPhaseIObjectiveValue() :
+                                                   m_dualSimplex->getPhaseIObjectiveValue();
+}
+
+const std::vector<int> &SimplexController::getBasisHead() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getBasisHead() :
+                                                   m_dualSimplex->getBasisHead();
+}
+
+const std::vector<Numerical::Double> SimplexController::getPrimalSolution() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getPrimalSolution() :
+                                                   m_dualSimplex->getPrimalSolution();
+}
+
+const std::vector<Numerical::Double> SimplexController::getDualSolution() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getDualSolution() :
+                                                   m_dualSimplex->getDualSolution();
+}
+
 void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlgorithm)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -171,81 +218,84 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
     const double & timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
+    const int & switching = simplexParameters.getIntegerParameterValue("switch_algorithm");
 
     m_currentAlgorithm = startingAlgorithm;
 
-    Simplex * currentSimplex = NULL;
     if (m_currentAlgorithm == Simplex::PRIMAL){
         m_primalSimplex = new PrimalSimplex();
-        currentSimplex = m_primalSimplex;
+        m_currentSimplex = m_primalSimplex;
     }else{
         m_dualSimplex = new DualSimplex();
-        currentSimplex = m_dualSimplex;
+        m_currentSimplex = m_dualSimplex;
     }
 
     try{
-        currentSimplex->setModel(model);
-        currentSimplex->setSolveTimer(&m_solveTimer);
-        currentSimplex->setIterationReport(&m_iterationReport);
-        try{
-            currentSimplex->initModules();
-            m_solveTimer.start();
-            if (m_loadBasis){
-                currentSimplex->loadBasis();
-            }else{
-                currentSimplex->findStartingBasis();
+        m_currentSimplex->setModel(model);
+        m_currentSimplex->setSolveTimer(&m_solveTimer);
+        m_currentSimplex->setIterationReport(&m_iterationReport);
+        m_currentSimplex->initModules();
+        m_solveTimer.start();
+        if (m_loadBasis){
+            m_currentSimplex->loadBasis();
+        }else{
+            m_currentSimplex->findStartingBasis();
+        }
+
+        m_iterationReport.createStartReport();
+        m_iterationReport.writeStartReport();
+        //Simplex iterations
+        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
+             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+
+            m_currentSimplex->setIterationIndex(m_iterationIndex);
+            if(m_saveBasis){
+                m_currentSimplex->saveBasis();
             }
 
-            for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-                 (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
-
-                currentSimplex->setIterationIndex(m_iterationIndex);
-                if(m_saveBasis){
-                    currentSimplex->saveBasis();
+            if((int)reinversionCounter == reinversionFrequency){
+                m_currentSimplex->reinvert();
+                reinversionCounter = 0;
+                m_freshBasis = true;
+                if (m_iterationIndex > 1 && switching > 0){
+                    switchAlgorithm(model);
                 }
+            }
+            try{
+                m_currentSimplex->iterate();
+                reinversionCounter++;
 
-                if((int)reinversionCounter == reinversionFrequency){
-                    currentSimplex->reinvert();
-                    reinversionCounter = 0;
-                    m_freshBasis = true;
+                if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
+                    m_iterationReport.createIterationReport();
+                    m_iterationReport.writeIterationReport();
                 }
-                try{
-                    currentSimplex->iterate();
-                    reinversionCounter++;
-
-                    if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                        m_iterationReport.createIterationReport();
-                        m_iterationReport.writeIterationReport();
-                    }
-                    m_freshBasis = false;
-                } catch ( const FallbackException & exception ) {
-                    LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
-                    currentSimplex->reinvert();
+                m_freshBasis = false;
+            } catch ( const FallbackException & exception ) {
+                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+                m_currentSimplex->reinvert();
+                m_iterationIndex--;
+            } catch ( const OptimizationResultException & exception ) {
+                m_currentSimplex->m_simplexModel->resetModel();
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
-                } catch ( const OptimizationResultException & exception ) {
-                    currentSimplex->m_simplexModel->resetModel();
-                    //Check the result with triggering reinversion
-                    if(m_freshBasis){
-                        throw;
-                    } else {
-                        reinversionCounter = reinversionFrequency;
-                        m_iterationIndex--;
-                    }
-                } catch ( const NumericalException & exception ) {
-                    //Check the result with triggering reinversion
-                    if(m_freshBasis){
-                        throw;
-                    } else {
-                        LPINFO("Numerical error: "<<exception.getMessage());
-                        reinversionCounter = reinversionFrequency;
-                        m_iterationIndex--;
-                    }
                 }
+            } catch ( const NumericalException & exception ) {
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    LPINFO("Numerical error: "<<exception.getMessage());
+                    reinversionCounter = reinversionFrequency;
+                    m_iterationIndex--;
+                }
+            } catch(const SwitchAlgorithmException& exception){
+                LPINFO("Algorithm switched from primal to dual: " << exception.getMessage());
+                switchAlgorithm(model);
             }
-
-        } catch(const SwitchAlgorithmException& exception){
-            LPINFO("Algorithm switched from primal to dual: " << exception.getMessage());
-            switchAlgorithm();
         }
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
@@ -305,27 +355,38 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
     } catch (...) {
         LPERROR("Unknown exception");
     }
-
-    currentSimplex->releaseModules();
 }
 
-void SimplexController::switchAlgorithm()
+void SimplexController::switchAlgorithm(const Model &model)
 {
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
         m_primalSimplex = new PrimalSimplex();
+        m_primalSimplex->setModel(model);
+        m_primalSimplex->setSolveTimer(&m_solveTimer);
+        m_primalSimplex->setIterationReport(&m_iterationReport);
     }
     if (m_dualSimplex == NULL){
         m_dualSimplex = new DualSimplex();
+        m_dualSimplex->setModel(model);
+        m_dualSimplex->setSolveTimer(&m_solveTimer);
+        m_dualSimplex->setIterationReport(&m_iterationReport);
     }
     //Primal->Dual
     if (m_currentAlgorithm == Simplex::PRIMAL){
-
+        m_currentSimplex->setSimplexState(m_dualSimplex);
+        m_currentSimplex = m_dualSimplex;
+        m_currentSimplex->initModules();
         m_currentAlgorithm = Simplex::DUAL;
     //Dual->Primal
     }else{
-
+        m_currentSimplex->setSimplexState(m_primalSimplex);
+        m_currentSimplex = m_primalSimplex;
+        m_currentSimplex->initModules();
         m_currentAlgorithm = Simplex::PRIMAL;
     }
+    //reinvert
+    m_currentSimplex->reinvert();
+    m_freshBasis = true;
 }
 
