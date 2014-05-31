@@ -680,11 +680,33 @@ public:
         begin->next();
     }
 
+    inline bool isPartitionEmpty(unsigned int index) {
+        Element<ATTACHED_TYPE> * element = m_heads + index;
+        return element->m_next == element;
+    }
+
     inline void clearPartition(unsigned int index)
     {
+        Iterator iter, endIter;
+        getIterators(&iter, &endIter, index, 1);
+        for (; iter != endIter; iter++) {
+            remove( iter.getData() );
+        }
+
         Element<ATTACHED_TYPE> * element = m_heads + index;
         element->m_next = element;
         element->m_previous = element;
+
+    }
+
+    void clearAllPartitions() {
+        unsigned int index;
+        Element<ATTACHED_TYPE> * element = m_heads;
+        for (index = 0; index < m_partitionCount; index++, element++) {
+            if (element->m_next != element) {
+                clearPartition(index);
+            }
+        }
     }
 
 private:

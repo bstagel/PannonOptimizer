@@ -16,6 +16,8 @@
 
 #include <utils/exceptions.h>
 
+extern double loosedBits;
+
 /**
  * This class generates the PFI (Product Form of the Inverse) form of the basis.
  * The algorithm can be parametrized to support different methods of inversion.
