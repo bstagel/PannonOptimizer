@@ -57,26 +57,13 @@ public:
     Simplex();
     virtual ~Simplex();
 
-    inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
-    inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
-    inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
-
-    const std::vector<Numerical::Double> getPrimalSolution() const;
-    const std::vector<Numerical::Double> getDualSolution() const;
-
-    //TODO: should be protected
-    void setModel(const Model & model);
-
-    void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
-    void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
+protected:
 
     // Interface of the iteration report provider
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-protected:
 
     IterationReport * m_iterationReport;
 
@@ -153,17 +140,21 @@ protected:
     void iterate();
     void resetModel();
 
-    inline void setSolveTimer(const Timer * solveTimer){
-        m_solveTimer = solveTimer;
-    }
+    inline void setSolveTimer(const Timer * solveTimer){ m_solveTimer = solveTimer;}
+    inline void setIterationIndex(const int& iteration){ m_iterationIndex = iteration;}
+    inline void setIterationReport(IterationReport * iterationReport){ m_iterationReport = iterationReport;}
 
-    inline void setIterationIndex(const int& iteration){
-        m_iterationIndex = iteration;
-    }
+    inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
+    inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
+    inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
+    const std::vector<Numerical::Double> getPrimalSolution() const;
+    const std::vector<Numerical::Double> getDualSolution() const;
 
-    inline void setIterationReport(IterationReport * iterationReport){
-        m_iterationReport = iterationReport;
-    }
+    void setModel(const Model & model);
+    void setSimplexState(Simplex* simplex);
+
+    void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
+    void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
 
     void saveBasis();
     void loadBasis();

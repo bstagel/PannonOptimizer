@@ -333,6 +333,15 @@ void Simplex::setModel(const Model &model) {
     }
 }
 
+void Simplex::setSimplexState(Simplex * simplex)
+{
+    LPINFO("setSimplexState() called");
+    simplex->m_basisHead = m_basisHead;
+    simplex->m_variableStates = m_variableStates;
+
+    simplex->m_basicVariableValues = m_basicVariableValues;
+}
+
 void Simplex::iterate()
 {
     computeWorkingTolerance();
@@ -593,16 +602,13 @@ void Simplex::initModules() {
         throw ParameterException("Wrong factorization type parameter");
     }
 
-    m_iterationReport->addProviderForStart(*this);
-    m_iterationReport->addProviderForIteration(*this);
-    m_iterationReport->addProviderForSolution(*this);
+        m_iterationReport->addProviderForStart(*this);
+        m_iterationReport->addProviderForIteration(*this);
+        m_iterationReport->addProviderForSolution(*this);
 
-    if(m_enableExport){
-        m_iterationReport->addProviderForExport(*this);
-    }
-
-    m_iterationReport->createStartReport();
-    m_iterationReport->writeStartReport();
+        if(m_enableExport){
+            m_iterationReport->addProviderForExport(*this);
+        }
 
     initWorkingTolerance();
 }
