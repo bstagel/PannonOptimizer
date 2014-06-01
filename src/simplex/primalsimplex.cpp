@@ -154,7 +154,6 @@ void PrimalSimplex::initModules() {
                                          m_reducedCosts);
 
     Simplex::m_pricing = m_pricing;
-    m_pricing->init();
 
     m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
                                                         &m_variableStates,

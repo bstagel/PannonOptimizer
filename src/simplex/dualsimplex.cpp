@@ -412,8 +412,12 @@ void DualSimplex::update() {
     //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
         //TODO DEBUG
+//        LPINFO("m_basishead: "<<m_basisHead);
 //        LPINFO("pricing reduced cost: "<<m_pricing->getReducedCost());
 //        LPINFO("outgoing var (original index): "<<m_basisHead.at(m_outgoingIndex));
+//        LPINFO("x_B: "<<m_basicVariableValues);
+//        LPINFO("obj val: "<<m_objectiveValue);
+//        LPINFO("reference obj val: "<<m_referenceObjective);
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
@@ -429,7 +433,6 @@ void DualSimplex::update() {
         //Compute the outgoing state
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
-
         switch (outgoingType) {
         case Variable::FIXED:
             outgoingState = NONBASIC_FIXED;
@@ -467,6 +470,7 @@ void DualSimplex::update() {
             throw PanOptException("Invalid variable type");
         }
 
+
         //Compute the primal theta
         m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, outgoingState);
 
@@ -480,12 +484,14 @@ void DualSimplex::update() {
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
+
         //Update the pricing
         m_pricing->update(m_incomingIndex, m_outgoingIndex,
                           m_incomingAlpha, m_pivotRow,
                           m_pivotRowOfBasisInverse);
     }
-
+    //TODO DEBUG
+//    reinvert();
     //Update the reduced costs
     computeReducedCosts();
 
