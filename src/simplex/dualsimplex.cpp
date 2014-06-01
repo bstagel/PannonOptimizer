@@ -288,9 +288,12 @@ void DualSimplex::computeFeasibility() {
 void DualSimplex::checkFeasibility() {
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
+    //Becomes feasible
     if(lastFeasible == false && m_feasible == true){
-        //Becomes feasible
-        //Log the iteration and time when this first happens
+        //throw SwitchAlgorithmException
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
+            throw SwitchAlgorithmException("phase-2 entered!");
+        }
         if(m_phase1Iteration == -1){
 //            m_phase1Iteration = m_iterationIndex;
             m_phase1Time = m_solveTimer->getCPURunningTime();

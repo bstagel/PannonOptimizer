@@ -54,10 +54,11 @@ public:
     static const double EPSILON_RHS;
     static const int SHIFT_BOUNDS;
     static const double EPSILON_BOUNDS;
-    //Global
+    //Switch algorithm
     static const int ALGORITHM;
     static const int SWITCHALGORITHM;
 
+    //Global
     static const int DEBUG_LEVEL;
     static const int ITERATION_LIMIT;
     static const double TIME_LIMIT;

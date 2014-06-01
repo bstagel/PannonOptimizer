@@ -201,10 +201,14 @@ void PrimalSimplex::computeFeasibility() {
 void PrimalSimplex::checkFeasibility() {
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
+    //Becomes feasible
     if(lastFeasible == false && m_feasible == true){
-        //Becomes feasible
+        //throw SwitchAlgorithmException
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
+            throw SwitchAlgorithmException("phase-2 entered!");
+        }
         m_referenceObjective = m_objectiveValue;
-    } else if(lastFeasible == true && m_feasible == false ){
+    } else if(lastFeasible == true && m_feasible == false){
         //Becomes infeasible
         m_fallbacks++;
     }
