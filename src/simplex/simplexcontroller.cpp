@@ -250,6 +250,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
 
         m_iterationReport->createStartReport();
         m_iterationReport->writeStartReport();
+        Numerical::Double lastObjective = 0;
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
@@ -263,12 +264,34 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
                 m_freshBasis = true;
-                if (m_iterationIndex > 1 && switching > 0){
-                    switchAlgorithm(model);
+                switch(switching){
+                //every reinversion
+                case 1:
+                    if (m_iterationIndex > 1){
+                        switchAlgorithm(model);
+                    }
+                    break;
+//                //at entering phase-2
+                case 2:
+                    break;
+//                first reinversion in phase-2
+                case 3:
+                    if (m_currentSimplex->m_feasible){
+                        switchAlgorithm(model);
+                    }
+                    break;
+                //at degeneracy
+                case 4:
+                    if(m_iterationIndex > 1 &&
+                            Numerical::equals(m_currentSimplex->getObjectiveValue(), lastObjective)){
+                        switchAlgorithm(model);
+                    }
+                    break;
                 }
             }
             try{
                 m_currentSimplex->iterate();
+                lastObjective = m_currentSimplex->getObjectiveValue();
                 reinversionCounter++;
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
@@ -365,6 +388,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
 
 void SimplexController::switchAlgorithm(const Model &model)
 {
+    LPINFO("Algorithm switched!");
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
         m_primalSimplex = new PrimalSimplex();

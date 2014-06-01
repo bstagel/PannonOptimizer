@@ -201,8 +201,11 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t " << "algorithm = " << writeParameter("algorithm") << "\n";
 
         out << "! SWITCH ALGORITHM \n"
-               "! 0 = inactive \n"
-               "! 1 = active for each reinversion \n"
+               "! 0 = inactive\n"
+               "! 1 = active for each reinversion\n"
+               "! 2 = active at entering phase-2\n"
+               "! 3 = active after first inverting in phase-2\n"
+               "! 4 = active at degeneracy (at reinversion)\n"
                "\t " << "switch_algorithm = " << writeParameter("switch_algorithm") << "\n\n";
 
         out << "! Level of iteration report \n"
