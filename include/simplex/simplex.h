@@ -151,7 +151,7 @@ protected:
     const std::vector<Numerical::Double> getDualSolution() const;
 
     void setModel(const Model & model);
-    void setSimplexState(Simplex* simplex);
+    void setSimplexState(const Simplex &simplex);
 
     void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
     void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);

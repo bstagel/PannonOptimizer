@@ -18,10 +18,9 @@
 class DualSimplex: public Simplex
 {
     friend class SimplexController;
-public:
+private:
     DualSimplex();
 
-private:
     DualPricing * m_pricing;
 
     DualFeasibilityChecker * m_feasibilityChecker;

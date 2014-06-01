@@ -333,13 +333,46 @@ void Simplex::setModel(const Model &model) {
     }
 }
 
-void Simplex::setSimplexState(Simplex * simplex)
+void Simplex::setSimplexState(const Simplex & simplex)
 {
-    LPINFO("setSimplexState() called");
-    simplex->m_basisHead = m_basisHead;
-    simplex->m_variableStates = m_variableStates;
+    m_basisHead = simplex.m_basisHead;
 
-    simplex->m_basicVariableValues = m_basicVariableValues;
+    m_variableStates.clearAllPartitions();
+    IndexList<const Numerical::Double*>::Iterator it;
+    IndexList<const Numerical::Double*>::Iterator endit;
+
+    //NONBASIC_AT_LB
+    int partition = 1;
+    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    for(;it != endit; it++){
+        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+    }
+    partition++;
+    //NONBASIC_AT_UB
+    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    for(;it != endit; it++){
+        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getUpperBound());
+    }
+    partition++;
+    //NONBASIC_AT_FIXED
+    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    for(;it != endit; it++){
+        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+    }
+    partition++;
+    //NONBASIC_AT_FREE
+    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    for(;it != endit; it++){
+        m_variableStates.insert(partition,it.getData(), &ZERO);
+    }
+    partition++;
+    //BASIC
+    simplex.m_variableStates.getIterators(&it,&endit,0,1);
+    for(;it != endit; it++){
+          m_variableStates.insert(0,it.getData(),&ZERO);
+    }
+
+    m_basicVariableValues = simplex.m_basicVariableValues;
 }
 
 void Simplex::iterate()
