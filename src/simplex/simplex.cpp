@@ -588,6 +588,8 @@ void Simplex::findStartingBasis()
             (StartingBasisFinder::STARTING_NONBASIC_STATES)
             SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_nonbasic_states");
     m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
+
+    m_pricing->init();
 }
 
 void Simplex::initModules() {
@@ -694,6 +696,7 @@ void Simplex::reinvert() {
 //    Checker::checkBasisWithBtran(*this);
 //    Checker::checkBasisWithReducedCost(*this);
 //    Checker::checkBasisWithNonbasicReducedCost(*this);
+
     m_inversionTimer.stop();
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();

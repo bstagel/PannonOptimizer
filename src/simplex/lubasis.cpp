@@ -26,6 +26,9 @@ LuBasis::LuBasis(const SimplexModel& model,
     m_transformationCount = 0;
     m_transformationAverage = 0;
     m_mNumAverage = 0;
+
+    m_columnCountIndexList.init(0,0);
+    m_rowCountIndexList.init(0,0);
 }
 
 LuBasis::~LuBasis()
@@ -58,39 +61,24 @@ void LuBasis::invert()
     m_transformationCount = 0;
     m_inversionCount++;
 
-    for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); it++) {
-        if(it->row != NULL){
+    if(m_lower->size() == 0){
+        m_lower->resize(m_basisHead->size(),DoubleETM());
+        m_upper->resize(m_basisHead->size(),DoubleETM());
+    } else {
+        for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); it++) {
             delete it->row;
-        }
-        else {
-            LPERROR("NULL row found in m_lower");
-        }
-        if(it->column != NULL){
+            it->row = NULL;
             delete it->column;
-        }
-        else {
-            LPERROR("NULL column found in m_lower");
+            it->column = NULL;
         }
 
-    }
-    m_lower->resize(m_basisHead->size(),DoubleETM());
-
-    for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); it++) {
-        if(it->row != NULL){
+        for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); it++) {
             delete it->row;
-        }
-        else {
-            LPERROR("NULL row found in m_upper");
-        }
-        if(it->column != NULL){
+            it->row = NULL;
             delete it->column;
+            it->column = NULL;
         }
-        else {
-            LPERROR("NULL column found in m_upper");
-        }
-
     }
-    m_upper->resize(m_basisHead->size(),DoubleETM());
 
     m_pivots.clear();
     m_factorizedPart = 0;
@@ -161,70 +149,6 @@ void LuBasis::invert()
         }
     }
 
-//    //check triangularity
-//    std::vector<int> pivotrows;
-//    pivotrows.resize(basisSize,0);
-//    std::vector<int> pivotcolumns;
-//    pivotcolumns.resize(basisSize,0);
-//    for(int i=0; i<basisSize; i++){
-//        int rowindex = m_pivots.at(i).rowindex;
-//        int columnindex = m_pivots.at(i).columnindex;
-//        for(int j=0; j<basisSize; j++){
-//            if(m_upper->at(rowindex).row->at(j) != 0.0){
-//                if(pivotcolumns.at(j) != 0){
-//                    LPERROR("Triangularity error");
-//                }
-//            }
-//        }
-//        pivotcolumns.at(columnindex) = 1;
-//    }
-
-    //Check L*U
-
-//    LPINFO("Checking L*U: ");
-
-//    std::vector<std::vector<double > > L;
-//    L.resize(m_basisHead->size());
-//    for(int i = 0; i<m_basisHead->size(); i++){
-//        L.at(i).resize(m_basisHead->size());
-//    }
-//    for(int i = 0; i<m_basisHead->size(); i++){
-//        int rowindex = m_pivots.at(i).rowindex;
-//        int columnindex = m_pivots.at(i).columnindex;
-//        Vector* col = m_lower->at(columnindex).column;
-//        double pivot = col->at(rowindex);
-//        for(int j = 0; j<m_basisHead->size(); j++){
-//            if(col->at(j) != 0.0)
-//                L.at(columnindex).at(j) = - col->at(j)*pivot;
-//        }
-//        L.at(columnindex).at(rowindex) = 1/pivot;
-//    }
-//    LPINFO("L: ");
-//    for(int i = 0; i<m_basisHead->size(); i++){
-//        for(int j = 0; j<m_basisHead->size(); j++){
-//            std::cout<<L.at(i).at(j)<<" ";
-//        }
-//        std::cout<<"\n";
-//    }
-//    LPINFO("U: ");
-//    for(int i = 0; i<m_basisHead->size(); i++){
-//        for(int j = 0; j<m_basisHead->size(); j++){
-//            std::cout<<m_upper->at(i).row->at(j)<<" ";
-//        }
-//        std::cout<<"\n";
-//    }
-
-//    LPINFO("L*U: ");
-//    for(int i = 0; i<m_basisHead->size(); i++){
-//        for(int j = 0; j<m_basisHead->size(); j++){
-//            double val = 0;
-//            for(int k = 0; k<m_basisHead->size(); k++){
-//                val += L.at(i).at(k) * m_upper->at(k).row->at(j);
-//            }
-//            std::cout<<val<<" ";
-//        }
-//        std::cout<<"\n";
-//    }
     //Update the basis head
     setNewHead();
 
@@ -241,10 +165,6 @@ void LuBasis::copyBasis()
     DEVINFO(D::PFIMAKER, "Copy the basis");
     unsigned int columnCount = m_model.getColumnCount();
     unsigned int rowCount = m_model.getRowCount();
-
-    //Reinit data structures
-    m_columnCountIndexList.init(0,0);
-    m_rowCountIndexList.init(0,0);
 
     //Containers to be resized directly
     //NEW//
@@ -310,35 +230,20 @@ void LuBasis::copyBasis()
         }
     }
 
-    buildRowCountIndexLists(rowCount, maxRowCount);
-    buildColumnCountIndexLists(m_basicColumns.size(), maxColumnCount);
+    //TODO: Use smaller lists!
+    //TODO: Use previously allocated memory pieces
+    m_rowCountIndexList.init(m_basisHead->size(), m_basicColumns.size()+1);
+    m_columnCountIndexList.init(m_basisHead->size(), m_basicColumns.size()+1);
+
+    for (unsigned int i = 0; i < m_basicRows.size(); i++) {
+        m_rowCountIndexList.insert(m_basicRows.at(i)->nonZeros(), i);
+    }
+
+    for (unsigned int i = 0; i < m_basicColumns.size(); i++) {
+        m_columnCountIndexList.insert(m_basicColumns.at(i)->nonZeros(), i);
+    }
 }
 
-void LuBasis::buildRowCountIndexLists(int size, int maxRowCount) {
-    m_rowCountIndexList.init(size, maxRowCount+1);
-    if(maxRowCount>0){
-        for (unsigned int i = 0; i < m_basicRows.size(); i++) {
-            m_rowCountIndexList.insert(m_basicRows.at(i)->nonZeros(), i);
-        }
-    }
-    DEVINFO(D::PFIMAKER, "Row links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_rowCountIndexList);
-#endif
-}
-
-void LuBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
-    m_columnCountIndexList.init(size, maxColumnCount+1);
-    if(maxColumnCount>0){
-        for (unsigned int i = 0; i < m_basicColumns.size(); i++) {
-            m_columnCountIndexList.insert(m_basicColumns.at(i)->nonZeros(), i);
-        }
-    }
-    DEVINFO(D::PFIMAKER, "Column links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_columnCountIndexList);
-#endif
-}
 
 void LuBasis::invertC()
 {
@@ -481,7 +386,6 @@ void LuBasis::invertM()
 
     //TODO skip everything if the basis is triangular
     std::list<int> activeRows;
-//    std::list<int> activeColumns;
     int basisSize = m_basisHead->size();
     unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
     unsigned int columnPartitionCount = m_columnCountIndexList.getPartitionCount();
@@ -510,8 +414,8 @@ void LuBasis::invertM()
             m_basicRows.at(rowIndex) = kernelRow;
         }
     }
-
     while(activeRows.size()>0){
+        {
 //        LPWARNING("kernel: ");
 //        std::list<int>::iterator activeRowIt;
 //        std::list<int>::iterator activeRowItend;
@@ -523,6 +427,7 @@ void LuBasis::invertM()
 //        for(; activeRowIt != activeRowItend; activeRowIt++){
 //            LPWARNING("row: "<<*activeRowIt << " --- "<<*m_basicRows.at(*activeRowIt));
 //        }
+        }
         //Compute the row and column Markowitz numbers
         std::vector<int> rowMarkowitzs;
         std::vector<int> rowMarkowitzColumnIndices;
@@ -542,6 +447,11 @@ void LuBasis::invertM()
             Vector::NonzeroIterator it = m_basicRows.at(*activeRowIt)->beginNonzero();
             Vector::NonzeroIterator itend = m_basicRows.at(*activeRowIt)->endNonzero();
             for(; it != itend; it++){
+                //If the column is singleton, set the only possible choice
+                if(m_columnCountIndexList.where(it.getIndex()) == 1){
+                    columnMarkowitzs.at(it.getIndex()) = 0;
+                    columnMarkowitzRowIndices.at(it.getIndex()) = *activeRowIt;
+                } else
                 //Check the threshold pivot criterion
                 if(Numerical::fabs(*it) >= rowAbsMaxs.at(*activeRowIt)*pivotThreshold){
                     //Update the Markowitz numbers
@@ -637,13 +547,61 @@ void LuBasis::invertM()
     LPINFO( "MPART num: " << mNum);
 }
 
+void LuBasis::checkIndexListValidities(){
+    unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
+    unsigned int columnPartitionCount = m_columnCountIndexList.getPartitionCount();
+    for(int i=0; i<(int)rowPartitionCount; i++){
+        IndexList<>::Iterator it;
+        IndexList<>::Iterator itend;
+        m_rowCountIndexList.getIterators(&it, &itend, i);
+        for(; it != itend; it++){
+            int rowindex = it.getData();
+            int activeCounter = 0;
+            Vector::NonzeroIterator rowit = m_basicRows.at(rowindex)->beginNonzero();
+            Vector::NonzeroIterator rowitend = m_basicRows.at(rowindex)->endNonzero();
+            for(; rowit != rowitend; rowit++){
+                if(m_columnCountIndexList.where(rowit.getIndex()) < columnPartitionCount){
+                    activeCounter++;
+                }
+            }
+            if(activeCounter != i){
+                LPERROR("INVALID ROW COUNT LIST ("<<rowindex<<"): partition index: "<<i << " ; activeCounter: "<<activeCounter);
+            }
+        }
+    }
+    for(int i=0; i<(int)columnPartitionCount; i++){
+        IndexList<>::Iterator it;
+        IndexList<>::Iterator itend;
+        m_columnCountIndexList.getIterators(&it, &itend, i);
+        for(; it != itend; it++){
+            int columnindex = it.getData();
+            int activeCounter = 0;
+            for(int j = 0; j < (int)m_basisHead->size(); j++){
+                if(m_rowCountIndexList.where(j) < rowPartitionCount){
+                    if(m_basicRows.at(j)->at(columnindex) != 0){
+                        activeCounter++;
+                    }
+                }
+            }
+            if(activeCounter != i){
+                LPERROR("INVALID COLUMN COUNT LIST ("<<columnindex<<"): partition index: "<<i << " ; activeCounter: "<<activeCounter);
+            }
+        }
+
+    }
+}
+
 //TODO: Ignore columns with no available pivot element
 void LuBasis::findPivot(int & rowindex, int & columnindex,
                         const std::vector<int> & rowMarkowitzs, const std::vector<int> & columnMarkowitzs,
                         const std::vector<int> & rowMarkowitzColumnIndices, const std::vector<int> & columnMarkowitzRowIndices)
 {
+    //TODO DEBUG
+//    checkIndexListValidities();
+
     //Since the kernel is stored rowwise only, row singleton comes first
     if(m_rowCountIndexList.firstElement(1) != -1){
+//        LPINFO("SR");
         rowindex = m_rowCountIndexList.firstElement(1);
         //some debug code, can be omitted later
         if(m_basicRows.at(rowindex)->nonZeros() != 1){
@@ -653,18 +611,10 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
         return;
     }
     if(m_columnCountIndexList.firstElement(1) != -1){
+//        LPINFO("SC");
         columnindex = m_columnCountIndexList.firstElement(1);
-        //some debug code, can be omitted later
-        unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
-        Vector::NonzeroIterator it = m_basicColumns.at(columnindex)->beginNonzero();
-        Vector::NonzeroIterator itend = m_basicColumns.at(columnindex)->endNonzero();
-        for(; it != itend; it++){
-            if(m_rowCountIndexList.where(it.getIndex()) < rowPartitionCount){
-                rowindex = it.getIndex();
-                return;
-            }
-        }
-        LPERROR("False singleton column!");
+        rowindex = columnMarkowitzRowIndices.at(columnindex);
+        return;
     }
     unsigned int basisSize = m_basisHead->size();
     //bestMarkowitz is mu in the book

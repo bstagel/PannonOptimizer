@@ -64,12 +64,11 @@ private:
 
     void copyBasis();
 
-    void buildRowCountIndexLists(int size, int maxRowCount);
-    void buildColumnCountIndexLists(int size, int maxColumnCount);
-
     void invertC();
     void invertR();
     void invertM();
+
+    void checkIndexListValidities();
     void findPivot(int & rowindex, int & columnindex,
                    const std::vector<int> & rowMarkowitzs, const std::vector<int> & columnMarkowitzs,
                    const std::vector<int> & rowMarkowitzColumnIndices, const std::vector<int> & columnMarkowitzRowIndices);
