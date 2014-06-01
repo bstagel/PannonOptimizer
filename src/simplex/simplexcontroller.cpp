@@ -32,17 +32,23 @@ SimplexController::SimplexController():
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
     m_triggeredReinversion(0)
 {
-    m_iterationReport.addProviderForStart(*this);
-    m_iterationReport.addProviderForIteration(*this);
-    m_iterationReport.addProviderForSolution(*this);
+    m_iterationReport = new IterationReport();
+
+    m_iterationReport->addProviderForStart(*this);
+    m_iterationReport->addProviderForIteration(*this);
+    m_iterationReport->addProviderForSolution(*this);
 
     if(m_enableExport){
-        m_iterationReport.addProviderForExport(*this);
+        m_iterationReport->addProviderForExport(*this);
     }
 }
 
 SimplexController::~SimplexController()
 {
+    if(m_iterationReport){
+        delete m_iterationReport;
+        m_iterationReport = NULL;
+    }
     if (m_primalSimplex){
         delete m_primalSimplex;
         m_primalSimplex = NULL;
@@ -172,11 +178,11 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
 
 void SimplexController::writeSolutionReport()
 {
-    m_iterationReport.createSolutionReport();
-    m_iterationReport.writeSolutionReport();
+    m_iterationReport->createSolutionReport();
+    m_iterationReport->writeSolutionReport();
     if(m_enableExport){
-        m_iterationReport.createExportReport();
-        m_iterationReport.writeExportReport(m_exportFilename);
+        m_iterationReport->createExportReport();
+        m_iterationReport->writeExportReport(m_exportFilename);
     }
 }
 
@@ -233,7 +239,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
     try{
         m_currentSimplex->setModel(model);
         m_currentSimplex->setSolveTimer(&m_solveTimer);
-        m_currentSimplex->setIterationReport(&m_iterationReport);
+        m_currentSimplex->setIterationReport(m_iterationReport);
         m_currentSimplex->initModules();
         m_solveTimer.start();
         if (m_loadBasis){
@@ -242,8 +248,8 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
             m_currentSimplex->findStartingBasis();
         }
 
-        m_iterationReport.createStartReport();
-        m_iterationReport.writeStartReport();
+        m_iterationReport->createStartReport();
+        m_iterationReport->writeStartReport();
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
@@ -266,8 +272,8 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
                 reinversionCounter++;
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                    m_iterationReport.createIterationReport();
-                    m_iterationReport.writeIterationReport();
+                    m_iterationReport->createIterationReport();
+                    m_iterationReport->writeIterationReport();
                 }
                 m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
@@ -364,25 +370,25 @@ void SimplexController::switchAlgorithm(const Model &model)
         m_primalSimplex = new PrimalSimplex();
         m_primalSimplex->setModel(model);
         m_primalSimplex->setSolveTimer(&m_solveTimer);
-        m_primalSimplex->setIterationReport(&m_iterationReport);
+        m_primalSimplex->setIterationReport(m_iterationReport);
+        m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
         m_dualSimplex = new DualSimplex();
         m_dualSimplex->setModel(model);
         m_dualSimplex->setSolveTimer(&m_solveTimer);
-        m_dualSimplex->setIterationReport(&m_iterationReport);
+        m_dualSimplex->setIterationReport(m_iterationReport);
+        m_dualSimplex->initModules();
     }
     //Primal->Dual
     if (m_currentAlgorithm == Simplex::PRIMAL){
-        m_currentSimplex->setSimplexState(m_dualSimplex);
         m_currentSimplex = m_dualSimplex;
-        m_currentSimplex->initModules();
+        m_currentSimplex->setSimplexState(*m_primalSimplex);
         m_currentAlgorithm = Simplex::DUAL;
     //Dual->Primal
     }else{
-        m_currentSimplex->setSimplexState(m_primalSimplex);
         m_currentSimplex = m_primalSimplex;
-        m_currentSimplex->initModules();
+        m_currentSimplex->setSimplexState(*m_dualSimplex);
         m_currentAlgorithm = Simplex::PRIMAL;
     }
     //reinvert

@@ -13,10 +13,10 @@
 
 class PrimalSimplex: public Simplex
 {
-public:
+    friend class SimplexController;
+private:
     PrimalSimplex();
 
-private:
     PrimalPricing * m_pricing;
 
     PrimalFeasibilityChecker * m_feasibilityChecker;

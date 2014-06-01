@@ -52,7 +52,7 @@ private:
 
     int m_triggeredReinversion;
 
-    IterationReport m_iterationReport;
+    IterationReport* m_iterationReport;
 
     void switchAlgorithm(const Model &model);
 };
