@@ -25,7 +25,7 @@ THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
 THREAD_STATIC_DEF unsigned long * Vector::sm_countingSortBitVector = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
     std::vector<int> diffs(3000);
 #endif
 
@@ -153,7 +153,7 @@ Vector::~Vector()
         sm_countingSortBitVectorLength = 0;
 
 
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
         std::ofstream ofs("diffs.txt");
         unsigned int index = 0;
         for (index = 0; index < diffs.size(); index++) {
@@ -743,7 +743,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         return 0.0;
     }
 
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
     {
         Vector vector1 = *this;
         Vector vector2 = vector;

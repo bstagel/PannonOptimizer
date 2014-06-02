@@ -20,6 +20,8 @@ public:
 
     virtual ~IterationReport();
 
+    void removeIterationProvider(const IterationReportProvider & provider);
+
     void addProviderForIteration(const IterationReportProvider & provider);
 
     void addProviderForStart(const IterationReportProvider & provider);
@@ -54,6 +56,8 @@ private:
         IR_ROW
     };
 
+    bool m_providerChanged;
+
     LAST_OUTPUT_EVENT m_lastOutputEvent;
 
     std::vector<IterationReportField> m_startFields;
@@ -64,7 +68,7 @@ private:
 
     std::vector<IterationReportField> m_exportFields;
 
-    std::vector< std::vector< Entry > > m_iterationTable;
+//    std::vector< std::vector< Entry > > m_iterationTable;
 
     std::vector< Entry > m_startTable;
 

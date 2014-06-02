@@ -36,7 +36,7 @@ extern const double & SPARSITY_RATIO;
 //#define CHECK check(__FUNCTION__);
 #define CHECK
 
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
     extern std::vector<int> diffs;
 #endif
 
