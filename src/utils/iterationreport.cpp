@@ -5,9 +5,11 @@
 #include <iomanip>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 #include <simplex/simplexparameterhandler.h>
 
 IterationReport::IterationReport():
+    m_providerChanged(false),
     m_refreshHeader(true),
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
     m_lastDebugLevel(m_debugLevel)
@@ -37,10 +39,11 @@ IterationReport::~IterationReport() {
 }
 
 void IterationReport::copy(const IterationReport & orig) {
+    m_providerChanged = orig.m_providerChanged;
     m_startFields = orig.m_startFields;
     m_iterationFields = orig.m_iterationFields;
     m_solutionFields = orig.m_solutionFields;
-    m_iterationTable = orig.m_iterationTable;
+    //m_iterationTable = orig.m_iterationTable;
     m_startTable = orig.m_startTable;
     m_solutionTable = orig.m_solutionTable;
     m_refreshHeader = orig.m_refreshHeader;
@@ -48,7 +51,7 @@ void IterationReport::copy(const IterationReport & orig) {
 
     unsigned int columnIndex = 0;
     unsigned int index = 0;
-    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
+    /*STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
         if (iterIter->getType() == IterationReportField::IRF_STRING) {
             for (index = 0; index < m_iterationTable.size(); index++) {
                 m_iterationTable[index][columnIndex].m_string =
@@ -56,7 +59,7 @@ void IterationReport::copy(const IterationReport & orig) {
             }
         }
         columnIndex++;
-    }
+    }*/
 
     columnIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, m_startFields, startIter) {
@@ -76,7 +79,7 @@ void IterationReport::copy(const IterationReport & orig) {
 }
 
 void IterationReport::clear() {
-    unsigned int columnIndex = 0;
+    /*unsigned int columnIndex = 0;
     unsigned int index = 0;
     STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
         if (iterIter->getType() == IterationReportField::IRF_STRING) {
@@ -87,7 +90,7 @@ void IterationReport::clear() {
             }
         }
         columnIndex++;
-    }
+    }*/
 
     /*columnIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, m_startFields, startIter) {
@@ -121,8 +124,22 @@ void IterationReport::addFields( const IterationReportProvider & provider,
     }
 }
 
+void IterationReport::removeIterationProvider(const IterationReportProvider &provider)
+{
+    m_providerChanged = true;
+    enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type = IterationReportProvider::IRF_ITERATION;
+    std::vector<IterationReportField> resultFields =
+            provider.getIterationReportFields(type);
+
+    STL_FOREACH(std::vector<IterationReportField>, resultFields, iter) {
+        remove(m_iterationFields.begin(), m_iterationFields.end(), *iter);
+        //m_iterationFields.erase()
+    }
+}
+
 void IterationReport::addProviderForIteration(
         const IterationReportProvider & provider) {
+    m_providerChanged = true;
     addFields(provider, &m_iterationFields, IterationReportProvider::IRF_ITERATION);
 }
 
@@ -234,7 +251,64 @@ void IterationReport::writeStartReport() const {
 void IterationReport::createIterationReport() {
     std::vector<Entry> newRow;
     getRow(m_iterationFields, &newRow, IterationReportProvider::IRF_ITERATION);
-    m_iterationTable.push_back(newRow);
+    //m_iterationTable.push_back(newRow);
+
+    /*if (m_iterationTable.size() == 0) {
+        return;
+    }*/
+
+    if (m_lastDebugLevel != m_debugLevel || m_providerChanged) {
+        showHeader();
+        m_lastDebugLevel = m_debugLevel;
+        m_providerChanged = false;
+    }
+
+    std::ostringstream row;
+    //const std::vector<Entry> & lastRow = m_iterationTable[ m_iterationTable.size() - 1 ];
+
+    unsigned int index;
+    unsigned int fieldCounter = 0;
+    for (index = 0; index < newRow.size(); index++) {
+        std::ostringstream entryString;
+        IterationReportField field = m_iterationFields[index];
+        if (m_debugLevel < field.getDebugLevel()) {
+            continue;
+        }
+        fieldCounter++;
+        const Entry & newEntry = newRow[index];
+
+        entryString << getContent(newEntry, field);
+
+        unsigned int width = entryString.str().length();
+        if (width > field.getWidth()) {
+            std::string str = entryString.str().substr(0, field.getWidth() - 1);
+            row << str << "*";
+        } else if (width < field.getWidth()) {
+            unsigned int spaceCount = field.getWidth() - width;
+
+            switch ( field.getAlignment() ) {
+            case IterationReportField::IRF_CENTER:
+                row << std::string(spaceCount / 2, ' ') << entryString.str() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
+                break;
+            case IterationReportField::IRF_LEFT:
+                row << entryString.str() << std::string(spaceCount, ' ');
+                break;
+            case IterationReportField::IRF_RIGHT:
+                row << std::string(spaceCount, ' ') << entryString.str();
+                break;
+            }
+
+        } else {
+            row << entryString.str();
+        }
+        if (index < newRow.size() - 1) {
+            row << "|";
+        }
+    }
+    if (fieldCounter > 0) {
+        LPINFO(row.str());
+    }
+    m_lastOutputEvent = IR_ROW;
 }
 
 void IterationReport::showHeader() {
@@ -275,61 +349,7 @@ void IterationReport::showHeader() {
 }
 
 void IterationReport::writeIterationReport() {
-    if (m_iterationTable.size() == 0) {
-        return;
-    }
 
-    if (m_iterationTable.size() == 1 || m_lastDebugLevel != m_debugLevel) {
-        showHeader();
-        m_lastDebugLevel = m_debugLevel;
-    }
-
-    std::ostringstream row;
-    const std::vector<Entry> & lastRow = m_iterationTable[ m_iterationTable.size() - 1 ];
-
-    unsigned int index;
-    unsigned int fieldCounter = 0;
-    for (index = 0; index < lastRow.size(); index++) {
-        std::ostringstream entryString;
-        IterationReportField field = m_iterationFields[index];
-        if (m_debugLevel < field.getDebugLevel()) {
-            continue;
-        }
-        fieldCounter++;
-        const Entry & newEntry = lastRow[index];
-
-        entryString << getContent(newEntry, field);
-
-        unsigned int width = entryString.str().length();
-        if (width > field.getWidth()) {
-            std::string str = entryString.str().substr(0, field.getWidth() - 1);
-            row << str << "*";
-        } else if (width < field.getWidth()) {
-            unsigned int spaceCount = field.getWidth() - width;
-
-            switch ( field.getAlignment() ) {
-            case IterationReportField::IRF_CENTER:
-                row << std::string(spaceCount / 2, ' ') << entryString.str() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
-                break;
-            case IterationReportField::IRF_LEFT:
-                row << entryString.str() << std::string(spaceCount, ' ');
-                break;
-            case IterationReportField::IRF_RIGHT:
-                row << std::string(spaceCount, ' ') << entryString.str();
-                break;
-            }
-
-        } else {
-            row << entryString.str();
-        }
-        if (index < lastRow.size() - 1) {
-            row << "|";
-        }
-    }
-    if (fieldCounter > 0) {
-        LPINFO(row.str());
-    }
-    m_lastOutputEvent = IR_ROW;
 }
 
 void IterationReport::createSolutionReport() {

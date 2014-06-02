@@ -17,6 +17,9 @@
 #include <utils/exceptions.h>
 
 extern double loosedBits;
+extern double expDiffSquareSum;
+extern double expDiffSum;
+extern int expCounter;
 
 /**
  * This class generates the PFI (Product Form of the Inverse) form of the basis.

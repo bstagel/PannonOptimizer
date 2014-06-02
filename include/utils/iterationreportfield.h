@@ -47,6 +47,10 @@ public:
 
     }
 
+    bool operator==(const IterationReportField & other) const {
+        return m_name == other.m_name && &m_provider == &other.m_provider;
+    }
+
     const std::string & getName() const {
         return m_name;
     }

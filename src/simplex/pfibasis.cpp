@@ -11,6 +11,11 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
+double expDiffSquareSum = 0;
+double expDiffSum = 0;
+int expCounter = 0;
+
+
 THREAD_STATIC_DEF int PfiBasis::m_inversionCount = 0;
 
 PfiBasis::PfiBasis(const SimplexModel& model,
@@ -187,6 +192,10 @@ void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
 }
 
 void PfiBasis::invert() {
+    expDiffSquareSum = 0;
+    expDiffSum = 0;
+    expCounter = 0;
+
     m_transformationCount = 0;
     m_inversionCount++;
 
@@ -407,6 +416,12 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
 void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
+
+#ifdef ANALYSE_DOT_PRODUCT
+    static int __counter = 0;
+    __counter++;
+#endif
+
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
     //If the dimension mismatches, then the operation cannot be performed.
@@ -445,23 +460,59 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     Numerical::Summarizer summarizer;
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
     unsigned int maxExponent = 0;
     unsigned int minExponent = 0;
+    unsigned int sumExponentDiff = 0;
+    unsigned int expCounter = 0;
+    Numerical::Double neg = 0, pos = 0;
 #endif
             Numerical::Double * ptrValue2 = iter->eta->m_data;
             Numerical::Double * ptrValue1 = denseVector;
             const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
             while (ptrValue1 < ptrValueEnd && nonZeros) {
-                //TODO vajon melyik ritkásbb?
+                //TODO vajon melyik ritkasabb?
                 const Numerical::Double value = *ptrValue1;
                 if (value != 0.0) {
                     nonZeros--;
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
                     Numerical::Double product = value * *ptrValue2;
                     Numerical::Float64 bits;
                     bits.m_value = product;
                     if (product != 0.0) {
+                        if (product < 0.0 && neg != 0.0) {
+                            Numerical::Float64 bits1, bits2;
+                            bits1.m_value = neg;
+                            bits2.m_value = product;
+                            //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
+                            //LPINFO("sum: " << sumExponentDiff);
+                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                            sumExponentDiff += diff;
+                            expDiffSquareSum += diff * diff;
+                            expDiffSum += diff;
+                            ::expCounter++;
+                            expCounter++;
+//                            neg += product;
+                        } else if (pos != 0.0 ){
+                            Numerical::Float64 bits1, bits2;
+                            bits1.m_value = pos;
+                            bits2.m_value = product;
+                            //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
+                            //LPINFO("sum: " << sumExponentDiff);
+
+                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                            sumExponentDiff += diff;
+                            expDiffSquareSum += diff * diff;
+                            expDiffSum += diff;
+                            ::expCounter++;
+                            expCounter++;
+//                            pos += product;
+                        }
+                        if (product < 0.0) {
+                            neg += product;
+                        } else {
+                            pos += product;
+                        }
                         if (maxExponent < bits.m_bits.m_exponent) {
                             maxExponent = bits.m_bits.m_exponent;
                         }
@@ -476,18 +527,22 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                 ptrValue1++;
                 ptrValue2++;
             }
-#ifdef ANALISYE_DOT_PRODUCT
-            if (minExponent != 0) {
-                diffs[maxExponent - minExponent]++;
+#ifdef ANALYSE_DOT_PRODUCT
+            if (minExponent != 0 && expCounter > 0) {
+                //diffs[maxExponent - minExponent]++;
+                diffs[sumExponentDiff / expCounter]++;
             }
 #endif
         } else {
             Numerical::Double * ptrValue = iter->eta->m_data;
             unsigned int * ptrIndex = iter->eta->m_index;
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
             unsigned int maxExponent = 0;
             unsigned int minExponent = 0;
+            unsigned int sumExponentDiff = 0;
+            unsigned int expCounter = 0;
+            Numerical::Double neg = 0, pos = 0;
 #endif
             while (ptrIndex < ptrIndexEnd && nonZeros) {
                 const Numerical::Double value = denseVector[*ptrIndex];
@@ -495,11 +550,37 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                     nonZeros--;
                     summarizer.add(value * *ptrValue);
 
-#ifdef ANALISYE_DOT_PRODUCT
+#ifdef ANALYSE_DOT_PRODUCT
                     Numerical::Double product = value * *ptrValue;
                     Numerical::Float64 bits;
                     bits.m_value = product;
                     if (product != 0.0) {
+                        if (product < 0.0 && neg != 0.0) {
+                            Numerical::Float64 bits1, bits2;
+                            bits1.m_value = neg;
+                            bits2.m_value = product;
+                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                            sumExponentDiff += diff;
+                            expDiffSquareSum += diff * diff;
+                            expDiffSum += diff;
+                            ::expCounter++;                            expCounter++;
+                            //neg += product;
+                        } else if (pos != 0.0){
+                            Numerical::Float64 bits1, bits2;
+                            bits1.m_value = pos;
+                            bits2.m_value = product;
+                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                            sumExponentDiff += diff;
+                            expDiffSquareSum += diff * diff;
+                            expDiffSum += diff;
+                            ::expCounter++;                            expCounter++;
+                            //pos += product;
+                        }
+                        if (product < 0.0) {
+                            neg += product;
+                        } else {
+                            pos += product;
+                        }
                         if (maxExponent < bits.m_bits.m_exponent) {
                             maxExponent = bits.m_bits.m_exponent;
                         }
@@ -514,9 +595,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                 ptrIndex++;
                 ptrValue++;
             }
-#ifdef ANALISYE_DOT_PRODUCT
-            if (minExponent != 0) {
-                diffs[maxExponent - minExponent]++;
+#ifdef ANALYSE_DOT_PRODUCT
+            if (minExponent != 0 && expCounter > 0) {
+                diffs[sumExponentDiff / expCounter]++;
+                //diffs[maxExponent - minExponent]++;
             }
 #endif
         }
@@ -532,6 +614,21 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         }
         denseVector[pivot] = dotProduct;
     }
+#ifdef ANALYSE_DOT_PRODUCT
+    if (__counter >= 30) {
+        double var = (
+                    (expDiffSquareSum / ::expCounter) - (expDiffSum / ::expCounter)*(expDiffSum / ::expCounter) );
+        LPINFO("average: " << (expDiffSum / ::expCounter)  << " var: " << var  << " sqrt var: " << sqrt(var));
+        __counter = 0;
+        std::ofstream ofs("diffs.txt");
+        unsigned int index = 0;
+        for (index = 0; index < diffs.size(); index++) {
+            ofs << index << ";" << diffs[index] << endl;
+        }
+        ofs.close();
+    }
+#endif
+
     // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni
     Vector::VECTOR_TYPE newType;
     if (vector.m_nonZeros < vector.m_sparsityThreshold) {
