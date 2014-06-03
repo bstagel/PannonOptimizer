@@ -376,7 +376,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-        LPWARNING("BOUNDFLIPPING at: "<<*it);
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);

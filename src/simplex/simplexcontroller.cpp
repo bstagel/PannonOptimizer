@@ -1,6 +1,7 @@
 #include <simplex/simplexcontroller.h>
 #include <simplex/simplexparameterhandler.h>
 #include <prettyprint.h>
+//#include <utils/iterationreport.h>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";
 const static char * ITERATION_TIME_NAME = "Time";
@@ -248,8 +249,9 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
             m_currentSimplex->findStartingBasis();
         }
 
+        m_iterationReport->addProviderForIteration(*m_currentSimplex);
         m_iterationReport->createStartReport();
-        m_iterationReport->writeStartReport();
+
         Numerical::Double lastObjective = 0;
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
@@ -330,6 +332,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
             LPINFO("OPTIMAL SOLUTION found! ");
+            m_iterationReport->addProviderForSolution(*m_currentSimplex);
             writeSolutionReport();
             // TODO: postsovle, post scaling
             // TODO: Save optimal basis if necessary
@@ -388,7 +391,6 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
 
 void SimplexController::switchAlgorithm(const Model &model)
 {
-    LPINFO("Algorithm switched!");
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
         m_primalSimplex = new PrimalSimplex();
@@ -406,17 +408,22 @@ void SimplexController::switchAlgorithm(const Model &model)
     }
     //Primal->Dual
     if (m_currentAlgorithm == Simplex::PRIMAL){
+        m_iterationReport->removeIterationProvider(*m_currentSimplex);
         m_currentSimplex = m_dualSimplex;
+        m_iterationReport->addProviderForIteration(*m_currentSimplex);
         m_currentSimplex->setSimplexState(*m_primalSimplex);
         m_currentAlgorithm = Simplex::DUAL;
     //Dual->Primal
     }else{
+        m_iterationReport->removeIterationProvider(*m_currentSimplex);
         m_currentSimplex = m_primalSimplex;
+        m_iterationReport->addProviderForIteration(*m_currentSimplex);
         m_currentSimplex->setSimplexState(*m_dualSimplex);
         m_currentAlgorithm = Simplex::PRIMAL;
     }
     //reinvert
     m_currentSimplex->reinvert();
     m_freshBasis = true;
+//    LPINFO("Algorithm switched!");
 }
 
