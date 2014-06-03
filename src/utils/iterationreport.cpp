@@ -127,19 +127,9 @@ void IterationReport::addFields( const IterationReportProvider & provider,
 void IterationReport::removeIterationProvider(const IterationReportProvider &provider)
 {
     m_providerChanged = true;
-    enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type = IterationReportProvider::IRF_ITERATION;
-    std::vector<IterationReportField> resultFields =
-            provider.getIterationReportFields(type);
 
     std::vector<IterationReportField> newFields;
 
-    //STL_FOREACH(std::vector<IterationReportField>, resultFields, iter) {
-    //    newFields
-        //m_iterationFields
-        //remove(m_iterationFields.begin(), m_iterationFields.end(), *iter);
-        //m_iterationFields.erase()
-    //    m_iterationFields = newFields;
-    //}
     STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iter) {
         if (&iter->getProvider() != &provider) {
             newFields.push_back(*iter);
