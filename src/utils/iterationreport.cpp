@@ -131,10 +131,22 @@ void IterationReport::removeIterationProvider(const IterationReportProvider &pro
     std::vector<IterationReportField> resultFields =
             provider.getIterationReportFields(type);
 
-    STL_FOREACH(std::vector<IterationReportField>, resultFields, iter) {
-        remove(m_iterationFields.begin(), m_iterationFields.end(), *iter);
+    std::vector<IterationReportField> newFields;
+
+    //STL_FOREACH(std::vector<IterationReportField>, resultFields, iter) {
+    //    newFields
+        //m_iterationFields
+        //remove(m_iterationFields.begin(), m_iterationFields.end(), *iter);
         //m_iterationFields.erase()
+    //    m_iterationFields = newFields;
+    //}
+    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iter) {
+        if (&iter->getProvider() != &provider) {
+            newFields.push_back(*iter);
+        }
     }
+    m_iterationFields = newFields;
+
 }
 
 void IterationReport::addProviderForIteration(
