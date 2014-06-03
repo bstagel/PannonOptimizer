@@ -277,6 +277,7 @@ void PrimalSimplex::selectPivot() {
         } else {
             for(unsigned i=0;i<m_basicVariableValues.length();i++){
                 const Variable& var = m_simplexModel->getVariable(m_basisHead[i]);
+#ifndef NDEBUG
                 Numerical::Double value = m_basicVariableValues.at(i);
                 Numerical::Double lb = var.getLowerBound();
                 Numerical::Double ub = var.getUpperBound();
@@ -284,6 +285,7 @@ void PrimalSimplex::selectPivot() {
                     LPWARNING("Infeasible variable in phase 2: "<<i);
                     LPINFO("value: "<<value<<" lb: "<<lb<<" ub: "<<ub);
                 }
+#endif
             }
             m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha, m_reducedCosts.at(m_incomingIndex));
         }
@@ -312,7 +314,7 @@ void PrimalSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-        LPWARNING("BOUNDFLIPPING at: "<<*it);
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
 //            LPINFO("LB->UB");

@@ -639,8 +639,8 @@ void Simplex::initModules() {
     }
 
     m_iterationReport->addProviderForStart(*this);
-    m_iterationReport->addProviderForIteration(*this);
-    m_iterationReport->addProviderForSolution(*this);
+//    m_iterationReport->addProviderForIteration(*this);
+//    m_iterationReport->addProviderForSolution(*this);
 
     if(m_enableExport){
         m_iterationReport->addProviderForExport(*this);
