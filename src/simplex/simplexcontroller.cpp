@@ -249,6 +249,8 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
             m_currentSimplex->findStartingBasis();
         }
 
+        m_iterationReport->addProviderForStart(*m_currentSimplex);
+        m_iterationReport->writeStartReport();
         m_iterationReport->addProviderForIteration(*m_currentSimplex);
         m_iterationReport->createStartReport();
 
@@ -278,22 +280,30 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
                     break;
 //                first reinversion in phase-2
                 case 3:
-                    if (m_currentSimplex->m_feasible){
+                    if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
                         switchAlgorithm(model);
                     }
                     break;
                 //at degeneracy
                 case 4:
-                    if(m_iterationIndex > 1 &&
-                            Numerical::equals(m_currentSimplex->getObjectiveValue(), lastObjective)){
-                        switchAlgorithm(model);
+                    if(m_iterationIndex > 1){
+                        if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
+                            switchAlgorithm(model);
+                    }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
+                            switchAlgorithm(model);
+                        }
                     }
                     break;
                 }
             }
             try{
+            //iterate
                 m_currentSimplex->iterate();
-                lastObjective = m_currentSimplex->getObjectiveValue();
+                if(!m_currentSimplex->m_feasible){
+                    lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
+                }else{
+                    lastObjective = m_currentSimplex->getObjectiveValue();
+                }
                 reinversionCounter++;
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
@@ -306,6 +316,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
                 m_currentSimplex->reinvert();
                 m_iterationIndex--;
             } catch ( const OptimizationResultException & exception ) {
+//                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
                 m_currentSimplex->m_simplexModel->resetModel();
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
@@ -324,7 +335,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
                     m_iterationIndex--;
                 }
             } catch(const SwitchAlgorithmException& exception){
-                LPINFO("Algorithm switched from primal to dual: " << exception.getMessage());
+                LPINFO("Algorithm switched: "<< exception.getMessage());
                 switchAlgorithm(model);
             }
         }
@@ -424,6 +435,6 @@ void SimplexController::switchAlgorithm(const Model &model)
     //reinvert
     m_currentSimplex->reinvert();
     m_freshBasis = true;
-//    LPINFO("Algorithm switched!");
+    LPINFO("Algorithm switched!");
 }
 

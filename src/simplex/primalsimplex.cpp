@@ -280,9 +280,9 @@ void PrimalSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
+#ifndef NDEBUG
             for(unsigned i=0;i<m_basicVariableValues.length();i++){
                 const Variable& var = m_simplexModel->getVariable(m_basisHead[i]);
-#ifndef NDEBUG
                 Numerical::Double value = m_basicVariableValues.at(i);
                 Numerical::Double lb = var.getLowerBound();
                 Numerical::Double ub = var.getUpperBound();
@@ -290,8 +290,8 @@ void PrimalSimplex::selectPivot() {
                     LPWARNING("Infeasible variable in phase 2: "<<i);
                     LPINFO("value: "<<value<<" lb: "<<lb<<" ub: "<<ub);
                 }
-#endif
             }
+#endif
             m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha, m_reducedCosts.at(m_incomingIndex));
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();

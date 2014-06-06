@@ -96,7 +96,8 @@ int PrimalDantzigPricing::performPricingPhase1()
         // LPINFO(variableIndex);
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
-
+//            LPINFO("m_phase1ReducedCosts[variableIndex] "<<m_phase1ReducedCosts[variableIndex]<<
+//                   " minReducedCost "<<minReducedCost);
             if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
@@ -176,8 +177,28 @@ int PrimalDantzigPricing::performPricingPhase1()
 
     //LPINFO(minIndex << ", " << maxIndex << "  " << __counter);
     __counter++;
-//    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
-//    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
+//    LPINFO("PRICING: minReducedCost: "<<minReducedCost<<" maxReducedCost: "<<maxReducedCost);
+//    LPINFO("PRICING: minIndex: "<<minIndex<<" maxIndex: "<<maxIndex);
+
+    IndexList<const Numerical::Double*>::Iterator it;
+    IndexList<const Numerical::Double*>::Iterator endit;
+    m_variableStates.getIterators(&it,&endit,0,5);
+
+    for(;it!=endit;it++){
+        if(m_phase1ReducedCosts[it.getData()] < 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB){
+            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+        }
+        if(m_phase1ReducedCosts[it.getData()] > 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_UB){
+            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+        }
+        if(m_phase1ReducedCosts[it.getData()] != 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_FREE){
+            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+        }
+    }
+
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;

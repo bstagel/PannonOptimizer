@@ -291,10 +291,10 @@ void DualSimplex::computeFeasibility() {
 }
 
 void DualSimplex::checkFeasibility() {
-    bool lastFeasible = m_feasible;
+    m_lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->checkFeasibility();
     //Becomes feasible
-    if(lastFeasible == false && m_feasible == true){
+    if(m_lastFeasible == false && m_feasible == true){
         //throw SwitchAlgorithmException
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
             throw SwitchAlgorithmException("phase-2 entered!");
@@ -306,7 +306,7 @@ void DualSimplex::checkFeasibility() {
         //Do the feasibility correction
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues, m_workingTolerance);
         m_referenceObjective = m_objectiveValue;
-    } else if(lastFeasible == true && m_feasible == false ){
+    } else if(m_lastFeasible == true && m_feasible == false ){
         //Becomes infeasible, count the falback
         m_fallbacks++;
     }

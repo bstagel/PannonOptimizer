@@ -82,6 +82,7 @@ protected:
     Vector m_pivotRow;
 
     bool m_feasible;
+    bool m_lastFeasible;
     bool m_baseChanged;
 
     int m_iterationIndex;
@@ -144,6 +145,8 @@ protected:
     inline void setIterationIndex(const int& iteration){ m_iterationIndex = iteration;}
     inline void setIterationReport(IterationReport * iterationReport){ m_iterationReport = iterationReport;}
 
+    inline bool isFeasible()const{return m_feasible;}
+    inline bool getLastFeasible()const{return m_lastFeasible;}
     inline const Numerical::Double & getObjectiveValue() const {return m_objectiveValue;}
     inline const Numerical::Double & getPhaseIObjectiveValue() const {return m_phaseIObjectiveValue;}
     inline const std::vector<int> & getBasisHead() const {return m_basisHead;}
