@@ -83,8 +83,8 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
                                        IterationReportField::IRF_FLOAT, *this,
                                        4, IterationReportField::IRF_FIXED);
         result.push_back(timeField);
-    }
         break;
+    }
 
     case IterationReportProvider::IRF_SOLUTION:
     {

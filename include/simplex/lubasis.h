@@ -49,8 +49,10 @@ private:
 
     std::vector<DoubleETM>* m_lower;
     std::vector<DoubleETM>* m_upper;
+    std::vector<ETM>* m_updateETMs;
     std::vector<PivotPosition> m_pivots;
-    int m_factorizedPart;
+    std::vector<PivotPosition> m_pivotIndices;
+    unsigned int m_factorizedPart;
 
     std::vector<Vector*> m_basicRows;
 
@@ -72,9 +74,6 @@ private:
     void findPivot(int & rowindex, int & columnindex,
                    const std::vector<int> & rowMarkowitzs, const std::vector<int> & columnMarkowitzs,
                    const std::vector<int> & rowMarkowitzColumnIndices, const std::vector<int> & columnMarkowitzRowIndices);
-
-//    void pivotL(const Vector * row, int pivotRow);
-//    void pivotU(const Vector * column, int pivotColumn);
 
     void checkSingularity();
 

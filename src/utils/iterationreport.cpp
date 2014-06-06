@@ -33,9 +33,7 @@ IterationReport & IterationReport::operator=(const IterationReport & orig) {
 }
 
 IterationReport::~IterationReport() {
-//    LPINFO("ASD");
     clear();
-//    LPINFO("ASD");
 }
 
 void IterationReport::copy(const IterationReport & orig) {
@@ -84,8 +82,6 @@ void IterationReport::clear() {
     STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
         if (iterIter->getType() == IterationReportField::IRF_STRING) {
             for (index = 0; index < m_iterationTable.size(); index++) {
-//                LPINFO("deleting index: "<<index << " ; columnIndex " <<columnIndex);
-//                LPINFO("m_iterationTable[index][columnIndex]: "<<m_iterationTable[index][columnIndex].m_string);
                 delete m_iterationTable[index][columnIndex].m_string;
             }
         }
@@ -305,6 +301,10 @@ void IterationReport::createIterationReport() {
         }
         if (index < newRow.size() - 1) {
             row << "|";
+        }
+        //Free the string entries
+        if (field.getType() == IterationReportField::IRF_STRING){
+            delete newRow[index].m_string;
         }
     }
     if (fieldCounter > 0) {

@@ -29,6 +29,11 @@ PrimalSimplex::PrimalSimplex():
     m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
 }
 
+PrimalSimplex::~PrimalSimplex()
+{
+    releaseModules();
+}
+
 
 // Interface of the iteration report provider:
 std::vector<IterationReportField> PrimalSimplex::getIterationReportFields(

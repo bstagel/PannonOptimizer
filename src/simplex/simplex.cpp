@@ -86,18 +86,14 @@ Simplex::Simplex():
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
-
-    //    fpu_fix_start(&m_old_cw);
 }
 
 Simplex::~Simplex() {
-    releaseModules();
 
     if(m_simplexModel){
         delete m_simplexModel;
         m_simplexModel = 0;
     }
-    //    fpu_fix_end(&m_old_cw);
 }
 
 std::vector<IterationReportField> Simplex::getIterationReportFields(
@@ -380,23 +376,23 @@ void Simplex::iterate()
 {
     computeWorkingTolerance();
 
-        m_checkFeasibilityTimer.start();
-        checkFeasibility();
-        m_checkFeasibilityTimer.stop();
+    m_checkFeasibilityTimer.start();
+    checkFeasibility();
+    m_checkFeasibilityTimer.stop();
 
-        setReferenceObjective();
+    setReferenceObjective();
 
-        m_priceTimer.start();
-        price();
-        m_priceTimer.stop();
-        m_selectPivotTimer.start();
-        selectPivot();
-        m_selectPivotTimer.stop();
-        m_updateTimer.start();
-        update();
-        m_updateTimer.stop();
+    m_priceTimer.start();
+    price();
+    m_priceTimer.stop();
+    m_selectPivotTimer.start();
+    selectPivot();
+    m_selectPivotTimer.stop();
+    m_updateTimer.start();
+    update();
+    m_updateTimer.stop();
 
-        checkReferenceObjective();
+    checkReferenceObjective();
 }
 
 void Simplex::constraintAdded()

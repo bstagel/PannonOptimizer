@@ -16,6 +16,7 @@ class PrimalSimplex: public Simplex
     friend class SimplexController;
 private:
     PrimalSimplex();
+    ~PrimalSimplex();
 
     PrimalPricing * m_pricing;
 
