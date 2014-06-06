@@ -53,7 +53,7 @@ void Basis::setNewHead() {
         }
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
-    //are aout of the basis, these must be marked as nonbasic and their states must be updated too.
+    //are out of the basis, these must be marked as nonbasic and their states must be updated too.
     for (std::vector<char>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);

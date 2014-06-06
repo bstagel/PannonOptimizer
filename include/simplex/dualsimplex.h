@@ -20,6 +20,7 @@ class DualSimplex: public Simplex
     friend class SimplexController;
 private:
     DualSimplex();
+    ~DualSimplex();
 
     DualPricing * m_pricing;
 

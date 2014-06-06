@@ -46,6 +46,11 @@ DualSimplex::DualSimplex():
     m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
 }
 
+DualSimplex::~DualSimplex()
+{
+    releaseModules();
+}
+
 // Interface of the iteration report provider:
 std::vector<IterationReportField> DualSimplex::getIterationReportFields(
         enum ITERATION_REPORT_FIELD_TYPE & type) const {
@@ -243,7 +248,7 @@ void DualSimplex::initModules() {
 
     Simplex::m_pricing = m_pricing;
 
-    m_feasibilityChecker=new DualFeasibilityChecker(*m_simplexModel,
+    m_feasibilityChecker = new DualFeasibilityChecker(*m_simplexModel,
                                                     &m_variableStates,
                                                     &m_reducedCostFeasibilities,
                                                     m_reducedCosts,
@@ -493,8 +498,6 @@ void DualSimplex::update() {
                           m_incomingAlpha, m_pivotRow,
                           m_pivotRowOfBasisInverse);
     }
-    //TODO DEBUG
-//    reinvert();
     //Update the reduced costs
     computeReducedCosts();
 

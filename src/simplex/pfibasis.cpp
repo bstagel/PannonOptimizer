@@ -105,8 +105,8 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
         if (headChecker.at(*it) == 0) {
             headChecker.at(*it) = 1;
         } else {
-            //TODO: Ennek az esetnek a kezelese vmiert nem jo
             LPWARNING("Duplicate index in basis head: " << *it);
+            throw PanOptException("Duplicate index in the basis head!");
         }
     }
 #endif

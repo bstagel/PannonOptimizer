@@ -191,6 +191,66 @@ bool Checker::checkBasisWithNonbasicReducedCost(const Simplex& simplex) {
     }
 }
 
+bool Checker::checkVariableStateAttachedValues(const Simplex& simplex){
+    int rowCount = simplex.m_simplexModel->getRowCount();
+    int columnCount = simplex.m_simplexModel->getColumnCount();
+    bool success = true;
+    for(int i=0; i<rowCount + columnCount; i++){
+        if(simplex.m_variableStates.where(i) == Simplex::BASIC){
+            int basisindex;
+            for(int j=0; j<(int)simplex.m_basisHead.size(); j++){
+                if(simplex.m_basisHead.at(j) == i){
+                    basisindex = j;
+                    break;
+                }
+            }
+            if(*simplex.m_variableStates.getAttachedData(i) != simplex.m_basicVariableValues.at(basisindex)){
+                LPERROR("Wrong attached value of variable state BASIC");
+                LPERROR("Attached value "<< *simplex.m_variableStates.getAttachedData(i));
+                LPERROR("It should be " << simplex.m_basicVariableValues.at(basisindex));
+                success = false;
+            }
+        } else if(simplex.m_variableStates.where(i) == Simplex::NONBASIC_AT_LB){
+            if(*simplex.m_variableStates.getAttachedData(i) != simplex.m_simplexModel->getVariable(i).getLowerBound()){
+                LPERROR("Wrong attached value of variable state NONBASIC_AT_LB");
+                LPERROR("Attached value "<< *simplex.m_variableStates.getAttachedData(i));
+                LPERROR("It should be " << simplex.m_simplexModel->getVariable(i).getLowerBound());
+                success = false;
+            }
+        } else if(simplex.m_variableStates.where(i) == Simplex::NONBASIC_AT_UB){
+            if(*simplex.m_variableStates.getAttachedData(i) != simplex.m_simplexModel->getVariable(i).getUpperBound()){
+                LPERROR("Wrong attached value of variable state NONBASIC_AT_UB");
+                LPERROR("Attached value " << *simplex.m_variableStates.getAttachedData(i));
+                LPERROR("It should be " << simplex.m_simplexModel->getVariable(i).getUpperBound());
+                success = false;
+            }
+        } else if(simplex.m_variableStates.where(i) == Simplex::NONBASIC_FIXED){
+            if(*simplex.m_variableStates.getAttachedData(i) != simplex.m_simplexModel->getVariable(i).getLowerBound() &&
+                    *simplex.m_variableStates.getAttachedData(i) != simplex.m_simplexModel->getVariable(i).getUpperBound()){
+                LPERROR("Wrong attached value of variable state NONBASIC_FIXED");
+                LPERROR("Attached value "<< *simplex.m_variableStates.getAttachedData(i));
+                LPERROR("It should be "<< simplex.m_simplexModel->getVariable(i).getLowerBound()
+                        << " and "<< simplex.m_simplexModel->getVariable(i).getUpperBound());
+                success = false;
+            }
+
+        } else if(simplex.m_variableStates.where(i) == Simplex::NONBASIC_FREE){
+            if(*simplex.m_variableStates.getAttachedData(i) != ZERO){
+                LPERROR("Wrong attached value of variable state NONBASIC_FREE");
+                LPERROR("Attached value "<< *simplex.m_variableStates.getAttachedData(i));
+                LPERROR("It should be "<< ZERO);
+                success = false;
+            }
+        }
+    }
+    if (success && simplex.m_basisHead.size() > 0) {
+        LPINFO("VARIABLE STATE ATTACHED VALUE CHECK PASSED");
+        return true;
+    } else {
+        LPWARNING("VARIABLE STATE ATTACHED VALUE CHECK FAILED");
+        return false;
+    }
+}
 
 bool Checker::checkAlphaValue(const Simplex& simplex,
                               int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha){
