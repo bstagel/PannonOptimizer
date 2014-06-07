@@ -419,18 +419,6 @@ void LuBasis::invertM()
             m_basicRows.at(rowIndex) = kernelRow;
         }
     }
-    //Data structures for the Markowitz computation
-    std::vector<int> rowMarkowitzs;
-    std::vector<int> rowMarkowitzColumnIndices;
-    rowMarkowitzs.resize(basisSize,basisSize*basisSize);
-    rowMarkowitzColumnIndices.resize(basisSize);
-    std::vector<int> columnMarkowitzs;
-    std::vector<int> columnMarkowitzRowIndices;
-    columnMarkowitzs.resize(basisSize,basisSize*basisSize);
-    columnMarkowitzRowIndices.resize(basisSize);
-    const double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
-    std::list<int>::iterator activeRowIt;
-    std::list<int>::iterator activeRowItend;
     while(activeRows.size()>0){
         {
 //        LPWARNING("kernel: ");
@@ -445,6 +433,18 @@ void LuBasis::invertM()
 //            LPWARNING("row: "<<*activeRowIt << " --- "<<*m_basicRows.at(*activeRowIt));
 //        }
         }
+        //Data structures for the Markowitz computation
+        std::vector<int> rowMarkowitzs;
+        std::vector<int> rowMarkowitzColumnIndices;
+        rowMarkowitzs.resize(basisSize,basisSize*basisSize);
+        rowMarkowitzColumnIndices.resize(basisSize);
+        std::vector<int> columnMarkowitzs;
+        std::vector<int> columnMarkowitzRowIndices;
+        columnMarkowitzs.resize(basisSize,basisSize*basisSize);
+        columnMarkowitzRowIndices.resize(basisSize);
+        const double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
+        std::list<int>::iterator activeRowIt;
+        std::list<int>::iterator activeRowItend;
         //Compute the row and column Markowitz numbers
         activeRowIt = activeRows.begin();
         activeRowItend = activeRows.end();
