@@ -365,7 +365,7 @@ void Simplex::setSimplexState(const Simplex & simplex)
     //BASIC
     simplex.m_variableStates.getIterators(&it,&endit,0,1);
     for(;it != endit; it++){
-          m_variableStates.insert(0,it.getData(),&ZERO);
+        m_variableStates.insert(0,it.getData(),&ZERO);
     }
 
     m_basicVariableValues = simplex.m_basicVariableValues;
@@ -410,16 +410,16 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     int variableIndex;
     unsigned int position = 0;
 
-//    LPINFO("basic variables: " << m_basicVariableValues );
+    //    LPINFO("basic variables: " << m_basicVariableValues );
 
     STL_FOREACH(std::vector<int>, m_basisHead, basisHeadIter) {
         variableIndex = *basisHeadIter;
-//        std::cout << variableIndex << " ";
+        //        std::cout << variableIndex << " ";
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         basisWriter->addBasicVariable( variable, position, variableIndex, m_basicVariableValues.at(position) );
         position++;
     }
-//    std::cout << std::endl;
+    //    std::cout << std::endl;
 
     IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
 
@@ -560,7 +560,7 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
     //    std::cout << std::endl;
 
     // dump
-   /* std::ofstream log("log_load.txt");
+    /* std::ofstream log("log_load.txt");
 
     log << "BASIS HEAD: ";
 
@@ -619,7 +619,11 @@ void Simplex::findStartingBasis()
             SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_nonbasic_states");
     m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
 
-    m_pricing->init();
+    if (m_pricing) {
+        m_pricing->init();
+    } else {
+        // TODO: pricingcontroller!!!!!!
+    }
 }
 
 void Simplex::initModules() {
@@ -718,10 +722,10 @@ void Simplex::reinvert() {
     m_inversionTimer.start();
     m_basis->invert();
 
-//    Checker::checkBasisWithFtran(*this);
-//    Checker::checkBasisWithBtran(*this);
-//    Checker::checkBasisWithReducedCost(*this);
-//    Checker::checkBasisWithNonbasicReducedCost(*this);
+    //    Checker::checkBasisWithFtran(*this);
+    //    Checker::checkBasisWithBtran(*this);
+    //    Checker::checkBasisWithReducedCost(*this);
+    //    Checker::checkBasisWithNonbasicReducedCost(*this);
 
     m_inversionTimer.stop();
     m_computeBasicSolutionTimer.start();
@@ -771,37 +775,110 @@ void Simplex::computeBasicSolution() {
 }
 
 void Simplex::computeReducedCosts() {
-    m_reducedCosts.clear();
-    unsigned int rowCount = m_simplexModel->getRowCount();
-    unsigned int columnCount = m_simplexModel->getColumnCount();
 
-    //Get the c_B vector
-    Vector simplexMultiplier(rowCount);
-    simplexMultiplier.setSparsityRatio(DENSE);
-    const Vector& costVector = m_simplexModel->getCostVector();
-    for(unsigned int i = 0; i<m_basisHead.size(); i++){
-        // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
-        if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
-            simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
-        }
-    }
-    //Compute simplex multiplier
-    m_basis->Btran(simplexMultiplier);
+    if ( m_basis->isFresh()) {
 
-    //For each variable
-    for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-        if(m_variableStates.where(i) == Simplex::BASIC){
-            continue;
+        /*LPINFO("IS FRESH");
+        std::cin.get();*/
+
+        m_reducedCosts.clear();
+        unsigned int rowCount = m_simplexModel->getRowCount();
+        unsigned int columnCount = m_simplexModel->getColumnCount();
+
+        //Get the c_B vector
+        Vector simplexMultiplier(rowCount);
+        simplexMultiplier.setSparsityRatio(DENSE);
+        const Vector& costVector = m_simplexModel->getCostVector();
+        for(unsigned int i = 0; i<m_basisHead.size(); i++){
+            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
+            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
+            }
         }
-        //Compute the dot product and the reduced cost
-        Numerical::Double reducedCost;
-        if(i < columnCount){
-            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
-        } else {
-            reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+        //Compute simplex multiplier
+        m_basis->Btran(simplexMultiplier);
+
+        //For each variable
+        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+            if(m_variableStates.where(i) == Simplex::BASIC){
+                //m_reducedCosts.set(i, 0.0);
+                continue;
+            }
+            //Compute the dot product and the reduced cost
+            Numerical::Double reducedCost;
+            if(i < columnCount){
+                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
+            } else {
+                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+            }
+            if(reducedCost != 0.0){
+                m_reducedCosts.setNewNonzero(i, reducedCost);
+            }
         }
-        if(reducedCost != 0.0){
-            m_reducedCosts.setNewNonzero(i, reducedCost);
+    } else if (m_incomingIndex >= 0 && m_outgoingIndex >= 0) {
+        updateReducedCosts();
+        return;
+        Vector dj = m_reducedCosts;
+
+        m_reducedCosts.clear();
+        unsigned int rowCount = m_simplexModel->getRowCount();
+        unsigned int columnCount = m_simplexModel->getColumnCount();
+
+        //Get the c_B vector
+        Vector simplexMultiplier(rowCount);
+        simplexMultiplier.setSparsityRatio(DENSE);
+        const Vector& costVector = m_simplexModel->getCostVector();
+        for(unsigned int i = 0; i<m_basisHead.size(); i++){
+            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
+            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
+            }
         }
+        //Compute simplex multiplier
+        m_basis->Btran(simplexMultiplier);
+
+        //For each variable
+        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+            if(m_variableStates.where(i) == Simplex::BASIC){
+                m_reducedCosts.set(i, 0.0);
+                continue;
+            }
+            //Compute the dot product and the reduced cost
+            Numerical::Double reducedCost;
+            if(i < columnCount){
+                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
+            } else {
+                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+            }
+            if(reducedCost != 0.0){
+                m_reducedCosts.setNewNonzero(i, reducedCost);
+            }
+        }
+
+        Vector original = dj;
+        dj.addVector( -1, m_reducedCosts );
+
+        Vector::NonzeroIterator iter = dj.beginNonzero();
+        Vector::NonzeroIterator iterEnd = dj.endNonzero();
+        Numerical::Double max = - Numerical::Infinity;
+        Numerical::Double a, b;
+        for (; iter != iterEnd; iter++) {
+            if (Numerical::fabs(*iter) > 1e-10) {
+                if (Numerical::fabs(*iter) > max) {
+                    max = Numerical::fabs(*iter);
+                    a = m_reducedCosts.at(iter.getIndex());
+                    b = original.at(iter.getIndex());
+                }
+            }
+        }
+        if (max > -Numerical::Infinity) {
+            dj.setSparsityRatio(0.35);
+            LPERROR("diff: " << dj);
+            LPERROR("| max | = " << max << "  " << a << "  " << b);
+            std::cin.get();
+
+
+        }
+
     }
 }

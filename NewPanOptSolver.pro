@@ -8,6 +8,8 @@ CONFIG += console
 
 TARGET = NewPanOptSolver
 
+LIBS += -pthread
+
 CONFIG(release, debug|release) {
     message("NewPanOptSolver: Release mode!")
     DEFINES += NDEBUG

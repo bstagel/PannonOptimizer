@@ -26,8 +26,8 @@ private:
 
     Vector m_alpha;
 
-    int m_incomingIndex;
-    int m_outgoingIndex;
+//    int m_incomingIndex;
+//    int m_outgoingIndex;
     Numerical::Double m_primalReducedCost;
     Numerical::Double m_primalTheta;
     Numerical::Double m_dualTheta;
@@ -42,6 +42,8 @@ private:
     virtual void price();
     virtual void selectPivot();
     virtual void update();
+
+    virtual void updateReducedCosts();
 
     virtual void setReferenceObjective();
     virtual void checkReferenceObjective();

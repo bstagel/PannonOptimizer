@@ -4,6 +4,9 @@
 
 #include <simplex/dualpricing.h>
 #include <simplex/simplexparameterhandler.h>
+#include <mutex>
+
+static std::mutex guard;
 
 DualPricing::DualPricing(const Vector & basicVariableValues,
                          IndexList<> * basicVariableFeasibilities,
@@ -124,6 +127,10 @@ void DualPricing::initPhase1() {
 
 void DualPricing::initPhase2() {
 
+    if (guard.try_lock() == false) {
+        return;
+    }
+
     m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
@@ -140,6 +147,8 @@ void DualPricing::initPhase2() {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
         }
     }
+
+    guard.unlock();
 }
 
 void DualPricing::releaseUsed() {

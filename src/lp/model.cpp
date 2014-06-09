@@ -35,6 +35,8 @@ void Model::build(const ModelBuilder & builder)
         m_constraints[index].setVector(m_matrix.row(index));
     }
 
+    m_matrix.sortVectors();
+
     /*m_matrix.reInit(builder.getRowCount(), builder.getColumnCount(), false);
 
     unsigned int rowIndex;

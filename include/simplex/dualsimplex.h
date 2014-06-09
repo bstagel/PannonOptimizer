@@ -14,6 +14,7 @@
 #include <simplex/dualratiotest.h>
 #include <utils/iterationreportprovider.h>
 #include <utils/iterationreport.h>
+#include <simplex/dualpricingcontroller.h>
 
 class DualSimplex: public Simplex
 {
@@ -23,13 +24,14 @@ private:
     ~DualSimplex();
 
     DualPricing * m_pricing;
+    DualPricingController * m_pricingController;
 
     DualFeasibilityChecker * m_feasibilityChecker;
 
     DualRatiotest * m_ratiotest;
 
-    int m_incomingIndex;
-    int m_outgoingIndex;
+//    int m_incomingIndex;
+//    int m_outgoingIndex;
     Numerical::Double m_primalReducedCost;
     Numerical::Double m_primalTheta;
     Numerical::Double m_dualTheta;
@@ -46,6 +48,8 @@ private:
     virtual void price();
     virtual void selectPivot();
     virtual void update();
+
+    virtual void updateReducedCosts();
 
     virtual void setReferenceObjective();
     virtual void checkReferenceObjective();
