@@ -334,6 +334,7 @@ public:
      */
     inline void insert(unsigned int partitionIndex, unsigned int value, ATTACHED_TYPE attached = ATTACHED_TYPE())
     {
+        //LPERROR(m_partitionCount << " / " << partitionIndex );
         Element<ATTACHED_TYPE> * forward = m_heads[partitionIndex].m_next;
         m_heads[partitionIndex].m_next = m_dataArray + value;
         m_dataArray[value].m_next = forward;

@@ -8,16 +8,18 @@ DEFINES -= UNICODE QT_LARGEFILE_SUPPORT
 
 TARGET = NewPanOpt
 
+LIBS += -lpthread
+
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -pthread -g
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -g
     DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -pthread -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
@@ -108,7 +110,8 @@ HEADERS += include/debug.h \
     include/simplex/pricing/dualsteepestedgepricing.h \
     include/simplex/pricing.h \
     include/simplex/simplexcontroller.h \  
-	include/simplex/lubasis.h
+	include/simplex/lubasis.h \
+    include/simplex/dualpricingcontroller.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -168,6 +171,7 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/pricing/dualdevexpricing.cpp \
     src/simplex/pricing/dualsteepestedgepricing.cpp \
     src/simplex/simplexcontroller.cpp \
-    src/simplex/lubasis.cpp
+    src/simplex/lubasis.cpp \
+    src/simplex/dualpricingcontroller.cpp
 
 #OBJECTS_DIR = .o

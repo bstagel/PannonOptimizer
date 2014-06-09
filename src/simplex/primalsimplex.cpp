@@ -463,3 +463,32 @@ void PrimalSimplex::computeWorkingTolerance() {
 void PrimalSimplex::releaseLocks() {
     m_pricing->releaseUsed();
 }
+
+void PrimalSimplex::updateReducedCosts() {
+    const Numerical::Double lastReducedCost = m_reducedCosts.at( m_incomingIndex );
+    if (lastReducedCost == 0.0) {
+        return;
+    }
+    const unsigned int structuralVariableCount = m_simplexModel->getMatrix().columnCount();
+    Vector ro( m_simplexModel->getRowCount(), Vector::DENSE_VECTOR );
+    ro.setNewNonzero( m_outgoingIndex, 1.0 );
+
+    m_basis->Btran(ro);
+    Vector::NonzeroIterator roIter = ro.beginNonzero();
+    Vector::NonzeroIterator roIterEnd = ro.endNonzero();
+    for (; roIter != roIterEnd; roIter++) {
+        const Numerical::Double lambda = *roIter * lastReducedCost;
+        const Vector & row = m_simplexModel->getMatrix().row( roIter.getIndex() );
+        // structural variables
+        Vector::NonzeroIterator rowIter = row.beginNonzero();
+        Vector::NonzeroIterator rowIterEnd = row.endNonzero();
+        for (; rowIter != rowIterEnd; rowIter++) {
+            const unsigned int index = rowIter.getIndex();
+            m_reducedCosts.set(index, Numerical::stableAdd( m_reducedCosts.at( index ), - lambda * *rowIter));
+        }
+        // logical variables
+        const unsigned int index = roIter.getIndex() + structuralVariableCount;;
+
+        m_reducedCosts.set( index, Numerical::stableAdd( m_reducedCosts.at(index), - lambda) );
+    }
+}

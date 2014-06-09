@@ -80,6 +80,8 @@ protected:
     Numerical::Double m_phaseIObjectiveValue;
     Vector m_incomingAlpha;
     Vector m_pivotRow;
+    int m_incomingIndex;
+    int m_outgoingIndex;
 
     bool m_feasible;
     bool m_lastFeasible;
@@ -170,6 +172,8 @@ protected:
     virtual void price() = 0;
     virtual void selectPivot() = 0;
     virtual void update() = 0;
+
+    virtual void updateReducedCosts() = 0;
 
     virtual void setReferenceObjective() = 0;
     virtual void checkReferenceObjective() = 0;
