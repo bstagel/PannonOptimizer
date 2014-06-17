@@ -49,6 +49,8 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
             transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
@@ -87,7 +89,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 // . means 0.0
             }
             transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
-
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 if (index == 'e') {
                     continue;
@@ -140,7 +142,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 // . means 0.0
             }
             transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
-
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 if (index == 'e') {
                     continue;
@@ -197,6 +199,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 }
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'A'; index <= 'Z'; index++) {
                 if (index == 'E') {
                     continue;
@@ -221,6 +224,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             }
             transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
             transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
@@ -291,6 +295,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
             transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+            (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
