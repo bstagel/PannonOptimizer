@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
+#include <dirent.h>
 
 std::istream& safeGetline(std::istream& is, std::string& t)
 {
@@ -34,17 +36,42 @@ std::istream& safeGetline(std::istream& is, std::string& t)
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    if(argc < 2){
+        std::cout << "Output file argument is missing! \n";
+        return EXIT_FAILURE;
+    }
+
+    std::string outfile(argv[1]);
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir (".")) != NULL) {
+        while ((ent = readdir (dir)) != NULL) {
+            std::string entry(ent->d_name);
+            if(entry.compare(outfile) == 0){
+                remove(entry.c_str());
+                std::cout << "File " << entry << " removed! \n";
+            }
+        }
+    } else {
+        std::cout << "Error opening the working directory.\n";
+        return EXIT_FAILURE;
+    }
+
     std::ifstream ifs("arglist.txt");
     if(!ifs) {
-        std::cout << "Failed to open the file." << std::endl;
+        std::cout << "Failed to open the arglist file." << std::endl;
         return EXIT_FAILURE;
     }
 
     std::string line;
     while(!safeGetline(ifs, line).eof()){
         std::cout << "Executing the following command: " << line << '\n';
+        std::ofstream outstream;
+        outstream.open(outfile, ios::out | ios::app);
+        outstream << "Executing the following command: " << line << '\n';
+        outstream.close();
         system(line.c_str());
     }
 

@@ -156,7 +156,7 @@ void solveFileList(std::string fileListPath) {
 
 void redirectOutput(std::string path) {
     OutputHandler::getInstance().disableAllColors();
-    freopen(path.c_str(), "w", stderr);
+    freopen(path.c_str(), "a", stderr);
 }
 
 bool setParameter(ParameterHandler& handler, const std::string& arg, const char * value){
