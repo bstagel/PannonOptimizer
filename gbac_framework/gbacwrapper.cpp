@@ -67,10 +67,10 @@ int main(int argc, char** argv)
 
     std::string line;
     while(!safeGetline(ifs, line).eof()){
-        std::cout << "Executing the following command: " << line << '\n';
+        std::cout << "\nExecuting the following command: " << line << '\n';
         std::ofstream outstream;
         outstream.open(outfile, std::ios::out | std::ios::app);
-        outstream << "Executing the following command: " << line << '\n';
+        outstream << "\nExecuting the following command: " << line << '\n';
         outstream.close();
         system(line.c_str());
     }
