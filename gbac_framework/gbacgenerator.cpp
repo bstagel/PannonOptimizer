@@ -552,7 +552,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
                 if(sweep->remotePath.at(0) == '"' &&
                         sweep->remotePath.at(sweep->remotePath.size()-1) == '"'){
-                    sweep->remotePath = sweep->remotePath.substr(1, sweep->remotePath.size()-1);
+                    sweep->remotePath = sweep->remotePath.substr(1, sweep->remotePath.size()-2);
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
@@ -576,7 +576,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
                 if(sweep->remoteDir.at(0) == '"' &&
                         sweep->remoteDir.at(sweep->remoteDir.size()-1) == '"'){
-                    sweep->remoteDir = sweep->remoteDir.substr(1, sweep->remoteDir.size()-1);
+                    sweep->remoteDir = sweep->remoteDir.substr(1, sweep->remoteDir.size()-2);
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
