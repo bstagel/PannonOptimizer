@@ -217,7 +217,7 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
                                                    m_dualSimplex->getDualSolution();
 }
 
-void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlgorithm)
+void SimplexController::solve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
@@ -227,7 +227,7 @@ void SimplexController::solve(const Model &model, Simplex::ALGORITHM startingAlg
     unsigned int reinversionCounter = reinversionFrequency;
     const int & switching = simplexParameters.getIntegerParameterValue("switch_algorithm");
 
-    m_currentAlgorithm = startingAlgorithm;
+    m_currentAlgorithm = (Simplex::ALGORITHM)simplexParameters.getIntegerParameterValue("starting_algorithm");
 
     if (m_currentAlgorithm == Simplex::PRIMAL){
         m_primalSimplex = new PrimalSimplex();

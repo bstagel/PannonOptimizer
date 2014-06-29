@@ -1,0 +1,17 @@
+#GBAC Application Descriptor file for NewPanOpt
+APPLICATION_NAME = NewPanOptSolver
+PARAMETER_SYNTAX = -$PARAMETER_NAME $PARAMETER_VALUE
+PROBLEM_SYNTAX = -f $PROBLEM_NAME
+OUTPUT_SYNTAX = -o $SWEEP_NAME
+
+OPTIONS
+	h
+	p
+SETS
+	debug_level = {1, 2, 3}
+	
+RANGES
+#This is a comment
+	iteration_limit = [1 , 1e10] integer
+	e_absolute = [1e-8, 1e-20]
+	e_relative = [1e-4, 1e-16]

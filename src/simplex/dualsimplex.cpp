@@ -388,6 +388,7 @@ void DualSimplex::selectPivot() {
 }
 
 void DualSimplex::update() {
+
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
 

@@ -55,8 +55,8 @@ public:
     static const int SHIFT_BOUNDS;
     static const double EPSILON_BOUNDS;
     //Switch algorithm
-    static const int ALGORITHM;
-    static const int SWITCHALGORITHM;
+    static const int STARTING_ALGORITHM;
+    static const int SWITCH_ALGORITHM;
 
     //Global
     static const int DEBUG_LEVEL;

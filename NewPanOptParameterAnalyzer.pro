@@ -12,7 +12,7 @@ CONFIG(release, debug|release) {
     message("NewPanOptParameterAnalyzer: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -static
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt
     OBJECTS_DIR = .o_release
@@ -20,7 +20,7 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
     message("NewPanOptParameterAnalyzer: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -static
     POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt
     OBJECTS_DIR = .o_debug

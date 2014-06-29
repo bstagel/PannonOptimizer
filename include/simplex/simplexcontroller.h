@@ -11,7 +11,7 @@ public:
     SimplexController();
     virtual ~SimplexController();
 
-    void solve(const Model& model, Simplex::ALGORITHM startingAlgorithm);
+    void solve(const Model& model);
 
     // Interface of the iteration report provider
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
