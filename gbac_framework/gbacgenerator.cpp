@@ -759,7 +759,7 @@ void computeParameter(std::vector<std::map<std::string, std::string> >* values,
         for(unsigned int i=0; i<rangeIndex; i++, actualRange++);
         for(int i=0; i<actualRange->second.getSampleCount(); i++){
             if(actualRange->second.getInteger()){
-                (*actualMap)[actualRange->first] = to_string(actualRange->second.getIntegerSample(i));
+                (*actualMap)[actualRange->first] = std::to_string(actualRange->second.getIntegerSample(i));
             } else {
                 (*actualMap)[actualRange->first] = to_string_scientific(actualRange->second.getSample(i));
             }
@@ -848,7 +848,7 @@ void generateScript(unsigned int arglistCount, const SweepConfiguration& sweep){
     gbac_script << "\n";
 
     for(unsigned int i=0; i<arglistCount; i++){
-        gbac_script << "Arguments='" << sweep.sweepName << "'" << "\n";
+        gbac_script << "Arguments='" << sweep.sweepName << ".txt" << "'" << "\n";
         gbac_script << "Input=arglist="<< sweep.remotePath << sweep.remoteDir << "/arglist_" << i << ".txt" << "\n";
         gbac_script << "Queue \n";
         gbac_script << "\n";
