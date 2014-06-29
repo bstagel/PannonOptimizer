@@ -31,6 +31,8 @@
     #define PATH_SEPARATOR '/'
 #endif
 
+const std::string outputName("result.txt");
+
 class Value{
 public:
     enum VALUE_TYPE{
@@ -548,6 +550,10 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                     space = true;
                     i++;
                 }
+                if(sweep->remotePath.at(0) == '"' &&
+                        sweep->remotePath.at(sweep->remotePath.size()-1) == '"'){
+                    sweep->remotePath = sweep->remotePath.substr(1, sweep->remotePath.size()-1);
+                }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
                                            rows.at(tokens[i].m_row),
@@ -567,6 +573,10 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                     sweep->remoteDir.append(tokens[i].m_value);
                     space = true;
                     i++;
+                }
+                if(sweep->remoteDir.at(0) == '"' &&
+                        sweep->remoteDir.at(sweep->remoteDir.size()-1) == '"'){
+                    sweep->remoteDir = sweep->remoteDir.substr(1, sweep->remoteDir.size()-1);
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
@@ -809,7 +819,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
             throw ConsistencyException();
             return 0;
         }
-        output.replace(outputpos, outputid.length(), sweep.sweepName);
+        output.replace(outputpos, outputid.length(), outputName);
         line.append(output + " ");
         std::ofstream arglist;
         arglist.open("arglists/arglist_"+std::to_string(arglistCount)+".txt");
@@ -848,7 +858,7 @@ void generateScript(unsigned int arglistCount, const SweepConfiguration& sweep){
     gbac_script << "\n";
 
     for(unsigned int i=0; i<arglistCount; i++){
-        gbac_script << "Arguments='" << sweep.sweepName << ".txt" << "'" << "\n";
+        gbac_script << "Arguments='" << outputName << "'" << "\n";
         gbac_script << "Input=arglist="<< sweep.remotePath << sweep.remoteDir << "/arglist_" << i << ".txt" << "\n";
         gbac_script << "Queue \n";
         gbac_script << "\n";
