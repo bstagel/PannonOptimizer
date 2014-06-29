@@ -105,6 +105,10 @@ public:
     {}
 
     //TODO ensure safety
+    int getIntegerSample(int sampleIndex) const {
+        return getSample(sampleIndex);
+    }
+
     double getSample(int sampleIndex) const {
         if(sampleIndex == 0){
             return m_from;
@@ -119,11 +123,7 @@ public:
             double step = (double)(m_to - m_from) / (m_sampleCount-1);
             returnValue = m_from + sampleIndex*step;
         }
-        if(m_integer){
-            return (int)returnValue;
-        } else {
-            return returnValue;
-        }
+        return returnValue;
     }
 
     void setLogarithmic(bool logarithmic) {m_logarithmic = logarithmic;}
@@ -758,7 +758,11 @@ void computeParameter(std::vector<std::map<std::string, std::string> >* values,
         auto actualRange = sweep.ranges.cbegin();
         for(unsigned int i=0; i<rangeIndex; i++, actualRange++);
         for(int i=0; i<actualRange->second.getSampleCount(); i++){
-            (*actualMap)[actualRange->first] = to_string_scientific(actualRange->second.getSample(i));
+            if(actualRange->second.getInteger()){
+                (*actualMap)[actualRange->first] = to_string(actualRange->second.getIntegerSample(i));
+            } else {
+                (*actualMap)[actualRange->first] = to_string_scientific(actualRange->second.getSample(i));
+            }
             if(actualIndex == parameterCount-1){
                 values->push_back(*actualMap);
             } else {
@@ -777,7 +781,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
     for(arglistCount=0; arglistCount<values.size(); arglistCount++){
         //Print command
         std::string line;
-        line.append(sweep.applicationName + " ");
+        line.append("./" + sweep.applicationName + " ");
         //Print parameters
         std::string nameid("$PARAMETER_NAME");
         std::string valueid("$PARAMETER_VALUE");
@@ -813,8 +817,8 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
         for(auto it = sweep.problems.cbegin(); it != sweep.problems.cend(); it++){
             std::string outline;
             //Print problem syntax
-            std::string problem(application.outputSyntax);
-            std::string problemid("$SWEEP_NAME");
+            std::string problem(application.problemSyntax);
+            std::string problemid("$PROBLEM_NAME");
             unsigned int problempos = problem.find(problemid);
             if(problempos == std::string::npos){
                 throw ConsistencyException();
@@ -844,6 +848,7 @@ void generateScript(unsigned int arglistCount, const SweepConfiguration& sweep){
     gbac_script << "\n";
 
     for(unsigned int i=0; i<arglistCount; i++){
+        gbac_script << "Arguments='" << sweep.sweepName << "'" << "\n";
         gbac_script << "Input=arglist="<< sweep.remotePath << sweep.remoteDir << "/arglist_" << i << ".txt" << "\n";
         gbac_script << "Queue \n";
         gbac_script << "\n";
