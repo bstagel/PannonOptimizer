@@ -195,18 +195,18 @@ void SimplexParameterHandler::writeParameterFile(){
 
         out << "!!! Global !!! \n\n";
 
-        out << "! ALGORITHM \n"
-               "! 0 = dual (default)\n"
-               "! 1 = primal \n"
-               "\t " << "algorithm = " << writeParameter("algorithm") << "\n";
+        out << "! Starting algorithm of the simplex method \n"
+               "! 0 = primal simplex \n"
+               "! 1 = dual simplex \n"
+               "\t " << "starting_algorithm = " << writeParameter("starting_algorithm") << "\n";
 
-        out << "! SWITCH ALGORITHM \n"
-               "! 0 = inactive\n"
-               "! 1 = active for each reinversion\n"
-               "! 2 = active at entering phase-2\n"
-               "! 3 = active after first inverting in phase-2\n"
-               "! 4 = active at degeneracy (at reinversion)\n"
-               "\t " << "switch_algorithm = " << writeParameter("switch_algorithm") << "\n\n";
+        out << "! Algorithm switching switching during the iterations \n"
+               "! 0 = inactive \n"
+               "! 1 = switch algorithm before each inversion \n"
+               "! 2 = switch algorithm immediately when entering phase-2 \n"
+               "! 3 = switch algorithm before each inversion in phase-2 \n"
+               "! 4 = switch algorithm if the actual (phase-1 of phase-2) objective value is the same between two inversions \n"
+               "\t " << "switch_algorithm = " << writeParameter("switch_algorithm") << "\n";
 
         out << "! Level of iteration report \n"
                "! 0 = brief problem report    & solution only                   & only solution time \n"
@@ -339,10 +339,10 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("epsilon_bounds",DefaultParameters::EPSILON_BOUNDS);
 
     //Global
-    createParameter("algorithm",Entry::INTEGER);
-    setParameterValue("algorithm",DefaultParameters::ALGORITHM);
+    createParameter("starting_algorithm",Entry::INTEGER);
+    setParameterValue("starting_algorithm",DefaultParameters::STARTING_ALGORITHM);
     createParameter("switch_algorithm",Entry::INTEGER);
-    setParameterValue("switch_algorithm",DefaultParameters::SWITCHALGORITHM);
+    setParameterValue("switch_algorithm",DefaultParameters::SWITCH_ALGORITHM);
 
     createParameter("debug_level", Entry::INTEGER);
     setParameterValue("debug_level", DefaultParameters::DEBUG_LEVEL);

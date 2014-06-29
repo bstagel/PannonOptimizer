@@ -8,7 +8,7 @@ DEFINES -= UNICODE QT_LARGEFILE_SUPPORT
 
 TARGET = NewPanOpt
 
-LIBS += -lpthread
+LIBS += -pthread
 
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")

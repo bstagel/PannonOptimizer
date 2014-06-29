@@ -312,11 +312,6 @@ public:
         return result;
     }
 
-
-    static void foo(){
-        LPERROR("ABS: "<<AbsoluteTolerance);
-    }
-
     /**
      * Numerical stable add operation. Ensures that when the first operand
      * is negative of second one, the result will be zero.

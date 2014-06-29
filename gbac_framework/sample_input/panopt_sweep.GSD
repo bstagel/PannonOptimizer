@@ -1,0 +1,55 @@
+#GBAC Sweep Descriptor file
+SWEEP_NAME = NewPanOpt_Sweep
+APPLICATION_NAME = NewPanOptSolver
+REMOTE_PATH = "https://dl.dropboxusercontent.com/u/6011736/"
+REMOTE_DIR = wrapper_test1
+
+OPTIONS
+	h
+SETS
+	debug_level = {1}
+#name, scale type(linear, exponential), from, to, samplecount
+RANGES	
+	e_absolute = [1e-10, 1e-12] 3 linear 
+	e_relative = [1e-6, 1e-8] 3 exponential
+	iteration_limit = [1000, 1000] 1 linear
+
+PROBLEMS
+	"netlib/25FV47.MPS"
+	"netlib/80BAU3B.MPS"
+#	"netlib/BNL1.MPS"
+#	"netlib/BNL2.MPS"
+#	"netlib/BOEING1.MPS"
+#	"netlib/BOEING2.MPS"
+#	"netlib/D2Q06C.MPS"
+#	"netlib/D6CUBE.MPS"
+#	"netlib/DEGEN2.MPS"
+#	"netlib/DEGEN3.MPS"
+#	"netlib/FIT1D.MPS"
+#	"netlib/FIT1P.MPS"
+#	"netlib/FIT2D.MPS"
+#	"netlib/FIT2P.MPS"
+#	"netlib/GREENBEA.MPS"
+#	"netlib/GREENBEB.MPS"
+#	"netlib/MAROS-R7.MPS"
+#	"netlib/MAROS.MPS"
+#	"netlib/MODSZK1.MPS"
+#	"netlib/NESM.MPS"
+#	"netlib/PEROLD.MPS"
+#	"netlib/PILOT.MPS"
+#	"netlib/PILOT_JA.MPS"
+#	"netlib/PILOT_WE.MPS"
+#	"netlib/PILOT4.MPS"
+#	"netlib/PILOTNOV.MPS"
+#	"netlib/SCAGR25.MPS"
+#	"netlib/SCFXM3.MPS"
+#	"netlib/SCTAP3.MPS"
+#	"netlib/SHIP12L.MPS"
+#	"netlib/SHIP12S.MPS"
+#	"netlib/STOCFOR2.MPS"
+#	"netlib/STOCFOR3.MPS"
+#	"netlib/TRUSS.MPS"
+#	"netlib/TUFF.MPS"
+#	"netlib/VTP_BASE.MPS"
+#	"netlib/WOOD1P.MPS"
+#	"netlib/WOODW.MPS"

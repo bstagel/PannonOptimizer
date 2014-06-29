@@ -18,7 +18,7 @@
 
 #include <utils/tokenizer.h>
 
-void solve(std::string filename, Simplex::ALGORITHM algorithm) {
+void solve(std::string filename) {
     Model model;
     MpsModelBuilder builder;
     builder.loadFromFile(filename.c_str());
@@ -34,7 +34,7 @@ void solve(std::string filename, Simplex::ALGORITHM algorithm) {
 
     //init simplexController
     SimplexController simplexController;
-    simplexController.solve(model,algorithm);
+    simplexController.solve(model);
 }
 
 void printHelp() {
@@ -44,7 +44,7 @@ void printHelp() {
                  "Algorithm specific parameters can be given in the .PAR parameter files. \n"<<
                  "If these files not exist, use the `-p` argument to generate them. \n"<<
                  "\n"<<
-                 "   -a, --algorithm \t Specifies the solution algorithm (`primal` or `dual`(default)) .\n"<<
+                 "   -$PARAMETER_NAME \t Specifies the value of a parameter .\n"<<
                  "   -d, --directory \t Solve every MPS file listed in the FILE directory.\n"<<
                  "   -f, --file      \t Solve an MPS file.\n"<<
                  "  -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
@@ -115,7 +115,7 @@ void generateParameterFiles() {
     }
 }
 
-void solveDir(std::string dirPath, Simplex::ALGORITHM algorithm) {
+void solveDir(std::string dirPath) {
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir (dirPath.c_str())) != NULL) {
@@ -125,7 +125,7 @@ void solveDir(std::string dirPath, Simplex::ALGORITHM algorithm) {
             if(entry.size()>=4 && entry.substr(entry.size()-4 , 4).compare(".MPS") == 0){
                 std::string filePath = dirPath;
                 filePath.append({PATH_SEPARATOR}).append(entry);
-                solve(filePath, algorithm);
+                solve(filePath);
             }
         }
         closedir (dir);
@@ -134,14 +134,14 @@ void solveDir(std::string dirPath, Simplex::ALGORITHM algorithm) {
     }
 }
 
-void solveFileList(std::string fileListPath, Simplex::ALGORITHM algorithm) {
+void solveFileList(std::string fileListPath) {
     std::string line;
     std::ifstream fileList(fileListPath);
     if(fileList.is_open()) {
         while(getline(fileList,line) ) {
             std::cout << "LINE: "<<line << "\n";
             if(line.size()>=4 && line.substr(line.size()-4 , 4).compare(".MPS") == 0){
-                solve(line, algorithm);
+                solve(line);
             } else {
                 std::cout << "Invalid record in the list: "<<line << "\n";
             }
@@ -159,35 +159,43 @@ void redirectOutput(std::string path) {
     freopen(path.c_str(), "w", stderr);
 }
 
+bool setParameter(ParameterHandler& handler, const std::string& arg, const char * value){
+    if(handler.getParameterType(arg) == Entry::BOOL){
+        if(strcmp(value,"true") == 0){
+            handler.setParameterValue(arg, true);
+        } else if(strcmp(value,"false") == 0){
+            handler.setParameterValue(arg, false);
+        } else {
+            return false;
+        }
+    } else if(handler.getParameterType(arg) == Entry::DOUBLE) {
+        handler.setParameterValue(arg, atof(value));
+    } else if(handler.getParameterType(arg) == Entry::INTEGER) {
+        handler.setParameterValue(arg, atoi(value));
+    } else if(handler.getParameterType(arg) == Entry::STRING) {
+        handler.setParameterValue(arg, std::string(value));
+    } else {
+        return false;
+    }
+    return true;
+}
+
 int main(int argc, char** argv) {
     setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
 
-    Simplex::ALGORITHM algorithm = Simplex::DUAL;
+    bool outputRedirected = false;
+
+    ParameterHandler& linalgHandler = LinalgParameterHandler::getInstance();
+    ParameterHandler& simplexHandler = SimplexParameterHandler::getInstance();
 
     if(argc < 2){
         printHelp();
     } else if(argc > 1){
         for(int i=1; i<argc; i++){
             std::string arg(argv[i]);
-//            std::cout << "arg: "<< arg << "\n";
             if(arg.compare("-h") == 0 || arg.compare("--help") == 0){
                 printHelp();
-            } else if(arg.compare("-a") == 0 || arg.compare("--algorithm") == 0){
-                if(argc < i+2 ){
-                    printMissingOperandError(argv);
-                    break;
-                } else {
-                    std::string alg(argv[i+1]);
-                    if(alg.compare("primal") == 0){
-                        algorithm = Simplex::PRIMAL;
-                    } else if(alg.compare("dual") == 0){
-                        algorithm = Simplex::DUAL;
-                    } else {
-                        std::cout << "Unknown algorithm, please use `primal` or `dual` (default).\n";
-                    }
-                    i++;
-                }
             } else if(arg.compare("-d") == 0 || arg.compare("--directory") == 0){
                 if(argc < i+2 ){
                     printMissingOperandError(argv);
@@ -239,8 +247,29 @@ int main(int argc, char** argv) {
                 } else {
                     std::string path(argv[i+1]);
                     redirectOutput(path);
+                    outputRedirected = true;
                     i++;
                 }
+            } else if(arg.compare(0,1,"-") == 0) {
+                arg.erase(arg.begin());
+                //Check if the given value is a linalg parameter
+                if(linalgHandler.hasParameter(arg)){
+                    if(!setParameter(linalgHandler,arg,argv[i+1])){
+                        printInvalidOperandError(argv, i, i+1);
+                        break;
+                    }
+                }
+                //Check if the givel value is a simplex parameter
+                else if(simplexHandler.hasParameter(arg)){
+                    if(!setParameter(simplexHandler,arg,argv[i+1])){
+                        printInvalidOperandError(argv, i, i+1);
+                        break;
+                    }
+                } else {
+                    printInvalidOptionError(argv, i);
+                    break;
+                }
+                i++;
             } else {
                 printInvalidOptionError(argv, i);
                 break;
@@ -250,14 +279,17 @@ int main(int argc, char** argv) {
 
     for(unsigned int i=0; i<solvables.size(); i++){
         if(solvables.at(i).first.compare("d") == 0){
-            solveDir(solvables.at(i).second, algorithm);
+            solveDir(solvables.at(i).second);
         } else if(solvables.at(i).first.compare("f") == 0){
-            solve(solvables.at(i).second, algorithm);
+            solve(solvables.at(i).second);
         } else if(solvables.at(i).first.compare("fl") == 0){
-            solveFileList(solvables.at(i).second, algorithm);
+            solveFileList(solvables.at(i).second);
         }
     }
 
+    if(outputRedirected){
+        fclose(stdout);
+    }
     return EXIT_SUCCESS;
 }
 

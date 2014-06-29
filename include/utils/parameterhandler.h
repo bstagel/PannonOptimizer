@@ -24,6 +24,8 @@ public:
         m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type)));
     }
 
+    inline Entry::ENTRY_TYPE getParameterType(const std::string& name) const {
+        return m_values.at(name).getEntryType();}
     inline const std::string & getStringParameterValue(const std::string& name) const {
         return *(m_values.at(name).getEntry().m_string);}
     inline const int & getIntegerParameterValue(const std::string& name) const {
