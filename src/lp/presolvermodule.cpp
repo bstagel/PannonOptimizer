@@ -579,7 +579,7 @@ void DualBoundsModule::executeMethod() {
             impliedLB = -Numerical::Infinity;
         }
         if(m_extraDualUpperSum->at(begin.getIndex()) != 0) {
-            impliedLB = Numerical::Infinity;
+            impliedUB = Numerical::Infinity;
         }
 
         Variable& currentVariable = m_parent->getVariables()->at(begin.getIndex());
@@ -596,7 +596,7 @@ void DualBoundsModule::executeMethod() {
 
             if(costVector.at(begin.getIndex()) > impliedUB) {
                 if(currentVariable.getLowerBound() == -Numerical::Infinity) {
-                    throw Presolver::PresolverException("The problem is dual infeasible.");
+                    throw Presolver::PresolverException("The problem is dual unbounded.");
                     return;
                 } else {
                     m_parent->fixVariable(begin.getIndex(), currentVariable.getLowerBound());
@@ -645,7 +645,7 @@ void DualBoundsModule::executeMethod() {
 
             if(costVector.at(begin.getIndex()) < impliedLB) {
                 if(currentVariable.getLowerBound() == -Numerical::Infinity) {
-                    throw Presolver::PresolverException("The problem is dual infeasible.");
+                    throw Presolver::PresolverException("The problem is dual unbounded.");
                     return;
                 } else {
                     m_parent->fixVariable(begin.getIndex(), currentVariable.getLowerBound());
