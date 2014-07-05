@@ -302,7 +302,7 @@ public:
         const Double value1abs = Numerical::fabs(value1);
         const Double value2abs = Numerical::fabs(value2);
         const Double result = value1 + value2;
-        if ((value1abs + value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
+        if ((value1abs + value2abs) * RelativeTolerance > Numerical::fabs(result)) {
             return 0.0;
         }
 

@@ -8,6 +8,7 @@
 
 class Presolver;
 #include <lp/presolver.h>
+#include <utils/indexlist.h>
 
 
 //virtual class for modules executing different presolving methods
@@ -42,13 +43,51 @@ public:
 };
 
 //this module checks the model for fixed variables, empty columns and singleton columns
-//if infeasibility or unoundedness is detected, it throws a PresolverException
+//if infeasibility or unboundedness is detected, it throws a PresolverException
 class SingletonColumnsModule : public PresolverModule {
 public:
     SingletonColumnsModule(Presolver * parent);
     ~SingletonColumnsModule();
 
     void executeMethod();
+};
+
+//this module checks the model for forcing and redundant constraints
+//in case of not forcing nor redundant constraints, it tightens the specified variables' bounds
+//variables with tightened upper and lower bounds are set to implied free
+//if infeasibility or unboundedness is detected, it throws a PresolverException
+class ImpliedBoundsModule : public PresolverModule {
+public:
+
+    ImpliedBoundsModule(Presolver * parent);
+    ~ImpliedBoundsModule();
+
+    void executeMethod();
+
+private:
+    int m_impliedFreeVariables;
+    Vector * m_constraintsToCheck;
+    Vector * m_constraintStack;
+    Vector * m_variablesToFix;
+    Vector * m_impliedLower;
+    Vector * m_impliedUpper;
+};
+
+class DualBoundsModule : public PresolverModule {
+public:
+
+    DualBoundsModule(Presolver * parent);
+    ~DualBoundsModule();
+
+    void executeMethod();
+
+private:
+    Vector * m_impliedDualLower;
+    Vector * m_impliedDualUpper;
+    Vector * m_extraDualLowerSum;
+    Vector * m_extraDualUpperSum;
+    Vector * m_variablesToCheck;
+    Vector * m_variableStack;
 };
 
 #endif // PRESOLVERMODULE_H

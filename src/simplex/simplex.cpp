@@ -694,20 +694,62 @@ void Simplex::loadBasis()
 }
 
 const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
-    std::vector<Numerical::Double> result;
-    unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-    result.reserve(totalVariableCount);
-    if ( m_simplexModel->getModel().isScaled() ) {
-        const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
-        for(unsigned int i = 0; i<totalVariableCount; i++) {
-            result[i] = *(m_variableStates.getAttachedData(i)) / columnMultipliers[i];
+    if(!(m_simplexModel->getModel().isPresolved())) {
+        std::vector<Numerical::Double> result;
+        unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
+        result.resize(totalVariableCount);
+        if ( m_simplexModel->getModel().isScaled() ) {
+            const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
+            for(unsigned int i = 0; i<totalVariableCount; i++) {
+                result[i] = *(m_variableStates.getAttachedData(i)) / columnMultipliers[i];
+            }
+        } else {
+            for(unsigned int i = 0; i<totalVariableCount; i++) {
+                result[i] = *(m_variableStates.getAttachedData(i));
+            }
         }
+        return result;
     } else {
-        for(unsigned int i = 0; i<totalVariableCount; i++) {
-            result[i] = *(m_variableStates.getAttachedData(i));
+        unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
+        Vector structuralSolution(m_simplexModel->getColumnCount()+3, Vector::DENSE_VECTOR);
+        structuralSolution.setNewNonzero(m_simplexModel->getColumnCount(), 1);
+        Vector logicalSolution(m_simplexModel->getRowCount()+3, Vector::DENSE_VECTOR);
+        logicalSolution.set(m_simplexModel->getColumnCount(), 1);
+        structuralSolution.setSparsityRatio(0);
+        logicalSolution.setSparsityRatio(0);
+        if ( m_simplexModel->getModel().isScaled() ) {
+            const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
+            for(unsigned int i = 0; i<m_simplexModel->getColumnCount(); i++) {
+                structuralSolution.set(i, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
+            }
+            for(unsigned int i = m_simplexModel->getColumnCount(); i < totalVariableCount; i++) {
+                logicalSolution.set(i - m_simplexModel->getColumnCount() + 1, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
+            }
+        } else {
+            for(unsigned int i = 0; i<m_simplexModel->getColumnCount(); i++) {
+                structuralSolution.set(i, *(m_variableStates.getAttachedData(i)));
+            }
+            for(unsigned int i = m_simplexModel->getColumnCount(); i < totalVariableCount; i++) {
+                logicalSolution.set(i - m_simplexModel->getColumnCount(), *(m_variableStates.getAttachedData(i)));
+            }
         }
+        const std::vector<Vector*> * subsVectors = m_simplexModel->getModel().getSubstituteVectors();
+        for(int i = subsVectors->size() - 1; i >= 0; i--) {
+            Vector* currentSubstituteVector = subsVectors->at(i);
+            LPINFO("restoring variable to index " << currentSubstituteVector->at(currentSubstituteVector->length()-2));
+            structuralSolution.insertElement(currentSubstituteVector->at(currentSubstituteVector->length()-2), structuralSolution.dotProduct(*currentSubstituteVector));
+            totalVariableCount++;
+        }
+        std::vector<Numerical::Double> result;
+        result.resize(totalVariableCount);
+        for(int i = 0; i < structuralSolution.length()-3; i++) {
+            result[i] = structuralSolution.at(i);
+        }
+        for(int i = structuralSolution.length()-3; i < totalVariableCount; i++) {
+            result[i] = logicalSolution.at(i-structuralSolution.length()-1);
+        }
+        return result;
     }
-    return result;
 }
 
 
