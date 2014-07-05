@@ -40,6 +40,7 @@ public:
     inline const Numerical::Double & getCostConstant() const {return m_costConstant;}
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_objectiveType;}
     inline const std::string & getObjectiveRowname() const {return m_objectiveRowName;}
+    inline const std::vector<Vector*> * getSubstituteVectors() const {return m_substituteVectors;}
 
     virtual void addVariable(const Variable & variable, const Vector & column);
     virtual void addConstraint(const Constraint & constraint, const Vector & row);
@@ -56,6 +57,10 @@ public:
 
     bool isScaled() const {
         return m_scaled;
+    }
+
+    bool isPresolved() const {
+        return m_presolved;
     }
 
     const std::vector<Numerical::Double> & getRowMultipliers() const {
@@ -85,6 +90,8 @@ public:
     inline std::vector<Variable> * getVariables() {return &m_variables;}
     inline std::vector<Constraint> * getConstraints() {return &m_constraints;}
 
+    void setSubstitueVectors(std::vector<Vector *> *substituteVectors);
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
@@ -103,6 +110,9 @@ protected:
     std::vector<Numerical::Double> m_rowMultipliers;
 
     std::vector<Numerical::Double> m_columnMultipliers;
+
+    bool m_presolved;
+    std::vector<Vector*> * m_substituteVectors;
 
     bool m_scaled;
 

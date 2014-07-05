@@ -10,6 +10,7 @@ Model::Model()
     m_costConstant = 0.0;
     m_objectiveType = MINIMIZE;
     m_scaled = false;
+    m_presolved = false;
 }
 
 void Model::build(const ModelBuilder & builder)
@@ -58,7 +59,11 @@ void Model::build(const ModelBuilder & builder)
 
 Model::~Model()
 {
-
+    if(m_presolved) {
+        for(int i = 0; i < m_substituteVectors->size(); i++) {
+            delete m_substituteVectors->at(i);
+        }
+    }
 }
 
 void Model::print(std::ostream& out) const
@@ -303,9 +308,14 @@ void Model::addToCostVector(unsigned int source, Numerical::Double lambda) {
 }
 
 void Model::addToCostCoefficient(unsigned int index, Numerical::Double value) {
-    m_costVector.set( index, m_costVector.at(index) + value );
+    m_costVector.set( index, Numerical::stableAdd(m_costVector.at(index), value) );
 }
 
 void Model::setCostConstant(Numerical::Double value) {
     m_costConstant = value;
+}
+
+void Model::setSubstitueVectors(std::vector<Vector *> * substituteVectors) {
+    m_substituteVectors = substituteVectors;
+    m_presolved = true;
 }

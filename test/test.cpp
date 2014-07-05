@@ -21,6 +21,7 @@
 #include <linalgparameterhandlertest.h>
 #include <simplexparameterhandlertest.h>
 #include <dualratiotesttest.h>
+#include <presolvertest.h>
 
 using namespace std;
 
@@ -42,10 +43,12 @@ int main(int, char** )
 //    Tester::addUnitTest(new OutputHandlerTestSuite("Output Handler Test"));
 //    Tester::addUnitTest(new TimerTestSuite("Timer Test"));
 
-    Tester::addUnitTest(new DualRatiotestTestSuite("Dual Ratiotest test"));
+//    Tester::addUnitTest(new DualRatiotestTestSuite("Dual Ratiotest test"));
 
 //    Tester::addUnitTest(new LinalgParameterHandlerTestSuite("Linalg Parameter Handler Test"));
 //    Tester::addUnitTest(new SimplexParameterHandlerTestSuite("Simplex Parameter Handler Test"));
+
+    Tester::addUnitTest(new PresolverTestSuite("Presolver Test"));
 
     Tester::run();
     return EXIT_SUCCESS;
