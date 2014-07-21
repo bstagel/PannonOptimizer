@@ -66,6 +66,8 @@ int main(int argc, char** argv)
     }
 
     std::string line;
+    std::cout << "\nSet the LD_LIBRARY_PATH: " << line << '\n';
+    system("export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH");
     while(!safeGetline(ifs, line).eof()){
         std::cout << "\nExecuting the following command: " << line << '\n';
         std::ofstream outstream;

@@ -364,7 +364,7 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
             }
         }  else if(tokens[i].m_value.compare("OUTPUT_SYNTAX") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0 &&
-                    rows.at(tokens[i].m_row).find("$SWEEP_NAME") != std::string::npos){
+                    rows.at(tokens[i].m_row).find("$OUTPUT_NAME") != std::string::npos){
                 i+=2;
                 application->outputSyntax = "";
                 unsigned int currentRow = tokens[i].m_row;
@@ -373,7 +373,12 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                     if(space){
                         application->outputSyntax.append(" ");
                     }
-                    application->outputSyntax.append(tokens[i].m_value);
+
+                    if(tokens[i].m_value.compare("\">>\"") == 0){
+                        application->outputSyntax.append(">>");
+                    } else {
+                        application->outputSyntax.append(tokens[i].m_value);
+                    }
                     if(tokens[i].m_value.compare("-") == 0){
                         space = false;
                     } else {
@@ -536,7 +541,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
-        } else if(tokens[i].m_value.compare("REMOTE_PATH") == 0){
+        } else if(tokens[i].m_value.compare("INPUT_PATH") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0){
                 i+=2;
                 sweep->remotePath = "";
@@ -560,7 +565,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
-        } else if(tokens[i].m_value.compare("REMOTE_DIR") == 0){
+        } else if(tokens[i].m_value.compare("INPUT_DIR") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0){
                 i+=2;
                 sweep->remoteDir = "";
@@ -591,7 +596,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 if(tokens[i].m_value.compare("OPTIONS") == 0 ||
                     tokens[i].m_value.compare("SETS") == 0 ||
                     tokens[i].m_value.compare("RANGES") == 0 ||
-                    tokens[i].m_value.compare("PROBLEMS") == 0){
+                    tokens[i].m_value.compare("PROBLEM_NAMES") == 0){
                     break;
                 }
                 //Parse an option
@@ -606,7 +611,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 if(tokens[i].m_value.compare("OPTIONS") == 0 ||
                     tokens[i].m_value.compare("SETS") == 0 ||
                     tokens[i].m_value.compare("RANGES") == 0 ||
-                    tokens[i].m_value.compare("PROBLEMS") == 0){
+                    tokens[i].m_value.compare("PROBLEM_NAMES") == 0){
                     break;
                 }
                 //Parse a set
@@ -639,7 +644,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 if(tokens[i].m_value.compare("OPTIONS") == 0 ||
                     tokens[i].m_value.compare("SETS") == 0 ||
                     tokens[i].m_value.compare("RANGES") == 0 ||
-                    tokens[i].m_value.compare("PROBLEMS") == 0){
+                    tokens[i].m_value.compare("PROBLEM_NAMES") == 0){
                     break;
                 }
                 //Parse a range
@@ -673,14 +678,14 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                                                tokens[i].m_column);
                 }
             }
-        } else if(tokens[i].m_value.compare("PROBLEMS") == 0){
+        } else if(tokens[i].m_value.compare("PROBLEM_NAMES") == 0){
             i++;
             while (i < tokens.size()) {
                 //Check the beginning of the next line
                 if(tokens[i].m_value.compare("OPTIONS") == 0 ||
                     tokens[i].m_value.compare("SETS") == 0 ||
                     tokens[i].m_value.compare("RANGES") == 0 ||
-                    tokens[i].m_value.compare("PROBLEMS") == 0){
+                    tokens[i].m_value.compare("PROBLEM_NAMES") == 0){
                     break;
                 }
                 //Parse a problem
@@ -756,7 +761,7 @@ void computeParameter(std::vector<std::map<std::string, std::string> >* values,
         const std::set<std::string>& valueSet = actualSet->second.getValues();
         for(auto it=valueSet.cbegin(); it != valueSet.cend(); it++){
             (*actualMap)[actualSet->first] = *it;
-            if(actualIndex == parameterCount){
+            if(actualIndex == parameterCount-1){
                 values->push_back(*actualMap);
             } else {
                 computeParameter(values, actualMap, actualIndex+1, sweep);
@@ -787,7 +792,11 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
     std::map<std::string, std::string> actualMap;
     computeParameter(&values, &actualMap, 0, sweep);
     unsigned int arglistCount;
-    system("mkdir arglists");
+    std::string mkdirCommand ("mkdir arglists");
+    system(mkdirCommand.c_str());
+    mkdirCommand += PATH_SEPARATOR;
+    mkdirCommand += sweep.sweepName;
+    system(mkdirCommand.c_str());
     for(arglistCount=0; arglistCount<values.size(); arglistCount++){
         //Print command
         std::string line;
@@ -813,17 +822,17 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
         }
         //Print output syntax
         std::string output(application.outputSyntax);
-        std::string outputid("$SWEEP_NAME");
+        std::string outputid("$OUTPUT_NAME");
         unsigned int outputpos = output.find(outputid);
         if(outputpos == std::string::npos){
             throw ConsistencyException();
             return 0;
         }
         output.replace(outputpos, outputid.length(), outputName);
-        line.append(output + " ");
+
         std::ofstream arglist;
-        arglist.open("arglists/arglist_"+std::to_string(arglistCount)+".txt");
-        std::cout << "arglists/arglist_"+std::to_string(arglistCount)+".txt" << " : \n";
+        arglist.open("arglists/"+sweep.sweepName+"/arglist_"+std::to_string(arglistCount)+".txt");
+        std::cout << "arglists/"+sweep.sweepName+"/arglist_"+std::to_string(arglistCount)+".txt" << " : \n";
         for(auto it = sweep.problems.cbegin(); it != sweep.problems.cend(); it++){
             std::string outline;
             //Print problem syntax
@@ -835,7 +844,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
                 return 0;
             }
             problem.replace(problempos, problemid.length(), *it);
-            outline = line + problem + "\n";
+            outline = line + problem  + " " + output + "\n";
             arglist << outline;
             std::cout << outline;
         }
@@ -859,7 +868,7 @@ void generateScript(unsigned int arglistCount, const SweepConfiguration& sweep){
 
     for(unsigned int i=0; i<arglistCount; i++){
         gbac_script << "Arguments='" << outputName << "'" << "\n";
-        gbac_script << "Input=arglist="<< sweep.remotePath << sweep.remoteDir << "/arglist_" << i << ".txt" << "\n";
+        gbac_script << "Input=arglist.txt="<< sweep.remotePath << sweep.remoteDir << "/arglist_" << i << ".txt" << "\n";
         gbac_script << "Queue \n";
         gbac_script << "\n";
     }
