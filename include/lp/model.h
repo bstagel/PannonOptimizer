@@ -1,5 +1,5 @@
 /**
- * @file model.h
+ * @file model.h This file contains the API of the Model class.
  */
 
 
@@ -17,6 +17,9 @@
 #include <linalg/matrix.h>
 #include <lp/scaler.h>
 
+/**
+ * Describes a general LP model
+ */
 class Model : public AbstractModel
 {
     friend class ModelTestSuite;

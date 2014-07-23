@@ -25,8 +25,8 @@ PrimalSimplex::PrimalSimplex():
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
     m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier");
+    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
 }
 
 PrimalSimplex::~PrimalSimplex()

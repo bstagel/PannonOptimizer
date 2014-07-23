@@ -20,7 +20,6 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_variableStates(variableStates),
     m_tPositive(false),
     m_variableAge(model.getColumnCount() + model.getRowCount(),1),
-    m_ageStep(1),
     m_incomingVariableIndex(-1),
     m_dualSteplength(0),
     m_phaseIObjectiveValue(0),
@@ -39,7 +38,9 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
                                    (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function"))),
     m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")),
-    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility"))
+    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility")),
+    m_expandDualPhase1(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI")),
+    m_expandDualPhase2(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII"))
 {
 
 }
@@ -162,6 +163,136 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     }
 }
 
+void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
+                                                      Numerical::Double workingTolerance)
+{
+    #ifndef NDEBUG
+    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
+    #endif
+
+    //computing ratios
+    IndexList<>::Iterator it;
+    IndexList<>::Iterator endit;
+    unsigned int variableIndex = 0;
+    Numerical::Double valueOfVariable = 0;
+    Variable::VARIABLE_TYPE typeOfIthVariable;
+
+    //t>=0 case
+    if (m_tPositive) {
+
+    //computing ratios in M
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
+
+        for (; it!=endit; it++){
+            variableIndex = it.getData();
+            if (alpha.at(variableIndex) < 0) {
+                valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
+                    valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+            }
+        }
+
+    //computing ratios in P
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
+
+        for (; it!=endit; it++){
+            variableIndex = it.getData();
+            if (alpha.at(variableIndex) > 0){
+                valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
+                    valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+             }
+        }
+
+    //computing ratios in F
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
+
+        for (; it!=endit; it++){
+            variableIndex = it.getData();
+            if ( alpha.at(variableIndex) != 0 ) {
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
+
+                if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) > 0) {
+                    valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                } else
+                if (typeOfIthVariable == Variable::MINUS && alpha.at(variableIndex) < 0) {
+                    valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                } else
+                if (typeOfIthVariable == Variable::FREE ) {
+                    valueOfVariable = alpha.at(variableIndex) < 0 ? ( m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex) :
+                        (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+            }
+        }
+
+    //t<=0 case
+    } else{
+
+    //computing ratios in M
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
+
+        for (; it!=endit; it++) {
+            variableIndex = it.getData();
+            if (alpha.at(variableIndex) > 0) {
+                valueOfVariable = - (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
+                    valueOfVariable = -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+            }
+        }
+
+    //computing ratios in P
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
+
+        for (; it!=endit; it++) {
+            variableIndex = it.getData();
+            if (alpha.at(variableIndex) < 0) {
+                valueOfVariable = - (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
+                    valueOfVariable = -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+            }
+        }
+
+    //computing ratios in F
+        m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
+
+        for (; it!=endit; it++) {
+            variableIndex = it.getData();
+            if (alpha.at(variableIndex) != 0 ) {
+                typeOfIthVariable = m_model.getVariable(variableIndex).getType();
+
+                if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) < 0) {
+                    valueOfVariable = -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                } else
+                if (typeOfIthVariable == Variable::MINUS && alpha.at(variableIndex) > 0) {
+                    valueOfVariable = -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                } else
+                if (typeOfIthVariable == Variable::FREE ) {
+                    valueOfVariable = alpha.at(variableIndex) < 0 ? -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex) :
+                            -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
+            }
+        }
+    }
+}
+
 void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
                                           unsigned int& iterationCounter,
                                           Numerical::Double& functionSlope)
@@ -203,13 +334,6 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     unsigned int nextBreakpointId = iterationCounter;
     Numerical::Double prevObjValue = - Numerical::Infinity;
     Numerical::Double nextObjValue = - Numerical::Infinity;
-
-#ifndef NDEBUG
-        LPWARNING("BAD NUMERICAL VALUE IN PHASE I,  ACTIVATING THRESHOLD for variable " <<
-                  m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex <<
-                  " with alpha" <<alpha.at(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex)<<
-                  " at f= "<<m_breakpointHandler.getBreakpoint(iterationCounter)->functionValue);
-#endif
 
     //If there is any previous breakpoint, initalize the first one
     if (prevBreakpointId > 0) {
@@ -290,10 +414,6 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0.0;
         m_phaseIObjectiveValue = m_initialPhaseIObjectiveValue;
-#ifndef NDEBUG
-        LPERROR(" - Threshold Error - No breakpoint found! num of breakpoints: "<<
-                m_breakpointHandler.getNumberOfBreakpoints());
-#endif
     //A good pivot is found backward
     } else if (prevIsBetter) {
         const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(prevBreakpointId);
@@ -307,14 +427,12 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
         m_phaseIObjectiveValue = breakpoint->functionValue;
     }
-#ifndef NDEBUG
-    LPWARNING("steps(prev;next): " << prevBreakpointId<< " ; " << nextBreakpointId<<"\n");
-#endif
 }
 
 void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                                            Numerical::Double phaseIReducedCost,
-                                           Numerical::Double phaseIObjectiveValue)
+                                           Numerical::Double phaseIObjectiveValue,
+                                           Numerical::Double workingTolerance)
 {
     m_breakpointHandler.init(2*alpha.nonZeros());
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
@@ -333,7 +451,12 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     }
 
     //Generate the breakpoints of the piecewise linear concave function
-    generateSignedBreakpointsPhase1(alpha);
+    if (m_expandDualPhase1 > 0){
+        generateExpandedBreakpointsPhase1(alpha,workingTolerance);
+
+    } else{
+        generateSignedBreakpointsPhase1(alpha);
+    }
 
     //If is there any breakpoint
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
@@ -346,6 +469,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
 
             //If the first breakpoint is fake feasible filter them
             while (breakpoint->value < 0 && functionSlope >=0 ) {
+                LPINFO("Fake feasibility detected: " << breakpoint->value);
                 fakeFeasibilityCounter++;
 
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
@@ -382,6 +506,10 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
 
                 m_incomingVariableIndex = breakpoint->variableIndex;
                 m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
+
+                if(m_expandDualPhase1 > 0){
+
+                }
                 break;
             }
 
@@ -399,6 +527,11 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                 break;
             }
         }
+        //Harris, expand second turn
+        generateSignedBreakpointsPhase1(alpha);
+
+        m_breakpointHandler.selectMethod(m_nonlinearDualPhaseIFunction);
+
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
     }
@@ -593,7 +726,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
             m_incomingVariableIndex = -1;
             m_dualSteplength = 0;
             m_stablePivotNotFoundPhase2++;
-            LPWARNING("No stable pivot found in phase 2");
+            LPWARNING("No stable pivot fbound in phase 2");
         }
     } else {
         m_incomingVariableIndex = -1;

@@ -197,7 +197,7 @@ bool Checker::checkVariableStateAttachedValues(const Simplex& simplex){
     bool success = true;
     for(int i=0; i<rowCount + columnCount; i++){
         if(simplex.m_variableStates.where(i) == Simplex::BASIC){
-            int basisindex;
+            int basisindex = -1;
             for(int j=0; j<(int)simplex.m_basisHead.size(); j++){
                 if(simplex.m_basisHead.at(j) == i){
                     basisindex = j;

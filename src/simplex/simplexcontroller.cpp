@@ -1,7 +1,9 @@
+/**
+ * @file simplexcontroller.cpp
+ */
 #include <simplex/simplexcontroller.h>
 #include <simplex/simplexparameterhandler.h>
 #include <prettyprint.h>
-//#include <utils/iterationreport.h>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";
 const static char * ITERATION_TIME_NAME = "Time";
@@ -259,9 +261,8 @@ void SimplexController::solve(const Model &model)
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
-            m_currentSimplex->setIterationIndex(m_iterationIndex);
             if(m_saveBasis){
-                m_currentSimplex->saveBasis();
+                m_currentSimplex->saveBasis(m_iterationIndex);
             }
 
             if((int)reinversionCounter == reinversionFrequency){
