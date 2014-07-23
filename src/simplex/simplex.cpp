@@ -71,8 +71,8 @@ Simplex::Simplex():
     m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
     m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
     m_masterTolerance(0),
-    m_workingTolerance(0),
     m_toleranceStep(0),
+    m_workingTolerance(0),
     //Measures
     m_referenceObjective(0),
     m_phase1Iteration(-1),
@@ -395,15 +395,13 @@ void Simplex::iterate()
     checkReferenceObjective();
 }
 
-void Simplex::constraintAdded()
-{
+//void Simplex::constraintAdded()
+//{
+//}
 
-}
-
-void Simplex::variableAdded()
-{
-
-}
+//void Simplex::variableAdded()
+//{
+//}
 
 void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
     basisWriter->startWrting(fileName, m_simplexModel->getModel() );
@@ -656,13 +654,13 @@ void Simplex::releaseModules() {
     }
 }
 
-void Simplex::saveBasis()
+void Simplex::saveBasis(int iterationIndex)
 {
-    if ((m_iterationIndex == m_saveIteration) ||
-            (m_savePeriodically != 0 && ((m_iterationIndex % m_savePeriodically) == 0) )){
-        LPERROR("Saving basis "<<m_iterationIndex);
+    if ((iterationIndex == m_saveIteration) ||
+            (m_savePeriodically != 0 && ((iterationIndex % m_savePeriodically) == 0) )){
+        LPERROR("Saving basis "<<iterationIndex);
         stringstream numStream;
-        numStream << m_iterationIndex;
+        numStream << iterationIndex;
         std::string saveFormat = m_saveFormat;
         std::string filename = m_saveFilename;
         filename.append("_").append(numStream.str()).append(".").append(m_saveFormat);
@@ -742,10 +740,10 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
         }
         std::vector<Numerical::Double> result;
         result.resize(totalVariableCount);
-        for(int i = 0; i < structuralSolution.length()-3; i++) {
+        for(unsigned i = 0; i < structuralSolution.length()-3; i++) {
             result[i] = structuralSolution.at(i);
         }
-        for(int i = structuralSolution.length()-3; i < totalVariableCount; i++) {
+        for(unsigned i = structuralSolution.length()-3; i < totalVariableCount; i++) {
             result[i] = logicalSolution.at(i-structuralSolution.length()-1);
         }
         return result;

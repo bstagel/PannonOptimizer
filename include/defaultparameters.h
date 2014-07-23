@@ -44,8 +44,9 @@ public:
     static const int NONLINEAR_DUAL_PHASEI_FUNCTION;
     static const int NONLINEAR_DUAL_PHASEII_FUNCTION;
     static const int ENABLE_FAKE_FEASIBILITY;
-    static const double EXPAND_MULTIPLIER_DPH1;
-    static const int EXPAND_DIVIDER_DPH1;
+    static const double EXPAND_MULTIPLIER;
+    static const int EXPAND_DIVIDER;
+    static const int EXPAND_DUAL_PHASEI;
     static const int EXPAND_DUAL_PHASEII;
     //Perturbation
     static const int PERTURB_COST_VECTOR;

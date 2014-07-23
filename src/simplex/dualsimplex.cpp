@@ -42,8 +42,8 @@ DualSimplex::DualSimplex():
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
     m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier_dphI");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider_dphI");
+    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier");
+    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
 }
 
 DualSimplex::~DualSimplex()
@@ -355,7 +355,7 @@ void DualSimplex::selectPivot() {
 
         if(!m_feasible){
             Numerical::Double reducedCost = m_pricing ? m_pricing->getReducedCost() : m_pricingController->getReducedCost();
-            m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue);
+            m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue,m_workingTolerance);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_objectiveValue);
         }
@@ -556,7 +556,7 @@ void DualSimplex::checkReferenceObjective() {
 
 void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function") == 3) {
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") > 0 ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {
@@ -571,6 +571,7 @@ void DualSimplex::computeWorkingTolerance() {
         m_workingTolerance += m_toleranceStep;
         //reset the EXPAND tolerance
         if (m_workingTolerance >= m_masterTolerance) {
+            LPINFO("Resetting EXPAND tolerance!");
             m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         }
     }
@@ -711,7 +712,7 @@ Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha,
 
 void DualSimplex::updateReducedCosts() {
 
-    Numerical::Double dualTheta = (m_reducedCosts.at( m_incomingIndex ) / m_incomingAlpha.at( m_outgoingIndex ) );
+//    Numerical::Double dualTheta = (m_reducedCosts.at( m_incomingIndex ) / m_incomingAlpha.at( m_outgoingIndex ) );
     /*if (Numerical::fabs(m_dualTheta - dualTheta) > 1e-14) {
 
         LPERROR( m_dualTheta << " vs " << dualTheta << "  "  << (m_dualTheta - dualTheta));

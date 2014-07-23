@@ -1,3 +1,6 @@
+/**
+ * @file breakpointhandler.cpp
+ */
 #include <utils/breakpointhandler.h>
 #include <simplex/simplexparameterhandler.h>
 
@@ -25,13 +28,10 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
 
 //    checkHeap();
     if (m_sortingMethod == BreakpointHandler::HEAP){
+        //breakpoint already sorted
         if (index < size-m_unsorted){
             return &m_breakpoints[size-1-index];
-        //sort next breakpoint
-        } else if (size-m_unsorted == index){
-            m_unsorted--;
-            swapBreakpoints(0,m_unsorted);
-            heapify(0);
+        //sort next breakpoints
         } else{
             for(int i = size-m_unsorted; i<=index; i++){
                 m_unsorted--;
@@ -56,6 +56,7 @@ void BreakpointHandler::printBreakpoints() const
 
 void BreakpointHandler::selectMethod(int method)
 {
+    //currently heapsort is always selected
     m_unsorted = m_breakpoints.size();
     //one step method
     if (method == 0){

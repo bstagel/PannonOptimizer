@@ -141,7 +141,6 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t! 0 = Traditional one step method \n"
                "\t! 1 = Piecewise linear function \n"
                "\t! 2 = Piecewise linear function with numerical threshold \n"
-               "\t! 3 = Piecewise linear function with EXPAND \n"
                "\t" << "nonlinear_dual_phaseI_function = " << writeParameter("nonlinear_dual_phaseI_function") << "\n";
 
         out << "! Use the piecewise linear concave function in dual phase II. \n"
@@ -156,14 +155,21 @@ void SimplexParameterHandler::writeParameterFile(){
                "\t" << "enable_fake_feasibility = " << writeParameter("enable_fake_feasibility") << "\n";
 
         out << "! EXPAND multiplier initializing value \n"
-               "\t" << "expand_multiplier_dphI = " << writeParameter("expand_multiplier_dphI") << "\n";
+               "\t" << "expand_multiplier = " << writeParameter("expand_multiplier") << "\n";
 
-        out << "! EXPAND divider initializing valu \n"
-               "\t" << "expand_divider_dphI = " << writeParameter("expand_divider_dphI") << "\n";
+        out << "! EXPAND divider initializing value \n"
+               "\t" << "expand_divider = " << writeParameter("expand_divider") << "\n";
+
+        out << "! EXPAND procedure in Dual Phase I \n"
+               "\t! 0 = Inactive \n"
+               "\t! 1 = Harris ratiotest \n"
+               "\t! 2 = Expanding tolerance \n"
+               "\t" << "expand_dual_phaseI = " << writeParameter("expand_dual_phaseI") << "\n";
 
         out << "! EXPAND procedure in Dual Phase II \n"
                "\t! 0 = Inactive \n"
-               "\t! 1 = Active \n"
+               "\t! 1 = Harris ratiotest \n"
+               "\t! 2 = Expanding tolerance \n"
                "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII") << "\n";
 
         out << "! Cost vector perturbation \n"
@@ -317,10 +323,12 @@ void SimplexParameterHandler::initParameters()
     createParameter("enable_fake_feasibility", Entry::INTEGER);
     setParameterValue("enable_fake_feasibility", DefaultParameters::ENABLE_FAKE_FEASIBILITY);
 
-    createParameter("expand_multiplier_dphI", Entry::DOUBLE);
-    setParameterValue("expand_multiplier_dphI", DefaultParameters::EXPAND_MULTIPLIER_DPH1);
-    createParameter("expand_divider_dphI", Entry::INTEGER);
-    setParameterValue("expand_divider_dphI", DefaultParameters::EXPAND_DIVIDER_DPH1);
+    createParameter("expand_multiplier", Entry::DOUBLE);
+    setParameterValue("expand_multiplier", DefaultParameters::EXPAND_MULTIPLIER);
+    createParameter("expand_divider", Entry::INTEGER);
+    setParameterValue("expand_divider", DefaultParameters::EXPAND_DIVIDER);
+    createParameter("expand_dual_phaseI", Entry::INTEGER);
+    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEII);
     createParameter("expand_dual_phaseII", Entry::INTEGER);
     setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
 
