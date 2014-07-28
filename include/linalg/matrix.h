@@ -1,5 +1,6 @@
 /**
- * @file matrix.h
+ * @file matrix.h This file contains the API of the Matrix class.
+ * @author smidla
  */
 
 #ifndef MATRIX_H
@@ -14,6 +15,8 @@
 
 /**
  * Stores a matrix, with columnwise and rowwise representation method.
+ *
+ * @class Matrix
  */
 class Matrix
 {
@@ -22,10 +25,10 @@ class Matrix
     friend class MpsModelBuilder;
 public:
     /**
-     * Constructor of the Matrix class. Creates a matrix filled with
-     * zeros. When rowCount is given, and columnCount not, the matrix will
-     * be square matrix.
+     * Constructor of the Matrix class. Creates a matrix filled with zeros.
+     * When rowCount is given, and columnCount not, the matrix will be square matrix.
      *
+     * @constructor
      * @param rowCount Number of rows in matrix.
      * @param columnCount Number of columns in matrix.
      */
@@ -34,12 +37,15 @@ public:
     /**
      * Copy constructor.
      *
+     * @constructor
      * @param original The constructor copies this matrix object.
      */
     Matrix(const Matrix & original);
 
     /**
      * Destructor, releases the matrix.
+     *
+     * @destructor
      */
     ~Matrix();
 
@@ -58,9 +64,9 @@ public:
     void build(const MatrixBuilder & builder);
 
     /**
-     * Resizes the matrix. When a dimension increases, the old elements
-     * remains. The new elements will be zeros. When rowCount is given, and
-     * columnCount not, the matrix will be square matrix.
+     * Resizes the matrix.
+     * When a dimension increases, the old elements remain. The new elements will be zeros.
+     * When rowCount is given, and columnCount not, the matrix will be square matrix.
      *
      * @param rowCount The new row number.
      * @param columnCount The new column number.
@@ -68,9 +74,8 @@ public:
     void resize(unsigned int rowCount = 0, unsigned int columnCount = 0);
 
     /**
-     * Releases the matrix, and creates a new matrix with sizes given by
-     * rowCount and columnCount. When initVectors is true, the vectors
-     * will be initialized, otherwise not.
+     * Releases the matrix, and creates a new matrix with sizes given by rowCount and columnCount.
+     * When initVectors is true, the vectors will be initialized, otherwise not.
      *
      * @param rowCount Number of rows.
      * @param columnCount Number of columns.
@@ -89,8 +94,8 @@ public:
     Matrix & operator=(const Matrix & original);
 
     /**
-     * Checks whether the two matrices are equals or not. Two matrices
-     * are equals when its dimensions, and the elements are the same.
+     * Checks whether the two matrices are equals or not.
+     * Two matrices are equals when its dimensions, and the elements are the same.
      *
      * @param other The other matrix.
      * @return True, when the matrices are equal, otherwise false.
@@ -98,8 +103,8 @@ public:
     bool operator==(const Matrix & other) const;
 
     /**
-     * Checks whether the two matrices are equals or not. Two matrices
-     * are equals when its dimensions, and the elements are the same.
+     * Checks whether the two matrices are equals or not.
+     * Two matrices are equals when its dimensions, and the elements are the same.
      *
      * @param other The other matrix.
      * @return False, when the matrices are equal, otheriwe true.
@@ -161,8 +166,7 @@ public:
     void removeRow(unsigned int index);
 
     /**
-     * Removes the index'th column from the vector. The number of columns
-     * decreases.
+     * Removes the index'th column from the vector. The number of columns decreases.
      *
      * @param index The index of column.
      */
@@ -270,32 +274,28 @@ public:
 
     // TODO: a kovetkezo 4 fuggvenyhez tesztelot irni
     /**
-     * Scales the elements of the intex'th row. It multiplies only in
-     * the rowwise form.
+     * Scales the elements of the intex'th row. It multiplies only in the rowwise form.
      *
      * @param lambda The function scales by this value.
      */
     void scaleOnlyRowwise(unsigned int index, Numerical::Double lambda);
 
     /**
-     * Scales the elements of the intex'th row. It multiplies only in
-     * the rowwise form.
+     * Scales the elements of the intex'th row. It multiplies only in the rowwise form.
      *
      * @param lambdas The function scales with the elements of this vector.
      */
     void scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas);
 
     /**
-     * Scales the elements of the intex'th column. It multiplies only in
-     * the columnwise form.
+     * Scales the elements of the intex'th column. It multiplies only in the columnwise form.
      *
      * @param lambda The function scales by this value.
      */
     void scaleOnlyColumnwise(unsigned int index, Numerical::Double lambda);
 
     /**
-     * Scales the elements of the intex'th column. It multiplies only in
-     * the columnwise form.
+     * Scales the elements of the intex'th column. It multiplies only in the columnwise form.
      *
      * @param lambdas The function scales with the elements of this vector.
      */
@@ -324,10 +324,10 @@ public:
     Matrix inverse() const;
 
     /**
-     * Calculates the Matrix's determinant. Result is 0.0 if matrix is not a
-     * sqaure-matrix.
+     * Calculates the Matrix's determinant.
+     * Result is 0.0 if matrix is not a sqaure-matrix.
      *
-     * @return determinant
+     * @return The determinant of the matrix.
      */
     Numerical::Double determinant() const;
 
@@ -393,8 +393,7 @@ public:
     Matrix operator*(const Matrix& other) const;
 
     /**
-     * Subtracts the other matrix from the actual matrix object
-     * and returns the result.
+     * Subtracts the other matrix from the actual matrix object and returns the result.
      *
      * @param other The right member of subtraction.
      * @return The result matrix.
@@ -424,26 +423,61 @@ public:
     void operator+=(const Matrix& other);
 
     /**
-     * Usuallay in sparse vectors the elements are not sorted ascending
-     * order by index. This function sorts the elements of sparse vectors
-     * in matrix by index.
-     *
+     * This function sorts the elements of sparse vectors in matrix by index.
      */
     void sortVectors() const;
 
+    /**
+     * Prepares the matrix for row scaling.
+     */
     void startRowScaling();
 
+    /**
+     * Executes row scaling on the matrix with the current multipliers.
+     *
+     * @see m_multipliers
+     */
     void finishRowScaling();
 
+    /**
+     * Prepares the matrix for column scaling
+     */
     void startColumnScaling();
 
-    void finishColumnScaling();
     /**
+     * Executes column scaling on the matrix with the current multipliers.
      *
+     * @see m_multipliers
+     */
+    void finishColumnScaling();
+
+    /**
+     * This function performs a Gaussian elimination on the matrix.
+     *
+     * @param gaussianJordan If this parameter is true, a Gaussian-Jordan
+     * elimination is performed.
+     * @return The number of row spaws throughout the Gaussian elimination.
      */
     int gaussianElimination(bool gaussianJordan = false);
 
-
+    /**
+     * Scales a row vector with the given multipliers.
+     * Returns the sum of the absolute values of the elements, the squares of the
+     * absolute values of the elements, and the maximal and minimal absolute values
+     * of the elements.
+     *
+     * @param rowIndex The index of the row to be scaled.
+     * @param multipliers Variable storing the scaling multipliers. Its dimension has to be
+     * equal to the number of columns in the matrix.
+     * @param lambda Base scaling multiplier which is applied to every element of the vector.
+     * @param squareSumPtr Pointer to the variable storing the sum of the squares of
+     * the absolute values of the elements.
+     * @param minPtr Pointer to the variable storing the minimal absolute value of the
+     * elements.
+     * @param maxPtr Pointer to the variable storing the maximal absolute value of the
+     * elements.
+     * @return The sum of the absolute values of the elements.
+     */
     Numerical::Double scaleRowAndGetResults(unsigned int rowIndex,
                                             const std::vector<Numerical::Double> & multipliers,
                                             Numerical::Double lambda,
@@ -451,6 +485,23 @@ public:
                                             Numerical::Double * minPtr,
                                             Numerical::Double * maxPtr);
 
+    /**
+     * Scales a column vector with the given multipliers.
+     * Returns the sum of the absolute values of the elements, the squares of the absolute values
+     * of the elements, and the maximal and minimal absolute values of the elements.
+     *
+     * @param columnIndex The index of the column to be scaled.
+     * @param multipliers Variable storing the scaling multipliers. Its dimension has to be
+     * equal to the number of rows in the matrix.
+     * @param lambda Base scaling multiplier which is applied to every element of the vector.
+     * @param squareSumPtr Pointer to the variable storing the sum of the squares of
+     * the absolute values of the elements.
+     * @param minPtr Pointer to the variable storing the minimal absolute value of the
+     * elements.
+     * @param maxPtr Pointer to the variable storing the maximal absolute value of the
+     * elements.
+     * @return The sum of the absolute values of the elements.
+     */
     Numerical::Double scaleColumnAndGetResults(unsigned int columnIndex,
                                                const std::vector<Numerical::Double> & multipliers,
                                                Numerical::Double lambda,
@@ -461,15 +512,21 @@ public:
 private:
 
     /**
-         * Returns the determinant of the subMatrix.
-         *
-         * @param subMatrix The function computes the determinant of this matrix.
-         * @return Determinant of subMatrix.
-         */
+     * Returns the determinant of the subMatrix.
+     *
+     * @param subMatrix The function computes the determinant of this matrix.
+     * @return Determinant of subMatrix.
+     */
     Numerical::Double determinant(const Matrix& subMatrix) const;
 
+    /**
+     * True if the matrix is ready for row scaling.
+     */
     bool m_fastRowScaling;
 
+    /**
+     * True if the matrix is ready for column scaling.
+     */
     bool m_fastColumnScaling;
 
     /**
@@ -505,16 +562,16 @@ private:
     bool m_isDiagonal;
 
     /**
-     * Copies the matrix. This is a helper function of copy constructor
-     * and assignement operator.
+     * Copies the matrix.
+     * This is a helper function of copy constructor and assignement operator.
      *
      * @param matrix The function copies this matrix.
      */
     void copy(const Matrix & matrix);
 
     /**
-     * Initializes the matrix. Creates rowCount rows and columnCount
-     * columns, and when the initVectors is true, initialises the vectors.
+     * Initializes the matrix.
+     * Creates rowCount rows and columnCount columns, and when the initVectors is true, initialises the vectors.
      *
      * @param rowCount Number of rows.
      * @param columnCount Number of columns.
@@ -524,41 +581,58 @@ private:
               initVectors = true);
 
 
+    /**
+     * Resizes the vector array of the matrix, allowing to change the number of rows and columns in it.
+     *
+     * @param vectors Pointer to the vector array of the matrix.
+     * @param vectorCount The number of vectors in the vector array.
+     * @param newCount The new number of vectors in the vector array.
+     * @param newLengths The new length of the vectors in the vector array.
+     */
     static void resizeVectors(Vector ** & vectors, unsigned int vectorCount,
                               unsigned int newCount, unsigned int newLengths);
 
     /**
-     * Helper function of removeRow and removeColumn. Removes a vector
-     * from m_rowWise or m_columnWise and decreases m_rowCount or
-     * m_columnCount.
+     * Removes a vector from rowWise and decreases rowCount.
+     * Parameter references can be swapped for column removal.
      *
-     * @param columnWise
-     * @param columnCount
-     * @param rowWise
-     * @param rowCount
-     * @param index
+     * @see removeRow()
+     * @see removeColumn()
+     *
+     * @param columnWise The column-wise representation of the target matrix.
+     * @param columnCount The number of columns in the taret matrix.
+     * @param rowWise The row-wise representation of the target matrix.
+     * @param rowCount The row count to be decreased.
+     * @param index The index of the row to be removed.
      */
     void removeVector(Vector ** & columnWise, unsigned int & columnCount,
                       Vector ** & rowWise, unsigned int & rowCount, unsigned int index);
 
     /**
+     * Inserts a vector to rowWise, and increases rowCount.
+     * Parameter references can be swapped for column insertion.
      *
-     * @param columnWise
-     * @param rowWise
-     * @param rowCount
-     * @param index
-     * @param vector
+     * @see insertRow()
+     * @see insertColumn()
+     *
+     * @param columnWise The column-wise representation of the target matrix.
+     * @param rowWise The row-wise representation of the target matrix.
+     * @param rowCount The number of rows in the matrix.
+     * @param index The index of the vector to be added.
+     * @param vector The vector to be added.
      */
     void insertVector(Vector ** columnWise, Vector ** & rowWise,
                       unsigned int & rowCount, unsigned int index, const Vector & vector);
 
     /**
+     * Inserts an empty vector to rowWise, and increases rowCount.
+     * Parameter references can be swapped for column insertion.
      *
-     * @param columnWise
-     * @param rowWise
-     * @param rowCount
-     * @param columnCount
-     * @param index
+     * @param columnWise The column-wise representation of the target matrix.
+     * @param rowWise The row-wise representation of the target matrix.
+     * @param rowCount The number of rows in the matrix.
+     * @param columnCount The number of columns in the matrix.
+     * @param index The index of the vector to be added.
      */
     void insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
                            unsigned int & rowCount, unsigned int columnCount, unsigned int index);
@@ -566,18 +640,18 @@ private:
     /**
      * Returns the result of d times right matrix.
      *
-     * @param d
-     * @param right
-     * @return
+     * @param d The scalar the matrix is to be multiplied with.
+     * @param right The matrix to be multiplied.
+     * @return The result matrix of the multiplication.
      */
     friend Matrix operator*(Numerical::Double d, const Matrix& right);
 
     /**
      * Adds d to each element of right matrix and returns the result matrix.
      *
-     * @param d
-     * @param right
-     * @return
+     * @param d The scalar to be added to all elements of the matrix.
+     * @param right The original matrix the operation is performed with.
+     * @return The result matrix of the mass addition.
      */
     friend Matrix operator+(Numerical::Double d, const Matrix& right);
 
