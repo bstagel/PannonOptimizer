@@ -24,14 +24,14 @@ void solve(std::string filename) {
     builder.loadFromFile(filename.c_str());
     model.build(builder);
 
-    Presolver presolver(&model);
-    try {
-        presolver.presolve();
-    } catch(Presolver::PresolverException e) {
-        LPERROR("[Presolver] " << e.getMessage());
-        exit(-1);
-    }
-    presolver.printStatistics();
+//    Presolver presolver(&model);
+//    try {
+//        presolver.presolve();
+//    } catch(Presolver::PresolverException e) {
+//        LPERROR("[Presolver] " << e.getMessage());
+//        exit(-1);
+//    }
+//    presolver.printStatistics();
 
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
         model.scale();
