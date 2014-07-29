@@ -25,6 +25,8 @@ extern int expCounter;
  * This class generates the PFI (Product Form of the Inverse) form of the basis.
  * The algorithm can be parametrized to support different methods of inversion.
  * The parameters are stored in enum values.
+ *
+ * @class PfiBasis
  */
 class PfiBasis : public Basis{
 public:
@@ -88,12 +90,12 @@ public:
     /**
      * It creates a new inverse after a basis change.
      *
-     * @param v the alpha vector of the incoming variable.
+     * @param vector the alpha vector of the incoming variable.
      * @param pivotRow the pivot position (row index) in the vector.
      * @param incoming the index of the incoming variable (to update the basis head).
      *
-     * @throws NumericalException if the outgoing variable try to leaves the basis
-     * with a value different from LB and UB.
+     * @throws NumericalException if the outgoing variable trys to leave the basis
+     * with a value different from LB or UB.
      */
     void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
 
@@ -101,16 +103,16 @@ public:
      * Does the FTRAN operation on a vector.
      * The operation B^-1 * v is called FTRAN.
      *
-     * @param v the vector to be transformed.
+     * @param vector the vector to be transformed.
      */
     virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 
 
     /**
-     * Does the FTRAN operation on a vector.
-     * The operation B^-1 * v is called FTRAN.
+     * Does the BTRAN operation on a vector.
+     * The operation v * B^-1 is called BTRAN.
      *
-     * @param v the vector to be transformed.
+     * @param vector the vector to be transformed.
      */
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 

@@ -1,3 +1,6 @@
+/**
+ * @file dualpricingcontroller.cpp
+ */
 #include <simplex/dualpricingcontroller.h>
 #include <thread>
 

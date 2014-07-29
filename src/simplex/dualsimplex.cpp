@@ -305,7 +305,6 @@ void DualSimplex::checkFeasibility() {
     m_feasible = m_feasibilityChecker->checkFeasibility();
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        //throw SwitchAlgorithmException
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
             throw SwitchAlgorithmException("phase-2 entered!");
         }

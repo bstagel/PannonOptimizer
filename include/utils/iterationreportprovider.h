@@ -38,6 +38,7 @@ public:
      * in a vector that shall be returned.
      * @param type holds the type of the iteration report field
      * @return vector containing the iteration report fields of the derived class
+     * @throws ParameterException if the export type in the parameter file is invalid
      */
     virtual std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const = 0;
 

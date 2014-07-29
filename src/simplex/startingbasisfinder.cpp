@@ -6,7 +6,6 @@
 #include <map>
 #include <set>
 #include <vector>
-
 #include <simplex/startingbasisfinder.h>
 #include <simplex/startingbasisfinder/sbf_super.h>
 #include <simplex/startingbasisfinder/sbf_logical.h>

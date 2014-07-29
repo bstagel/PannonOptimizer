@@ -109,11 +109,14 @@ private:
 
     /**
      * Inherited from the parent Simplex class, checking the dual feasibility of the reduced costs.
+     * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void checkFeasibility();
 
     /**
      * Inherited from the parent Simplex class, performing the dual pricing.
+     * @throws DualInfeasibleException if there is no improving candidate in phase 1
+     * @throws OptimalException if there is no improving candidate in phase 2
      */
     virtual void price();
 
@@ -125,6 +128,8 @@ private:
     /**
      * Inherited from the parent Simplex class, performing the basis change.
      * It also computes the reduced costs, and the basic solution.
+     * @throws PanOptException if there is a boundflipping variable in the basis
+     * @throws PanOptException if there is an invalid variable type
      */
     virtual void update();
 
@@ -163,6 +168,7 @@ private:
      * This function computes the transformed alpha row.
      * @param alpha will hold the computed vector
      * @param rowIndex shows the row of the problem's matrix to be transformed
+     * @throws NumericalException if the rowIndex is invalid
      */
     void computeTransformedRow(Vector* alpha, int rowIndex);
 
@@ -173,6 +179,7 @@ private:
      * @param outgoingIndex is needed in the numerator of the primal theta
      * @param outgoingState the value of the primal theta depends on the state of the outgoing variable
      * @return the computed value of the primal theta.
+     * @throws PanOptException in case of invalid outgoing state
      */
     Numerical::Double computePrimalTheta(const Vector& alpha, int outgoingIndex, VARIABLE_STATE outgoingState);
 

@@ -93,6 +93,9 @@ public:
      * @param outgoingVariableIndex shows the variable choosen by the pricing to leave the basis
      * @param alpha needed to define ratios
      * @param phaseIIObjectiveValue will be computed to the ratios
+     *
+     * @throws FallbackException if there is any infeasible variable
+     * @throws DualUnboundedException if no breakpoint was found
      */
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
@@ -323,7 +326,8 @@ private:
      * @param workingTolerance shows the value of the expanding tolerance in the current iteration
      */
     void generateExpandedBreakpointsPhase1(const Vector& alpha,
-                                           Numerical::Double workingTolerance);
+                                           Numerical::Double workingTolerance,
+                                           bool secondTurn = false);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 1.

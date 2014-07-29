@@ -1,5 +1,7 @@
+/**
+ * @file checker.cpp
+ */
 #include <simplex/checker.h>
-
 #include <vector>
 #include <algorithm>
 #include <simplex/basis.h>
@@ -27,7 +29,7 @@ bool Checker::checkBasisWithFtran(const Simplex &simplex) {
               Numerical::equals(*v.beginNonzero(), *resultVector.beginNonzero()))) {
             LPWARNING("FTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
             LPWARNING("Result vector: "<< v  );
-            LPWARNING("Insted of: "<< resultVector );
+            LPWARNING("Instead of: "<< resultVector );
             success = false;
         }
     }
@@ -42,7 +44,7 @@ bool Checker::checkBasisWithFtran(const Simplex &simplex) {
 }
 
 bool Checker::checkBasisWithBtran(const Simplex& simplex) {
-    std::vector<int> unitVectors;
+//    std::vector<int> unitVectors;
     unsigned int basisSize = simplex.m_basisHead.size();
     bool success = true;
     //Copy the basis columns
@@ -80,7 +82,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
               Numerical::equals(*basisIt->beginNonzero(), *resultVector.beginNonzero())))) {
             LPWARNING("BTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
             LPWARNING("Result vector: "<< *basisIt );
-            LPWARNING("Insted of: "<< resultVector );
+            LPWARNING("Instead of: "<< resultVector );
             success = false;
             Vector::NonzeroIterator badIt = basisIt->beginNonzero();
             double max = 0;
@@ -163,9 +165,12 @@ bool Checker::checkBasisWithNonbasicReducedCost(const Simplex& simplex) {
         Numerical::Double btranreducedCost;
         Numerical::Double ftranreducedCost;
         if(i < columnCount){
-            btranreducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(simplex.m_simplexModel->getMatrix().column(i),true,true));
+            //c_j-(c_B^T*B^-1)*a_j
+            btranreducedCost = Numerical::stableAdd(costVector.at(i),
+                               - simplexMultiplier.dotProduct(simplex.m_simplexModel->getMatrix().column(i),true,true));
             Vector column(simplex.m_simplexModel->getMatrix().column(i));
             simplex.m_basis->Ftran(column);
+            //c_j-c_B^T*(B^-1*a_j)
             ftranreducedCost = Numerical::stableAdd(costVector.at(i), - cB.dotProduct(column));
         } else {
             btranreducedCost = -1 * simplexMultiplier.at(i - columnCount);

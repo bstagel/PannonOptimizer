@@ -93,11 +93,14 @@ private:
 
     /**
      * Inherited from the parent Simplex class, checking the primal feasibility of the basicvariables.
+     * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void checkFeasibility();
 
     /**
      * Inherited from the parent Simplex class, performing the primal pricing.
+     * @throws PrimalInfeasibleException if there is no improving candidate in phase 1
+     * @throws OptimalException if there is no improving candidate in phase 2
      */
     virtual void price();
 
@@ -109,6 +112,7 @@ private:
     /**
      * Inherited from the parent Simplex class, performing the basis change.
      * It also computes the reduced costs, and the basic solution.
+     * @throws PanOptException in case of invalid variable type
      */
     virtual void update();
 
