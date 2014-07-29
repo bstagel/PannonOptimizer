@@ -1,5 +1,5 @@
 /**
- * @file   dualdantzigpricing.h
+ * @file   dualdantzigpricing.h This file contains the API of the DualDantzigPricing class.
  */
 
 #ifndef DUALDANTZIGPRICING_H

@@ -14,6 +14,10 @@ class SimplexParameterHandler : public ParameterHandler
 
 public:
     THREAD_STATIC_DECL ParameterHandler & getInstance();
+    /**
+    * @brief writeParameterFile
+    * @throws -1 if the outputstream is not open
+    */
     void writeParameterFile();
     void initParameters();
 

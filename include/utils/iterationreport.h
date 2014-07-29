@@ -95,6 +95,13 @@ private:
                           const std::vector< Entry > & row,
                           IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const;
 
+    /**
+     * @brief writeExportTable
+     * @param fields
+     * @param row
+     * @param filename
+     * @throws ParameterException if the export file can't be opened
+     */
     void writeExportTable(const std::vector<IterationReportField> & fields,
                           const std::vector< Entry > & row,
                           const std::string filename) const;

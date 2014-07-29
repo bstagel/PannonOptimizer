@@ -376,6 +376,7 @@ protected:
 
     /**
      * Initializes the basis, starting basis finder modules.
+     * @throws ParameterException if wrong factorisation type in the parameter file is specified
      */
     virtual void initModules();
 
@@ -478,11 +479,13 @@ protected:
      * If the iteration index given as parameter corresponds to the reinversion frequency
      * given in the simplex parameter file or the current iteration is to be saved (also from simplex parameterfile).
      * @param iteratonIndex shows the current iteration
+     * @throws ParameterException at invalid save basis format (read from parameterfile)
      */
     void saveBasis(int iterationIndex);
 
     /**
      * Calls the loadBasisFromFile() function, if needed.
+     * @throws ParameterException at invalid load basis format (read from parameterfile)
      */
     void loadBasis();
 

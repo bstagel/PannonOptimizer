@@ -164,13 +164,14 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
 }
 
 void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
-                                                      Numerical::Double workingTolerance)
+                                                      Numerical::Double workingTolerance,
+                                                      bool secondTurn)
 {
     #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
-    //computing ratios
+    //in theory only positive breakpoints can be defined if not, fake feasibility is present
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
     unsigned int variableIndex = 0;
@@ -187,10 +188,22 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
             variableIndex = it.getData();
             if (alpha.at(variableIndex) < 0) {
                 valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if(secondTurn){
+                    if(valueOfVariable < m_dualSteplength){
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
+                }else{
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
                 if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
                     valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
             }
         }
@@ -202,10 +215,22 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
             variableIndex = it.getData();
             if (alpha.at(variableIndex) > 0){
                 valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if(secondTurn){
+                    if(valueOfVariable < m_dualSteplength){
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
+                }else{
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
                 if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
                     valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
              }
         }
@@ -220,16 +245,35 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
 
                 if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) > 0) {
                     valueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 } else
                 if (typeOfIthVariable == Variable::MINUS && alpha.at(variableIndex) < 0) {
                     valueOfVariable = (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 } else
                 if (typeOfIthVariable == Variable::FREE ) {
-                    valueOfVariable = alpha.at(variableIndex) < 0 ? ( m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex) :
+                    valueOfVariable = alpha.at(variableIndex) < 0 ?
+                                ( m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex) :
                         (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
             }
         }
@@ -244,10 +288,22 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
             variableIndex = it.getData();
             if (alpha.at(variableIndex) > 0) {
                 valueOfVariable = - (m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if(secondTurn){
+                    if(valueOfVariable < m_dualSteplength){
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
+                }else{
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
                 if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
                     valueOfVariable = -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
             }
         }
@@ -259,10 +315,22 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
             variableIndex = it.getData();
             if (alpha.at(variableIndex) < 0) {
                 valueOfVariable = - (m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                if(secondTurn){
+                    if(valueOfVariable < m_dualSteplength){
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
+                }else{
+                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                }
                 if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
                     valueOfVariable = -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
             }
         }
@@ -277,16 +345,34 @@ void DualRatiotest::generateExpandedBreakpointsPhase1(const Vector &alpha,
 
                 if (typeOfIthVariable == Variable::PLUS && alpha.at(variableIndex) < 0) {
                     valueOfVariable = -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 } else
                 if (typeOfIthVariable == Variable::MINUS && alpha.at(variableIndex) > 0) {
                     valueOfVariable = -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 } else
                 if (typeOfIthVariable == Variable::FREE ) {
                     valueOfVariable = alpha.at(variableIndex) < 0 ? -(m_reducedCosts.at(variableIndex) + workingTolerance) / alpha.at(variableIndex) :
                             -(m_reducedCosts.at(variableIndex) - workingTolerance) / alpha.at(variableIndex);
-                    m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    if(secondTurn){
+                        if(valueOfVariable < m_dualSteplength){
+                            m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                        }
+                    }else{
+                        m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable);
+                    }
                 }
             }
         }
@@ -453,7 +539,6 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     //Generate the breakpoints of the piecewise linear concave function
     if (m_expandDualPhase1 > 0){
         generateExpandedBreakpointsPhase1(alpha,workingTolerance);
-
     } else{
         generateSignedBreakpointsPhase1(alpha);
     }
@@ -506,10 +591,6 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
 
                 m_incomingVariableIndex = breakpoint->variableIndex;
                 m_dualSteplength = m_tPositive ? breakpoint->value : - breakpoint->value;
-
-                if(m_expandDualPhase1 > 0){
-
-                }
                 break;
             }
 
@@ -527,10 +608,10 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                 break;
             }
         }
-        //Harris, expand second turn
-        generateSignedBreakpointsPhase1(alpha);
+        //Harris, expand second turn with exact bounds
+//        generateExpandedBreakpointsPhase1(alpha,0,true);
 
-        m_breakpointHandler.selectMethod(m_nonlinearDualPhaseIFunction);
+//        m_breakpointHandler.selectMethod(m_nonlinearDualPhaseIFunction);
 
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
