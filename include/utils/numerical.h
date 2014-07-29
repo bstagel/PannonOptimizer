@@ -1,5 +1,6 @@
 /**
- * @file numerical.h
+ * @file numerical.h This file contains the API of the Numerical class.
+ * @author smidla, tar
  */
 
 #ifndef _NUMERICAL_H_
@@ -29,10 +30,18 @@
     }
 #endif
 
+/**
+ * This class implements numerical functions focusing on high-precisition results.
+ *
+ * @class Numerical
+ */
 class Numerical
 {
 public:
 
+    /**
+     * This type describes an addition operation type.
+     */
     enum ADD_TYPE {
         ADD_FAST,
         ADD_ABS,
@@ -48,10 +57,22 @@ public:
     typedef DoubleHistory Double;
 #endif
 
+    /**
+     * This class implements a summarizer able to add elements with the same sign first.
+     * With this technique there are less numerical errors when summing floating point numbers.
+     *
+     * @class Summarizer
+     */
     class Summarizer
     {
+        /**
+         * The sum of elements with positive and negative sign separated.
+         */
         Double m_negpos[2];
 
+        /**
+         * Helper type to separate positive and negative doubles quickly with bit operators.
+         */
         union Number
         {
             double m_num;
@@ -60,12 +81,24 @@ public:
 
     public:
 
+        /**
+         * Constructor of the Summarizer class.
+         * Initializes the sum to zero.
+         *
+         * @constructor
+         */
         Summarizer()
         {
             m_negpos[0] = 0.0;
             m_negpos[1] = 0.0;
         }
 
+        /**
+         * Adds a value to the summarizer.
+         * This detects the sign of the number and adds it to the corresponding sum.
+         *
+         * @param v The value to be added.
+         */
         ALWAYS_INLINE void add(const Double & v)
         {
             m_number.m_num = v;
@@ -77,6 +110,13 @@ public:
             }*/
         }
 
+        /**
+         * Returns the result of the sums, with the addition of the negative and positive sum.
+         *
+         * @param abs Set this true to use absolute tolerance during the addition.
+         * @param rel Set this true to use relative tolerance during the addition.
+         * @return The result of the sum.
+         */
         inline Double getResult(bool abs = true, bool rel = true) const
         {
             if(abs && rel){
@@ -90,6 +130,9 @@ public:
             }
         }
 
+        /**
+         * Clears the summarizer and sets its sums to zero.
+         */
         inline void clear()
         {
             m_negpos[0] = 0.0;
@@ -98,17 +141,37 @@ public:
 
     };
 
+    /**
+     * This class implements a summarizer able to add elements with the same magnitude.
+     * With this technique there are less numerical errors when summing floating point numbers.
+     *
+     * @class BucketSummarizer
+     */
     class BucketSummarizer {
 
+        /**
+         * The sum of elements with the same magnitude separated.
+         */
         double * m_buckets;
 
-
+        /**
+         * The number of bits deciding the magnitude bucket of the number.
+         */
         unsigned int m_shift;
 
+        /**
+         * The number of magnitude buckets.
+         */
         unsigned int m_size;
 
     public:
 
+        /**
+         * Constructor of the BucketSummarizer class.
+         * The number of magnitude buckets can be specified by the level.
+         *
+         * @param level The level of the bucket summarizer. Higher level means fewer buckets.
+         */
         BucketSummarizer(int level) {
             m_shift = 11 - level;
             m_size = 1 << m_shift;
@@ -117,11 +180,25 @@ public:
             m_shift = 53 + level;
         }
 
+        /**
+         * Destructor of the BucketSummarizer class.
+         *
+         * @destructor
+         */
         ~BucketSummarizer() {
             release(m_buckets);
         }
 
+        /**
+         * Adds a value to the summarizer.
+         * This detects the magnitude of the number and adds it to the corresponding bucket.
+         *
+         * @param value The value to be added.
+         */
         ALWAYS_INLINE void add(double value) {
+            /**
+             * This type allows the fast detection of double magnitude by bit operators.
+             */
             union Bits {
                 double m_value;
                 unsigned long long int m_bits;
@@ -133,7 +210,13 @@ public:
             m_buckets[ index ] += value;
         }
 
-
+        /**
+         * Returns the result of the sums, with the addition of sums with the same magnitude.
+         *
+         * @param abs Set this true to use absolute tolerance during the addition.
+         * @param rel Set this true to use relative tolerance during the addition.
+         * @return The result of the sum.
+         */
         ALWAYS_INLINE double getResult(bool abs = true, bool rel = true) {
             double pos1 = 0;
             double pos2 = 0;
@@ -174,6 +257,12 @@ public:
         }
     };
 
+    /**
+     * Returns the absolute value of the given number.
+     *
+     * @param val The given number.
+     * @return The absolute value of val.
+     */
     ALWAYS_INLINE static Double fabs(Double val)
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
@@ -183,6 +272,12 @@ public:
 #endif
     }
 
+    /**
+     * Returns the square root of the given number.
+     *
+     * @param val The given number.
+     * @return The square root of val.
+     */
     ALWAYS_INLINE static Double sqrt(Double val)
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
@@ -192,6 +287,12 @@ public:
 #endif
     }
 
+    /**
+     * Returns the rounded value of the given number.
+     *
+     * @param val The given number.
+     * @return The rounded value of val.
+     */
     ALWAYS_INLINE static Double round(Double val)
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
@@ -201,6 +302,14 @@ public:
 #endif
     }
 
+    /**
+     * Determines with tolerance whether two values are equal or not.
+     *
+     * @param value1 The first value.
+     * @param value2 The second value.
+     * @param tolerance The value of the absolute tolerance.
+     * @return True if the difference of the two values are less than the tolerance.
+     */
     ALWAYS_INLINE static bool equal(Double value1,Double value2,Double tolerance){
         if( fabs(value1-value2) <= tolerance ){
             return true;
@@ -208,6 +317,14 @@ public:
         return false;
     }
 
+    /**
+     * Determines with tolerance whether one value is less than another.
+     *
+     * @param value1 The first value.
+     * @param value2 The second value.
+     * @param tolerance The value of the absolute tolerance.
+     * @return True if value1 is less than value2 by at least the tolerance.
+     */
     ALWAYS_INLINE static bool lessthan(Double value1,Double value2,Double tolerance){
         if( value1 + tolerance < value2 ){
             return true;
@@ -215,16 +332,25 @@ public:
         return false;
     }
 
+    /**
+     * Constant value limit representing infinity.
+     */
     static const Double Infinity;
 
     /**
-     * epsilon representation for dealing with numerical errors when rounding
+     * This is a reference of numerical parameter "AbsoluteTolerance".
+     * See LinalgParameterHandler for details.
      */
     static const Double & AbsoluteTolerance;
+
+    /**
+     * This is a reference of numerical parameter "RelativeTolerance".
+     * See LinalgParameterHandler for details.
+     */
     static const Double & RelativeTolerance;
 
     /**
-     * Does fuzzy comparison for checking equity on two Double variables
+     * Does fuzzy comparison for checking equality on two Double variables
      *
      * @param a first argument
      * @param b second argument
@@ -244,8 +370,7 @@ public:
     }
 
     /**
-     * Does histerezis comparison for checking wether the first argument is
-     * less than the second.
+     * Does histerezis comparison for checking whether the first argument is less than the second.
      *
      * @param a first argument, assumed being less than b
      * @param b second argument, assumed being greater than a
@@ -256,11 +381,21 @@ public:
         return b - a > Numerical::AbsoluteTolerance;
     }
 
+    /**
+     * Does fuzzy comparsion to check whether a value is zero.
+     *
+     * @param a The given value to be checked.
+     * @return True if a is zero.
+     */
     static ALWAYS_INLINE bool isZero(const Double & a)
     {
         return a < 0.0 ? a > -Numerical::AbsoluteTolerance : a < Numerical::AbsoluteTolerance;
     }
 
+    /**
+     * This type describes the custom representation of a 64 bit floating point number.
+     * This sign, exponent and mantissa are separated.
+     */
     struct Float64Bits
     {
         unsigned long long int m_mantissa : 52;
@@ -268,12 +403,22 @@ public:
         unsigned long long int m_sign : 1;
     };
 
+    /**
+     * This type allows to reach the sign, exponent and mantissa of a double individually.
+     */
     union Float64
     {
         double m_value;
         Float64Bits m_bits;
     };
 
+    /**
+     * Returns the rigid equality of two doubles.
+     *
+     * @param value1 The first value.
+     * @param value2 The second value.
+     * @return True if the two values are equal.
+     */
     static inline bool rigidEqualsFloat64(const double & value1, const double & value2)
     {
         Float64 val1;
@@ -286,12 +431,13 @@ public:
     }
 
     /**
-     * Numerical stable add operation. Ensures that when the first operand
-     * is negative of second one, the result will be zero.
+     * Numerical stable add operation.
+     * Ensures that when the first operand is negative of second one, the result will be zero.
+     * This function uses absolute and relative tolerances.
      *
-     * @param value1
-     * @param value2
-     * @return
+     * @param value1 The first value.
+     * @param value2 The second value to be added.
+     * @return The sum of the two values.
      */
     static ALWAYS_INLINE Double stableAdd(const Double & value1, const Double & value2)
     {
@@ -313,12 +459,13 @@ public:
     }
 
     /**
-     * Numerical stable add operation. Ensures that when the first operand
-     * is negative of second one, the result will be zero.
+     * Numerical stable add operation.
+     * Ensures that when the first operand is negative of second one, the result will be zero.
+     * This function uses only relative tolerance.
      *
-     * @param value1
-     * @param value2
-     * @return
+     * @param value1 The first value.
+     * @param value2 The second value to be added.
+     * @return The sum of the two values.
      */
     static ALWAYS_INLINE Double stableAddRel(const Double & value1, const Double & value2)
     {
@@ -334,12 +481,13 @@ public:
 
 
     /**
-     * Numerical stable add operation. Ensures that when the first operand
-     * is negative of second one, the result will be zero.
+     * Numerical stable add operation.
+     * Ensures that when the first operand is negative of second one, the result will be zero.
+     * This function uses only absolute tolerance.
      *
-     * @param value1
-     * @param value2
-     * @return
+     * @param value1 The first value.
+     * @param value2 The second value to be added.
+     * @return The sum of the two values.
      */
     static ALWAYS_INLINE Double stableAddAbs(const Double & value1, const Double & value2)
     {
@@ -352,11 +500,12 @@ public:
     }
 
     /**
-     * Numerical stable add operation. Ensures that when the first operand
-     * is negative of second one, the result will be zero.
+     * Numerical stable add operation.
+     * Ensures that when the first operand is negative of second one, the result will be zero.
+     * This function uses absolute and relative tolerances, and stores the result in value1.
      *
-     * @param value1
-     * @param value2
+     * @param value1 The first value. The result will be stored in this variable also.
+     * @param value2 The second value to be added.
      */
     static inline void stableAddTo(Double & value1, const Double & value2)
     {
@@ -373,7 +522,14 @@ public:
 
 };
 
+/**
+ * Constant double defining zero.
+ */
 extern const Numerical::Double ZERO;
+
+/**
+ * Constant double defining invalid value.
+ */
 extern const Numerical::Double INVALID;
 
 #endif /* NUMERICAL_H_ */

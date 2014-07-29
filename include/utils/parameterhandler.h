@@ -1,5 +1,6 @@
 /**
- * @file parameterhandler.h
+ * @file parameterhandler.h This file contains the API of the ParameterHandler class.
+ * @author tar
  */
 
 #ifndef PARAMETERHANDLER_H

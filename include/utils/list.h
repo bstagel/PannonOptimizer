@@ -1,5 +1,6 @@
 /**
- * @file list.h
+ * @file list.h This file contains the API of the List class.
+ * @author smidla
  */
 
 
@@ -13,6 +14,9 @@
 
 #define LIST_NODE_COUNT 10
 
+/**
+ * This class implements
+ */
 template <class T>
 class List
 {

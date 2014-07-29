@@ -1,5 +1,6 @@
 /**
- * @file parameter.h
+ * @file parameter.h This file contains the API of the Parameter class
+ * @author tar
  */
 
 #ifndef PARAMETER_H_

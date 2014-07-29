@@ -1,3 +1,8 @@
+/**
+ * @file flags.h This file contains global flags.
+ * @author smidla
+ */
+
 #ifndef FLAGS_H
 #define FLAGS_H
 

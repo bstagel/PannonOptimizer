@@ -1,3 +1,8 @@
+/**
+ * @file thread.h This file contains macros defining the parallel processing settings.
+ * @author smidla
+ */
+
 #ifndef THREAD_H
 #define THREAD_H
 
