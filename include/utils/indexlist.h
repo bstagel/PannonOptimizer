@@ -1,5 +1,6 @@
 /**
- * @file linkedlist.h
+ * @file linkedlist.h This file contains the API of the IndexList class.
+ * @author smidla
  */
 
 
@@ -24,6 +25,7 @@ struct unused { int operator*() const {return 0;}};
  * the next element of the last element is the header, and the previous
  * element of first element is the header also.
  *
+ * @class IndexList
  */
 template <class ATTACHED_TYPE = unused>
 class IndexList
@@ -33,7 +35,6 @@ class IndexList
     /**
      * Stores an element of the linked list.
      */
-
     template <class TYPE>
     struct Element
     {
@@ -73,8 +74,8 @@ class IndexList
 public:
 
     /**
-     * Constructor of IndexList. Initializes the linked lists
-     * to empty. The count and partitions can be zero.
+     * Constructor of IndexList.
+     * Initializes the linked lists to empty. The count and partitions can be zero.
      * <hr>
      * </pre>
      *
@@ -111,6 +112,7 @@ public:
      * </tr>
      * </table>
      *
+     * @constructor
      * @param count Number of possible indices.
      * @param partitions Number of linked lists.
      */
@@ -162,6 +164,7 @@ public:
      * </tr>
      * </table>
      *
+     * @constructor
      * @param list The original list.
      */
     IndexList(const IndexList & list) {
@@ -219,6 +222,8 @@ public:
      * Destructor of IndexList.
      * <hr>
      * Complexity: O(1)
+     *
+     * @destructor
      */
     ~IndexList() {
         clear();
@@ -229,7 +234,7 @@ public:
      * <hr>
      * Complexity: O(1)
      *
-     * @return number of linked lists
+     * @return The number of linked lists
      */
     inline unsigned int getPartitionCount() const
     {
@@ -240,7 +245,8 @@ public:
      * Returns with the number of possible indices.
      * <hr>
      * Complexity: O(1)
-     * @return number of possible indices
+     *
+     * @return The number of possible indices
      */
     inline unsigned int getIndexCount() const
     {
@@ -248,9 +254,8 @@ public:
     }
 
     /**
-     * Initializes the linked lists and the set of possible
-     * indices. The possible indices are nonnegative values,
-     * and less than count.
+     * Initializes the linked lists and the set of possible indices.
+     * The possible indices are nonnegative values, and less than count.
      * <hr>
      * </pre>
      *
@@ -325,42 +330,44 @@ public:
 
     /**
      * Inserts an index to the linked list given by argument partitionIndex.
-     * Value most not be any of linked list.
+     * Value must not be any of linked list.
      * <hr>
      * Complexity: O(1)
      *
      * @param partitionIndex The index will be inserted to this linked list.
      * @param index This index will be inserted.
+     * @param attached The attached data to the index.
      */
-    inline void insert(unsigned int partitionIndex, unsigned int value, ATTACHED_TYPE attached = ATTACHED_TYPE())
+    inline void insert(unsigned int partitionIndex, unsigned int index, ATTACHED_TYPE attached = ATTACHED_TYPE())
     {
         //LPERROR(m_partitionCount << " / " << partitionIndex );
         Element<ATTACHED_TYPE> * forward = m_heads[partitionIndex].m_next;
-        m_heads[partitionIndex].m_next = m_dataArray + value;
-        m_dataArray[value].m_next = forward;
-        m_dataArray[value].m_partitionIndex = partitionIndex;
-        m_dataArray[value].m_attached = attached;
-        forward->m_previous = m_dataArray + value;
-        m_dataArray[value].m_previous = m_heads + partitionIndex;
+        m_heads[partitionIndex].m_next = m_dataArray + index;
+        m_dataArray[index].m_next = forward;
+        m_dataArray[index].m_partitionIndex = partitionIndex;
+        m_dataArray[index].m_attached = attached;
+        forward->m_previous = m_dataArray + index;
+        m_dataArray[index].m_previous = m_heads + partitionIndex;
     }
 
     /**
-     * Sets the attached value of the value'th element.
+     * Sets the attached data of the value'th element.
      *
-     * @param value
-     * @param data
+     * @param index The index of the element which data is to be changed.
+     * @param data The new attached data of the element.
      */
-    inline void setAttachedData(unsigned int value, ATTACHED_TYPE data) {
-        m_dataArray[value].m_attached = data;
+    inline void setAttachedData(unsigned int index, ATTACHED_TYPE data) {
+        m_dataArray[index].m_attached = data;
     }
 
     /**
+     * Returns the attached data of a specific element.
      *
-     * @param value
-     * @return
+     * @param index The index of the element.
+     * @return The attached data of the element.
      */
-    inline ATTACHED_TYPE getAttachedData(unsigned int value) const {
-        return m_dataArray[value].m_attached;
+    inline ATTACHED_TYPE getAttachedData(unsigned int index) const {
+        return m_dataArray[index].m_attached;
     }
     /**
      * Removes the index from the linked lists.
@@ -369,20 +376,22 @@ public:
      *
      * @param index This index will be removed.
      */
-    inline void remove(unsigned int value)
+    inline void remove(unsigned int index)
     {
-        Element<ATTACHED_TYPE> & element = m_dataArray[value];
+        Element<ATTACHED_TYPE> & element = m_dataArray[index];
         element.m_partitionIndex = m_partitionCount;
         element.m_previous->m_next = element.m_next;
         element.m_next->m_previous = element.m_previous;
     }
 
     /**
+     * Moves a specific index to a target partition.
      *
-     * @param value
-     * @param targetPartition
+     * @param index The index to be moved.
+     * @param targetPartition The index of the partition the index is moved to.
+     * @param attached The attached data to the index.
      */
-    inline void move(unsigned int value, unsigned int targetPartition, ATTACHED_TYPE attached = ATTACHED_TYPE()) {
+    inline void move(unsigned int index, unsigned int targetPartition, ATTACHED_TYPE attached = ATTACHED_TYPE()) {
         /*Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = targetPartition;
 
@@ -392,25 +401,24 @@ public:
         forward->m_previous = &element;
         element.m_previous = m_heads + targetPartition;
         m_dataArray[value].m_attached = attached;*/
-        remove(value);
-        insert(targetPartition, value, attached);
+        remove(index);
+        insert(targetPartition, index, attached);
     }
 
     /**
-     * Returns the number of partition, where the index can
-     * be found.
+     * Returns the number of partition where a specific index can be found.
      *
      * @param index The function returns with the partition index of this value.
      * @return The partition index.
      *
      * @see m_partitionIndex
      */
-    inline unsigned int where(unsigned int value) const {
-        return m_dataArray[value].m_partitionIndex;
+    inline unsigned int where(unsigned int index) const {
+        return m_dataArray[index].m_partitionIndex;
     }
 
     /**
-     * Returns the first element of a partition
+     * Returns the first element of a partition.
      *
      * @param partitionIndex The index of the linked list
      * @return The data of the first element or -1 if the list is empty
@@ -426,7 +434,7 @@ public:
     /**
      * Reverses the order of elements in the given partition.
      *
-     * @param partitionIndex The index of partition
+     * @param partitionIndex The index of the partition
      */
     void reversePartition(unsigned int partitionIndex) {
         Iterator iter, iterEnd;
@@ -446,6 +454,8 @@ public:
 
     /**
      * Iterator class for listing elements of a linked list.
+     *
+     * @class _Iterator
      */
     template <class TYPE>
     class _Iterator
@@ -455,6 +465,9 @@ public:
          */
         Element<TYPE> * m_actual;
 
+        /**
+         * The partition borders for the iterator.
+         */
         std::set<Element<TYPE>*> m_borders;
     public:
 
@@ -462,6 +475,8 @@ public:
          * Default constructor of class Iterator.
          * <hr>
          * Complexity: O(1)
+         *
+         * @constructor
          */
         inline _Iterator()
         {
@@ -474,6 +489,7 @@ public:
          * <hr>
          * Complexity: O(1)
          *
+         * @constructor
          * @param actual The value of pointer of actual element in linked list.
          */
         inline _Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
@@ -483,9 +499,9 @@ public:
         }
 
         /**
+         * Returns the index of the actual element.
          * When the iterator refers to the header of linked list,
-         * this functions returns the index of linked list, otherwise
-         * returns the index of actual element in linked list.
+         * this functions returns the index of linked list.
          * <hr>
          * Complecity: O(1)
          *
@@ -524,8 +540,8 @@ public:
         }
 
         /**
-         * Moves the iterator to the next element. When the iterator
-         * refers to the last element, the iterator steps to the header.
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          */
@@ -561,8 +577,8 @@ public:
         }
 
         /**
-         * Moves the iterator to the previous element. When the iterator
-         * refers to the first element, the iterator steps to the header.
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          */
@@ -574,8 +590,8 @@ public:
         }
 
         /**
-         * Moves the iterator to the next element. When the iterator
-         * refers to the last element, the iterator steps to the header.
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          *
@@ -588,12 +604,11 @@ public:
         }
 
         /**
-         * Moves the iterator to the next element. When the iterator
-         * refers to the last element, the iterator steps to the header.
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          *
-         * @param not used
          * @return Reference to the iterator object.
          */
         inline _Iterator & operator++(int)
@@ -603,8 +618,8 @@ public:
         }
 
         /**
-         * Moves the iterator to the previous element. When the iterator
-         * refers to the first element, the iterator steps to the header.
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          *
@@ -617,12 +632,11 @@ public:
         }
 
         /**
-         * Moves the iterator to the previous element. When the iterator
-         * refers to the first element, the iterator steps to the header.
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
          * <hr>
          * Complexity: O(1)
          *
-         * @param not used
          * @return Reference to the iterator object.
          */
         inline _Iterator & operator--(int)
@@ -632,12 +646,11 @@ public:
         }
 
         /**
-         * Returns true when the iter and current Iterator refer to the same
-         * list element.
+         * Returns true when the iter and current Iterator refer to the same list element.
          * <hr>
          * Complexity: O(1)
          *
-         * @param iter
+         * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to the same list element.
          */
         inline bool operator==(const _Iterator & iter)
@@ -646,12 +659,11 @@ public:
         }
 
         /**
-         * Returns true when the iter and current Iterator refer to different
-         * list elements.
+         * Returns true when the iter and current Iterator refer to different list elements.
          * <hr>
          * Complexity: O(1)
          *
-         * @param iter
+         * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to different list element.
          */
         inline bool operator!=(const _Iterator & iter)
@@ -663,6 +675,15 @@ public:
 
     typedef _Iterator<ATTACHED_TYPE> Iterator;
 
+    /**
+     * Gets the start and end iterators for the index list.
+     * The starting partition and partition count to be iterated can be also specified.
+     *
+     * @param begin Pointer to the iterator that will point to the start of the list.
+     * @param end Pointer to the iterator that will point to the end of the list.
+     * @param partitionIndex The starting partition to be iterated.
+     * @param partitions The partition count to be iterated.
+     */
     void getIterators(_Iterator<ATTACHED_TYPE> * begin, _Iterator<ATTACHED_TYPE> * end, unsigned int partitionIndex,
                       unsigned int partitions = 1) const
     {
@@ -681,11 +702,22 @@ public:
         begin->next();
     }
 
+    /**
+     * Returns true if the specified partition contains no indices.
+     *
+     * @param index The index of the partition to be queried.
+     * @return True if the specified partition contains no indices.
+     */
     inline bool isPartitionEmpty(unsigned int index) {
         Element<ATTACHED_TYPE> * element = m_heads + index;
         return element->m_next == element;
     }
 
+    /**
+     * Removes all indices from a specified partition.
+     *
+     * @param index The index of the partition to be cleared.
+     */
     inline void clearPartition(unsigned int index)
     {
         Iterator iter, endIter;
@@ -700,6 +732,9 @@ public:
 
     }
 
+    /**
+     * Removes all indices from the list.
+     */
     void clearAllPartitions() {
         unsigned int index;
         Element<ATTACHED_TYPE> * element = m_heads;
@@ -718,8 +753,8 @@ private:
     unsigned int m_partitionCount;
 
     /**
-     * Pointer to the array of header pointers. The size of array
-     * is m_partitionCount.
+     * Pointer to the array of header pointers.
+     * The size of array is m_partitionCount.
      */
     Element<ATTACHED_TYPE> * m_heads;
 
@@ -729,8 +764,8 @@ private:
     unsigned int m_count;
 
     /**
-     * Pointer to the array of indices. The size of array is
-     * m_count.
+     * Pointer to the array of indices.
+     * The size of array is m_count.
      */
     Element<ATTACHED_TYPE> * m_dataArray;
 

@@ -1,5 +1,6 @@
 /**
- * @file heap.h
+ * @file heap.h This file contains the API of the Heap class.
+ * @author smidla
  */
 
 
@@ -13,6 +14,10 @@
 
 using namespace std;
 
+/**
+ *
+ * @class NoMove
+ */
 template <class T>
 class NoMove
 {
@@ -27,7 +32,7 @@ public:
 
 /**
  * 
- * @param size
+ * @class Heap
  */
 template <class K, class T, class MOVE = NoMove<T> >
 class Heap

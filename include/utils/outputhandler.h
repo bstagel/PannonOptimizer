@@ -1,5 +1,6 @@
 /**
- * @file outputhandler.h
+ * @file outputhandler.h This file contains the API of the output message handler classes.
+ * @author smidla
  */
 
 #ifndef OUTPUTHANDLER_H

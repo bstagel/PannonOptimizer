@@ -1,3 +1,7 @@
+/**
+ * @file colors.h This file contains macros defining the output colors.
+ */
+
 #ifndef COLORS_H
 #define COLORS_H
 
@@ -6,7 +10,7 @@
 
 /*
  * Use COLORFLAGS macro to define the colors of the output.
- * To use bash compatile color flags: define COLORFLAGS to BASHCOLOR
+ * To use bash compatible color flags: define COLORFLAGS to BASHCOLOR
  * To use windows color flags: define COLORFLAGS to WINDOWSCOLOR
  *  !!! In that case the default windows headers are needed !!!
  * For no colors at all: define COLORFLAGS to NOCOLOR

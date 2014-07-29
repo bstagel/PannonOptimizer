@@ -1,5 +1,6 @@
 /**
- * @file elementproducer.h
+ * @file elementproducer.h This file contains the API of the ElementProducer class.
+ * @author smidla
  */
 
 
@@ -9,72 +10,76 @@
 #include <globals.h>
 
 /**
- * The class implements an accelerated linked list. The elements of the linked lists are collected into
- * groups which contain N elements. One group is stored as an array, so inserting new element into the list
- * is faster, and this structure utilises the CPU cache.
+ * The class implements an accelerated linked list.
+ * The elements of the linked lists are collected into groups which contain N elements.
+ * One group is stored as an array, so inserting new element into the list is faster,
+ * and this structure utilises the CPU cache.
+ *
+ * @class ElementProducer
  */
 template <class T, int N>
 class ElementProducer
 {
 
     /**
-     * @brief The ElementList struct
      * This structure stores one list element group in an array.
      */
     struct ElementList
     {
         /**
-         * @brief m_index The index of the group.
+         * The index of the group.
          */
         int m_index;
 
         /**
-         * @brief m_elements This array stores N piece of data.
+         * This array stores N piece of data.
          */
         T m_elements[N];
 
         /**
-         * @brief m_next Pointer to the next group.
+         * Pointer to the next group.
          */
         ElementList * m_next;
     };
 
     /**
-     * @brief m_head Pointer to the first group.
+     * Pointer to the first group.
      */
     ElementList * m_head;
 
     /**
-     * @brief m_actual Pointer to the actual group.
+     * Pointer to the actual group.
      */
     ElementList * m_actual;
 public:
 
     /**
-     * @brief The Iterator class
-     *
      * This class helps to visit every elements in the list.
+     *
+     * @class Iterator
      */
     class Iterator
     {
         /**
-         * @brief m_actualList Pointer to the current group.
+         * Pointer to the current group.
          */
         ElementList * m_actualList;
 
         /**
-         * @brief m_actualElement Pointer to the current element.
+         * Pointer to the current element.
          */
         T * m_actualElement;
 
         /**
-         * @brief m_lastElement Pointer to the lass element in the current group.
+         * Pointer to the lass element in the current group.
          */
         T * m_lastElement;
     public:
 
         /**
-         * @brief Iterator Default constructor, initializes every members to zero.
+         * Default constructor, initializes every members to zero.
+         *
+         * @constructor
          */
         inline Iterator():
             m_actualList(0),
@@ -85,7 +90,9 @@ public:
         }
 
         /**
-         * @brief Iterator Helper constructor, it is called by some functions of class List.
+         * Helper constructor, it is called by some functions of class List.
+         *
+         * @constructor
          * @param list Pointer to a list group.
          * @param element Pointer to an element in the group.
          * @param last Pointer the the last element in the group.
@@ -98,7 +105,8 @@ public:
         }
 
         /**
-         * @brief operator * Returns with the current element.
+         * Returns with the current element.
+         *
          * @return Reference to the current element.
          */
         inline T & operator*() const
@@ -107,7 +115,8 @@ public:
         }
 
         /**
-         * @brief operator -> Returns with the current element's pointer.
+         * Returns with the current element's pointer.
+         *
          * @return Pointer to the current element.
          */
         inline T * operator->() const
@@ -116,10 +125,11 @@ public:
         }
 
         /**
-         * @brief operator ++ Steps to the next element in the list.
+         * Steps to the next element in the list.
          * When the function reaches the end of the current group, it steps
          * to the beginning of the next group. If the next group does not exists,
          * the m_actualElement will be zero.
+         *
          * @return Refernece to the modified iterator.
          */
         inline Iterator & operator++()
@@ -129,7 +139,7 @@ public:
         }
 
         /**
-         * @brief next Steps to the next element in the list.
+         * Steps to the next element in the list.
          * When the function reaches the end of the current group, it steps
          * to the beginning of the next group. If the next group does not exists,
          * the m_actualElement will be zero.
@@ -148,7 +158,7 @@ public:
         }
 
         /**
-         * @brief operator ++ Steps to the next element in the list.
+         * Steps to the next element in the list.
          * When the function reaches the end of the current group, it steps
          * to the beginning of the next group. If the next group does not exists,
          * the m_actualElement will be zero.
@@ -162,7 +172,8 @@ public:
         }
 
         /**
-         * @brief operator == Returns with true, if the two iterators point to same element.
+         * Returns with true, if the two iterators point to same element.
+         *
          * @param iterator Reference to the other iterator.
          * @return True, if the iterators point to the same element, otherwise returs
          * with false.
@@ -173,7 +184,8 @@ public:
         }
 
         /**
-         * @brief operator != Returns with true, if the two iterators point to different elements.
+         * Returns with true, if the two iterators point to different elements.
+         *
          * @param iterator Reference to the other iterator.
          * @return False, if the iterators point to the same element, otherwise returs
          * with true.
@@ -186,7 +198,9 @@ public:
     };
 
     /**
-     * @brief ElementProducer Default constructor, it initializes an empty list.
+     * Default constructor, it initializes an empty list.
+     *
+     * @constructor
      */
     inline ElementProducer()
     {
@@ -194,7 +208,9 @@ public:
     }
 
     /**
-     * @brief ElementProducer Copy constructor.
+     * Copy constructor.
+     *
+     * @constructor
      * @param orig The original list.
      */
     // TODO: implement it!
@@ -204,7 +220,8 @@ public:
     }
 
     /**
-     * @brief operator = Assignment operator.
+     * Assignment operator.
+     *
      * @param orig The original list.
      * @return Refernce to the current object.
      */
@@ -214,7 +231,9 @@ public:
     }
 
     /**
-     * @brief ~ElementProducer Destructor of the class.
+     * Destructor of the class.
+     *
+     * @destructor
      */
     inline ~ElementProducer()
     {
@@ -228,7 +247,8 @@ public:
     }
 
     /**
-     * @brief getNewElement Returns with a new T type element.
+     * Returns with a new T type element.
+     *
      * @return Pointer of the new element.
      */
     inline T * getNewElement()
@@ -253,7 +273,8 @@ public:
     }
 
     /**
-     * @brief begin Returns with an iterator which points to the first element in the list.
+     * Returns with an iterator which points to the first element in the list.
+     *
      * @return Iterator of the first element.
      */
     inline Iterator begin() const
@@ -264,7 +285,8 @@ public:
     }
 
     /**
-     * @brief end Returns with an iterator which represents the end of the list.
+     * Returns with an iterator which represents the end of the list.
+     *
      * @return Iterator to the end of the list.
      */
     inline Iterator end() const

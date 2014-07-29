@@ -1,3 +1,8 @@
+/**
+ * @file nodefile.h This file contains the API of the NodeFile class.
+ * @author
+ */
+
 #ifndef NODEFILE_H
 #define NODEFILE_H
 
@@ -9,6 +14,9 @@
 #include <map>
 #include <iostream>
 
+/**
+ * @brief The NodeFile class
+ */
 class NodeFile {
 public:
     class Node {
