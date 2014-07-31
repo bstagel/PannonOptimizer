@@ -1,6 +1,6 @@
 /**
  * @file datetime.h This file contains the API of the DateTime class.
- * @author tar
+ * @author Peter Tar
  */
 
 #ifndef DATETIME_H

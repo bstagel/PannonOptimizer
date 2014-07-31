@@ -66,9 +66,21 @@ private:
         TOKENIZER_STATE_COUNT
     };
 
+    /**
+     * Initializes the state table of the tokenizer, which implements its DFA functionality.
+     *
+     * @param tablePtr Pointer to the vector of possible states.
+     * @param transitionTablePtr Pointer to the vector of transitions between states.
+     */
     static void initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tablePtr,
                                std::vector<std::vector<std::string> > * transitionTablePtr);
 
+    /**
+     * Returns a given tokenizer state in a human readale format.
+     *
+     * @param state The state to be converted.
+     * @return The state in a human readale format.
+     */
     static std::string stateToString(TOKENIZER_STATE state);
 };
 

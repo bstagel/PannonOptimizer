@@ -1,6 +1,6 @@
 /**
  * @file architecture.h This file contains the API of the Architecture class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef ARCHITECTURE_H
@@ -30,6 +30,7 @@ public:
      *      - SSE2 or AVX
      *****************************************/
 
+
     typedef unsigned int (*AddVecDenseToDense_NonzCount)(const double * vec1,
                                                          const double * vec2,
                                                          double * result,
@@ -49,12 +50,18 @@ public:
                                        unsigned int tolerances);
 
 
+    /**
+     * This type describes the type of a system cache.
+     */
     enum CACHE_TYPE {
         DATA_CACHE = 1,
         INSTRUCTION_CACHE = 2,
         UNIFIED_CACHE = 3
     };
 
+    /**
+     * This struct describes a system cache.
+     */
     struct Cache {
         unsigned int m_level;
         unsigned int m_size;

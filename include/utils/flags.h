@@ -1,6 +1,6 @@
 /**
  * @file flags.h This file contains global flags.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef FLAGS_H

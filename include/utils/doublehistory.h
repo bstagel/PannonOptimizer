@@ -1,6 +1,6 @@
 /**
  * @file doublehistory.h
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef DOUBLEHISTORY_H

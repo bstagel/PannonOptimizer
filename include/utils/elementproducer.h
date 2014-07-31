@@ -1,6 +1,6 @@
 /**
  * @file elementproducer.h This file contains the API of the ElementProducer class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 

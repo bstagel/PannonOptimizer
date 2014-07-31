@@ -1,6 +1,6 @@
 /**
  * @file iterationreport.h This file contains the API of the IterationReport class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef ITERATIONREPORT_H

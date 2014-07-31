@@ -1,6 +1,6 @@
 /**
  * @file file.h This file contains the API of the File class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 
