@@ -10,11 +10,11 @@ void NodeFile::loadFromFile(const char * fileName) {
     loadFromStream(inputFile);
 }
 
-void NodeFile::loadFromStream(std::istream & steram) {
+void NodeFile::loadFromStream(std::istream & stream) {
     std::vector<std::string> rows;
     std::vector<Tokenizer::Token> tokens;
 
-    Tokenizer::tokenize(steram, &tokens, &rows);
+    Tokenizer::tokenize(stream, &tokens, &rows);
     m_document.build("", tokens.begin(), tokens.end(), rows);
 
 }
