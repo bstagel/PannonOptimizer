@@ -1,6 +1,6 @@
 /**
  * @file outputhandler.h This file contains the API of the output message handler classes.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef OUTPUTHANDLER_H
@@ -10,239 +10,274 @@
 #include <sstream>
 
 /**
- * @brief The GeneralMessageHandler class
+ * @brief The GeneralMessageHandler class Declares the interface of the concrete message handler classes.
  *
- * Declares the interface of the concrete message handler classes.
+ * @class GeneralMessageHandler
  */
 class GeneralMessageHandler {
 protected:
     /**
-     * @brief m_colors When it is true, the output can use colors, otherwise not.
+     * When it is true, the output can use colors, otherwise not.
      */
     bool m_colors;
 public:
 
     /**
-     * @brief GeneralMessageHandler Default constructor. Initializes m_colors to true;
+     * Default constructor. Initializes m_colors to true.
+     *
+     * @constructor
      */
     GeneralMessageHandler();
 
     /**
-     * @brief addMessage Adds a new message to the handler.
+     * Adds a new message to the handler.
+     *
      * @param message The message.
      */
     virtual void addMessage( const std::string & message ) = 0;
 
     /**
-     * @brief ~GeneralMessageHandler Destructor of the message handler.
+     * Destructor of the message handler.
+     *
+     * @destructor
      */
     virtual ~GeneralMessageHandler() {}
 
     /**
-     * @brief enableColors Enables using colors in the output.
+     * Enables using colors in the output.
      */
     void enableColors();
 
     /**
-     * @brief disableColors Disables colors in the output.
+     * Disables colors in the output.
      */
     void disableColors();
 
     /**
-     * @brief isColored Returns with true, if the coloring is enabled, otherwise returns with false.
-     * @return
+     * Returns with true, if the coloring is enabled, otherwise returns with false.
+     *
+     * @return True if coloring is enabled.
      */
     bool isColored() const;
 };
 
 /**
- * @brief The MessageHandler class
+ * Message handler class for information messages.
+ *
+ * @class MessageHandler
  */
 class MessageHandler: public GeneralMessageHandler {
 public:
 
     /**
-     * @brief addMessage
-     * @param message
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
      */
     void addMessage( const std::string & message );
 };
 
 /**
- * @brief The WarningHandler class
+ * Message handler class for warning messages.
+ *
+ * @class WarningHandler
  */
 class WarningHandler: public GeneralMessageHandler {
 public:
 
     /**
-     * @brief addMessage
-     * @param message
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
      */
     void addMessage( const std::string & message );
 };
 
 /**
- * @brief The ErrorHandler class
+ * Message handler class for error messages.
+ *
+ * @class ErrorHandler
  */
 class ErrorHandler: public GeneralMessageHandler {
 public:
 
     /**
-     * @brief addMessage
-     * @param message
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
      */
     void addMessage( const std::string & message );
 };
 
 /**
- * @brief The DebugHandler class
+ * Message handler class for debug messages.
+ *
+ * @class MessageHandler
  */
 class DebugHandler: public GeneralMessageHandler {
 public:
 
     /**
-     * @brief addMessage
-     * @param message
-     * @param file
-     * @param line
+     * Adds a message to the handler.
+     *
+     * @param message The message.
+     * @param file The name of the source file of the debug message command.
+     * @param line The line of the debug message command in the source file.
      */
     void addMessage( const std::string & message,
                      const char * file,
                      unsigned int line);
 
     /**
-     * @brief addMessage
-     * @param message
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
      */
     void addMessage( const std::string & message );
 };
 
 /**
- * @brief The OutputHandler class
+ * This static class can handle all the output messages of the program.
+ *
+ * @class OutputHandler
  */
 class OutputHandler
 {
 public:
 
     /**
-     * @brief OutputHandler
-     * @return
+     * Returns with a reference to the OutputHandler instance.
+     *
+     * @return A reference to the OutputHandler instance.
      */
     THREAD_STATIC_DECL OutputHandler & getInstance();
 
     /**
-     * @brief setMessageHandler
-     * @param handler
+     * Sets the information message handler of the program to a given handler object.
+     *
+     * @param handler The new information message handler.
      */
     void setMessageHandler(GeneralMessageHandler * handler);
 
     /**
-     * @brief setWarningHandler
-     * @param handler
+     * Sets the warning message handler of the program to a given handler object.
+     *
+     * @param handler The new warning message handler.
      */
     void setWarningHandler(GeneralMessageHandler * handler);
 
     /**
-     * @brief setErrorHandler
-     * @param handler
+     * Sets the error message handler of the program to a given handler object.
+     *
+     * @param handler The new error message handler.
      */
     void setErrorHandler(GeneralMessageHandler * handler);
 
     /**
-     * @brief setDebugHandler
-     * @param handler
+     * Sets the debug message handler of the program to a given handler object.
+     *
+     * @param handler The new debug message handler.
      */
     void setDebugHandler(GeneralMessageHandler * handler);
 
     /**
-     * @brief addMessage
-     * @param stream
+     * Adds an information message to the given output with the used information message handler.
+     *
+     * @param stream The output stream.
      */
     void addMessage(const std::ostringstream & stream);
 
     /**
-     * @brief addWarning
-     * @param stream
+     * Adds a warning message to the given output with the used warning message handler.
+     *
+     * @param stream The output stream.
      */
     void addWarning(const std::ostringstream & stream);
 
     /**
-     * @brief addError
-     * @param stream
+     * Adds an error message to the given output with the used error message handler.
+     *
+     * @param stream The output stream.
      */
     void addError(const std::ostringstream & stream);
 
     /**
-     * @brief addDebug
-     * @param stream
-     * @param file
-     * @param line
+     * Adds a debug message to the given output with the used debug message handler.
+     *
+     * @param stream The output stream.
+     * @param file The name of the source file of the debug message command.
+     * @param line The line of the debug message command in the source file.
      */
     void addDebug(const std::ostringstream & stream,
                   const char * file, unsigned int line);
 
     /**
-     * @brief setDefaultMessageHandler
+     * Sets the information message handler of the program to default.
      */
     void setDefaultMessageHandler();
 
     /**
-     * @brief setDefaultWarningHandler
+     * Sets the warning message handler of the program to default.
      */
     void setDefaultWarningHandler();
 
     /**
-     * @brief setDefaultErrorHandler
+     * Sets the error message handler of the program to default.
      */
     void setDefaultErrorHandler();
 
     /**
-     * @brief setDefaultDebugHandler
+     * Sets the debug message handler of the program to default.
      */
     void setDefaultDebugHandler();
 
     /**
-     * @brief enableAllColors
+     * Enables coloring for all the message handler classes.
      */
     void enableAllColors();
 
     /**
-     * @brief disableAllColors
+     * Disables coloring for all the message handler classes.
      */
     void disableAllColors();
 private:
+
     /**
-     * @brief OutputHandler
+     * Constructor of the OutputHandler class.
+     *
+     * @constructor
      */
     OutputHandler();
 
     /**
-     * @brief ~OutputHandler
+     * Destructor of the OutputHandler class.
+     *
+     * @destructor
      */
     ~OutputHandler();
 
     /**
-     * @brief m_messageHandler
+     * The information message handler of the program.
      */
     GeneralMessageHandler * m_messageHandler;
 
     /**
-     * @brief m_warningHandler
+     * The warning message handler of the program.
      */
     GeneralMessageHandler * m_warningHandler;
 
     /**
-     * @brief m_errorHandler
+     * The error message handler of the program.
      */
     GeneralMessageHandler * m_errorHandler;
 
     /**
-     * @brief m_debugHandler
+     * The debug message handler of the program.
      */
     GeneralMessageHandler * m_debugHandler;
 
     /**
-     * @brief m_colors
+     * When it is true, the output can use colors, otherwise not.
      */
     bool m_colors;
 };

@@ -1,6 +1,6 @@
 /**
  * @file iterationreportfield.h This file contains the API of the IterationReportField class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef ITERATIONREPORTFIELD_H

@@ -1,6 +1,6 @@
 /**
  * @file exceptions.h This file contains the API of all exception classes.
- * @author smidla, tar
+ * @author Jozsef Smidla, Peter Tar
  */
 
 
@@ -219,7 +219,7 @@ public:
 };
 
 /**
- * This exception should be thrown when
+ * This exception should be thrown when the selected pivot has bad numerical properties.
  *
  * @class BadPivotException
  */

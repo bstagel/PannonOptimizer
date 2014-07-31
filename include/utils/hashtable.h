@@ -1,6 +1,6 @@
 /**
  * @file hashtable.h
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef HASHTABLE_H

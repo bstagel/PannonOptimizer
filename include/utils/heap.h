@@ -1,6 +1,6 @@
 /**
  * @file heap.h This file contains the API of the Heap class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 
@@ -15,6 +15,7 @@
 using namespace std;
 
 /**
+ * This class can be used as a template for Heap if no move command is specified.
  *
  * @class NoMove
  */
@@ -23,6 +24,10 @@ class NoMove
 {
 public:
 
+    /**
+     * Template function for Heap.
+     * Does not do any operations.
+     */
     static void move(T & , const unsigned int, void * )
 //    static void move(T & obj, const unsigned int to, void * ptr)
     {
@@ -31,7 +36,9 @@ public:
 };
 
 /**
- * 
+ * This class implements a Heap structure with template element data and key.
+ * A template class to follow the movement of elements for faster search can also be specified.
+ *
  * @class Heap
  */
 template <class K, class T, class MOVE = NoMove<T> >
@@ -40,11 +47,15 @@ class Heap
 public:
 
     /**
-     * 
-     * @param size
+     * Constructor of the Heap class.
+     *
+     * @constructor
+     * @param size The number of elements in the heap.
+     * @param ptr This pointer will point to the end of the heap.
      */
     Heap(unsigned int size, void * ptr = 0)
     {
+        //TODO ezt átnézni
         m_size = 0;
         m_capacity = size + 1;
         m_data = new Element[m_capacity];
@@ -57,7 +68,9 @@ public:
     }
 
     /**
-     * 
+     * Copy constructor of the Heap class.
+     *
+     * @constructor
      * @param orig
      */
     Heap(const Heap & orig)
@@ -66,9 +79,10 @@ public:
     }
 
     /**
-     * 
-     * @param orig
-     * @return 
+     * Assignment operator of the Heap class.
+     *
+     * @param orig The original Heap object to be copied.
+     * @return Reference to the assigned Heap.
      */
     Heap & operator=(const Heap & orig)
     {
@@ -77,19 +91,30 @@ public:
     }
 
     /**
-     * 
+     * Destructor of the Heap class.
+     *
+     * @destructor.
      */
     ~Heap()
     {
         clear();
     }
 
+    /**
+     * Initializes the heap before build.
+     */
     void startBuild()
     {
         m_actual = m_data + 1;
         m_size = 0;
     }
 
+    /**
+     * Adds an element to the heap for build.
+     *
+     * @param key The key of the element.
+     * @param data The data of the element.
+     */
     void addForBuild(const K & key, const T & data)
     {
         m_actual->m_key = key;
@@ -98,6 +123,10 @@ public:
         m_size++;
     }
 
+    /**
+     * Builds up the heap structure.
+     * The heap must be initialized beforehand.
+     */
     void build()
     {
         unsigned int from = m_size >> 1;
@@ -198,30 +227,65 @@ public:
 
     }
 
+    /**
+     * Returns the number of elements in the heap.
+     *
+     * @return The number of elements in the heap.
+     */
     inline unsigned int size() const
     {
         return m_size;
     }
 
+    /**
+     * Returns the element with the maximum value.
+     *
+     * @return The element with the maximal value.
+     */
     inline K getMax() const
     {
         return m_data[1].m_key;
     }
 
+    /**
+     * Returns the key of the specified element.
+     *
+     * @param index The index of the element.
+     * @return The key of the element.
+     */
     inline K getKey(unsigned int index) const
     {
         return m_data[index + 1].m_key;
     }
 
+    /**
+     * Returns the data of the specified element.
+     *
+     * @param index The index of the element.
+     * @return The data of the element.
+     */
     inline T getData(unsigned int index) const
     {
         return m_data[index + 1].m_data;
     }
 
+    /**
+     * Sets the data of the specified element to a given value.
+     *
+     * @param index The index of the element.
+     * @param data The new data of the element.
+     */
     inline void setData(unsigned int index, const T & data) {
         m_data[index + 1].m_data = data;
     }
     
+    /**
+     * Inserts a new element to the heap.
+     *
+     * @param key The key of the new element.
+     * @param data The data of the new element.
+     * @param debug Set this true for debugging information.
+     */
     void insert(const K & key, const T & data, bool debug = false)
     {
         //        THREAD_STATIC_DECL int count = 0;
@@ -274,6 +338,9 @@ public:
 
     }
 
+    /**
+     * Prints the content of the heap to the output.
+     */
     void show() const
     {
         unsigned int i;
@@ -283,6 +350,11 @@ public:
         }
     }
 
+    /**
+     * Removes a specified element from the heap.
+     *
+     * @param index The index of the element to be removed.
+     */
     void remove(unsigned int index)
     {
 //        THREAD_STATIC_DECL int counter = 0;
@@ -402,6 +474,12 @@ public:
 //        }
     }
 
+    /**
+     * Changes the key of a specified element.
+     *
+     * @param index The index of the element.
+     * @param key The new key of the element.
+     */
     void changeKey(unsigned int index, const K & key)
     {
         index++;
@@ -482,6 +560,11 @@ public:
 
     }
 
+    /**
+     * Checks the heap structure for errors.
+     *
+     * @return True is there is no error in the heap structure.
+     */
     bool check() const
     {
         return true;
@@ -508,6 +591,9 @@ public:
 
 private:
 
+    /**
+     * This struct describes an element of the heap structure.
+     */
     struct Element
     {
         K m_key;
@@ -520,16 +606,36 @@ private:
         }
     };
 
+    /**
+     * The number of elements in the heap.
+     */
     unsigned int m_size;
 
+    /**
+     * The number of element spaces allocated from the memory.
+     */
     unsigned int m_capacity;
 
+    /**
+     * Pointer to the data array of the heap.
+     */
     Element * m_data;
 
+    /**
+     * Pointer to the currently selected element of the heap.
+     */
     Element * m_actual;
     
+    /**
+     * Custom pointer used by the move template function.
+     */
     void * m_pointer;
 
+    /**
+     * Copies another heap and stores it in the object calling this function.
+     *
+     * @param orig The other heap to be copied.
+     */
     void copy(const Heap & orig)
     {
         m_size = orig.m_size;
@@ -539,6 +645,9 @@ private:
         m_actual = m_data + (orig.m_actual - orig.m_data);
     }
 
+    /**
+     * Clears the heap and removes its elements.
+     */
     void clear()
     {
         delete [] m_data;
@@ -548,6 +657,12 @@ private:
         m_capacity = 0;
     }
 
+    /**
+     * Increases a key of a specified element to a given value.
+     *
+     * @param index The index of the element.
+     * @param key The new key of the element.
+     */
     void keyIncrement(unsigned int index, const K & key)
     {
         // kulcs novelese

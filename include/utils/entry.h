@@ -1,6 +1,6 @@
 /**
  * @file entry.h This file describes the Entry type.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef ENTRY_H

@@ -1,6 +1,6 @@
 /**
  * @file parameter.h This file contains the API of the Parameter class
- * @author tar
+ * @author Peter Tar
  */
 
 #ifndef PARAMETER_H_
@@ -13,8 +13,21 @@
 #include <utils/exceptions.h>
 #include <utils/entry.h>
 
+/**
+ * This class represents a parameter of the program.
+ * Parameters can be changed in an external file without having to rebuild the program.
+ *
+ * @class Parameter
+ */
 class Parameter {
 public:
+
+    /**
+     * Constructor of the Parameter class.
+     *
+     * @param name The name of the parameter.
+     * @param type The type of the parameter.
+     */
     Parameter(const std::string& name, const Entry::ENTRY_TYPE type) :
         m_name(name), m_type(type) {
         if(m_type == Entry::STRING){
@@ -22,6 +35,11 @@ public:
         }
     }
 
+    /**
+     * Copy constructor of the Parameter class.
+     *
+     * @param other The other Parameter object to be copied.
+     */
     Parameter(const Parameter& other) :
         m_name(other.m_name), m_entry(other.m_entry), m_type(other.m_type){
         if(m_type == Entry::STRING){
@@ -30,33 +48,84 @@ public:
         }
     }
 
+    /**
+     * Destructor of the Parameter class.
+     *
+     * @destructor
+     */
     ~Parameter() {
         if(m_type == Entry::STRING){
             delete m_entry.m_string;
         }
     }
 
+    /**
+     * Returns the name of the parameter.
+     *
+     * @return The name of the parameter.
+     */
     const std::string& getName() const { return m_name; }
+
+    /**
+     * Returns the entry data of the parameter.
+     *
+     * @see Entry
+     * @return The entry data of the parameter.
+     */
     const Entry & getEntry() const { return m_entry; }
+
+    /**
+     * Returns the type of the parameter.
+     *
+     * @return The type of the parameter.
+     */
     Entry::ENTRY_TYPE getEntryType() const { return m_type; }
+
+    /**
+     * Sets the value of the parameter as a string.
+     *
+     * @throws ParameterException if the type of the parameter is not string.
+     * @param value The new value of the parameter.
+     */
     void setStringValue(const std::string value){
         if(m_type != Entry::STRING){
             throw ParameterException("Invalid parameter value");
         }
         *(m_entry.m_string) = value;
     }
+
+    /**
+     * Sets the value of the parameter as an integer.
+     *
+     * @throws ParameterException if the type of the parameter is not integer.
+     * @param value The new value of the parameter.
+     */
     void setIntegerValue(const int value){
         if(m_type != Entry::INTEGER){
             throw ParameterException("Invalid parameter value");
         }
         m_entry.m_integer = value;
     }
+
+    /**
+     * Sets the value of the parameter as a double.
+     *
+     * @throws ParameterException if the type of the parameter is not double.
+     * @param value The new value of the parameter.
+     */
     void setDoubleValue(const double value){
         if(m_type != Entry::DOUBLE){
             throw ParameterException("Invalid parameter value");
         }
         m_entry.m_double = value;
     }
+
+    /**
+     * Sets the value of the parameter as a boolean.
+     *
+     * @throws ParameterException if the type of the parameter is not boolean.
+     * @param value The new value of the parameter.
+     */
     void setBoolValue(const bool value){
         if(m_type != Entry::BOOL){
             throw ParameterException("Invalid parameter value");
@@ -64,6 +133,13 @@ public:
         m_entry.m_bool = value;
     }
 
+    /**
+     * Prints the name and value of the parameter to the output.
+     *
+     * @param os The output stream to print to.
+     * @param param The parameter to be printed.
+     * @return The output stream with the parameter printed on it.
+     */
     friend std::ostream& operator<<(std::ostream& os, const Parameter& param){
         os << param.m_name << " = ";
         if(param.m_type == Entry::STRING){
@@ -79,8 +155,20 @@ public:
     }
 
 private:
+
+    /**
+     * The name of the parameter.
+     */
     std::string m_name;
+
+    /**
+     * The entry data of the parameter.
+     */
     Entry m_entry;
+
+    /**
+     * The type of the parameter.
+     */
     Entry::ENTRY_TYPE m_type;
 };
 

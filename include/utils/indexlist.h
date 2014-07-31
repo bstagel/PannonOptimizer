@@ -1,6 +1,6 @@
 /**
  * @file linkedlist.h This file contains the API of the IndexList class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 
