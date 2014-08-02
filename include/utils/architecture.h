@@ -6,7 +6,6 @@
 #ifndef ARCHITECTURE_H
 #define ARCHITECTURE_H
 
-#include <globals.h>
 #include <string>
 #include <set>
 #include <vector>
@@ -17,6 +16,61 @@
  */
 class Architecture {
 public:
+
+
+    typedef void (*MemSetNoCache)(const void * dest,
+                                  unsigned char value,
+                                  unsigned int size);
+
+
+    typedef void (*MemSetCache)(const void * dest,
+                                unsigned char value,
+                                unsigned int size);
+
+
+    /******************************************
+     * Copies size bytes from src to dest area.
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - SSE2 (copy without cache)
+     *****************************************/
+
+    typedef void* (*MemCpyNoCache)(void * dest,
+                                  const void * src,
+                                  size_t size);
+
+    /******************************************
+     * Copies size bytes from src to dest area.
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - Classic copy, with cache, SSE2
+     *****************************************/
+
+    typedef void* (*MemCpyCache)(void * dest,
+                                const void * src,
+                                size_t size);
+
+    /******************************************
+     * Dot product dense to dense, unstable:
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - SSE2 or AVX
+     *****************************************/
+
+    typedef double (*DenseToDenseDotProductUnstable)(const double * vec1,
+                                                     const double * vec2,
+                                                     size_t count);
+
+    /******************************************
+     * Dot product dense to dense:
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - SSE2 or AVX
+     *****************************************/
+
+    typedef double * (*DenseToDenseDotProduct)(const double * vec1,
+                                               const double * vec2,
+                                               unsigned int count);
 
     /******************************************
      * Add dense to dense:
@@ -193,7 +247,31 @@ public:
      */
     virtual AddVecDenseToDense getAddVecDenseToDense() const = 0;
 
+    static MemCpyCache getMemCpyCache() {
+        return sm_memCpyCachePtr;
+    }
+
+    static MemCpyNoCache getMemCpyNoCache() {
+        return sm_memCpyNoCachePtr;
+    }
+
+    static DenseToDenseDotProductUnstable getDenseToDenseDotProductUnstable() {
+        return sm_denseToDenseDotProductUnstablePtr;
+    }
+
+    static size_t getLargestCacheSize() {
+        return sm_largestCacheSize;
+    }
+
 protected:
+
+    static MemCpyCache sm_memCpyCachePtr;
+
+    static MemCpyNoCache sm_memCpyNoCachePtr;
+
+    static DenseToDenseDotProductUnstable sm_denseToDenseDotProductUnstablePtr;
+
+    static size_t sm_largestCacheSize;
 
     /**
      * The set of features the system supports.
