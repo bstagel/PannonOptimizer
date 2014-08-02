@@ -18,6 +18,10 @@ class SimplexModel;
 #include <utils/exceptions.h>
 #include <utils/indexlist.h>
 
+extern int etaExpSum;
+extern double etaExpSquareSum;
+extern int etaExpCount;
+
 /**
  * A struct describing an ETM %Matrix.
  * This structure represents an Elementary Transformation %Matrix (ETM).
@@ -144,6 +148,8 @@ public:
      * @param mode optional parameter for the different BTRAN modes, see Basis::BTRAN_MODE
      */
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
+
+    virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
 
     /**
      * Pure virtual function providing general information about the basis transformation.
