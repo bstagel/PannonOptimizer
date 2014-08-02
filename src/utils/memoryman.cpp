@@ -4,6 +4,9 @@
 
 #include <utils/memoryman.h>
 #include <cstdio>
+#include <initpanopt.h>
+#include <cstring>
+#include <macros.h>
 
 #ifndef CLASSIC_NEW_DELETE
 
@@ -23,6 +26,21 @@ void release(void * ptr) {
     }
     char * ptr2 = (char*)ptr;
     ptr2 -= sizeof(void*);
+#ifdef CLASSIC_NEW_DELETE
     delete [] *((char**)ptr2);
+#else
+    MemoryManager::release(*((char**)ptr2));
+#endif
 }
 
+void panOptMemcpy(void * dest,
+                  const void * src,
+                  size_t size) {
+    memcpy(dest, src, size);
+    return;
+    if (likely(size < Architecture::getLargestCacheSize())) {
+        Architecture::getMemCpyCache()(dest, src, size);
+    } else {
+        Architecture::getMemCpyNoCache()(dest, src, size);
+    }
+}

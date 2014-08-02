@@ -45,6 +45,8 @@ public:
 
     virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+
+    virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 private:
 
     std::vector<DoubleETM>* m_lower;

@@ -8,8 +8,11 @@
 #include <iostream>
 
 #include <defaultparameters.h>
+#include <initpanopt.h>
 
 THREAD_STATIC_DEF const char * SimplexParameterHandler::sm_defaultFilename = "simplex.PAR";
+
+SimplexParameterHandler * SimplexParameterHandler::sm_instance = 0;
 
 SimplexParameterHandler::SimplexParameterHandler()
 {
@@ -18,19 +21,31 @@ SimplexParameterHandler::SimplexParameterHandler()
 
 ParameterHandler& SimplexParameterHandler::getInstance()
 {
+    //std::cout << "SIMPLEX PARAMETER LOAD" << std::endl;
     try{
-    static SimplexParameterHandler s_instance;
-    THREAD_STATIC_DECL bool s_init = false;
-    if(!s_init) {
-        s_instance.initParameters();
-        s_instance.readParameterFile(sm_defaultFilename);
-        s_init = true;
-    }
-    return s_instance;
+        return *sm_instance;
+        /*static SimplexParameterHandler * s_instance = 0;
+        THREAD_STATIC_DECL bool s_init = false;
+        if(!s_init) {
+
+            //InitPanOpt::getInstance().init();
+
+            s_instance = new SimplexParameterHandler;
+            s_instance->initParameters();
+            s_instance->readParameterFile(sm_defaultFilename);
+            s_init = true;
+        }
+        return *s_instance;*/
     } catch (const ParameterException & exception) {
         LPERROR( "Simplex ParameterException: " <<exception.getMessage() );
         exit(-1);
+    }
 }
+
+void SimplexParameterHandler::init() {
+    sm_instance = new SimplexParameterHandler;
+    sm_instance->initParameters();
+    sm_instance->readParameterFile(sm_defaultFilename);
 }
 
 void SimplexParameterHandler::writeParameterFile(){

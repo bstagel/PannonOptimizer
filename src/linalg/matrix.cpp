@@ -131,7 +131,7 @@ void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
 
     if (vectorCount < newCount) {
         Vector ** newVectors = new Vector*[newCount];
-        memcpy(newVectors, vectors, sizeof (Vector*) * vectorCount);
+        panOptMemcpy(newVectors, vectors, sizeof (Vector*) * vectorCount);
         for (idx = 0; idx < vectorCount; idx++) {
             newVectors[idx]->resize(newLengths);
         }
@@ -142,7 +142,7 @@ void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
         vectors = newVectors;
     } else {
         Vector ** newVectors = new Vector*[newCount];
-        memcpy(newVectors, vectors, sizeof (Vector*) * newCount);
+        panOptMemcpy(newVectors, vectors, sizeof (Vector*) * newCount);
         for (idx = 0; idx < newCount; idx++) {
             newVectors[idx]->resize(newLengths);
         }
@@ -316,11 +316,11 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
     Vector ** vectors = new Vector*[ rowCount + 1 ];
     // index elottieket
     if (index > 0) {
-        memcpy(vectors, rowWise, index * sizeof (Vector*));
+        panOptMemcpy(vectors, rowWise, index * sizeof (Vector*));
     }
     vectors[index] = temp;
     if (index < rowCount) {
-        memcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
+        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
     }
     delete [] rowWise;
     rowWise = vectors;
@@ -341,11 +341,11 @@ void Matrix::insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
     Vector ** vectors = new Vector*[ rowCount + 1 ];
     // index elottieket
     if (index > 0) {
-        memcpy(vectors, rowWise, index * sizeof (Vector*));
+        panOptMemcpy(vectors, rowWise, index * sizeof (Vector*));
     }
     vectors[index] = temp;
     if (index < rowCount) {
-        memcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
+        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
     }
     //0 | 1 | 2
     //0 | * | 1 | 2

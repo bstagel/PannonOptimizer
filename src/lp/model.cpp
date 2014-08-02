@@ -60,7 +60,7 @@ void Model::build(const ModelBuilder & builder)
 Model::~Model()
 {
     if(m_presolved) {
-        for(int i = 0; i < m_substituteVectors->size(); i++) {
+        for(unsigned int i = 0; i < m_substituteVectors->size(); i++) {
             delete m_substituteVectors->at(i);
         }
     }

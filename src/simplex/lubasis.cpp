@@ -802,6 +802,13 @@ void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
     }
 }
 
+void LuBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode) const {
+    __UNUSED(vector);
+    __UNUSED(checkVector);
+    __UNUSED(mode);
+    LPERROR("NOT IMPLEMENTED YET");
+}
+
 void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);

@@ -17,8 +17,11 @@
 
 #include <utils/flags.h>
 
-const int & ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
-const double & SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+//const int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+//const double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+int ELBOWROOM = 0;
+double SPARSITY_RATIO = 0.0;
+
 THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLengthVectorLenght = 0;
 THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
@@ -83,6 +86,8 @@ unsigned int * Vector::allocateIndex(unsigned int capacity)
 void Vector::freeData(Numerical::Double * & data)
 {
     release(data);
+    //LPINFO("release utan");
+    //std::cin.get();
     //delete [] data;
     data = 0;
 }
@@ -192,7 +197,7 @@ Vector::Vector(const Vector& original, Numerical::Double lambda)
         } else {
             m_data = allocateData(m_capacity);
             m_index = allocateIndex(m_capacity);
-            memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
+            panOptMemcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
     }
     m_dataEnd = m_data + m_size;
@@ -292,7 +297,7 @@ void Vector::copy(const Vector & original, bool reallocate)
                 m_index = allocateIndex(m_capacity);
             }
             COPY_DOUBLES(m_data, original.m_data, m_size);
-            memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
+            panOptMemcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
     }
     m_dataEnd = m_data + m_size;
@@ -736,6 +741,16 @@ Numerical::Double Vector::euclidNorm() const
     return Numerical::sqrt(result);
 }
 
+Numerical::Double Vector::l1Norm() const
+{
+    Numerical::Double result = 0.0;
+    Numerical::Double * dataPtr = m_data;
+    for (; dataPtr < m_dataEnd; dataPtr++) {
+        result += Numerical::fabs(*dataPtr);
+    }
+    return result;
+}
+
 Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, bool stableAddRel) const
 {
     if (m_size == 0 || vector.m_size == 0) {
@@ -743,8 +758,12 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         return 0.0;
     }
 
+    //LPINFO(*this);
+    //LPINFO(vector);
+    //std::cin.get();
+
 #ifdef ANALYSE_DOT_PRODUCT
-    {
+/*    {
         Vector vector1 = *this;
         Vector vector2 = vector;
         vector1.setSparsityRatio(0.0);
@@ -795,9 +814,6 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                 fresh = true;
             }
             if (minExponent <= maxExponent) {
-                /*LPINFO(minExponent << "  " << maxExponent << "  " <<
-                       min1 << " * " << min2 << " = " << minValue << "   " << max1 <<
-                       " * " << max2 << " = " << maxValue);*/
                 //diffs[ maxExponent - minExponent ]++;
                 counter++;
                 if (counter >= 5000) {
@@ -815,12 +831,12 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
 
         }
     }
-
+*/
 #endif
 
     //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
     // annal pontosabb, de annal lassabb is
-    //Numerical::BucketSummarizer summarizer(5);
+    //Numerical::BucketSummarizer summarizer(1);
     Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
@@ -848,7 +864,10 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                 index2++;
             }
         }
-        return summarizer.getResult(stableAddAbs, stableAddRel);
+        Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
+        //LPINFO(res);
+        //std::cin.get();
+        return res;
     }
     Numerical::Double temp;
     if (m_vectorType == DENSE_VECTOR && vector.m_vectorType == DENSE_VECTOR) {
@@ -861,7 +880,12 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
             ptr1++;
             ptr2++;
         }
-        return summarizer.getResult(stableAddAbs, stableAddRel);
+        Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
+        //LPINFO(res);
+        //std::cin.get();
+        return res;
+
+        //        return summarizer.getResult(stableAddAbs, stableAddRel);
     }
 
     Numerical::Double * data;
@@ -925,7 +949,11 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
-    return summarizer.getResult(stableAddAbs, stableAddRel);
+    Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
+    //LPINFO(res);
+    //std::cin.get();
+    return res;
+    //    return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 
 Vector & Vector::addVector(Numerical::Double lambda,
@@ -975,6 +1003,7 @@ void Vector::addDenseToDense(Numerical::Double lambda,
                 if (*ptr1 == 0.0) {
                     m_nonZeros++;
                 }
+                //LPINFO(*ptr1 << " + " << (*ptr2 * lambda));
                 *ptr1 = Numerical::stableAdd(*ptr1, *ptr2 * lambda);
                 // Numerical::isZero is unnecessary after stableAdd
                 if (*ptr1 == 0.0) {
@@ -985,6 +1014,7 @@ void Vector::addDenseToDense(Numerical::Double lambda,
             ptr1++;
             ptr2++;
         }
+        //std::cin.get();
         break;
     case Numerical::ADD_ABS:
         while (ptr1 < end) {
@@ -1268,11 +1298,16 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
 
 Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
 {
+    //LPINFO("this: " << *this);
+    //LPINFO("eta: " << eta);
+    //LPINFO("pivot: " << at(pivot));
+    //std::cin.get();
     Numerical::Double pivotValue = at(pivot);
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
     addVector(pivotValue, eta, Numerical::ADD_ABS_REL);
     //    addVector(pivotValue, eta, Numerical::ADD_ABS);
+    //addVector(pivotValue, eta, Numerical::ADD_FAST);
     set(pivot, atPivot * pivotValue);
     return *this;
 }
@@ -1722,7 +1757,7 @@ void Vector::resizeSparse(unsigned int capacity)
     Numerical::Double * tempData = allocateData(capacity);
     unsigned int * tempIndex = allocateIndex(capacity);
     COPY_DOUBLES(tempData, m_data, m_size);
-    memcpy(tempIndex, m_index, m_size * sizeof (unsigned int));
+    panOptMemcpy(tempIndex, m_index, m_size * sizeof (unsigned int));
     freeData(m_data);
     m_data = tempData;
     freeIndex(m_index);
@@ -2205,7 +2240,7 @@ Vector operator*(Numerical::Double m, const Vector& v)
 void Vector::swap(Vector * vector1, Vector * vector2) {
     // new and delete are too slow
     THREAD_STATIC_DECL char buffer[sizeof(Vector)];
-    memcpy(buffer, vector1, sizeof(Vector));
-    memcpy(vector1, vector2, sizeof(Vector));
-    memcpy(vector2, buffer, sizeof(Vector));
+    panOptMemcpy(buffer, vector1, sizeof(Vector));
+    panOptMemcpy(vector1, vector2, sizeof(Vector));
+    panOptMemcpy(vector2, buffer, sizeof(Vector));
 }

@@ -6,6 +6,8 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <cstdint>
+
 /**
  * @def WIN32
  *
@@ -72,6 +74,15 @@
     #define ALWAYS_INLINE __attribute__((always_inline))
 #else
     #define ALWAYS_INLINE inline
+#endif
+
+
+#if INTPTR_MAX == INT32_MAX
+    #define ENVIRONMENT_32
+#elif INTPTR_MAX == INT64_MAX
+    #define ENVIRONMENT_64
+#else
+    #error "Environment not 32 or 64-bit."
 #endif
 
 #endif // PLATFORM_H

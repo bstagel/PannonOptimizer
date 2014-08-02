@@ -5,9 +5,8 @@
 #ifdef _MSC_VER
 #pragma warning (disable: 4290)
 #endif
-
-#include <framework/tester.h>
-#include <framework/unittest.h>
+//#include <framework/tester.h>
+//#include <framework/unittest.h>
 #include <variabletest.h>
 #include <constrainttest.h>
 #include <matrixtest.h>
@@ -22,6 +21,7 @@
 #include <simplexparameterhandlertest.h>
 #include <dualratiotesttest.h>
 #include <presolvertest.h>
+#include <coretest.h>
 
 using namespace std;
 
@@ -31,6 +31,7 @@ using namespace std;
 int main(int, char** )
 {
     setbuf(stdout, 0);
+    Tester::addUnitTest(new CoreTestSuite("Core Test"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
@@ -48,9 +49,9 @@ int main(int, char** )
 //    Tester::addUnitTest(new LinalgParameterHandlerTestSuite("Linalg Parameter Handler Test"));
 //    Tester::addUnitTest(new SimplexParameterHandlerTestSuite("Simplex Parameter Handler Test"));
 
-    Tester::addUnitTest(new PresolverTestSuite("Presolver Test"));
+    //Tester::addUnitTest(new PresolverTestSuite("Presolver Test"));
 
     Tester::run();
-    return EXIT_SUCCESS;
+    //return EXIT_SUCCESS;
 }
 

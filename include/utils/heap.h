@@ -641,7 +641,8 @@ private:
         m_size = orig.m_size;
         m_capacity = orig.m_capacity;
         m_data = new Element[ m_capacity ];
-        memcpy(m_data + 1, orig.m_data + 1, sizeof (Element) * m_size);
+        panOptMemcpy(m_data + 1, orig.m_data + 1, sizeof (Element) * m_size);
+        ////memcpy(m_data + 1, orig.m_data + 1, sizeof (Element) * m_size);
         m_actual = m_data + (orig.m_actual - orig.m_data);
     }
 

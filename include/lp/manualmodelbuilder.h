@@ -87,9 +87,10 @@ public:
      * @param indices
      */
     void addConstraint(const Constraint & constraint,
-        unsigned int nonzeros,
-        const Numerical::Double * values,
-        const unsigned int * indices);
+                       const Numerical::Double * values,
+                       const unsigned int * indices,
+                       unsigned int nonzeros
+                       );
 
     /**
      * 

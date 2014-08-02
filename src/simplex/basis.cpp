@@ -12,6 +12,10 @@
 
 #include <fstream>
 
+int etaExpSum = 0;
+double etaExpSquareSum = 0;
+int etaExpCount = 0;
+
 Basis::Basis(const SimplexModel& model,
              std::vector<int>* basisHead,
              IndexList<const Numerical::Double*>* variableStates,
@@ -96,18 +100,49 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
     } else {
         Vector::NonzeroIterator it = vector.beginNonzero();
         Vector::NonzeroIterator endit = vector.endNonzero();
+#ifdef ANALYSE_DOT_PRODUCT
+        int maxExp = 0, minExp = 20000;
+#endif
         for (; it < endit; it++) {
+#ifdef ANALYSE_DOT_PRODUCT
+            Numerical::Float64 result;
+#endif
             if (it.getIndex() == (unsigned int) pivotPosition) {
+#ifdef ANALYSE_DOT_PRODUCT
+                result.m_value = 1 / atPivot;
+                etaExpSum += result.m_bits.m_exponent;
+                etaExpSquareSum += (double)result.m_bits.m_exponent * result.m_bits.m_exponent;
+                etaExpCount++;
+#endif
                 eta->newNonZero(1 / atPivot, pivotPosition);
             } else {
+#ifdef ANALYSE_DOT_PRODUCT
+                result.m_value = -(*it) / atPivot;
+                etaExpSum += result.m_bits.m_exponent;
+                etaExpSquareSum += (double)result.m_bits.m_exponent * result.m_bits.m_exponent;
+                etaExpCount++;
+#endif
                 eta->newNonZero(-(*it) / atPivot, it.getIndex());
-//                if(Numerical::fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){
-//                    LPERROR("INVERSION ERROR!: "<<"atPivot: "<<atPivot);
-//                    LPERROR("INVERSION ERROR!: "<<"(*it): "<<(*it));
-//                    LPERROR("INVERSION ERROR!: "<<"index: "<<it.getIndex()<< " value: "<<Numerical::fabs(-(*it) / atPivot));
-//                }
+                //                if(Numerical::fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){
+                //                    LPERROR("INVERSION ERROR!: "<<"atPivot: "<<atPivot);
+                //                    LPERROR("INVERSION ERROR!: "<<"(*it): "<<(*it));
+                //                    LPERROR("INVERSION ERROR!: "<<"index: "<<it.getIndex()<< " value: "<<Numerical::fabs(-(*it) / atPivot));
+                //                }
             }
+#ifdef ANALYSE_DOT_PRODUCT
+            if (maxExp < result.m_bits.m_exponent) {
+                maxExp = result.m_bits.m_exponent;
+            }
+            if (minExp > result.m_bits.m_exponent) {
+                minExp = result.m_bits.m_exponent;
+            }
+#endif
         }
+#ifdef ANALYSE_DOT_PRODUCT
+        LPINFO("CREATE ETA: " << minExp << " ... " << maxExp << " = " <<(maxExp - minExp) );
+        std::cin.get();
+#endif
+
         DEVINFO(D::PFIMAKER, "Eta vector created with pivot " << pivotPosition);
         return eta;
     }

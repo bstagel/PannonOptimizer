@@ -11,7 +11,7 @@
 class SimplexParameterHandler : public ParameterHandler
 {
     friend class SimplexParameterHandlerTestSuite;
-
+    friend class InitPanOpt;
 public:
     THREAD_STATIC_DECL ParameterHandler & getInstance();
     /**
@@ -23,6 +23,10 @@ public:
 
 private:
     THREAD_STATIC_DECL const char * sm_defaultFilename;
+
+    static SimplexParameterHandler * sm_instance;
+
+    static void init();
 
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}

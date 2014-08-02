@@ -369,6 +369,7 @@ void DualSimplex::selectPivot() {
         if(m_incomingIndex == -1){
             //Ask for another row
             LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
+            //LPERROR("pivot row: " << m_pivotRow);
             if (m_pricing) {
                 m_pricing->lockLastIndex();
             } else {
@@ -452,6 +453,7 @@ void DualSimplex::update() {
         }
 
         m_basis->Ftran(m_incomingAlpha);
+
         //Compute the outgoing state
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
@@ -603,6 +605,16 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     m_pivotRowOfBasisInverse.setNewNonzero(rowIndex, 1);
     m_basis->Btran(m_pivotRowOfBasisInverse);
 
+    /*Vector otherRow(rowCount);
+    otherRow.setNewNonzero(rowIndex, 1.00001);
+    m_basis->Btran(otherRow);
+    Vector diff = otherRow;
+    diff.addVector(-1, m_pivotRowOfBasisInverse);
+
+    LPINFO("Btran: " << diff);
+    LPINFO(diff.absMaxElement() << " " << otherRow.euclidNorm() << "  " << m_pivotRowOfBasisInverse.euclidNorm());
+    cin.get();*/
+
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
 
@@ -611,12 +623,32 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     for(; it != itEnd ; it++){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
+            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
             alpha->set(columnIndex, m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+            //std::cin.get();
         } else {
             alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
         }
     }
     alpha->set( m_basisHead[ rowIndex ], 1.0 );
+
+    /////////////////////////////////////////
+    /*Vector otherAlpha(rowCount + columnCount);
+    // columnwise version
+    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
+    for(; it != itEnd ; it++){
+        unsigned int columnIndex = it.getData();
+        if(columnIndex < columnCount){
+            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
+            otherAlpha.set(columnIndex, otherRow.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+            //std::cin.get();
+        } else {
+            otherAlpha.set(columnIndex, otherRow.at(columnIndex - columnCount));
+        }
+    }
+    otherAlpha.set( m_basisHead[ rowIndex ], 1.0 );
+    LPINFO("other alpha: " << otherAlpha);*/
+    /////////////////////////////////////////
     // --------------------------------
 
     // rowwise version

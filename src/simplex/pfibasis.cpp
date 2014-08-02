@@ -15,6 +15,9 @@ double expDiffSquareSum = 0;
 double expDiffSum = 0;
 int expCounter = 0;
 
+double aprExpDiffSquareSum = 0;
+double aprExpDiffSum = 0;
+int aprExpCounter = 0;
 
 THREAD_STATIC_DEF int PfiBasis::m_inversionCount = 0;
 
@@ -196,6 +199,14 @@ void PfiBasis::invert() {
     expDiffSum = 0;
     expCounter = 0;
 
+    aprExpDiffSquareSum = 0;
+    aprExpDiffSum = 0;
+    aprExpCounter = 0;
+
+    etaExpCount = 0;
+    etaExpSquareSum = 0;
+    etaExpSum = 0;
+
     m_transformationCount = 0;
     m_inversionCount++;
 
@@ -242,7 +253,7 @@ void PfiBasis::invert() {
     //printStatistics();
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
-  
+
 void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
     //If the alpha vector comes in, then ftran is done already
 
@@ -328,9 +339,24 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             while (ptrValue1 < ptrValueEnd) {
                 const Numerical::Double value = *ptrValue2;
                 if (value != 0.0) {
-//                    const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
+                    //                    const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
+
+                    /*if (*ptrValue1 != 0.0) {
+                        Numerical::Float64 a;
+                        a.m_value = *ptrValue1;
+                        Numerical::Float64 b;
+                        b.m_value = pivotValue * value;
+                        int expDiff = abs( a.m_bits.m_exponent - b.m_bits.m_exponent );
+                        if (expDiff > 10) {
+                            LPINFO("FTRAN: " << expDiff);
+                            std::cin.get();
+                        }
+
+                    }*/
+
                     const Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
-//                    const Numerical::Double val = *ptrValue1 + pivotValue * value;
+                    //                    const Numerical::Double val = *ptrValue1 + pivotValue * value;
+                    //LPINFO(*ptrValue1 << " + " << (pivotValue * value) << " = " << val);
                     if (*ptrValue1 == 0.0 && val != 0.0) {
                         vector.m_nonZeros++;
                     } else if (*ptrValue1 != 0.0 && val == 0.0) {
@@ -341,6 +367,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
                 ptrValue1++;
                 ptrValue2++;
             }
+           // std::cin.get();
             //A vegen lerendezzuk a pivot poziciot is:
             const Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
             if (denseVector[iter->index] == 0.0 && val != 0.0) {
@@ -360,9 +387,21 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
                 if (*ptrEta != 0.0) {
                     Numerical::Double val;
                     if (*ptrIndex != pivotPosition) {
-//                        val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
+                        //                        val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
+                        /*{
+                            Numerical::Float64 a;
+                            a.m_value = originalValue;
+                            Numerical::Float64 b;
+                            b.m_value = pivotValue * *ptrEta;
+                            int expDiff = abs( a.m_bits.m_exponent - b.m_bits.m_exponent );
+                            if (expDiff > 10 && originalValue != 0.0) {
+                                LPINFO("FTRAN: " << expDiff);
+                                std::cin.get();
+                            }
+
+                        }*/
                         val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-//                        val = originalValue + pivotValue * *ptrEta;
+                        //                        val = originalValue + pivotValue * *ptrEta;
                         if (originalValue == 0.0 && val != 0.0) {
                             vector.m_nonZeros++;
                         } else if (originalValue != 0.0 && val == 0.0) {
@@ -380,6 +419,184 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
     }
 
     // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
+
+    Vector::VECTOR_TYPE newType;
+    if (vector.m_nonZeros < vector.m_sparsityThreshold) {
+        newType = Vector::SPARSE_VECTOR;
+    } else {
+        newType = Vector::DENSE_VECTOR;
+    }
+
+    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
+        if (newType == Vector::DENSE_VECTOR) {
+            return;
+        } else {
+            vector.denseToSparse();
+        }
+    } else {
+        vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
+        Numerical::Double * ptrValue = denseVector;
+        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+        unsigned int index = 0;
+        while (ptrValue < ptrValueEnd) {
+            if (*ptrValue != 0.0) {
+                vector.newNonZero(*ptrValue, index);
+                *ptrValue = 0.0;
+            }
+            ptrValue++;
+            index++;
+        }
+        if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
+            vector.m_sorted = true;
+        }
+    }
+}
+
+Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
+    Numerical::Double sum = a + b;
+    // levonjuk a nagyobb abszolut erteku elem eredeti erteket
+    Numerical::Double lost = sum - (Numerical::fabs(a) > Numerical::fabs(b) ? a : b);
+    // ezt kivonjuk a kisebb abszolut erteku elem eredeti ertekebol
+    return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
+}
+
+void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode) const
+{
+    __UNUSED(mode);
+    checkVector = vector;
+    //The ftran operation.
+
+    Numerical::Double * denseVector;
+    Numerical::Double * checkDenseVector;
+
+    // 1. lepes: ha kell akkor atvaltjuk dense-re
+    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
+        denseVector = vector.m_data;
+        checkDenseVector = checkVector.m_data;
+    } else {
+        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght, vector);
+        denseVector = Vector::sm_fullLengthVector;
+    }
+    checkDenseVector = alloc<Numerical::Double, 16>( vector.length() );
+    unsigned int index;
+    for (index = 0; index < vector.length(); index++) {
+        double mul = ((rand() % 10000) / (double)1e15)*pow(1, index);
+        checkDenseVector[index] = mul;
+
+    }
+    //panOptMemcpy(checkDenseVector, denseVector, vector.length() * sizeof(Numerical::Double));
+
+    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
+    std::vector<ETM>::const_iterator iter = m_basis->begin();
+    const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
+
+    Numerical::Double plusMinus = -1.0;
+
+    for (; iter != iterEnd; iter++) {
+        plusMinus *= -1.0;
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        const Numerical::Double checkPivotValue = checkDenseVector[ iter->index ];
+
+        if (pivotValue == 0.0) {
+            continue;
+        }
+
+        if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
+            Numerical::Double * ptrValue2 = iter->eta->m_data;
+            Numerical::Double * ptrValue1 = denseVector;
+            Numerical::Double * checkValue = checkDenseVector;
+            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+            while (ptrValue1 < ptrValueEnd) {
+                const Numerical::Double value = *ptrValue2;
+                if (value != 0.0) {
+                    Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
+                    //LPINFO(*ptrValue1 << " + " << (pivotValue * value) << " = " << val);
+                    if (*ptrValue1 == 0.0 && val != 0.0) {
+                        vector.m_nonZeros++;
+                    } else if (*ptrValue1 != 0.0 && val == 0.0) {
+                        vector.m_nonZeros--;
+                    }
+                    *ptrValue1 = val;
+
+                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                    mul = 1.0;
+                    val = Numerical::stableAddAbs(*checkValue, checkPivotValue * value * mul);
+                    //cout << val << "   " << lostValueAdd(*checkValue, checkPivotValue * value) << endl;
+                    mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                    //mul = 1.0;
+                    *checkValue = val + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);;
+                }
+                ptrValue1++;
+                ptrValue2++;
+                checkValue++;
+            }
+           // std::cin.get();
+            //A vegen lerendezzuk a pivot poziciot is:
+            Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
+            if (denseVector[iter->index] == 0.0 && val != 0.0) {
+                vector.m_nonZeros++;
+            } else if (denseVector[iter->index] != 0.0 && val == 0.0) {
+                vector.m_nonZeros--;
+            }
+            denseVector[iter->index] = val;
+
+            Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+            val = checkPivotValue * iter->eta->m_data[iter->index];
+            checkDenseVector[iter->index] = val * mul;
+
+        } else {
+            Numerical::Double * ptrEta = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_index;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            const unsigned int pivotPosition = iter->index;
+            while (ptrIndex < ptrIndexEnd) {
+                Numerical::Double & originalValue = denseVector[*ptrIndex];
+                Numerical::Double & originalCheckValue = checkDenseVector[*ptrIndex];
+                if (*ptrEta != 0.0) {
+                    Numerical::Double val;
+                    Numerical::Double checkVal;
+                    if (*ptrIndex != pivotPosition) {
+                        val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                        Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                        mul = 1.0;
+                        checkVal = Numerical::stableAddAbs(originalCheckValue, checkPivotValue * *ptrEta * mul);
+                        if (originalValue == 0.0 && val != 0.0) {
+                            vector.m_nonZeros++;
+                        } else if (originalValue != 0.0 && val == 0.0) {
+                            vector.m_nonZeros--;
+                        }
+                    } else {
+                        val = pivotValue * *ptrEta;
+                        checkVal = checkPivotValue * *ptrEta;
+                    }
+
+                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+                    mul = 1.0;
+                    originalValue = val;
+                    originalCheckValue = checkVal + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);
+
+                }
+                ptrIndex++;
+                ptrEta++;
+            }
+        }
+    }
+
+    // 3. elmentjuk az ellenorzo vektort
+    unsigned int checkNonzCounter = 0;
+    for (index = 0; index < vector.length(); index++) {
+        if (checkDenseVector[index] != 0.0) {
+            checkNonzCounter++;
+        }
+    }
+    checkVector.prepareForData(checkNonzCounter, vector.length());
+    for (index = 0; index < vector.length(); index++) {
+        if (checkDenseVector[index] != 0.0) {
+            checkVector.newNonZero(checkDenseVector[index], index);
+        }
+    }
+
+    // 4. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
 
     Vector::VECTOR_TYPE newType;
     if (vector.m_nonZeros < vector.m_sparsityThreshold) {
@@ -448,159 +665,219 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
     const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
 
-//    const ETM * iter = m_basis->data().data() + m_basis->size() - 1;
-//    const ETM * iterEnd = m_basis->data() - 1;
-    for (; iter != iterEnd; iter++) {
+    //    const ETM * iter = m_basis->data().data() + m_basis->size() - 1;
+    //    const ETM * iterEnd = m_basis->data() - 1;
+    unsigned int etaIndex = 0;
+    for (; iter != iterEnd; iter++, etaIndex++) {
         unsigned int nonZeros = vector.nonZeros();
 
-//    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
-                                                           // annal pontosabb, de annal lassabb is
+        //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
+        // annal pontosabb, de annal lassabb is
 
-//    Numerical::BucketSummarizer summarizer(8);
-    Numerical::Summarizer summarizer;
+        //    Numerical::BucketSummarizer summarizer(8);
+        Numerical::Summarizer summarizer;
+        //#ifdef ANALYSE_DOT_PRODUCT
+        bool aprInv = rand() % 1000 < exp( etaIndex / (double)m_basis->size() ) * 10;
+        aprInv = true;
+        //#endif
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-#ifdef ANALYSE_DOT_PRODUCT
-    unsigned int maxExponent = 0;
-    unsigned int minExponent = 0;
-    unsigned int sumExponentDiff = 0;
-    unsigned int expCounter = 0;
-    Numerical::Double neg = 0, pos = 0;
-#endif
-            Numerical::Double * ptrValue2 = iter->eta->m_data;
-            Numerical::Double * ptrValue1 = denseVector;
-            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-            while (ptrValue1 < ptrValueEnd && nonZeros) {
-                //TODO vajon melyik ritkasabb?
-                const Numerical::Double value = *ptrValue1;
-                if (value != 0.0) {
-                    nonZeros--;
-#ifdef ANALYSE_DOT_PRODUCT
-                    Numerical::Double product = value * *ptrValue2;
-                    Numerical::Float64 bits;
-                    bits.m_value = product;
-                    if (product != 0.0) {
-                        if (product < 0.0 && neg != 0.0) {
-                            Numerical::Float64 bits1, bits2;
-                            bits1.m_value = neg;
-                            bits2.m_value = product;
-                            //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
-                            //LPINFO("sum: " << sumExponentDiff);
-                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            sumExponentDiff += diff;
-                            expDiffSquareSum += diff * diff;
-                            expDiffSum += diff;
-                            ::expCounter++;
-                            expCounter++;
-//                            neg += product;
-                        } else if (pos != 0.0 ){
-                            Numerical::Float64 bits1, bits2;
-                            bits1.m_value = pos;
-                            bits2.m_value = product;
-                            //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
-                            //LPINFO("sum: " << sumExponentDiff);
-
-                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            sumExponentDiff += diff;
-                            expDiffSquareSum += diff * diff;
-                            expDiffSum += diff;
-                            ::expCounter++;
-                            expCounter++;
-//                            pos += product;
-                        }
-                        if (product < 0.0) {
-                            neg += product;
-                        } else {
-                            pos += product;
-                        }
-                        if (maxExponent < bits.m_bits.m_exponent) {
-                            maxExponent = bits.m_bits.m_exponent;
-                        }
-                        if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
-                            minExponent = bits.m_bits.m_exponent;
-                        }
-                    }
-#endif
-
-                    summarizer.add(value * *ptrValue2);
-                }
-                ptrValue1++;
-                ptrValue2++;
-            }
-#ifdef ANALYSE_DOT_PRODUCT
-            if (minExponent != 0 && expCounter > 0) {
-                //diffs[maxExponent - minExponent]++;
-                diffs[sumExponentDiff / expCounter]++;
-            }
-#endif
-        } else {
-            Numerical::Double * ptrValue = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_index;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-#ifdef ANALYSE_DOT_PRODUCT
+            //#ifdef ANALYSE_DOT_PRODUCT
             unsigned int maxExponent = 0;
             unsigned int minExponent = 0;
             unsigned int sumExponentDiff = 0;
             unsigned int expCounter = 0;
             Numerical::Double neg = 0, pos = 0;
-#endif
-            while (ptrIndex < ptrIndexEnd && nonZeros) {
-                const Numerical::Double value = denseVector[*ptrIndex];
-                if (value != 0.0) {
-                    nonZeros--;
-                    summarizer.add(value * *ptrValue);
+            //#endif
+            Numerical::Double * ptrValue2 = iter->eta->m_data;
+            Numerical::Double * ptrValue1 = denseVector;
+            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
 
-#ifdef ANALYSE_DOT_PRODUCT
-                    Numerical::Double product = value * *ptrValue;
-                    Numerical::Float64 bits;
-                    bits.m_value = product;
-                    if (product != 0.0) {
+            //#ifdef ANALYSE_DOT_PRODUCT
+            if  (unlikely(aprInv)) {
+                while (ptrValue1 < ptrValueEnd && nonZeros) {
+                    //TODO vajon melyik ritkasabb?
+                    const Numerical::Double value = *ptrValue1;
+                    if (value != 0.0) {
+                        nonZeros--;
+                        if (unlikely(aprInv)) {
+                            Numerical::Double product = value * *ptrValue2;
+                            Numerical::Float64 bits;
+                            bits.m_value = product;
+
+                            if (product < 0.0 && neg != 0.0) {
+                                Numerical::Float64 bits1, bits2;
+                                bits1.m_value = neg;
+                                bits2.m_value = product;
+                                //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
+                                //LPINFO("sum: " << sumExponentDiff);
+                                int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                                //sumExponentDiff += diff;
+                                //expDiffSquareSum += diff * diff;
+                                //expDiffSum += diff;
+                                //::expCounter++;
+                                if (aprInv) {
+                                    ::aprExpCounter++;
+                                    ::aprExpDiffSum += diff;
+                                    ::aprExpDiffSquareSum += diff * diff;
+                                }
+
+                                expCounter++;
+                                //                            neg += product;
+                            } else if (pos != 0.0 ){
+                                Numerical::Float64 bits1, bits2;
+                                bits1.m_value = pos;
+                                bits2.m_value = product;
+                                //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
+                                //LPINFO("sum: " << sumExponentDiff);
+
+                                int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
+                                //sumExponentDiff += diff;
+                                //expDiffSquareSum += diff * diff;
+                                //expDiffSum += diff;
+                                //::expCounter++;
+                                //expCounter++;
+                                if (aprInv) {
+                                    ::aprExpCounter++;
+                                    ::aprExpDiffSum += diff;
+                                    ::aprExpDiffSquareSum += diff * diff;
+                                }
+
+                            }
+                            if (product < 0.0) {
+                                //LPINFO("neg: " << neg << " product: " << product);
+                                //std::cin.get();
+                                neg += product;
+                            } else {
+                                //LPINFO("pos: " << pos << " product: " << product);
+                                //std::cin.get();
+                                pos += product;
+                            }
+
+                        }
+
+                        summarizer.add(value * *ptrValue2);
+                    }
+                    ptrValue1++;
+                    ptrValue2++;
+                }
+            } else {
+                //#endif
+
+                while (ptrValue1 < ptrValueEnd && nonZeros) {
+                    //TODO vajon melyik ritkasabb?
+                    const Numerical::Double value = *ptrValue1;
+                    if (value != 0.0) {
+                        nonZeros--;
+
+                        summarizer.add(value * *ptrValue2);
+                    }
+                    ptrValue1++;
+                    ptrValue2++;
+                }
+            }
+            //LPERROR("neg: " << neg << " pos: " << pos << "  " << (neg + pos));
+            //std::cin.get();
+
+        } else {
+            Numerical::Double * ptrValue = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_index;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            //#ifdef ANALYSE_DOT_PRODUCT
+            unsigned int maxExponent = 0;
+            unsigned int minExponent = 0;
+            unsigned int sumExponentDiff = 0;
+            unsigned int expCounter = 0;
+            Numerical::Double neg = 0, pos = 0;
+            //#endif
+            // TODO: ezt atrakni kulon fuggvenybe
+            if (unlikely(aprInv)) {
+                while (ptrIndex < ptrIndexEnd && nonZeros) {
+                    const Numerical::Double value = denseVector[*ptrIndex];
+                    if (value != 0.0) {
+                        nonZeros--;
+                        summarizer.add(value * *ptrValue);
+
+                        //if (product != 0.0) {
+                        Numerical::Double product = value * *ptrValue;
+                        Numerical::Float64 bits;
+                        bits.m_value = product;
+
                         if (product < 0.0 && neg != 0.0) {
                             Numerical::Float64 bits1, bits2;
                             bits1.m_value = neg;
                             bits2.m_value = product;
                             int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            sumExponentDiff += diff;
-                            expDiffSquareSum += diff * diff;
-                            expDiffSum += diff;
-                            ::expCounter++;                            expCounter++;
+                            //sumExponentDiff += diff;
+                            //expDiffSquareSum += diff * diff;
+                            //expDiffSum += diff;
+                            //::expCounter++;
+                            //expCounter++;
+                            if (aprInv) {
+                                ::aprExpCounter++;
+                                ::aprExpDiffSum += diff;
+                                ::aprExpDiffSquareSum += diff * diff;
+                            }
                             //neg += product;
                         } else if (pos != 0.0){
                             Numerical::Float64 bits1, bits2;
                             bits1.m_value = pos;
                             bits2.m_value = product;
                             int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            sumExponentDiff += diff;
-                            expDiffSquareSum += diff * diff;
-                            expDiffSum += diff;
-                            ::expCounter++;                            expCounter++;
+                            //sumExponentDiff += diff;
+                            //expDiffSquareSum += diff * diff;
+                            //expDiffSum += diff;
+                            //::expCounter++;
+                            //expCounter++;
+                            if (aprInv) {
+                                ::aprExpCounter++;
+                                ::aprExpDiffSum += diff;
+                                ::aprExpDiffSquareSum += diff * diff;
+                            }
                             //pos += product;
                         }
                         if (product < 0.0) {
+                            //LPINFO("neg: " << neg << " product: " << product);
+                            //std::cin.get();
                             neg += product;
                         } else {
+                            //LPINFO("pos: " << pos << " product: " << product);
+                            //std::cin.get();
                             pos += product;
                         }
-                        if (maxExponent < bits.m_bits.m_exponent) {
-                            maxExponent = bits.m_bits.m_exponent;
-                        }
-                        if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
-                            minExponent = bits.m_bits.m_exponent;
-                        }
+                        //if (maxExponent < bits.m_bits.m_exponent) {
+                        //    maxExponent = bits.m_bits.m_exponent;
+                        //}
+                        //if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
+                        //    minExponent = bits.m_bits.m_exponent;
+                        //}
+
                     }
-#endif
-
-
+                    ptrIndex++;
+                    ptrValue++;
                 }
-                ptrIndex++;
-                ptrValue++;
+
+            } else {
+                while (ptrIndex < ptrIndexEnd && nonZeros) {
+                    const Numerical::Double value = denseVector[*ptrIndex];
+                    if (value != 0.0) {
+                        nonZeros--;
+                        summarizer.add(value * *ptrValue);
+
+                    }
+                    ptrIndex++;
+                    ptrValue++;
+                }
+
             }
 #ifdef ANALYSE_DOT_PRODUCT
-            if (minExponent != 0 && expCounter > 0) {
+            /*if (minExponent != 0 && expCounter > 0) {
                 diffs[sumExponentDiff / expCounter]++;
                 //diffs[maxExponent - minExponent]++;
-            }
+            }*/
 #endif
+            //LPERROR("neg: " << neg << " pos: " << pos << "  " << (neg + pos));
+            //std::cin.get();
         }
 
         Numerical::Double dotProduct = summarizer.getResult();
@@ -615,10 +892,51 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         denseVector[pivot] = dotProduct;
     }
 #ifdef ANALYSE_DOT_PRODUCT
+    /*{
+        // LPWARNING(expDiffSquareSum << ", " << ::expCounter);
+        // std::cin.get();
+        std::ofstream ofs("chart.csv", std::ios_base::app );
+        double var;
+        if (::expCounter == 0) {
+            ofs << "0;0;0;";
+        } else {
+            var = (
+                        (expDiffSquareSum / ::expCounter) - (expDiffSum / ::expCounter)*(expDiffSum / ::expCounter) );
+            ofs << (expDiffSum / ::expCounter)  << ";" << sqrt(var) << ";";
+            ofs << (expDiffSum / ::expCounter + sqrt(var)) << ";";
+        }
+        if (::aprExpCounter == 0) {
+            ofs << "0;0;0;";
+        } else {
+            var = ((aprExpDiffSquareSum / ::aprExpCounter) - (aprExpDiffSum / ::aprExpCounter)*(aprExpDiffSum / ::aprExpCounter) );
+            ofs << (aprExpDiffSum / ::aprExpCounter)  << ";" << sqrt(var) << ";";
+            ofs << (aprExpDiffSum / ::aprExpCounter + sqrt(var)) << ";";
+        }
+        ofs << std::endl;
+
+        //        var = (etaExpSquareSum / (double)etaExpCount) - (etaExpSum / (double)etaExpCount) * (etaExpSum / (double)etaExpCount);
+//        ofs << var;
+//        ofs << ";";
+//        ofs << sqrt(var) << std::endl;
+        ofs.close();
+    }*/
     if (__counter >= 30) {
+        LPINFO("mintavetelezesek: " << aprExpCounter << " / " << expCounter);
         double var = (
                     (expDiffSquareSum / ::expCounter) - (expDiffSum / ::expCounter)*(expDiffSum / ::expCounter) );
         LPINFO("average: " << (expDiffSum / ::expCounter)  << " var: " << var  << " sqrt var: " << sqrt(var));
+
+        if (::aprExpCounter == 0) {
+            LPINFO("\tapproximate: 0 0 0");
+        } else {
+            var = ( ::aprExpDiffSquareSum / ::aprExpCounter) -
+                   (aprExpDiffSum / ::aprExpCounter)*(aprExpDiffSum / ::aprExpCounter);
+            LPINFO("\tapproximate: " << (aprExpDiffSum / ::aprExpCounter)  << " var: " << var  << " sqrt var: " << sqrt(var));
+        }
+        LPINFO("");
+        //var = (etaExpSquareSum / (double)etaExpCount) - (etaExpSum / (double)etaExpCount) * (etaExpSum / (double)etaExpCount);
+        //LPINFO("\taverage: " << ( etaExpSum / (double)etaExpCount ) << " var: " << var  << " sqrt var: " << sqrt(var));
+        //LPINFO("\t" << etaExpSquareSum << ", " << etaExpSum << ", " << etaExpCount);
         __counter = 0;
         std::ofstream ofs("diffs.txt");
         unsigned int index = 0;
@@ -684,10 +1002,10 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
                     m_rowCounts.at(columnIt.getIndex())--;
                 }
             }
-//            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
+            //            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
             m_basicColumnCopies.at(*it)->elementaryFtran(*(m_basis->back().eta), m_basis->back().index);
 
-//            LPINFO("UPDATED COLUMN: "<<*m_basicColumnCopies.at(*it));
+            //            LPINFO("UPDATED COLUMN: "<<*m_basicColumnCopies.at(*it));
             //Add the changes back
             int newColumnCount = 0;
             columnIt = m_basicColumnCopies.at(*it)->beginNonzero();
@@ -720,41 +1038,41 @@ void PfiBasis::invertR() {
     DEVINFO(D::PFIMAKER, "Search for the R part and invert it");
     unsigned int rNum = 0;
 
-        if (m_rowCountIndexList.getPartitionCount() > 1) {
-            while (m_rowCountIndexList.firstElement(1) != -1 ) {
-                int rowindex = m_rowCountIndexList.firstElement(1);
-                //This part searches for rows with row count 1 and order them to the upper triangular part
-                int columnindex = m_rowNonzeroIndices.at(rowindex).front();
+    if (m_rowCountIndexList.getPartitionCount() > 1) {
+        while (m_rowCountIndexList.firstElement(1) != -1 ) {
+            int rowindex = m_rowCountIndexList.firstElement(1);
+            //This part searches for rows with row count 1 and order them to the upper triangular part
+            int columnindex = m_rowNonzeroIndices.at(rowindex).front();
 
-                const Vector *currentColumn = m_basicColumns.at(columnindex);
-                //Invert the chosen R column
-                DEVINFO(D::PFIMAKER, "Inverting R column " << columnindex << " with pivot row " << rowindex);
+            const Vector *currentColumn = m_basicColumns.at(columnindex);
+            //Invert the chosen R column
+            DEVINFO(D::PFIMAKER, "Inverting R column " << columnindex << " with pivot row " << rowindex);
 
-                pivot(*currentColumn, rowindex);
-                m_basisNewHead.at(rowindex) = m_basicColumnIndices.at(columnindex);
+            pivot(*currentColumn, rowindex);
+            m_basisNewHead.at(rowindex) = m_basicColumnIndices.at(columnindex);
 
-                //Update the row lists and row counts
-                Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                for (; it < itend; it++) {
-                    int index = it.getIndex();
-                    //If the row of the iterated element is still active
-                    if (m_rowCounts.at(index) > -1) {
-                        m_rowCounts.at(index)--;
-                        m_rowCountIndexList.move(index, m_rowCounts.at(index));
-                        m_rowNonzeroIndices.at(index).remove(columnindex);
-                    }
+            //Update the row lists and row counts
+            Vector::NonzeroIterator it = currentColumn->beginNonzero();
+            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+            for (; it < itend; it++) {
+                int index = it.getIndex();
+                //If the row of the iterated element is still active
+                if (m_rowCounts.at(index) > -1) {
+                    m_rowCounts.at(index)--;
+                    m_rowCountIndexList.move(index, m_rowCounts.at(index));
+                    m_rowNonzeroIndices.at(index).remove(columnindex);
                 }
-
-                //Set the column count to zero to represent that which column has been chosen.
-                m_columnCounts.at(columnindex) = -1;
-                m_columnCountIndexList.remove(columnindex);
-                m_rowCounts.at(rowindex) = -1;
-                m_rowCountIndexList.remove(rowindex);
-
-                rNum++;
             }
+
+            //Set the column count to zero to represent that which column has been chosen.
+            m_columnCounts.at(columnindex) = -1;
+            m_columnCountIndexList.remove(columnindex);
+            m_rowCounts.at(rowindex) = -1;
+            m_rowCountIndexList.remove(rowindex);
+
+            rNum++;
         }
+    }
 
     DEVINFO(D::PFIMAKER, "RPART num: " << rNum);
 }
@@ -814,67 +1132,67 @@ void PfiBasis::invertM() {
     unsigned int mNum = 0;
     switch (m_nontriangularMethod) {
     case SEARCH:{
-            //containsOne represents the exit variable
-            bool containsOne;
-            containsOne = true;
-            while (containsOne) {
-                containsOne = false;
-                for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
-                    if (*it > 0) {
-                        DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
-                        int rowindex = it - m_rowCounts.begin();
-                        int columnindex = m_rowNonzeroIndices.at(rowindex).front();
-                        const Vector* currentColumn = m_basicColumns.at(columnindex);
-                        if (nontriangularCheck(rowindex, currentColumn, -1)) {
-                            //Invert the chosen M column
-                            DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
-                            pivot(*currentColumn, rowindex);
-                            containsOne = true;
-                            m_basisNewHead.at(rowindex) = m_basicColumnIndices.at(columnindex);
-                            //Update the remaining columns
-                            updateColumns(rowindex, columnindex);
-                            //Update the row lists and row counts
-                            Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
-                            Vector::NonzeroIterator vectorItend = currentColumn->endNonzero();
-                            for (; vectorIt < vectorItend; vectorIt++) {
-                                if (m_rowCounts.at(vectorIt.getIndex()) >= 0) {
-                                    m_rowCounts.at(vectorIt.getIndex())--;
-                                    m_rowNonzeroIndices.at(vectorIt.getIndex()).remove(columnindex);
-                                }
+        //containsOne represents the exit variable
+        bool containsOne;
+        containsOne = true;
+        while (containsOne) {
+            containsOne = false;
+            for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+                if (*it > 0) {
+                    DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
+                    int rowindex = it - m_rowCounts.begin();
+                    int columnindex = m_rowNonzeroIndices.at(rowindex).front();
+                    const Vector* currentColumn = m_basicColumns.at(columnindex);
+                    if (nontriangularCheck(rowindex, currentColumn, -1)) {
+                        //Invert the chosen M column
+                        DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
+                        pivot(*currentColumn, rowindex);
+                        containsOne = true;
+                        m_basisNewHead.at(rowindex) = m_basicColumnIndices.at(columnindex);
+                        //Update the remaining columns
+                        updateColumns(rowindex, columnindex);
+                        //Update the row lists and row counts
+                        Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
+                        Vector::NonzeroIterator vectorItend = currentColumn->endNonzero();
+                        for (; vectorIt < vectorItend; vectorIt++) {
+                            if (m_rowCounts.at(vectorIt.getIndex()) >= 0) {
+                                m_rowCounts.at(vectorIt.getIndex())--;
+                                m_rowNonzeroIndices.at(vectorIt.getIndex()).remove(columnindex);
                             }
-                            //Update the column counts too
-                            std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
-                            std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
-                            for (; listIt != listItend; listIt++) {
-                                int index = *listIt;
-                                if (m_columnCounts.at(index) > -1) {
-                                    m_columnCounts.at(index)--;
-                                }
-                            }
-                            //Set the column and row count to zero to represent that which column and row has been chosen.
-                            m_rowCounts.at(rowindex) = -1;
-                            m_columnCounts.at(columnindex) = -1;
-                        } else {
-                            LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
-                            //Update the row lists and row counts
-                            Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                            Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                            for (; it < itend; it++) {
-                                int index = it.getIndex();
-                                //If the row of the iterated element is still active
-                                if (m_rowCounts.at(index) > -1) {
-                                    m_rowCounts.at(index)--;
-                                    m_rowNonzeroIndices.at(index).remove(columnindex);
-                                }
-                            }
-                            //Set the column count to zero to represent that which column is unstable.
-                            m_columnCounts.at(columnindex) = -1;
                         }
-                        mNum++;
+                        //Update the column counts too
+                        std::list<int>::iterator listIt = m_rowNonzeroIndices.at(rowindex).begin();
+                        std::list<int>::iterator listItend = m_rowNonzeroIndices.at(rowindex).end();
+                        for (; listIt != listItend; listIt++) {
+                            int index = *listIt;
+                            if (m_columnCounts.at(index) > -1) {
+                                m_columnCounts.at(index)--;
+                            }
+                        }
+                        //Set the column and row count to zero to represent that which column and row has been chosen.
+                        m_rowCounts.at(rowindex) = -1;
+                        m_columnCounts.at(columnindex) = -1;
+                    } else {
+                        LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
+                        //Update the row lists and row counts
+                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
+                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        for (; it < itend; it++) {
+                            int index = it.getIndex();
+                            //If the row of the iterated element is still active
+                            if (m_rowCounts.at(index) > -1) {
+                                m_rowCounts.at(index)--;
+                                m_rowNonzeroIndices.at(index).remove(columnindex);
+                            }
+                        }
+                        //Set the column count to zero to represent that which column is unstable.
+                        m_columnCounts.at(columnindex) = -1;
                     }
+                    mNum++;
                 }
             }
-            break;
+        }
+        break;
 
     }
     case BLOCK_TRIANGULAR:{
@@ -963,8 +1281,8 @@ void PfiBasis::invertM() {
                 int i;
                 for (i = blockStart; i < blockStart + currentBlockSize; i++) {
                     columnOrders.insert(
-                            std::make_pair((int) m_mmColumns->at(i).nonZeros(),
-                                    m_mmColumnIndices->at(m_columnSwapHash->at(i))));
+                                std::make_pair((int) m_mmColumns->at(i).nonZeros(),
+                                               m_mmColumnIndices->at(m_columnSwapHash->at(i))));
                 }
                 for (std::multimap<int, int>::iterator colIt = columnOrders.begin(); colIt != columnOrders.end(); colIt++) {
                     blockStart++;
@@ -1029,7 +1347,7 @@ void PfiBasis::invertM() {
     }
     default:
         LPWARNING("No triangulatrization method defined!")
-        ;
+                ;
         break;
     }
     DEVINFO(D::PFIMAKER, "MPART num: " << mNum);
@@ -1160,7 +1478,7 @@ void PfiBasis::findTransversal() {
     }
 #ifndef NDEBUG
     DEVINFO(D::PFIMAKER, "Nonzero pattern with transversal ");
-//    printMM();
+    //    printMM();
 #endif //!NDEBUG
 }
 
@@ -1340,7 +1658,7 @@ int PfiBasis::searchNode() {
                         currentNode.lowest = it->lowest;
                         m_stack->at(stackPosition).lowest = it->lowest;
 #ifndef NDEBUG
-//                        printStack();
+                        //                        printStack();
 #endif //!NDEBUG
                         break;
                     }
@@ -1365,10 +1683,10 @@ int PfiBasis::searchNode() {
             lastIndex = m_stack->back().index;
             //TODO Ezt a torlest okosabban kene megoldani
             for (std::vector<int>::iterator nodeIt = m_mmGraphIn->at(lastIndex).begin(); nodeIt < m_mmGraphIn->at(
-                    lastIndex).end(); nodeIt++) {
+                     lastIndex).end(); nodeIt++) {
                 DEVINFO(D::PFIMAKER, "Searching node " << *nodeIt);
                 for (std::vector<int>::iterator searchIt = m_mmGraphOut->at(*nodeIt).begin(); searchIt
-                        < m_mmGraphOut->at(*nodeIt).end(); searchIt++) {
+                     < m_mmGraphOut->at(*nodeIt).end(); searchIt++) {
                     DEVINFO(D::PFIMAKER, "Outgoing edge " << *searchIt);
                     if (*searchIt == lastIndex) {
                         m_mmGraphOut->at(*nodeIt).erase(searchIt);
@@ -1386,7 +1704,7 @@ int PfiBasis::searchNode() {
             DEVINFO(D::PFIMAKER, "Block " << m_mmBlocks->size() - 1 << " now contains node " << lastIndex);
             m_stack->pop_back();
 #ifndef NDEBUG
-//            printStack();
+            //            printStack();
 #endif //!NDEBUG
         } while (lastIndex != currentNode.index);
     } else {
@@ -1403,8 +1721,8 @@ void PfiBasis::createBlockTriangular() {
     tarjan();
 
 #ifndef NDEBUG
-//    printMM();
-//    printBlocks();
+    //    printMM();
+    //    printBlocks();
 #endif //!NDEBUG
 }
 
@@ -1429,7 +1747,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
             for (int i = 0; i < blockNum; i++) {
                 previousBlocks += m_mmBlocks->at(i);
             }
-//            LPINFO("previousBlocks: "<<previousBlocks);
+            //            LPINFO("previousBlocks: "<<previousBlocks);
             //Activerows-ba kigyujtjuk a blokkhoz tartozo nemnullakat
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
@@ -1544,34 +1862,34 @@ void PfiBasis::printMM() const {
         }
         LPWARNING( s);
     }
-//    LPWARNING( "MM pattern by columns");
-//    for (int i = 0; i < (int) m_mmColumns->size(); i++) {
-//        std::string s;
-//        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); it++) {
-//            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
-//        }
-//        LPWARNING( s);
-//    }
-//    LPWARNING( "MM pattern with values");
-//    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
-//        int rowindex = m_mmRowIndices->at(*rowIt);
-//        std::string s;
-//        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
-//            int columnindex = m_mmColumnIndices->at(*columnIt);
-//            s += Numerical::equals(m_basicColumns.at(columnindex)->at(rowindex), 0) ? "-" : "X";
-//        }
-//        LPWARNING( s);
-//    }
-//    LPWARNING( "MM pattern with values without equals");
-//    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
-//        int rowindex = m_mmRowIndices->at(*rowIt);
-//        std::string s;
-//        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
-//            int columnindex = m_mmColumnIndices->at(*columnIt);
-//            s += m_basicColumns.at(columnindex)->at(rowindex) == 0 ? "-" : "X";
-//        }
-//        LPWARNING( s);
-//    }
+    //    LPWARNING( "MM pattern by columns");
+    //    for (int i = 0; i < (int) m_mmColumns->size(); i++) {
+    //        std::string s;
+    //        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); it++) {
+    //            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
+    //        }
+    //        LPWARNING( s);
+    //    }
+    //    LPWARNING( "MM pattern with values");
+    //    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
+    //        int rowindex = m_mmRowIndices->at(*rowIt);
+    //        std::string s;
+    //        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
+    //            int columnindex = m_mmColumnIndices->at(*columnIt);
+    //            s += Numerical::equals(m_basicColumns.at(columnindex)->at(rowindex), 0) ? "-" : "X";
+    //        }
+    //        LPWARNING( s);
+    //    }
+    //    LPWARNING( "MM pattern with values without equals");
+    //    for (std::vector<int>::iterator rowIt = m_rowSwapHash->begin(); rowIt < m_rowSwapHash->end(); rowIt++) {
+    //        int rowindex = m_mmRowIndices->at(*rowIt);
+    //        std::string s;
+    //        for (std::vector<int>::iterator columnIt = m_columnSwapHash->begin(); columnIt < m_columnSwapHash->end(); columnIt++) {
+    //            int columnindex = m_mmColumnIndices->at(*columnIt);
+    //            s += m_basicColumns.at(columnindex)->at(rowindex) == 0 ? "-" : "X";
+    //        }
+    //        LPWARNING( s);
+    //    }
 
 #endif //!NDEBUG
 }
@@ -1638,33 +1956,33 @@ void PfiBasis::printStatistics() const {
     switch (m_nontriangularMethod) {
     case SEARCH:
         LPINFO("Used non-triangular method: SEARCH")
-        ;
+                ;
         break;
     case BLOCK_TRIANGULAR:
         LPINFO("Used non-triangular method: BLOCK_TRIANGULAR")
-        ;
+                ;
         break;
     case BLOCK_ORDERED_TRIANGULAR:
         LPINFO("Used non-triangular method: BLOCK_ORDERED_TRIANGULAR")
-        ;
+                ;
         break;
     default:
         LPWARNING("No non-triangular method defined!")
-        ;
+                ;
         break;
     }
     switch (m_nontriangularPivotRule) {
     case NONE:
         LPINFO("Used non-triangular pivot rule: NONE")
-        ;
+                ;
         break;
     case THRESHOLD:
         LPINFO("Used non-triangular pivot rule: THRESHOLD")
-        ;
+                ;
         break;
     default:
         LPWARNING("No non-triangular pivot rule defined!")
-        ;
+                ;
         break;
     }
     LPINFO("Nonzero statistics: ");

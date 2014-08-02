@@ -170,7 +170,7 @@ void MpsModelBuilder::readName() {
 
 std::string MpsModelBuilder::getName(MpsName name) const {
     char cname[9] = {0};
-    memcpy(cname, name.m_chars, 8);
+    panOptMemcpy(cname, name.m_chars, 8);
     return std::string(cname);
 }
 
@@ -1448,7 +1448,6 @@ void MpsModelBuilder::loadFromFile(const std::string & fileName) {
     while (readSectionType() != MPS_ROWS) { // TODO: vagy a vegere ertunk
         skipSection();
     }
-
 
     skipEndLine();
 

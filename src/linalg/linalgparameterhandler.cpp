@@ -7,10 +7,13 @@
 #include <iostream>
 
 #include <defaultparameters.h>
+#include <initpanopt.h>
 
 #include <cstdio>
 
 THREAD_STATIC_DEF const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
+
+LinalgParameterHandler * LinalgParameterHandler::sm_instance;
 
 LinalgParameterHandler::LinalgParameterHandler()
 {
@@ -19,21 +22,30 @@ LinalgParameterHandler::LinalgParameterHandler()
 
 ParameterHandler& LinalgParameterHandler::getInstance()
 {
+   // std::cout << "INIT LINALG" << std::endl;
     try{
-        static LinalgParameterHandler s_instance;
-        THREAD_STATIC_DECL bool s_init = false;
-        if(!s_init) {
-            s_instance.initParameters();
-            s_instance.readParameterFile(sm_defaultFilename);
-            s_init = true;
+        return *sm_instance;
+        /*static LinalgParameterHandler * s_instance = 0;
+        if(!s_instance) {
+
+            InitPanOpt::getInstance().init();
+
+            s_instance = new LinalgParameterHandler;
+            s_instance->initParameters();
+            s_instance->readParameterFile(sm_defaultFilename);
         }
-        return s_instance;
+        return *s_instance;*/
     } catch (const ParameterException & exception) {
         LPERROR( "Linalg ParameterException: " <<exception.getMessage() );
         exit(-1);
     }
 }
 
+void LinalgParameterHandler::init() {
+    sm_instance = new LinalgParameterHandler;
+    sm_instance->initParameters();
+    sm_instance->readParameterFile(sm_defaultFilename);
+}
 
 
 void LinalgParameterHandler::writeParameterFile()

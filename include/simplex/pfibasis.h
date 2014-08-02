@@ -21,6 +21,10 @@ extern double expDiffSquareSum;
 extern double expDiffSum;
 extern int expCounter;
 
+extern double aprExpDiffSquareSum;
+extern double aprExpDiffSum;
+extern int aprExpCounter;
+
 /**
  * This class generates the PFI (Product Form of the Inverse) form of the basis.
  * The algorithm can be parametrized to support different methods of inversion.
@@ -115,6 +119,15 @@ public:
      * @param vector the vector to be transformed.
      */
     virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+
+    /**
+     * Does the FTRAN operation on a vector.
+     * The function provides numerical error checking with perturbation.
+     *
+     * @param vector the vector to be transformed
+     * @param checkVector the vector to be transformed with perturbations
+     */
+    virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 
 private:
 

@@ -23,7 +23,7 @@ SHA1Generator::Hash SHA1Generator::end() {
     m_buffer[m_actualIndex] |= 0x80;
     m_length *= 8ULL;
     //m_length = 0x158ULL;
-    memcpy(m_buffer + HASH_BUFFER_SIZE - sizeof(m_length),
+    panOptMemcpy(m_buffer + HASH_BUFFER_SIZE - sizeof(m_length),
            &m_length, sizeof(m_length));
     unsigned int index;
     for (index = 0; index < sizeof(m_length) / 2; index++) {
@@ -111,13 +111,13 @@ void SHA1Generator::addBuffer(const void * buffer, unsigned int length) {
     m_length += length;
     unsigned int remaining = HASH_BUFFER_SIZE - m_actualIndex;
     if (remaining > length) {
-        memcpy(m_buffer + m_actualIndex, buffer, length);
+        panOptMemcpy(m_buffer + m_actualIndex, buffer, length);
         m_actualIndex += length;
     } else {
         unsigned int index;
 
         // az elejet feldolgozzuk
-        memcpy(m_buffer + m_actualIndex, buffer, remaining);
+        panOptMemcpy(m_buffer + m_actualIndex, buffer, remaining);
         blockProcess(m_buffer);
 
         // aztan a maradek 64 bajtos egysegeket
@@ -127,7 +127,7 @@ void SHA1Generator::addBuffer(const void * buffer, unsigned int length) {
         }
 
         // vegul ha marad, azt elhelyezzuk a bufferben
-        memcpy(m_buffer, static_cast<const char*>(buffer) + index * HASH_BUFFER_SIZE  + remaining,
+        panOptMemcpy(m_buffer, static_cast<const char*>(buffer) + index * HASH_BUFFER_SIZE  + remaining,
                length % HASH_BUFFER_SIZE);
         m_actualIndex = length % HASH_BUFFER_SIZE;
     }
@@ -142,7 +142,7 @@ std::string SHA1Generator::convertHashToString(const Hash & hash) {
     char resultHash[ sizeof(Hash)];
     unsigned int hashIndex;
     unsigned int byteIndex;
-    memcpy(localHash, &hash, sizeof(Hash));
+    panOptMemcpy(localHash, &hash, sizeof(Hash));
     for (hashIndex = 0; hashIndex < HASH_COUNT; hashIndex++) {
         for (byteIndex = 0; byteIndex < sizeof(unsigned int); byteIndex++) {
             resultHash[hashIndex * sizeof(unsigned int) + byteIndex] =

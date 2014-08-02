@@ -22,17 +22,17 @@ class Matrix;
  * This is a reference to the run-time parameter "elbowroom".
  * See LinalgParameterHandler for details.
  */
-extern const int & ELBOWROOM;
+extern int ELBOWROOM;
 
 /**
  * This is a reference to the run-time parameter "sparsity_ratio".
  * See LinalgParameterHandler for details.
  */
-extern const double & SPARSITY_RATIO;
+extern double SPARSITY_RATIO;
 
 
 //#define CHECK check(__FUNCTION__);
-//#define CHECK
+#define CHECK
 
 #ifdef ANALYSE_DOT_PRODUCT
     extern std::vector<int> diffs;
@@ -514,6 +514,8 @@ public:
      * @return Value of the Euclidean norm of the vector.
      */
     Numerical::Double euclidNorm() const;
+
+    Numerical::Double l1Norm() const;
 
     /**
      * The function performs the next operation: a = a + lambda * b.

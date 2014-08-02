@@ -8,20 +8,26 @@ CONFIG += console
 
 TARGET = NewPanOptTester
 
+LIBS += -pthread
+
 CONFIG(release, debug|release) {
     message("NewPanOptTester: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -static
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt
+    OBJECTS_DIR = .o_release
+
 }
 CONFIG(debug, debug|release) {
     message("NewPanOptTester: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -static
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt
+    OBJECTS_DIR = .o_debug
+
 }
 
 #Includes
@@ -44,11 +50,13 @@ HEADERS += test/framework/tester.h \
            test/timertest.h \
            test/linalgparameterhandlertest.h \
            test/simplexparameterhandlertest.h \
-    test/outputhandlertest.h \
-    test/dualratiotesttest.h
+    test/outputhandlertest.h \ #\
+    test/coretest.h
+   # test/dualratiotesttest.h
 
 #Sources
 SOURCES += test/framework/tester.cpp \
+           test/test.cpp \
            test/constrainttest.cpp \
            test/indexlisttest.cpp \
            test/manualmodelbuildertest.cpp \
@@ -57,11 +65,11 @@ SOURCES += test/framework/tester.cpp \
            test/mpsproblemtest.cpp \
            test/variabletest.cpp \
            test/vectortest.cpp \
-           test/test.cpp \
            test/timertest.cpp \
            test/linalgparameterhandlertest.cpp \
            test/simplexparameterhandlertest.cpp \
     test/outputhandlertest.cpp \
-    test/dualratiotesttest.cpp
+    test/coretest.cpp
+  #  test/dualratiotesttest.cpp
 
 OBJECTS_DIR = .o

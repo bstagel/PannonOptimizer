@@ -41,6 +41,7 @@ public:
     enum STARTING_BASIS_STRATEGY {
         LOGICAL = 0,
         SYMBOLIC_CRASH = 1,
+        STRUCTURAL = 2,
         STARTING_BASIS_STRATEGY_ENUM_LENGTH
     };
 
