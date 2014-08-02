@@ -24,6 +24,40 @@ CONFIG(debug, debug|release) {
     OBJECTS_DIR = .o_debug
 }
 
+linux-g++:contains(QMAKE_HOST.arch, x86_64):{
+    message(Linux 64 bit system)
+    QMAKE_EXTRA_COMPILERS += nasmproc64
+    ASM_SRCS_64 += src/utils/arch/x86/cpuinfo64.asm \
+                    src/utils/arch/x86/memcpy64.asm \
+                    src/linalg/arch/x86/dotproduct64.asm
+    #message($${DESTDIR}../$${OBJECTS_DIR})
+    nasmproc64.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
+    nasmproc64.commands = nasm -f elf64 ${QMAKE_FILE_NAME} -g -o ${QMAKE_FILE_OUT}
+    nasmproc64.input = ASM_SRCS_64
+
+}
+
+linux-g++:contains(QMAKE_HOST.arch, x86_32):{
+    message(Linux 32 bit system)
+    QMAKE_EXTRA_COMPILERS += nasmproc32
+    ASM_SRCS_32 += src/utils/arch/x86/cpuinfo32.asm \
+        src/utils/arch/x86/memcpy32.asm
+    #message($${DESTDIR}../$${OBJECTS_DIR})
+    nasmproc32.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
+    nasmproc32.commands = nasm -f elf32 ${QMAKE_FILE_NAME} -g -o ${QMAKE_FILE_OUT}
+    nasmproc32.input = ASM_SRCS_32
+
+}
+
+win32-g++:contains(QMAKE_HOST.arch, x86_64):{
+    message(Windows 64 bit system)
+}
+
+win32-g++:contains(QMAKE_HOST.arch, x86_32):{
+    message(Windows 32 bit system)
+}
+
+
 #Includes
 INCLUDEPATH += . \
                include/ \
@@ -111,7 +145,12 @@ HEADERS += include/debug.h \
     include/simplex/pricing.h \
     include/simplex/simplexcontroller.h \  
 	include/simplex/lubasis.h \
-    include/simplex/dualpricingcontroller.h
+    include/simplex/dualpricingcontroller.h \
+    include/simplex/startingbasisfinder/sbf_structural.h \
+    include/initpanopt.h \
+    include/utils/primitives.h \
+    include/macros.h \
+    include/utils/arch/unknown.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -172,6 +211,16 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/pricing/dualsteepestedgepricing.cpp \
     src/simplex/simplexcontroller.cpp \
     src/simplex/lubasis.cpp \
-    src/simplex/dualpricingcontroller.cpp
+    src/simplex/dualpricingcontroller.cpp \
+    src/simplex/startingbasisfinder/sbf_structural.cpp \
+    src/initpanopt.cpp \
+    src/utils/architecture.cpp \
+    src/utils/primitives.cpp
 
 #OBJECTS_DIR = .o
+
+OTHER_FILES += \
+    src/linalg/arch/x86/dotproduct64.asm \
+    src/utils/arch/x86/memcpy64.asm \
+    src/utils/arch/x86/cpuinfo64.asm \
+    src/utils/arch/x86/cpuinfo32.asm

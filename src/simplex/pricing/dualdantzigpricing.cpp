@@ -76,6 +76,9 @@ int DualDantzigPricing::performPricingPhase2() {
         int variableIndex = m_basisHead[rowIndex];
         switch ( m_basicVariableFeasibilities->where( rowIndex ) ) {
         case Simplex::MINUS:
+           // LPINFO(m_simplexModel.getVariable(variableIndex));
+           // LPINFO("MINUS: " << m_simplexModel.getVariable(variableIndex).getLowerBound() << "  < " <<
+           //        m_basicVariableValues.at(rowIndex));
             difference =  m_simplexModel.getVariable(variableIndex).getLowerBound() -
                     m_basicVariableValues.at(rowIndex);
             if (difference > max) {
@@ -85,6 +88,10 @@ int DualDantzigPricing::performPricingPhase2() {
             }
             break;
         case Simplex::PLUS:
+           // LPINFO(m_simplexModel.getVariable(variableIndex));
+           // LPINFO("PLUS: " << m_basicVariableValues.at(rowIndex) << "  > " <<
+           //        m_simplexModel.getVariable(variableIndex).getUpperBound());
+
             difference = m_basicVariableValues.at(rowIndex) -
                     m_simplexModel.getVariable(variableIndex).getUpperBound();
             if (difference > max) {
@@ -96,6 +103,7 @@ int DualDantzigPricing::performPricingPhase2() {
         }
     }
 
+   // LPINFO("pricing: " << max << "  " << m_outgoingIndex);
     m_reducedCost = max;
     return m_outgoingIndex;
 

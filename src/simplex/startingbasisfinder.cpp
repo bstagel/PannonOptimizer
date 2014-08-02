@@ -9,6 +9,7 @@
 #include <simplex/startingbasisfinder.h>
 #include <simplex/startingbasisfinder/sbf_super.h>
 #include <simplex/startingbasisfinder/sbf_logical.h>
+#include <simplex/startingbasisfinder/sbf_structural.h>
 //#include <simplex/startingbasisfinder/sbf_crash_adg.h>
 //#include <simplex/startingbasisfinder/sbf_crash_ltsf.h>
 #include <simplex/startingbasisfinder/sbf_crash.h>
@@ -46,9 +47,9 @@ void StartingBasisFinder::print (int printLevel)
 {
     if (printLevel & PRINT_STATISTIC ) {
         LPINFO("Starting basis found. Head contains " /*<<
-                m_basisStructVarCount << " structural variables"
-                << " ( / " <<  m_basisHead->size() << " ==> "
-                << (Numerical::Double)m_basisStructVarCount/m_basisHead->size()*100 << "% )"*/ );
+                       m_basisStructVarCount << " structural variables"
+                       << " ( / " <<  m_basisHead->size() << " ==> "
+                       << (Numerical::Double)m_basisStructVarCount/m_basisHead->size()*100 << "% )"*/ );
     }
 
     if (printLevel & PRINT_DETAILED) {
@@ -85,94 +86,99 @@ void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy, ST
     DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << strategy);
 
     switch(strategy) {
-        case LOGICAL:
-            m_algorithm = new SbfLogical(m_model, m_basisHead, m_variableStates, nonbasicStates);
-            m_algorithm->run();
-            break;
+    case STRUCTURAL:
+        m_algorithm = new SbfStructural(m_model, m_basisHead, m_variableStates, nonbasicStates);
+        m_algorithm->run();
+        break;
 
-        case SYMBOLIC_CRASH:
-            m_algorithm = new SbfCrash(m_model, m_basisHead, m_variableStates, nonbasicStates);
-            m_algorithm->run();
-            break;
+    case LOGICAL:
+        m_algorithm = new SbfLogical(m_model, m_basisHead, m_variableStates, nonbasicStates);
+        m_algorithm->run();
+        break;
 
-//        case SYMBOLIC_CRASH:
-//            /* First step: logical basis*/
-//            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
-//            m_algorithm->run();
-//            reconfigureFreeVariables();
+    case SYMBOLIC_CRASH:
+        m_algorithm = new SbfCrash(m_model, m_basisHead, m_variableStates, nonbasicStates);
+        m_algorithm->run();
+        break;
 
-//            /* Second step: Symbolic crash */
-//            m_algorithm = new SbfCrashSymbolic(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            m_algorithm->run();
-//            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
-//            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
-//            break;
+        //        case SYMBOLIC_CRASH:
+        //            /* First step: logical basis*/
+        //            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
+        //            m_algorithm->run();
+        //            reconfigureFreeVariables();
 
-//        case LTSF_CRASH:
-//            /* First step: logical basis*/
-//            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
-//            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
-//            m_algorithm->run();
-//            DEVINFO(D::STARTINGBASISFINDER, "Reconfigure variables...");
-//            reconfigureFreeVariables();
+        //            /* Second step: Symbolic crash */
+        //            m_algorithm = new SbfCrashSymbolic(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            m_algorithm->run();
+        //            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
+        //            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
+        //            break;
 
-//            /* Second step: LTSF crash */
-//            DEVINFO(D::STARTINGBASISFINDER, "Run LTSF...");
-//            m_algorithm = new SbfCrashLtsf(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            m_algorithm->run();
-//            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
-//            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
-//            break;
+        //        case LTSF_CRASH:
+        //            /* First step: logical basis*/
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
+        //            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
+        //            m_algorithm->run();
+        //            DEVINFO(D::STARTINGBASISFINDER, "Reconfigure variables...");
+        //            reconfigureFreeVariables();
 
-//        case ADG_CRASH:
-//            /* First step: logical basis*/
-//            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
-//            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
-//            m_algorithm->run();
-//            DEVINFO(D::STARTINGBASISFINDER, "Reconfigure variables...");
-//            reconfigureFreeVariables();
+        //            /* Second step: LTSF crash */
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run LTSF...");
+        //            m_algorithm = new SbfCrashLtsf(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            m_algorithm->run();
+        //            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
+        //            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
+        //            break;
 
-//            /* Second step: ADG crash */
-//            DEVINFO(D::STARTINGBASISFINDER, "Run ADG...");
-//            m_algorithm = new SbfCrashAdg(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfCrashAdg*)m_algorithm)->setAdgStrategy(SbfCrashAdg::ROW_COUNT);
-//            m_algorithm->run();
-//            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
-//            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
-//            break;
+        //        case ADG_CRASH:
+        //            /* First step: logical basis*/
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
+        //            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
+        //            m_algorithm->run();
+        //            DEVINFO(D::STARTINGBASISFINDER, "Reconfigure variables...");
+        //            reconfigureFreeVariables();
 
-//        case ADG_LTSF_CRASH:
-//            /* First step: logical basis*/
-//            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
-//            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
-//            m_algorithm->run();
-//            reconfigureFreeVariables();
+        //            /* Second step: ADG crash */
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run ADG...");
+        //            m_algorithm = new SbfCrashAdg(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfCrashAdg*)m_algorithm)->setAdgStrategy(SbfCrashAdg::ROW_COUNT);
+        //            m_algorithm->run();
+        //            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
+        //            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
+        //            break;
 
-//            /* Second step: ADG crash */
-//            DEVINFO(D::STARTINGBASISFINDER, "Run ADG...");
-//            m_algorithm = new SbfCrashAdg(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            ((SbfCrashAdg*)m_algorithm)->setAdgStrategy(SbfCrashAdg::ROW_COUNT);
-//            m_algorithm->run();
-//            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
-//            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
-//            reconfigureFreeVariables();
+        //        case ADG_LTSF_CRASH:
+        //            /* First step: logical basis*/
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run logical...");
+        //            m_algorithm = new SbfLogical(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfLogical*)m_algorithm)->setLogicalStrategy(SbfLogical::MIXED_LOGICAL);
+        //            m_algorithm->run();
+        //            reconfigureFreeVariables();
 
-//            /* Third step: LTSF crash */
-//            DEVINFO(D::STARTINGBASISFINDER, "Run LTSF...");
-//            m_algorithm = new SbfCrashLtsf(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
-//            m_algorithm->run();
-//            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
-//            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
+        //            /* Second step: ADG crash */
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run ADG...");
+        //            m_algorithm = new SbfCrashAdg(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            ((SbfCrashAdg*)m_algorithm)->setAdgStrategy(SbfCrashAdg::ROW_COUNT);
+        //            m_algorithm->run();
+        //            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
+        //            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
+        //            reconfigureFreeVariables();
 
-//            break;
+        //            /* Third step: LTSF crash */
+        //            DEVINFO(D::STARTINGBASISFINDER, "Run LTSF...");
+        //            m_algorithm = new SbfCrashLtsf(orig_problem, m_basisHead, m_variables, m_freeBasisPositions, m_freeStructVars, m_preferredStructVars);
+        //            m_algorithm->run();
+        //            m_basisStructVarCount = m_algorithm->getBasisStructVarCount();
+        //            assert(m_algorithm->test(SbfSuper::TEST_UNIQUE+SbfSuper::TEST_TRINAGULARITY) == true);
 
-        default:
-            throw ParameterException("Invalid basis finder algorithm selected");
-            break;
+        //            break;
+
+    default:
+        throw ParameterException("Invalid basis finder algorithm selected");
+        break;
     }
 }
 

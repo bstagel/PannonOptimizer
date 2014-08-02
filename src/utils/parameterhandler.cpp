@@ -20,8 +20,8 @@ ParameterHandler::~ParameterHandler()
 
 void ParameterHandler::readParameterFile(const char * filename){
     try {
-        std::ifstream in;
-        in.open(filename);
+        std::ifstream in(filename, std::ifstream::in);
+        //in.open(filename);
         if (!in.is_open()){
             writeParameterFile();
             in.open(filename);
@@ -58,7 +58,7 @@ void ParameterHandler::loadValuesFromFile(std::ifstream &in){
     try {
         std::string line;
         std::vector<std::string> tokens;
-
+        in.seekg(0);
         while (!in.eof()) {
             line = ignoreEmptyRows(in);
             if(in.eof()) {

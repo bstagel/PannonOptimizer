@@ -7,10 +7,15 @@
 
 
 
-std::map<D::RegisteredModuleType, std::string> D::m_registeredModules =
+/*std::map<D::RegisteredModuleType, std::string> D::m_registeredModules =
         D::fillInModuleTypes();
 
-int D::m_activeModules = D::fillInActiveModules();
+int D::m_activeModules = D::fillInActiveModules();*/
+
+std::map<D::RegisteredModuleType, std::string> * D::m_registeredModules;
+
+int D::m_activeModules;
+
 
 #ifdef DEVELOPMENT
 

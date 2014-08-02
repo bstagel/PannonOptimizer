@@ -171,9 +171,9 @@ void ManualModelBuilder::setConstraint(unsigned int index, const Constraint & co
 }
 
 void ManualModelBuilder::addConstraint(const Constraint & constraint,
-    unsigned int nonzeros,
-    const Numerical::Double * values,
-    const unsigned int * indices)
+                                       const Numerical::Double * values,
+                                       const unsigned int * indices,
+                                       unsigned int nonzeros)
 {
     m_constraints.push_back(constraint);
 
@@ -183,6 +183,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     const unsigned int lastIndex = m_rows.size() - 1;
     unsigned int index;
     unsigned int maxIndex = 0;
+
     for (index = 0; index < nonzeros; index++) {
         IndexValuePair pair = {values[index], indices[index]};
         m_rows[lastIndex].push_back(pair);

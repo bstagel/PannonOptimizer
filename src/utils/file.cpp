@@ -73,7 +73,7 @@ const char * File::nextBlock(const char * ptr)
         //char ch = m_buffer[m_bufferSize - 1];
         int diff = m_end - m_ptr;
 
-        //memcpy(m_buffer, m_ptr, diff);
+        //panOptMemcpy(m_buffer, m_ptr, diff);
         unsigned int * target = (unsigned int*) m_buffer;
         const unsigned int * const end = (unsigned int*) target + diff / sizeof (unsigned int);
         unsigned int * source = (unsigned int*) m_ptr;

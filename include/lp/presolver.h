@@ -65,11 +65,11 @@ public:
         MINUS_INF_SOURCE = 1000000
     };
 
-//    class PresolverException : public PanOptException {
-//    public:
-//        PresolverException(const std::string & message) : PanOptException::PanOptException(message) {}
-//        ~PresolverException();
-//    };
+    class PresolverException : public PanOptException {
+    public:
+        PresolverException(const std::string & message) : PanOptException::PanOptException(message) {}
+        ~PresolverException();
+    };
 
     /**
      * Default constructor of the Presolver class.

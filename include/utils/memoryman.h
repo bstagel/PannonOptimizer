@@ -5,9 +5,26 @@
 #ifndef MEMORYMAN_H
 #define MEMORYMAN_H
 
+#include <cstddef>
+#include <cstdio>
+#include <ctime>
+
 #define CLASSIC_NEW_DELETE
 
+template <unsigned n>
+struct Logarithm
+{
+    enum { value = 1 + Logarithm<n / 2>::value };
+};
+
+template <>
+struct Logarithm<1>
+{
+    enum { value = 0 };
+};
+
 #ifndef CLASSIC_NEW_DELETE
+
 
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
@@ -84,7 +101,7 @@ public:
     static Buffer * sm_head;
 
 private:
-    static const int sm_poolSize = 10485760;
+    static const int sm_poolSize = 1048576;
 
 };
 
@@ -104,22 +121,16 @@ public:
 
     inline Chunk * getChunk(size_t size) {
         Chunk * result;
-        //int b;
         if (m_head != 0) {
-            //b = 0;
             result = m_head;
             m_head = m_head->m_previous;
-        } else {
-            //b = 1;
-            //result = reinterpret_cast<Chunk*>(malloc(sizeof(Chunk) + size + 100));
-            result = Pool::getChunk(size);
 
+        } else {
+            result = Pool::getChunk(size);
+            //result = reinterpret_cast<Chunk*>(malloc(sizeof(Chunk) + size));
             result->m_stack = this;
             result->m_previous = 0;
         }
-        //result->m_stack = this;
-
-
         return result;
     }
 
@@ -134,6 +145,7 @@ private:
 
 class MemoryManager {
     friend class MemoryManagerInitializer;
+    friend class InitPanOpt;
 public:
 
     static bool sm_initialized;
@@ -150,17 +162,20 @@ public:
     inline static void * allocate(size_t size) {
         Chunk * chunk;
         if (likely(size <= (size_t)sm_maxSmallStackSize)) {
-            chunk = sm_smallStacks[size >> 2].getChunk(size);
+            chunk = sm_smallStacks[size >> Logarithm<sm_smallSteps>::value].getChunk(((size >> Logarithm<sm_smallSteps>::value ) + 1) << Logarithm<sm_smallSteps>::value);
+            // std::cout << "ALLOC CHUNK 1: " << chunk << "  " << chunk->m_stack << std::endl;
         } else if (size <= (size_t) sm_maxLargeStackSize) {
-            chunk = sm_largeStacks[size >> 10].getChunk(size);
+            chunk = sm_largeStacks[size >> Logarithm<sm_largeSteps>::value].getChunk(((size >> Logarithm<sm_largeSteps>::value) + 1) << Logarithm<sm_largeSteps>::value);
+            // std::cout << "ALLOC CHUNK 2: " << chunk << std::endl;
         } else {
             chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size ));
+            //  std::cout << "ALLOC CHUNK: " << chunk << std::endl;
             chunk->m_stack = 0;
         }
 
         chunk++;
-//        printf("address: %p\n", chunk);
-//        getchar();
+        //        printf("address: %p\n", chunk);
+        //        getchar();
         return static_cast<void*>(chunk);
     }
 
@@ -170,6 +185,7 @@ public:
         if (likely(chunk->m_stack != 0)) {
             chunk->m_stack->addChunk(chunk);
         } else {
+            //  std::cout << "CHUNK: " << chunk << std::endl;
             free(chunk);
         }
         //free(pointer);
@@ -180,8 +196,8 @@ private:
     static const int sm_smallSteps = 4;
     static const int sm_maxSmallStackSize = 1024;
 
-    static const int sm_largeSteps = 1024;
-    static const int sm_maxLargeStackSize = 1024 * 1024;
+    static const int sm_largeSteps = 4;
+    static const int sm_maxLargeStackSize = 1024 * 256;
 
     static ChunkStack * sm_smallStacks;
     static ChunkStack * sm_largeStacks;
@@ -224,63 +240,32 @@ public:
     }
 };
 
+
+/*
 inline void * operator new (size_t size) {
-    //return malloc(size);
-    return MemoryManager::allocate(size);
+    return malloc(size + sizeof(int)*0);
+    //return MemoryManager::allocate(size);
 }
 
 inline void operator delete(void * p) {
-//    free(p);
-    if (p != 0) {
-        MemoryManager::release(p);
-    }
+    free(p);
+    //if (likely(p != 0)) {
+    //    MemoryManager::release(p);
+    //}
 }
 
 inline void * operator new [](size_t size) {
-    //return malloc(size);
-    return MemoryManager::allocate(size);
+    return malloc(size + sizeof(int)*0);
+    // return MemoryManager::allocate(size);
 }
 
 inline void operator delete [](void * p) {
-    //free(p);
-    if (p != 0) {
-        MemoryManager::release(p);
-    }
-}
+    free(p);
+    //if (likely(p != 0)) {
+    //    MemoryManager::release(p);
+    //}
+}*/
 
-
-/*class MemoryManagerInitializer {
-public:
-    MemoryManagerInitializer() {
-        static MemoryManager manager;
-        static bool first = true;
-        if (first == true) {
-            manager.init();
-            first = false;
-        }
-    }
-};
-
-static MemoryManagerInitializer memoryInitializer;*/
-
-__attribute__((constructor))
-static void initMemory() {
-    if (MemoryManager::sm_initialized == false) {
-        MemoryManager::init();
-        printf("Memory manager initialized\n");
-    }
-}
-
-__attribute__((destructor))
-static void releaseMemory() {
-    static bool released = false;
-    if (MemoryManager::sm_initialized == true && released == false) {
-        MemoryManager::release();
-        printf("Memory manager released %p %p\n", &MemoryManager::sm_initialized,
-               &released);
-        released = true;
-    }
-}
 
 #undef likely
 #undef unlikely
@@ -294,35 +279,45 @@ union Pointer {
 
 // TODO: ezeket attenni egy meta.h fileba
 
-template <unsigned n>
-struct Logarithm
-{
-    enum { value = 1 + Logarithm<n / 2>::value };
-};
-
-template <>
-struct Logarithm<1>
-{
-  enum { value = 0 };
-};
-
 template <class T, unsigned alignment>
 T * alloc(int size) {
+    /*static clock_t start, end;
+    static double time = 0;
+    static unsigned int counter = 0;
+    counter++;
+    start = clock();*/
     size *= sizeof(T);
+#ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];
+#else
+    char * originalPtr = (char*)MemoryManager::allocate(size + alignment + sizeof(void*));
+#endif
+
+    //    end = clock();
     char * ptr2 = originalPtr + alignment + sizeof(void*);
+
     Pointer ptr;
     ptr.ptr = ptr2;
-    ptr.bits >>= Logarithm<alignment>::value;
-    ptr.bits <<= Logarithm<alignment>::value;
+    ptr.bits &= ~((1 << Logarithm<alignment>::value) - 1);
+    //ptr.bits >>= Logarithm<alignment>::value;
+    //ptr.bits <<= Logarithm<alignment>::value;
     ptr2 = static_cast<char*>(ptr.ptr);
     ptr2 -= sizeof(void*);
     *((char**)ptr2) = originalPtr;
     ptr2 = ptr2 + sizeof(void*);
+
+    /*time += (end - start) / (double)CLOCKS_PER_SEC;
+    if (counter % 10000 == 0  && sizeof(T) == 8 ) {
+        printf("TIME: %lg\n", time);
+    }*/
     return reinterpret_cast<T*>(ptr2);
 }
 
 void release(void * ptr);
+
+void panOptMemcpy(void *dest,
+                  const void * src,
+                  size_t size);
 
 
 #endif // MEMORYMAN_H

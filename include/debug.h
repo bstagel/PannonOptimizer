@@ -124,6 +124,7 @@
  */
 class D
 {
+    friend class InitPanOpt;
 public:
 
     enum RegisteredModuleType
@@ -149,7 +150,7 @@ public:
     inline static std::string getName(RegisteredModuleType mod)
     {
         std::ostringstream dstr;
-        dstr << std::setw(15) << std::left << D::m_registeredModules[mod];
+        dstr << std::setw(15) << std::left << (*D::m_registeredModules)[mod];
         std::string str = dstr.str().substr(0, 10);
         return str;
     }
@@ -210,7 +211,18 @@ private:
         return am;
     }
 
-    static std::map<RegisteredModuleType, std::string> m_registeredModules;
+    static void init() {
+        m_registeredModules = new std::map<RegisteredModuleType, std::string>;
+        *m_registeredModules = D::fillInModuleTypes();
+
+        m_activeModules = D::fillInActiveModules();
+    }
+
+    static void release() {
+        delete m_registeredModules;
+    }
+
+    static std::map<RegisteredModuleType, std::string> * m_registeredModules;
     static int m_activeModules;
 };
 
