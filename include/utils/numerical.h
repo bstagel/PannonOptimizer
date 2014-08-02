@@ -21,7 +21,8 @@
 #define DOUBLE_TYPE DOUBLE_CLASSIC
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-#define COPY_DOUBLES(dest, src, count) memcpy(dest, src, sizeof(Numerical::Double) * count);
+#define COPY_DOUBLES(dest, src, count) panOptMemcpy(dest, src, sizeof(Numerical::Double) * count);
+//memcpy(dest, src, sizeof(Numerical::Double) * count);
 #else
 #define COPY_DOUBLES(dest, src, count) {unsigned int _count = (count); \
     for(unsigned int i = 0; i < _count; i++) { \
@@ -37,6 +38,10 @@
  */
 class Numerical
 {
+    friend class InitPanOpt;
+private:
+    static void init();
+
 public:
 
     /**
@@ -337,17 +342,20 @@ public:
      */
     static const Double Infinity;
 
+    //static const Double & AbsoluteTolerance;
+    //static const Double & RelativeTolerance;
+
     /**
      * This is a reference of numerical parameter "AbsoluteTolerance".
      * See LinalgParameterHandler for details.
      */
-    static const Double & AbsoluteTolerance;
+    static Double AbsoluteTolerance;
 
     /**
      * This is a reference of numerical parameter "RelativeTolerance".
      * See LinalgParameterHandler for details.
      */
-    static const Double & RelativeTolerance;
+    static Double RelativeTolerance;
 
     /**
      * Does fuzzy comparison for checking equality on two Double variables
