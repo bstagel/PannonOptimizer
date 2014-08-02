@@ -17,7 +17,7 @@
 class LinalgParameterHandler : public ParameterHandler
 {
     friend class LinalgParameterHandlerTestSuite;
-
+    friend class InitPanOpt;
 public:
     /**
      * Returns an instance of the ParameterHandler static object.
@@ -42,6 +42,10 @@ private:
      * The default filename to read the paramters from or write them to.
      */
     THREAD_STATIC_DECL const char * sm_defaultFilename;
+
+    static LinalgParameterHandler * sm_instance;
+
+    static void init();
 
     /**
      * Constructor of the LinalgParameterHandler class.
