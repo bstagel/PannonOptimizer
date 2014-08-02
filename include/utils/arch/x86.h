@@ -57,11 +57,11 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
 #define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_32
 #define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_32
 */
-#define MEMCPY_CACHE_SSE2 memcpy
-#define MEMCPY_NO_CACHE_SSE4_1 memcpy
+#define MEMCPY_CACHE_SSE2 ::memcpy
+#define MEMCPY_NO_CACHE_SSE4_1 ::memcpy
 
-#define DENSE_TO_DENSE_UNSTABLE_SSE2 denseToDenseDotProductUnstable
-#define DENSE_TO_DENSE_UNSTABLE_AVX denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_AVX ::denseToDenseDotProductUnstable
 
 #else
 #ifdef UNIX
@@ -91,11 +91,11 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
 #define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_windows
 */
 
-#define MEMCPY_CACHE_SSE2 memcpy
-#define MEMCPY_NO_CACHE_SSE4_1 memcpy
+#define MEMCPY_CACHE_SSE2 ::memcpy
+#define MEMCPY_NO_CACHE_SSE4_1 ::memcpy
 
-#define DENSE_TO_DENSE_UNSTABLE_SSE2 denseToDenseDotProductUnstable
-#define DENSE_TO_DENSE_UNSTABLE_AVX denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_AVX ::denseToDenseDotProductUnstable
 
 
 #endif

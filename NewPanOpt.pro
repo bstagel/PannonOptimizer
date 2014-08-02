@@ -53,8 +53,18 @@ win32-g++:contains(QMAKE_HOST.arch, x86_64):{
     message(Windows 64 bit system)
 }
 
-win32-g++:contains(QMAKE_HOST.arch, x86_32):{
+#win32-g++:contains(QMAKE_HOST.arch, x86_32):{
+win32 {
     message(Windows 32 bit system)
+    QMAKE_EXTRA_COMPILERS += nasmproc32
+    ASM_SRCS_32 += src/utils/arch/x86/cpuinfo32.asm
+        #src/utils/arch/x86/memcpy32.asm
+    #message($${DESTDIR}../$${OBJECTS_DIR}/$${QMAKE_FILE_BASE}.o)
+    message($${DESTDIR}/$${OBJECTS_DIR}/$${QMAKE_FILE_BASE})
+    nasmproc32.output = ${DESTDIR}/../${OBJECTS_DIR}/${QMAKE_FILE_BASE}.o
+    #message($${QMAKE_FILE_OUT})
+    nasmproc32.commands = nasm -f win32 ${QMAKE_FILE_NAME} -g -o ${QMAKE_FILE_OUT}
+    nasmproc32.input = ASM_SRCS_32
 }
 
 
