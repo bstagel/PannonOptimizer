@@ -8,6 +8,98 @@
 
 #include <globals.h>
 #include <utils/architecture.h>
+#include <cstring>
+
+#define PLATFORM_X86
+
+
+extern "C" void _cpuinfo_64_linux(unsigned int eax,
+                                  unsigned int ebx,
+                                  unsigned int ecx,
+                                  unsigned int edx,
+                                  unsigned int * results);
+
+extern "C" void _cpuinfo_32(unsigned int eax,
+                            unsigned int ebx,
+                            unsigned int ecx,
+                            unsigned int edx,
+                            unsigned int * results);
+
+extern "C" bool _cpuinfo_supported_32();
+
+extern "C" void * _memcpy_sse2_64_linux_cread_cwrite(void * dest, const void * src, unsigned long count);
+extern "C" void * _memcpy_sse4_1_64_linux_ntread_ntwrite(void * dest, const void * src, unsigned long count);
+
+extern "C" double _denseToDenseDotProduct_unstable_SSE2_64_linux(const double * vec1,
+                                                                 const double * vec2,
+                                                                 size_t count);
+
+extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * vec1,
+                                                                const double * vec2,
+                                                                size_t count);
+
+// TODO: lehet hogy 32 bit alatt ugyanugy nez majd ki linux es windows alatt
+// ezt meg ellenorizni kell, ha igaz, akkor egyszerubbe valik a kod kicsit
+
+
+
+#ifdef ENVIRONMENT_32
+
+/*****************************************
+ * UNIX, 32 bit
+ ****************************************/
+
+#define CPUID(eax, ebx, ecx, edx, results) \
+    _cpuinfo_32(eax, ebx, ecx, edx, results);
+/*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_32_cread_cwrite
+#define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_32_ntread_ntwrite
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_32
+#define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_32
+*/
+#define MEMCPY_CACHE_SSE2 memcpy
+#define MEMCPY_NO_CACHE_SSE4_1 memcpy
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_AVX denseToDenseDotProductUnstable
+
+#else
+#ifdef UNIX
+
+/*****************************************
+ * UNIX, 64 bit
+ ****************************************/
+
+#define CPUID(eax, ebx, ecx, edx, results) \
+    _cpuinfo_64_linux(eax, ebx, ecx, edx, results);
+#define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_linux_cread_cwrite
+#define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_linux_ntread_ntwrite
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_64_linux
+#define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_linux
+
+#else
+/*****************************************
+ * Windows, 64 bit
+ ****************************************/
+#define CPUID(eax, ebx, ecx, edx, results) \
+    _cpuinfo_64_windows(eax, ebx, ecx, edx, results);
+/*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_windows_cread_cwrite
+#define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_windows_ntread_ntwrite
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_64_windows
+#define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_windows
+*/
+
+#define MEMCPY_CACHE_SSE2 memcpy
+#define MEMCPY_NO_CACHE_SSE4_1 memcpy
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_UNSTABLE_AVX denseToDenseDotProductUnstable
+
+
+#endif
+#endif
 
 /**
  * This class implements detection of properties of x86 architectures.
@@ -48,8 +140,10 @@ public:
 
 protected:
 
+    std::string m_vendor;
+
     /**
-     * Struct for storing the addresses of registers.
+     * Struct for storing the values of registers.
      */
     struct Registers {
         unsigned int m_eax;
@@ -69,11 +163,13 @@ protected:
                          unsigned int start,
                          unsigned int end);
 
+    bool cpuidSupported();
+
     /**
      * Queries a cpuid command from the processor.
      *
-     * @param args The register addresses the return of the cpuid command to be extracted to.
-     * @return The register addresses containing the input of the cpuid command.
+     * @param args The register values the return of the cpuid command to be extracted to.
+     * @return The register values containing the input of the cpuid command.
      */
     Registers cpuid(Registers args) const;
 
@@ -125,6 +221,12 @@ protected:
      * Queries the memory size from the system.
      */
     void setMemoryData();
+
+    void setPrimitives();
+
+    void setMemcpy();
+
+    void setDenseToDenseDotProduct();
 };
 
 #endif // X86_H
