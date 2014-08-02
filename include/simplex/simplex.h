@@ -585,6 +585,9 @@ protected:
                    const std::vector<unsigned int>& boundflips,
                    Numerical::Double* primalTheta);
 
+    void registerIntoIterationReport(const IterationReportProvider & provider);
+
+    Numerical::Double sensitivityAnalysisRhs() const;
 };
 
 #endif /* SIMPLEX_H */
