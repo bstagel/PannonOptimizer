@@ -1,10 +1,6 @@
 #include <lp/presolver.h>
 #include <debug.h>
 
-Presolver::PresolverException::~PresolverException() {
-
-}
-
 Presolver::Presolver(Model *model) {
 
     m_model = model;

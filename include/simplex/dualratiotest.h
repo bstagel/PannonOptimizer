@@ -93,13 +93,15 @@ public:
      * @param outgoingVariableIndex shows the variable choosen by the pricing to leave the basis
      * @param alpha needed to define ratios
      * @param phaseIIObjectiveValue will be computed to the ratios
+     * @param workingTolerance shows the currently used optimality tolerance
      *
      * @throws FallbackException if there is any infeasible variable
      * @throws DualUnboundedException if no breakpoint was found
      */
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
-                                Numerical::Double phaseIIObjectiveValue);
+                                Numerical::Double phaseIIObjectiveValue,
+                                Numerical::Double workingTolerance);
 
     //Ratiotest study
     /**
@@ -324,6 +326,7 @@ private:
      * With this function we can define ratios corresponding to the expanding tolerance.
      * @param alpha the reduced cost values are devided by the alpha values
      * @param workingTolerance shows the value of the expanding tolerance in the current iteration
+     * @param secondTurn is an optional parameter for the second pass of the expand procedure
      */
     void generateExpandedBreakpointsPhase1(const Vector& alpha,
                                            Numerical::Double workingTolerance,
@@ -355,6 +358,15 @@ private:
      * @param alpha the reduced cost values are devided by the alpha values
      */
     void generateSignedBreakpointsPhase2(const Vector& alpha);
+
+    /**
+     * With this function we can define ratios corresponding to the expanding tolerance.
+     * @param alpha the reduced cost values are devided by the alpha values
+     * @param workingTolerance shows the value of the expanding tolerance in the current iteration
+     * @param secondTurn is an optional parameter for the second pass of the expand procedure
+     */
+    void generateExpandedBreakpointsPhase2(const Vector& alpha,
+                                           Numerical::Double workingTolerance);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 2.

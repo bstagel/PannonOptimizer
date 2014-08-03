@@ -7,24 +7,29 @@
 #include <utils/thirdparty/prettyprint.h>
 
 BreakpointHandler::BreakpointHandler():
-    m_sortingMethod(BreakpointHandler::SELECTION),m_unsorted(m_breakpoints.size())
+    m_sortingMethod(BreakpointHandler::SELECTION),
+    m_unsorted(m_breakpoints.size())
 {
 
 }
 
-void BreakpointHandler::insertBreakpoint(int variableIndex, Numerical::Double value)
+void BreakpointHandler::insertBreakpoint(int variableIndex,
+                                         Numerical::Double value,
+                                         Numerical::Double expandedValue)
 {
-    m_breakpoints.emplace_back(variableIndex,value,-Numerical::Infinity);
+    m_breakpoints.emplace_back(variableIndex,value,expandedValue,-Numerical::Infinity);
 }
 
 const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
 {
     int size = m_breakpoints.size();
 
+#ifndef NDEBUG
     if (index >= size){
         LPERROR("Invalid index in getBreakpoint()");
         exit(-1);
     }
+#endif
 
 //    checkHeap();
     if (m_sortingMethod == BreakpointHandler::HEAP){
@@ -54,22 +59,17 @@ void BreakpointHandler::printBreakpoints() const
     LPINFO(m_breakpoints);
 }
 
-void BreakpointHandler::selectMethod(int method)
+void BreakpointHandler::selectMethod(bool expand)
 {
     //currently heapsort is always selected
+    m_expand = expand;
     m_unsorted = m_breakpoints.size();
-    //one step method
-    if (method == 0){
+    if ( m_breakpoints.size() < 1){
+        m_sortingMethod = SELECTION;
+        selectionSort();
+    } else{
         m_sortingMethod = HEAP;
         buildHeap();
-    }else{
-        if (m_breakpoints.size() < 1){
-            m_sortingMethod = SELECTION;
-            selectionSort();
-        } else{
-            m_sortingMethod = HEAP;
-            buildHeap();
-        }
     }
 }
 
@@ -79,18 +79,54 @@ void BreakpointHandler::init(unsigned maxNumberOfBreakpoints)
     m_breakpoints.reserve(maxNumberOfBreakpoints);
 }
 
+const std::vector<BreakpointHandler::BreakPoint> &BreakpointHandler::getExpandSecondPass(Numerical::Double theta)
+{
+    //reserve the maximal possible number: total number of breakpoints
+    m_secondPassRatios.reserve(m_breakpoints.size());
+    const BreakPoint * breakpoint = NULL;
+
+    for(unsigned i=0; i < m_breakpoints.size(); i++){
+        breakpoint = getBreakpoint(i);
+        //actual values smaller than the theta parameter
+        if(breakpoint->value <= theta){
+            m_secondPassRatios.push_back(*breakpoint);
+        //breakpoints come sorted, breaking out at first bigger value
+        }else{
+            break;
+        }
+    }
+    return m_secondPassRatios;
+}
+
 void BreakpointHandler::selectionSort()
 {
     int maxId = 0;
-    for(unsigned i=0; i < m_breakpoints.size()-1; i++){
-        maxId = i;
-        for(unsigned j=i+1; j < m_breakpoints.size(); j++){
-            if (m_breakpoints[j].value > m_breakpoints[maxId].value){
-                maxId = j;
+
+    //sort expanded values
+    if(m_expand){
+        for(unsigned i=0; i < m_breakpoints.size()-1; i++){
+            maxId = i;
+            for(unsigned j=i+1; j < m_breakpoints.size(); j++){
+                if (m_breakpoints[j].expandedValue > m_breakpoints[maxId].expandedValue){
+                    maxId = j;
+                }
             }
+
+            swapBreakpoints(maxId,i);
         }
 
-        swapBreakpoints(maxId,i);
+    //sort actual values
+    }else{
+        for(unsigned i=0; i < m_breakpoints.size()-1; i++){
+            maxId = i;
+            for(unsigned j=i+1; j < m_breakpoints.size(); j++){
+                if (m_breakpoints[j].value > m_breakpoints[maxId].value){
+                    maxId = j;
+                }
+            }
+
+            swapBreakpoints(maxId,i);
+        }
     }
     m_unsorted = 0;
 }
@@ -101,12 +137,23 @@ void BreakpointHandler::heapify(int actual)
     int right = left+1;
     int smallest = actual;
 
-    //choosing smallest element
-    if (left < m_unsorted && (m_breakpoints[left].value < m_breakpoints[smallest].value) ) {
-        smallest = left;
-    }
-    if (right < m_unsorted && (m_breakpoints[right].value < m_breakpoints[smallest].value) ) {
-        smallest = right;
+    //choosing smallest element (expanded value)
+    if(m_expand){
+        if (left < m_unsorted && (m_breakpoints[left].expandedValue < m_breakpoints[smallest].expandedValue) ) {
+            smallest = left;
+        }
+        if (right < m_unsorted && (m_breakpoints[right].expandedValue < m_breakpoints[smallest].expandedValue) ) {
+            smallest = right;
+        }
+
+    //choosing smallest element (actual value)
+    }else{
+        if (left < m_unsorted && (m_breakpoints[left].value < m_breakpoints[smallest].value) ) {
+            smallest = left;
+        }
+        if (right < m_unsorted && (m_breakpoints[right].value < m_breakpoints[smallest].value) ) {
+            smallest = right;
+        }
     }
     //put smallest to actual, recursive call
     if (smallest != actual){
@@ -123,25 +170,54 @@ void BreakpointHandler::buildHeap()
 }
 
 void BreakpointHandler::checkHeap(){
-    double ref = m_breakpoints.at(0).value;
-    for(int i=0; i<m_unsorted; i++){
-        if(m_breakpoints.at(i).value < ref){
-            LPINFO("BAD HEAP: ");
-            LPINFO("ref: "<<ref);
-            LPINFO("val: "<<m_breakpoints.at(i).value);
-            LPINFO("unsorted: "<<m_unsorted);
-            printBreakpoints();
-            exit(-1);
+    Numerical::Double ref = 0;
+
+    //check expanded Values
+    if(m_expand){
+        ref = m_breakpoints.at(0).expandedValue;
+        for(int i=0; i<m_unsorted; i++){
+            if(m_breakpoints.at(i).expandedValue < ref){
+                LPINFO("BAD HEAP: ");
+                LPINFO("ref: "<<ref);
+                LPINFO("expandedValue: "<<m_breakpoints.at(i).expandedValue);
+                LPINFO("unsorted: "<<m_unsorted);
+                printBreakpoints();
+                exit(-1);
+            }
         }
-    }
-    for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
-        if(ref < m_breakpoints.at(i).value){
-            LPINFO("BAD SORT:");
-            LPINFO("ref: "<<ref);
-            LPINFO("val: "<<m_breakpoints.at(i).value);
-            LPINFO("unsorted: "<<m_unsorted);
-            printBreakpoints();
-            exit(-1);
+        for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
+            if(ref < m_breakpoints.at(i).expandedValue){
+                LPINFO("BAD SORT:");
+                LPINFO("ref: "<<ref);
+                LPINFO("expandedValue: "<<m_breakpoints.at(i).expandedValue);
+                LPINFO("unsorted: "<<m_unsorted);
+                printBreakpoints();
+                exit(-1);
+            }
+        }
+
+    //check actual Values
+    }else{
+        ref = m_breakpoints.at(0).value;
+        for(int i=0; i<m_unsorted; i++){
+            if(m_breakpoints.at(i).value < ref){
+                LPINFO("BAD HEAP: ");
+                LPINFO("ref: "<<ref);
+                LPINFO("val: "<<m_breakpoints.at(i).value);
+                LPINFO("unsorted: "<<m_unsorted);
+                printBreakpoints();
+                exit(-1);
+            }
+        }
+        for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
+            if(ref < m_breakpoints.at(i).value){
+                LPINFO("BAD SORT:");
+                LPINFO("ref: "<<ref);
+                LPINFO("val: "<<m_breakpoints.at(i).value);
+                LPINFO("unsorted: "<<m_unsorted);
+                printBreakpoints();
+                exit(-1);
+            }
         }
     }
 }

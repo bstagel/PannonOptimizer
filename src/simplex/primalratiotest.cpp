@@ -326,7 +326,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 //    m_breakpointHandler.printBreakpoints();
 
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
-        m_breakpointHandler.selectMethod(m_nonlinearPrimalPhaseIFunction);
+        m_breakpointHandler.selectMethod();
 
         //fake feasible variables
         if (m_enableFakeFeasibility) {
@@ -469,7 +469,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
     }
 
     generateBreakpointsPhase2(alpha);
-    m_breakpointHandler.selectMethod(ONE_STEP);
+    m_breakpointHandler.selectMethod();
 
     if ( m_breakpointHandler.getNumberOfBreakpoints() > 0 ) {
         const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(0);
