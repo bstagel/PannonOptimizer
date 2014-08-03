@@ -17,8 +17,7 @@ class BreakpointHandler
 {
 public:
     /**
-     * This structure describes a Breakpoint, one point of the piecewise linear concave
-     * function in the ratiotest.
+     * This structure describes a Breakpoint, one point of the piecewise linear concave function in the ratiotest.
      *
      * @struct BreakPoint
      */
@@ -29,6 +28,7 @@ public:
          * @param value shows the actual value of the ratio
          * @param expandedValue shows the expanded value of the ratio
          * @param functionValue defines the corresponding objective function value to the ratio
+         * @constructor
          */
         BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue, Numerical::Double functionValue):
             variableIndex(variableIndex),
@@ -38,6 +38,7 @@ public:
 
         /**
          * Default desctructor of the Breakpoint structure.
+         * @destructor
          */
         ~BreakPoint(){}
 
