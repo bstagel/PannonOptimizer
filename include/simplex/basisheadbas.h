@@ -146,9 +146,9 @@ private:
     class VariableIndexHash {
     public:
         /**
-         * I don't have a clue what this is good for. Anyway it does some low level operations.
+         * This function performs an SHA-1 cryptographic algorithm.
          * @param vi is a variable and its index
-         * @return bits? how surprising is that? :O
+         * @return the produced hash value.
          */
         static unsigned int getHash(const VariableIndex & vi) {
             unsigned int bits = 0;

@@ -27,11 +27,13 @@ public:
          * This is an initializing constructor.
          * @param variableIndex shows the variable, which defined this breakpoint
          * @param value shows the actual value of the ratio
+         * @param expandedValue shows the expanded value of the ratio
          * @param functionValue defines the corresponding objective function value to the ratio
          */
-        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double functionValue):
+        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue, Numerical::Double functionValue):
             variableIndex(variableIndex),
             value(value),
+            expandedValue(expandedValue),
             functionValue(functionValue){}
 
         /**
@@ -48,6 +50,11 @@ public:
          * Shows the actual value of the ratio.
          */
         Numerical::Double value;
+
+        /**
+         * Shows the expanded value of the ratio.
+         */
+        Numerical::Double expandedValue;
 
         /**
          * Defines the corresponding objective function value to the ratio.
@@ -90,8 +97,9 @@ public:
      * With this function we can add a breakpoint to the Breakpointhandler, which stores them in a vector.
      * @param variableIndex shows the variable that defined the breakpoint
      * @param value is the actual value of the ratio
+     * @param expandedValue is the expanded value of the ratio
      */
-    void insertBreakpoint(int variableIndex, Numerical::Double value);
+    void insertBreakpoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue = Numerical::Infinity);
 
     /**
      * This is the function which provides the breakpoints to the ratiotests.
@@ -123,15 +131,23 @@ public:
 
     /**
      * In this function we can implement in what case what sorting algorithm we want to use.
-     * @param method is one of the implemented methods in the ratiotest
+     * @param expand shows if the expanded values of the breakpoints should be considered
      */
-    void selectMethod(int method);
+    void selectMethod(bool expand = false);
 
     /**
      * A simple initializing function which performs a clear() and a reserve() operation.
      * @param maxNumberOfBreakpoints shows how many elements are to be reserved
      */
     void init(unsigned maxNumberOfBreakpoints);
+
+    /**
+     * Function returning the second pass ratios of expand procedure.
+     * In the first pass ratios with expanded bounds are defined, and a theta steplength is choosen among them.
+     * In the second pass we need ratios (defined with exact bounds) smaller than parameter theta.
+     * @param theta is the steplength definded by expanded bounds
+     */
+    const std::vector<BreakPoint>& getExpandSecondPass(Numerical::Double theta);
 
 private:
     /**
@@ -150,6 +166,17 @@ private:
      * can be obtained if we substract this value from the size of the vector.
      */
     int m_unsorted;
+
+    /**
+     * This member indicates whther the expand procedure is turned on or not.
+     * If it is on then the expanded values of the breakpoints will be considered.
+     */
+    bool m_expand;
+
+    /**
+     * Vector containing the ratios of the expand second pass.
+     */
+    std::vector<BreakPoint> m_secondPassRatios;
 
     /**
      * An implemented sorting method: the selection sort algorithm.

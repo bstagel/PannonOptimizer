@@ -356,7 +356,7 @@ void DualSimplex::selectPivot() {
             Numerical::Double reducedCost = m_pricing ? m_pricing->getReducedCost() : m_pricingController->getReducedCost();
             m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue,m_workingTolerance);
         } else {
-            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_objectiveValue);
+            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_objectiveValue,m_workingTolerance);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
 
@@ -557,7 +557,7 @@ void DualSimplex::checkReferenceObjective() {
 
 void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") > 0 ) {
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") > 1 ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {
