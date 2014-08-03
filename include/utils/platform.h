@@ -76,6 +76,9 @@
     #define ALWAYS_INLINE inline
 #endif
 
+/************************************************
+ * ARCHITECTURES
+ ***********************************************/
 
 #if INTPTR_MAX == INT32_MAX
     #define ENVIRONMENT_32
@@ -84,5 +87,26 @@
 #else
     #error "Environment not 32 or 64-bit."
 #endif
+
+#ifdef __x86_64
+#define     PLATFORM_X86
+#endif
+
+#ifdef __x86_64__
+#define     PLATFORM_X86
+#endif
+
+#ifdef i386
+#define     PLATFORM_X86
+#endif
+
+#ifdef __i386
+#define     PLATFORM_X86
+#endif
+
+#ifdef _i386_
+#define     PLATFORM_X86
+#endif
+
 
 #endif // PLATFORM_H

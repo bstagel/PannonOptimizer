@@ -9,9 +9,7 @@
 #include <globals.h>
 #include <utils/architecture.h>
 #include <cstring>
-
-#define PLATFORM_X86
-
+#include <utils/platform.h>
 
 extern "C" void _cpuinfo_64_linux(unsigned int eax,
                                   unsigned int ebx,
@@ -140,7 +138,12 @@ public:
 
 protected:
 
+
     std::string m_vendor;
+
+    unsigned int m_largestFunction;
+
+    unsigned int m_largestExtendedFunction;
 
     /**
      * Struct for storing the values of registers.
@@ -180,14 +183,14 @@ protected:
      * @see Architecture::m_caches
      * @param cacheId The ID of the cache to be queried.
      */
-    void loadCacheInfo(int cacheId);
+    void loadCacheInfoIntel(int cacheId);
 
     /**
      * Returns the number of caches in the current computer.
      *
      * @return The number of caches.
      */
-    unsigned int getCacheCount() const;
+    unsigned int getCacheCountIntel() const;
 
     /**
      * Gets the name of the CPU from the processor.
@@ -216,6 +219,14 @@ protected:
      * Queries the cache count and the cache data from each cache from the processor.
      */
     void setCacheData();
+
+    void setCacheDataIntel();
+
+    void setCacheDataAMD();
+
+    unsigned int getAMDL2L3CacheAssociativity(unsigned int pattern);
+
+    void showAMDCacheInfo(const Cache & info);
 
     /**
      * Queries the memory size from the system.

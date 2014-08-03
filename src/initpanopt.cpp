@@ -5,8 +5,10 @@
 #include <debug.h>
 #include <iostream>
 #include <cstdio>
+#include <utils/platform.h>
 
 using namespace std;
+
 
 // architectures
 #ifdef PLATFORM_X86

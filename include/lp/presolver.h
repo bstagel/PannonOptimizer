@@ -67,8 +67,13 @@ public:
 
     class PresolverException : public PanOptException {
     public:
+        // Bori: ha linkeltem a libet a solverhez,
+        // akkor a linker hianyolta a destruktort es a
+        // default konstruktort, most beirtam ide hogy forduljon,
+        // de ezt gondold at
+        PresolverException() : PanOptException("") {}
         PresolverException(const std::string & message) : PanOptException::PanOptException(message) {}
-        ~PresolverException();
+        ~PresolverException() {}
     };
 
     /**

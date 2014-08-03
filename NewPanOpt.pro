@@ -225,7 +225,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/startingbasisfinder/sbf_structural.cpp \
     src/initpanopt.cpp \
     src/utils/architecture.cpp \
-    src/utils/primitives.cpp
+    src/utils/primitives.cpp \
+    src/utils/arch/unknown.cpp
 
 #OBJECTS_DIR = .o
 
