@@ -20,7 +20,7 @@ using namespace std;
 //static const InitPanOpt & instance = InitPanOpt::getInstance();
 
 InitPanOpt * InitPanOpt::sm_instance;
-Architecture * InitPanOpt::sm_architecture;
+ArchitectureInterface * InitPanOpt::sm_architecture;
 
 InitPanOpt::InitPanOpt() {
 
@@ -65,7 +65,7 @@ void InitPanOpt::init() {
 
 }
 
-const Architecture & InitPanOpt::getArchitecture() const {
+const ArchitectureInterface & InitPanOpt::getArchitecture() const {
     return *sm_architecture;
 }
 

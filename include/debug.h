@@ -147,80 +147,23 @@ public:
         SBF_CPLEX = 1 << 15
     };
 
-    inline static std::string getName(RegisteredModuleType mod)
-    {
-        std::ostringstream dstr;
-        dstr << std::setw(15) << std::left << (*D::m_registeredModules)[mod];
-        std::string str = dstr.str().substr(0, 10);
-        return str;
-    }
+    static std::string getName(RegisteredModuleType mod);
 
-    inline static int getActiveModules()
-    {
-        return D::m_activeModules;
-    }
+    static int getActiveModules();
 
-    inline static void disableModule(RegisteredModuleType mod)
-    {
-        D::m_activeModules &= ~mod;
-    }
+    static void disableModule(RegisteredModuleType mod);
 
-    inline static void enableModule(RegisteredModuleType mod)
-    {
-        D::m_activeModules |= mod;
-    }
+    static void enableModule(RegisteredModuleType mod);
 
 private:
 
-    static std::map<RegisteredModuleType, std::string> fillInModuleTypes()
-    {
-        std::map<RegisteredModuleType, std::string> map;
-        map.insert(std::make_pair(D::MPSREADER, "MpsReader"));
-        map.insert(std::make_pair(D::PRESOLVER, "Presolver"));
-        map.insert(std::make_pair(D::CFMAKER, "ComputationalFormMaker"));
-        map.insert(std::make_pair(D::STARTINGBASISFINDER, "StartingBasisFinder"));
-        map.insert(std::make_pair(D::PFIMAKER, "PFIMaker"));
-        map.insert(std::make_pair(D::SIMPLEX, "Simplex"));
-        map.insert(std::make_pair(D::RATIOTEST, "RatioTest"));
-        map.insert(std::make_pair(D::FEASIBILITYCHECK, "FeasibilityCheck"));
-        map.insert(std::make_pair(D::MODEL, "Model"));
-        map.insert(std::make_pair(D::PRICING, "Pricing"));
-        map.insert(std::make_pair(D::SBF_SUPER, "SBF/Super"));
-        map.insert(std::make_pair(D::SBF_LOGICAL, "SBF/Logical"));
-        map.insert(std::make_pair(D::SBF_SYMBO, "SBF/SymboCrash"));
-        map.insert(std::make_pair(D::SBF_LTSF, "SBF/LTSF"));
-        map.insert(std::make_pair(D::SBF_ADG, "SBF/ADGl"));
-        map.insert(std::make_pair(D::SBF_CPLEX, "SBF/CPLEX"));
-        return map;
-    }
+    static std::map<RegisteredModuleType, std::string> fillInModuleTypes();
 
-    static int fillInActiveModules()
-    {
-        int am = 0;
-        //        am |= D::MPSREADER;
-        //        am |= D::PRESOLVER;
-        //        am |= D::CFMAKER;
-        //        am |= D::STARTINGBASISFINDER;
-        //        am |= D::PFIMAKER;
-        //        am |= D::SBF1;
-        //        am |= D::SIMPLEX;
-        //        am |= D::RATIOTEST;
-        //        am |= D::FEASIBILITYCHECK;
-        //        am |= D::MODEL;
-        //        am |= D::PRICING;
-        return am;
-    }
+    static int fillInActiveModules();
 
-    static void init() {
-        m_registeredModules = new std::map<RegisteredModuleType, std::string>;
-        *m_registeredModules = D::fillInModuleTypes();
+    static void init();
 
-        m_activeModules = D::fillInActiveModules();
-    }
-
-    static void release() {
-        delete m_registeredModules;
-    }
+    static void release();
 
     static std::map<RegisteredModuleType, std::string> * m_registeredModules;
     static int m_activeModules;

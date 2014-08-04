@@ -6,8 +6,6 @@
 #define MEMORYMAN_H
 
 #include <cstddef>
-#include <cstdio>
-#include <ctime>
 
 #define CLASSIC_NEW_DELETE
 
@@ -281,35 +279,21 @@ union Pointer {
 
 template <class T, unsigned alignment>
 T * alloc(int size) {
-    /*static clock_t start, end;
-    static double time = 0;
-    static unsigned int counter = 0;
-    counter++;
-    start = clock();*/
     size *= sizeof(T);
 #ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];
 #else
     char * originalPtr = (char*)MemoryManager::allocate(size + alignment + sizeof(void*));
 #endif
-
-    //    end = clock();
     char * ptr2 = originalPtr + alignment + sizeof(void*);
 
     Pointer ptr;
     ptr.ptr = ptr2;
     ptr.bits &= ~((1 << Logarithm<alignment>::value) - 1);
-    //ptr.bits >>= Logarithm<alignment>::value;
-    //ptr.bits <<= Logarithm<alignment>::value;
     ptr2 = static_cast<char*>(ptr.ptr);
     ptr2 -= sizeof(void*);
     *((char**)ptr2) = originalPtr;
     ptr2 = ptr2 + sizeof(void*);
-
-    /*time += (end - start) / (double)CLOCKS_PER_SEC;
-    if (counter % 10000 == 0  && sizeof(T) == 8 ) {
-        printf("TIME: %lg\n", time);
-    }*/
     return reinterpret_cast<T*>(ptr2);
 }
 
