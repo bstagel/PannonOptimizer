@@ -1,6 +1,6 @@
 
 
-SECTION .text
+SECTION .data
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Dense to dense dot product, unstable,

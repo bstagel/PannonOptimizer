@@ -1,4 +1,6 @@
 
+SECTION .data
+
 global _cpuinfo_32
 
 _cpuinfo_32:

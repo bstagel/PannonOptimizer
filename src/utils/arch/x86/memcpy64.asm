@@ -3,7 +3,7 @@
 ; menjen az olvasas es iras
 ; vegen a maradekot kulon kezelni
 
-SECTION .text
+SECTION .data
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Use cache for read and write

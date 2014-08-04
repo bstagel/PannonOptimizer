@@ -17,13 +17,13 @@ extern "C" void _cpuinfo_64_linux(unsigned int eax,
                                   unsigned int edx,
                                   unsigned int * results);
 
-extern "C" void _cpuinfo_32(unsigned int eax,
+extern "C" void cpuinfo_32(unsigned int eax,
                             unsigned int ebx,
                             unsigned int ecx,
                             unsigned int edx,
                             unsigned int * results);
 
-extern "C" bool _cpuinfo_supported_32();
+extern "C" int cpuinfo_supported_32();
 
 extern "C" void * _memcpy_sse2_64_linux_cread_cwrite(void * dest, const void * src, unsigned long count);
 extern "C" void * _memcpy_sse4_1_64_linux_ntread_ntwrite(void * dest, const void * src, unsigned long count);
@@ -48,7 +48,7 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
  ****************************************/
 
 #define CPUID(eax, ebx, ecx, edx, results) \
-    _cpuinfo_32(eax, ebx, ecx, edx, results);
+    cpuinfo_32(eax, ebx, ecx, edx, results);
 /*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_32_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_32_ntread_ntwrite
 

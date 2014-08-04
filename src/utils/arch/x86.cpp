@@ -76,7 +76,7 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 bool ArchitectureX86::cpuidSupported()
 {
 #ifdef ENVIRONMENT_32
-    return _cpuinfo_supported_32();
+    return cpuinfo_supported_32();
 #else
     return true;
 #endif

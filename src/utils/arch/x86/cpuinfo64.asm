@@ -1,4 +1,6 @@
 
+SECTION .data
+
 global _cpuinfo_64_linux
 
 _cpuinfo_64_linux:
