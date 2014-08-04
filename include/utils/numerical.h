@@ -1,6 +1,6 @@
 /**
  * @file numerical.h This file contains the API of the Numerical class.
- * @author smidla, tar
+ * @author Jozsef Smidla, tar
  */
 
 #ifndef _NUMERICAL_H_

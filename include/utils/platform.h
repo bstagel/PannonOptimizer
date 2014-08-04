@@ -1,6 +1,6 @@
 /**
  * @file platform.h This file contains macros which identify the current platform.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef PLATFORM_H

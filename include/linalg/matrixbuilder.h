@@ -1,6 +1,6 @@
 /**
  * @file matrixbuilder.h This file contains the API of the MatrixBuilder pure virtual class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef MATRIXBUILDER_H
@@ -38,30 +38,34 @@ public:
      * 
      * @param index The index of the row to be built.
      * @param rowVector Pointer to the vector the row is stored in.
+     * @param nonzeros A vector of nonzeros to be stored.
      */
-    virtual void buildRow(unsigned int index, Vector * rowVector,
-        std::vector<unsigned int> * nonzeros) const = 0;
+    virtual void buildRow(unsigned int index,
+                          Vector * rowVector,
+                          std::vector<unsigned int> * nonzeros) const = 0;
 
     /**
      * Builds a column of the matrix and stores it is a Vector.
      * 
      * @param index The index of the column to be built.
      * @param columnVector Pointer to the vector the column is stored in.
+     * @param nonzeros A vector of nonzeros to be stored.
      */
-    virtual void buildColumn(unsigned int index, Vector * columnVector,
-        std::vector<unsigned int> * nonzeros) const = 0;
+    virtual void buildColumn(unsigned int index,
+                             Vector * columnVector,
+                             std::vector<unsigned int> * nonzeros) const = 0;
 
     /**
-     * Returns true if the matrix is stored row-wise.
+     * Returns true if the matrix has a rowwise representation.
      *
-     * @return True if the matrix is stored row-wise.
+     * @return True if the matrix is stored rowwise.
      */
     virtual bool hasRowwiseRepresentation() const = 0;
     
     /**
-     * Returns true if the matrix is stored column-wise.
+     * Returns true if the matrix has a columnwise representation.
      *
-     * @return True if the matrix is stored column-wise.
+     * @return True if the matrix is stored columnwise.
      */
     virtual bool hasColumnwiseRepresentation() const = 0;
 };

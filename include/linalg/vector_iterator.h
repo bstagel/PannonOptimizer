@@ -1,6 +1,6 @@
 /**
  * @file vector_iterator.h This file contains the API of the Iterator classes.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef VECTOR_ITERATOR_H

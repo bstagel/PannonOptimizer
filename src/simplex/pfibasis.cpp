@@ -19,7 +19,7 @@ double aprExpDiffSquareSum = 0;
 double aprExpDiffSum = 0;
 int aprExpCounter = 0;
 
-THREAD_STATIC_DEF int PfiBasis::m_inversionCount = 0;
+thread_local int PfiBasis::m_inversionCount = 0;
 
 PfiBasis::PfiBasis(const SimplexModel& model,
                    std::vector<int>* basisHead,
@@ -570,8 +570,8 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                         checkVal = checkPivotValue * *ptrEta;
                     }
 
-                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
-                    mul = 1.0;
+//                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+//                    mul = 1.0;
                     originalValue = val;
                     originalCheckValue = checkVal + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);
 
@@ -683,9 +683,9 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 
         if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
             //#ifdef ANALYSE_DOT_PRODUCT
-            unsigned int maxExponent = 0;
-            unsigned int minExponent = 0;
-            unsigned int sumExponentDiff = 0;
+//            unsigned int maxExponent = 0;
+//            unsigned int minExponent = 0;
+//            unsigned int sumExponentDiff = 0;
             unsigned int expCounter = 0;
             Numerical::Double neg = 0, pos = 0;
             //#endif
@@ -702,8 +702,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                         nonZeros--;
                         if (unlikely(aprInv)) {
                             Numerical::Double product = value * *ptrValue2;
-                            Numerical::Float64 bits;
-                            bits.m_value = product;
+//                            Numerical::Float64 bits;
+//                            bits.m_value = product;
 
                             if (product < 0.0 && neg != 0.0) {
                                 Numerical::Float64 bits1, bits2;
@@ -784,10 +784,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
             unsigned int * ptrIndex = iter->eta->m_index;
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
             //#ifdef ANALYSE_DOT_PRODUCT
-            unsigned int maxExponent = 0;
-            unsigned int minExponent = 0;
-            unsigned int sumExponentDiff = 0;
-            unsigned int expCounter = 0;
+//            unsigned int maxExponent = 0;
+//            unsigned int minExponent = 0;
+//            unsigned int sumExponentDiff = 0;
+//            unsigned int expCounter = 0;
             Numerical::Double neg = 0, pos = 0;
             //#endif
             // TODO: ezt atrakni kulon fuggvenybe
@@ -800,8 +800,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 
                         //if (product != 0.0) {
                         Numerical::Double product = value * *ptrValue;
-                        Numerical::Float64 bits;
-                        bits.m_value = product;
+//                        Numerical::Float64 bits;
+//                        bits.m_value = product;
 
                         if (product < 0.0 && neg != 0.0) {
                             Numerical::Float64 bits1, bits2;

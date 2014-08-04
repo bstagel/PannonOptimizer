@@ -307,7 +307,7 @@ void ImpliedBoundsModule::executeMethod() {
 
     m_constraintsToCheck = new Vector(m_parent->getModel()->constraintCount());
     m_constraintsToCheck->setSparsityRatio(0);
-    for(int i = 0; i < m_parent->getModel()->constraintCount(); i++) { m_constraintsToCheck->set(i, 1); }
+    for(unsigned int i = 0; i < m_parent->getModel()->constraintCount(); i++) { m_constraintsToCheck->set(i, 1); }
     m_constraintStack = new Vector(m_parent->getModel()->constraintCount());
     m_constraintStack->setSparsityRatio(0);
     m_variablesToFix = new Vector(m_parent->getModel()->variableCount());
@@ -317,7 +317,7 @@ void ImpliedBoundsModule::executeMethod() {
     Vector::NonzeroIterator begin = m_constraintsToCheck->beginNonzero();
     Vector::NonzeroIterator end = m_constraintsToCheck->endNonzero();
     Numerical::Double impliedUB, impliedLB;
-    int c = 0;
+//    int c = 0;
     int stackSwapCounter = 0;
     while(true) {
         if (begin >= end) {
@@ -530,7 +530,7 @@ void DualBoundsModule::executeMethod() {
 
     m_variablesToCheck = new Vector(m_parent->getModel()->variableCount());
     m_variablesToCheck->setSparsityRatio(0);
-    for(int i = 0; i < m_parent->getModel()->variableCount(); i++) { m_variablesToCheck->set(i, 1); }
+    for(unsigned int i = 0; i < m_parent->getModel()->variableCount(); i++) { m_variablesToCheck->set(i, 1); }
     m_variableStack = new Vector(m_parent->getModel()->variableCount());
     m_variableStack->setSparsityRatio(0);
     m_impliedDualLower = m_parent->getImpliedDualLower();
@@ -540,7 +540,7 @@ void DualBoundsModule::executeMethod() {
     Vector::NonzeroIterator begin = m_variablesToCheck->beginNonzero();
     Vector::NonzeroIterator end = m_variablesToCheck->endNonzero();
     Numerical::Double impliedUB, impliedLB;
-    int c = 0;
+//    int c = 0;
     int stackSwapCounter = 0;
 
     while(true) {

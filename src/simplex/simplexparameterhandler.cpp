@@ -10,7 +10,7 @@
 #include <defaultparameters.h>
 #include <initpanopt.h>
 
-THREAD_STATIC_DEF const char * SimplexParameterHandler::sm_defaultFilename = "simplex.PAR";
+thread_local const char * SimplexParameterHandler::sm_defaultFilename = "simplex.PAR";
 
 SimplexParameterHandler * SimplexParameterHandler::sm_instance = 0;
 

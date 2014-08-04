@@ -17,16 +17,13 @@
 
 #include <utils/flags.h>
 
-//const int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
-//const double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
-int ELBOWROOM = 0;
-double SPARSITY_RATIO = 0.0;
-
-THREAD_STATIC_DEF Numerical::Double * Vector::sm_fullLengthVector = 0;
-THREAD_STATIC_DEF unsigned int Vector::sm_fullLengthVectorLenght = 0;
-THREAD_STATIC_DEF unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
-THREAD_STATIC_DEF unsigned long * Vector::sm_countingSortBitVector = 0;
-THREAD_STATIC_DEF unsigned int Vector::sm_countingSortBitVectorLength = 0;
+int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+thread_local Numerical::Double * Vector::sm_fullLengthVector = 0;
+thread_local unsigned int Vector::sm_fullLengthVectorLenght = 0;
+thread_local unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
+thread_local unsigned long * Vector::sm_countingSortBitVector = 0;
+thread_local unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
 #ifdef ANALYSE_DOT_PRODUCT
     std::vector<int> diffs(3000);
@@ -37,7 +34,6 @@ Vector::Vector(unsigned int dimension, VECTOR_TYPE type)
     sm_fullLenghtReferenceCounter++;
     m_vectorType = type;
     init(dimension);
-    CHECK;
 }
 
 Vector::Vector(void *, void *, void *)
@@ -52,7 +48,98 @@ Vector::Vector(void *, void *, void *)
     m_sorted = true;
     m_sparsityRatio = SPARSITY_RATIO;
     m_sparsityThreshold = (unsigned int) Numerical::round((Numerical::Double)m_dimension * m_sparsityRatio);
-    //CHECK;
+}
+
+Vector::Vector(const Vector & original)
+{
+    sm_fullLenghtReferenceCounter++;
+    m_data = 0;
+    copy(original);
+}
+
+Vector::Vector(const Vector& original, Numerical::Double lambda)
+{
+    sm_fullLenghtReferenceCounter++;
+    m_vectorType = original.m_vectorType;
+    m_size = original.m_size;
+    m_dimension = original.m_dimension;
+    m_capacity = original.m_capacity;
+    m_nonZeros = original.m_nonZeros;
+    m_sparsityRatio = original.m_sparsityRatio;
+    m_sparsityThreshold = original.m_sparsityThreshold;
+    m_sorted = original.m_sorted;
+    if (m_capacity == 0) {
+        m_data = 0;
+        m_index = 0;
+    } else {
+        if (m_vectorType == DENSE_VECTOR) {
+            m_data = allocateData(m_capacity);
+            m_index = 0;
+        } else {
+            m_data = allocateData(m_capacity);
+            m_index = allocateIndex(m_capacity);
+            memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
+        }
+    }
+    m_dataEnd = m_data + m_size;
+    Numerical::Double * actualData = m_data;
+    Numerical::Double * originalData = original.m_data;
+    const Numerical::Double * end = original.m_dataEnd;
+    for (; originalData < end; originalData++, actualData++) {
+        *actualData = *originalData * lambda;
+    }
+}
+
+Vector::~Vector()
+{
+    freeData(m_data);
+    freeIndex(m_index);
+    sm_fullLenghtReferenceCounter--;
+    if (sm_fullLenghtReferenceCounter == 0) {
+        release(sm_fullLengthVector);
+        //delete [] sm_fullLengthVector;
+        sm_fullLengthVector = 0;
+        sm_fullLengthVectorLenght = 0;
+
+        release(sm_countingSortBitVector);
+        //delete [] sm_countingSortBitVector;
+        sm_countingSortBitVector = 0;
+        sm_countingSortBitVectorLength = 0;
+
+
+#ifdef ANALYSE_DOT_PRODUCT
+        std::ofstream ofs("diffs.txt");
+        unsigned int index = 0;
+        for (index = 0; index < diffs.size(); index++) {
+            ofs << index << ";" << diffs[index] << endl;
+        }
+        ofs.close();
+#endif
+    }
+}
+
+void Vector::clear()
+{
+    m_nonZeros = 0;
+    if (m_sparsityThreshold == 0) {
+        Numerical::Double * ptr = m_data;
+        for (; ptr < m_dataEnd; ptr++) {
+            *ptr = 0.0;
+        }
+    } else {
+        if (m_vectorType == DENSE_VECTOR) {
+
+            m_index = allocateIndex(m_capacity);
+            m_size = 0;
+            m_dataEnd = m_data;
+            m_vectorType = SPARSE_VECTOR;
+
+        } else {
+            m_size = 0;
+            m_dataEnd = m_data;
+        }
+    }
+    m_sorted = true;
 }
 
 void Vector::reInit(unsigned int dimension)
@@ -62,7 +149,6 @@ void Vector::reInit(unsigned int dimension)
         freeIndex(m_index);
     }
     init(dimension);
-    CHECK;
 }
 
 Numerical::Double * Vector::allocateData(unsigned int capacity)
@@ -86,16 +172,12 @@ unsigned int * Vector::allocateIndex(unsigned int capacity)
 void Vector::freeData(Numerical::Double * & data)
 {
     release(data);
-    //LPINFO("release utan");
-    //std::cin.get();
-    //delete [] data;
     data = 0;
 }
 
 void Vector::freeIndex(unsigned int * & index)
 {
     release(index);
-    //delete [] index;
     index = 0;
 }
 
@@ -141,107 +223,12 @@ void Vector::init(unsigned int dimension)
     }
 }
 
-Vector::~Vector()
-{
-    freeData(m_data);
-    freeIndex(m_index);
-    sm_fullLenghtReferenceCounter--;
-    if (sm_fullLenghtReferenceCounter == 0) {
-        release(sm_fullLengthVector);
-        //delete [] sm_fullLengthVector;
-        sm_fullLengthVector = 0;
-        sm_fullLengthVectorLenght = 0;
-
-        release(sm_countingSortBitVector);
-        //delete [] sm_countingSortBitVector;
-        sm_countingSortBitVector = 0;
-        sm_countingSortBitVectorLength = 0;
-
-
-#ifdef ANALYSE_DOT_PRODUCT
-        std::ofstream ofs("diffs.txt");
-        unsigned int index = 0;
-        for (index = 0; index < diffs.size(); index++) {
-            ofs << index << ";" << diffs[index] << endl;
-        }
-        ofs.close();
-#endif
-    }
-}
-
-Vector::Vector(const Vector & original)
-{
-    m_data = 0;
-    copy(original);
-    sm_fullLenghtReferenceCounter++;
-    CHECK;
-}
-
-Vector::Vector(const Vector& original, Numerical::Double lambda)
-{
-    m_vectorType = original.m_vectorType;
-    m_size = original.m_size;
-    m_dimension = original.m_dimension;
-    m_capacity = original.m_capacity;
-    m_nonZeros = original.m_nonZeros;
-    m_sparsityRatio = original.m_sparsityRatio;
-    m_sparsityThreshold = original.m_sparsityThreshold;
-    m_sorted = original.m_sorted;
-    if (m_capacity == 0) {
-        m_data = 0;
-        m_index = 0;
-    } else {
-        if (m_vectorType == DENSE_VECTOR) {
-            m_data = allocateData(m_capacity);
-            m_index = 0;
-        } else {
-            m_data = allocateData(m_capacity);
-            m_index = allocateIndex(m_capacity);
-            panOptMemcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
-        }
-    }
-    m_dataEnd = m_data + m_size;
-    Numerical::Double * actualData = m_data;
-    Numerical::Double * originalData = original.m_data;
-    const Numerical::Double * end = original.m_dataEnd;
-    for (; originalData < end; originalData++, actualData++) {
-        *actualData = *originalData * lambda;
-    }
-
-    sm_fullLenghtReferenceCounter++;
-    CHECK;
-}
-
 void Vector::show() const
 {
     LPINFO("");
     for (unsigned int i = 0; i < length(); i++) {
         LPINFO(i << ".:" << at(i));
     }
-}
-
-void Vector::clear()
-{
-    m_nonZeros = 0;
-    if (m_sparsityThreshold == 0) {
-        Numerical::Double * ptr = m_data;
-        for (; ptr < m_dataEnd; ptr++) {
-            *ptr = 0.0;
-        }
-    } else {
-        if (m_vectorType == DENSE_VECTOR) {
-
-            m_index = allocateIndex(m_capacity);
-            m_size = 0;
-            m_dataEnd = m_data;
-            m_vectorType = SPARSE_VECTOR;
-
-        } else {
-            m_size = 0;
-            m_dataEnd = m_data;
-        }
-    }
-    m_sorted = true;
 }
 
 void Vector::fill(Numerical::Double value)
@@ -297,11 +284,10 @@ void Vector::copy(const Vector & original, bool reallocate)
                 m_index = allocateIndex(m_capacity);
             }
             COPY_DOUBLES(m_data, original.m_data, m_size);
-            panOptMemcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
+            memcpy(m_index, original.m_index, m_size * sizeof (unsigned int));
         }
     }
     m_dataEnd = m_data + m_size;
-    //    CHECK;
 }
 
 void Vector::resize(unsigned int length)
@@ -429,7 +415,6 @@ void Vector::set(unsigned int index, Numerical::Double value)
             sparseToDense();
         }
     }
-    CHECK;
 }
 
 void Vector::change(unsigned int index, Numerical::Double value)
@@ -455,7 +440,6 @@ void Vector::change(unsigned int index, Numerical::Double value)
             m_nonZeros--;
         }
     }
-    CHECK;
 }
 
 void Vector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
@@ -540,7 +524,6 @@ void Vector::scaleElementBy(unsigned int index, Numerical::Double lambda)
             sparseToDense();
         }
     }
-    CHECK;
 }
 
 void Vector::setNewNonzero(unsigned int index, Numerical::Double value)
@@ -569,7 +552,6 @@ void Vector::setNewNonzero(unsigned int index, Numerical::Double value)
             sparseToDense();
         }
     }
-    CHECK;
 }
 
 Vector Vector::operator*(const Matrix& matrix) const
@@ -602,10 +584,10 @@ Vector Vector::operator*(const Matrix& matrix) const
     return result;
 }
 
-Vector Vector::operator*(Numerical::Double m) const
+Vector Vector::operator*(Numerical::Double lambda) const
 {
     Vector ret(*this);
-    ret.scaleBy(m);
+    ret.scaleBy(lambda);
     return ret;
 }
 
@@ -627,19 +609,15 @@ const Numerical::Double& Vector::at(unsigned int index) const
 {
 
     if (m_vectorType == DENSE_VECTOR) {
-        CHECK;
         return m_data[index];
     } else {
         Numerical::Double * value = getElementSparse(index);
         if (value) {
-            CHECK;
             return *value;
         } else {
-            CHECK;
             return ZERO;
         }
     }
-    CHECK;
     return ZERO;
 }
 
@@ -649,13 +627,11 @@ const Numerical::Double * Vector::getDenseElementPointer(unsigned int index) con
 
 unsigned int Vector::length() const
 {
-    //    CHECK;
     return m_dimension;
 }
 
 unsigned int Vector::capacity() const
 {
-    CHECK;
     return m_capacity;
 }
 
@@ -665,7 +641,6 @@ unsigned int Vector::maxIndex() const
         return 0;
     }
     if (m_vectorType == DENSE_VECTOR) {
-        CHECK;
         Numerical::Double * ptr = m_dataEnd - 1;
         unsigned int index = m_dimension - 1;
         while (*ptr == 0.0) {
@@ -684,10 +659,8 @@ unsigned int Vector::maxIndex() const
             }
             indexPtr++;
         }
-        CHECK;
         return maxIndex;
     }
-    CHECK;
     return 0;
 }
 
@@ -726,7 +699,6 @@ Vector & Vector::scaleBy(Numerical::Double lambda)
             ptr++;
         }
     }
-    CHECK;
     return *this;
 }
 
@@ -741,29 +713,14 @@ Numerical::Double Vector::euclidNorm() const
     return Numerical::sqrt(result);
 }
 
-Numerical::Double Vector::l1Norm() const
-{
-    Numerical::Double result = 0.0;
-    Numerical::Double * dataPtr = m_data;
-    for (; dataPtr < m_dataEnd; dataPtr++) {
-        result += Numerical::fabs(*dataPtr);
-    }
-    return result;
-}
-
 Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, bool stableAddRel) const
 {
     if (m_size == 0 || vector.m_size == 0) {
-        CHECK;
         return 0.0;
     }
 
-    //LPINFO(*this);
-    //LPINFO(vector);
-    //std::cin.get();
-
 #ifdef ANALYSE_DOT_PRODUCT
-/*    {
+    {
         Vector vector1 = *this;
         Vector vector2 = vector;
         vector1.setSparsityRatio(0.0);
@@ -814,6 +771,9 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                 fresh = true;
             }
             if (minExponent <= maxExponent) {
+                /*LPINFO(minExponent << "  " << maxExponent << "  " <<
+                       min1 << " * " << min2 << " = " << minValue << "   " << max1 <<
+                       " * " << max2 << " = " << maxValue);*/
                 //diffs[ maxExponent - minExponent ]++;
                 counter++;
                 if (counter >= 5000) {
@@ -825,18 +785,16 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                     }
                     ofs.close();
                 }
-                //std::cin.get();
-
             }
 
         }
     }
-*/
+
 #endif
 
     //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
     // annal pontosabb, de annal lassabb is
-    //Numerical::BucketSummarizer summarizer(1);
+    //Numerical::BucketSummarizer summarizer(5);
     Numerical::Summarizer summarizer;
 
     if (m_vectorType == SPARSE_VECTOR && vector.m_vectorType == SPARSE_VECTOR &&
@@ -864,10 +822,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                 index2++;
             }
         }
-        Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
-        //LPINFO(res);
-        //std::cin.get();
-        return res;
+        return summarizer.getResult(stableAddAbs, stableAddRel);
     }
     Numerical::Double temp;
     if (m_vectorType == DENSE_VECTOR && vector.m_vectorType == DENSE_VECTOR) {
@@ -880,12 +835,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
             ptr1++;
             ptr2++;
         }
-        Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
-        //LPINFO(res);
-        //std::cin.get();
-        return res;
-
-        //        return summarizer.getResult(stableAddAbs, stableAddRel);
+        return summarizer.getResult(stableAddAbs, stableAddRel);
     }
 
     Numerical::Double * data;
@@ -949,11 +899,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
-    Numerical::Double res = summarizer.getResult(stableAddAbs, stableAddRel);
-    //LPINFO(res);
-    //std::cin.get();
-    return res;
-    //    return summarizer.getResult(stableAddAbs, stableAddRel);
+    return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 
 Vector & Vector::addVector(Numerical::Double lambda,
@@ -961,7 +907,6 @@ Vector & Vector::addVector(Numerical::Double lambda,
                            Numerical::ADD_TYPE addType)
 {
     if (vector.m_size == 0 || lambda == 0.0) {
-        CHECK;
         return *this;
     }
     if (m_vectorType == DENSE_VECTOR) {
@@ -977,8 +922,6 @@ Vector & Vector::addVector(Numerical::Double lambda,
             addDenseToSparse(lambda, vector, addType);
         }
     }
-
-    CHECK;
     return *this;
 }
 
@@ -1003,7 +946,6 @@ void Vector::addDenseToDense(Numerical::Double lambda,
                 if (*ptr1 == 0.0) {
                     m_nonZeros++;
                 }
-                //LPINFO(*ptr1 << " + " << (*ptr2 * lambda));
                 *ptr1 = Numerical::stableAdd(*ptr1, *ptr2 * lambda);
                 // Numerical::isZero is unnecessary after stableAdd
                 if (*ptr1 == 0.0) {
@@ -1014,7 +956,6 @@ void Vector::addDenseToDense(Numerical::Double lambda,
             ptr1++;
             ptr2++;
         }
-        //std::cin.get();
         break;
     case Numerical::ADD_ABS:
         while (ptr1 < end) {
@@ -1069,8 +1010,6 @@ void Vector::addDenseToDense(Numerical::Double lambda,
     if (m_nonZeros < m_sparsityThreshold) {
         denseToSparse();
     }
-
-    CHECK;
 }
 
 void Vector::addDenseToSparse(Numerical::Double lambda,
@@ -1080,7 +1019,6 @@ void Vector::addDenseToSparse(Numerical::Double lambda,
     m_sorted = false;
     sparseToDense();
     addDenseToDense(lambda, vector, addType);
-    CHECK;
 }
 
 void Vector::addSparseToDense(Numerical::Double lambda,
@@ -1155,7 +1093,6 @@ void Vector::addSparseToDense(Numerical::Double lambda,
     if (m_nonZeros < m_sparsityThreshold) {
         denseToSparse();
     }
-    CHECK;
 }
 
 void Vector::addSparseToSparse(Numerical::Double lambda,
@@ -1293,21 +1230,15 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
     if (m_nonZeros >= m_sparsityThreshold) {
         sparseToDense();
     }
-    CHECK;
 }
 
 Vector & Vector::elementaryFtran(const Vector & eta, unsigned int pivot)
 {
-    //LPINFO("this: " << *this);
-    //LPINFO("eta: " << eta);
-    //LPINFO("pivot: " << at(pivot));
-    //std::cin.get();
     Numerical::Double pivotValue = at(pivot);
     m_sorted = m_vectorType == DENSE_VECTOR;
     Numerical::Double atPivot = eta.at(pivot);
     addVector(pivotValue, eta, Numerical::ADD_ABS_REL);
     //    addVector(pivotValue, eta, Numerical::ADD_ABS);
-    //addVector(pivotValue, eta, Numerical::ADD_FAST);
     set(pivot, atPivot * pivotValue);
     return *this;
 }
@@ -1365,16 +1296,12 @@ void Vector::removeElement(unsigned int index)
     } else if (m_nonZeros >= m_sparsityThreshold) {
         sparseToDense();
     }
-
-
-    CHECK;
 }
 
 void Vector::insertElement(unsigned int index, Numerical::Double value)
 {
     if (index == m_dimension) {
         append(value);
-        CHECK;
         return;
     }
     if (m_vectorType == DENSE_VECTOR) {
@@ -1431,8 +1358,6 @@ void Vector::insertElement(unsigned int index, Numerical::Double value)
     } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
         denseToSparse();
     }
-
-    CHECK;
 }
 
 void Vector::append(Numerical::Double value)
@@ -1471,7 +1396,6 @@ void Vector::append(Numerical::Double value)
     } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
         denseToSparse();
     }
-    CHECK;
 }
 
 void Vector::appendVector(const Vector & vector) {
@@ -1496,7 +1420,6 @@ Vector & Vector::operator=(const Vector & vector)
         reallocate = true;
     }
     copy(vector, reallocate);
-    CHECK;
     return *this;
 }
 
@@ -1586,9 +1509,6 @@ void Vector::countingSort() const
     static int count = 0;
     count++;
 
-    //std::cin.get();
-
-
     unsigned int max = 0;
     unsigned int min = 0;
     unsigned int * actual = m_index;
@@ -1630,7 +1550,6 @@ void Vector::countingSort() const
         } while (index < bitCount);
         *actualBits = 0;
     }
-
 }
 
 void Vector::heapSort() const
@@ -1697,9 +1616,7 @@ void Vector::insertionSort() const
         previousData = actualData - 1;
         const Numerical::Double insertData = *actualData;
         const unsigned int insertIndex = *actualIndex;
-        //        LPWARNING("index: " << index);
-        //        LPWARNING("element: " << insertIndex << ", " << insertData);
-        //        LPWARNING("vector: " << *this);
+
         while (previousIndex >= m_index && *previousIndex > insertIndex) {
             *actualIndex = *previousIndex;
             *actualData = *previousData;
@@ -1711,10 +1628,6 @@ void Vector::insertionSort() const
         }
         *actualData = insertData;
         *actualIndex = insertIndex;
-
-        //        LPWARNING("insert position: " << (previousIndex - m_index));
-        //        LPWARNING("after insert: " << *this);
-        //        std::cin.get();
     }
 }
 
@@ -1735,7 +1648,6 @@ void Vector::resizeDense(unsigned int size, unsigned int elbowroom)
     m_size = size;
     m_dimension = size;
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
-    CHECK;
 }
 
 void Vector::resizeSparse(unsigned int capacity)
@@ -1757,7 +1669,7 @@ void Vector::resizeSparse(unsigned int capacity)
     Numerical::Double * tempData = allocateData(capacity);
     unsigned int * tempIndex = allocateIndex(capacity);
     COPY_DOUBLES(tempData, m_data, m_size);
-    panOptMemcpy(tempIndex, m_index, m_size * sizeof (unsigned int));
+    memcpy(tempIndex, m_index, m_size * sizeof (unsigned int));
     freeData(m_data);
     m_data = tempData;
     freeIndex(m_index);
@@ -1766,7 +1678,6 @@ void Vector::resizeSparse(unsigned int capacity)
     m_capacity = capacity;
 
     m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
-    CHECK;
 }
 
 Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const
@@ -1777,10 +1688,8 @@ Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const
         indexPtr++;
     }
     if (indexPtr < indexPtrEnd) {
-        CHECK;
         return m_data + (indexPtr - m_index);
     }
-    CHECK;
     return 0;
 }
 
@@ -1801,10 +1710,8 @@ Numerical::Double * Vector::getElementSparseBinary(unsigned int index) const
         }
     } while (*middle != index && min <= max);
     if (*middle == index) {
-        CHECK;
         return m_data + (middle - m_index);
     }
-    CHECK;
     return 0;
 }
 
@@ -1833,7 +1740,6 @@ void Vector::addNewElementSparse(unsigned int index, Numerical::Double value)
     m_index[m_size] = index;
     m_size++;
     m_dataEnd++;
-    //CHECK;
 }
 
 void Vector::removeElementSparse(unsigned int index)
@@ -1845,7 +1751,6 @@ void Vector::removeElementSparse(unsigned int index)
     }
     m_dataEnd--;
     m_size--;
-    CHECK;
 }
 
 unsigned int Vector::gather(Numerical::Double * denseVector, Numerical::Double * sparseVector,
@@ -1995,7 +1900,6 @@ void Vector::denseToSparse()
     m_data = temp;
     m_dataEnd = m_data + m_size;
     m_vectorType = SPARSE_VECTOR;
-    CHECK;
 }
 
 void Vector::sparseToDense()
@@ -2017,7 +1921,6 @@ void Vector::sparseToDense()
     m_size = m_dimension;
     m_dataEnd = m_data + m_size;
     m_vectorType = DENSE_VECTOR;
-    CHECK;
 }
 
 void Vector::setSparsityRatio(Numerical::Double ratio)
@@ -2029,12 +1932,10 @@ void Vector::setSparsityRatio(Numerical::Double ratio)
     } else if (m_vectorType == SPARSE_VECTOR && m_nonZeros >= m_sparsityThreshold) {
         sparseToDense();
     }
-    CHECK;
 }
 
 Numerical::Double Vector::getSparsityRatio() const
 {
-    CHECK;
     return m_sparsityRatio;
 }
 
@@ -2059,8 +1960,8 @@ bool Vector::operator==(const Vector & vector) const
 
 std::ostream & operator<<(std::ostream & os, const Vector & vector)
 {
+#ifndef NDEBUG
     unsigned int index;
-#ifndef NODEBUG
     os << "data members:" << std::endl;
     os << "\tm_vectorType: " << (vector.m_vectorType == Vector::DENSE_VECTOR ?
                                      "DENSE_VECTOR" : "SPARSE_VECTOR") << std::endl;
@@ -2085,18 +1986,8 @@ std::ostream & operator<<(std::ostream & os, const Vector & vector)
         }
     }
     os << std::endl;
-
-    //    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-    //        for (index = 0; index < vector.m_size; index++) {
-    //            os << vector.m_data[index] << " ";
-    //        }
-    //    } else {
-    //    for (unsigned int index = 0; index < vector.m_dimension; index++) {
-    //        os << "[ " << index << "; " <<  vector.at(index) << "] ";
-    //    }
-    os << std::endl;
-    //    }
-
+#else
+    __UNUSED(vector);
 #endif
     return os;
 }
@@ -2239,8 +2130,8 @@ Vector operator*(Numerical::Double m, const Vector& v)
 
 void Vector::swap(Vector * vector1, Vector * vector2) {
     // new and delete are too slow
-    THREAD_STATIC_DECL char buffer[sizeof(Vector)];
-    panOptMemcpy(buffer, vector1, sizeof(Vector));
-    panOptMemcpy(vector1, vector2, sizeof(Vector));
-    panOptMemcpy(vector2, buffer, sizeof(Vector));
+    static thread_local char buffer[sizeof(Vector)];
+    memcpy(buffer, vector1, sizeof(Vector));
+    memcpy(vector1, vector2, sizeof(Vector));
+    memcpy(vector2, buffer, sizeof(Vector));
 }

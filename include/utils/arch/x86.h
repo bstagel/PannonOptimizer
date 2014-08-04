@@ -1,6 +1,6 @@
 /**
  * @file x86.h This file contains the API of the ArchitectureX86 class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef X86_H

@@ -13,7 +13,7 @@ class SimplexParameterHandler : public ParameterHandler
     friend class SimplexParameterHandlerTestSuite;
     friend class InitPanOpt;
 public:
-    THREAD_STATIC_DECL ParameterHandler & getInstance();
+    static ParameterHandler & getInstance();
     /**
     * @brief writeParameterFile
     * @throws -1 if the outputstream is not open
@@ -22,7 +22,7 @@ public:
     void initParameters();
 
 private:
-    THREAD_STATIC_DECL const char * sm_defaultFilename;
+    static thread_local const char * sm_defaultFilename;
 
     static SimplexParameterHandler * sm_instance;
 
