@@ -1,7 +1,7 @@
 #ifndef INITPANOPT_H
 #define INITPANOPT_H
 
-#include <utils/architecture.h>
+#include <utils/architectureinterface.h>
 
 class InitPanOpt {
 public:
@@ -9,9 +9,9 @@ public:
 
     static void init();
 
-    const Architecture & getArchitecture() const;
+    const ArchitectureInterface & getArchitecture() const;
 private:
-    static Architecture * sm_architecture;
+    static ArchitectureInterface * sm_architecture;
 
     static InitPanOpt * sm_instance;
 

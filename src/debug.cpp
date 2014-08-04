@@ -17,6 +17,81 @@ std::map<D::RegisteredModuleType, std::string> * D::m_registeredModules;
 int D::m_activeModules;
 
 
+std::string D::getName(RegisteredModuleType mod)
+{
+    std::ostringstream dstr;
+    dstr << std::setw(15) << std::left << (*D::m_registeredModules)[mod];
+    std::string str = dstr.str().substr(0, 10);
+    return str;
+}
+
+int D::getActiveModules()
+{
+    return D::m_activeModules;
+}
+
+void D::disableModule(RegisteredModuleType mod)
+{
+    D::m_activeModules &= ~mod;
+}
+
+void D::enableModule(RegisteredModuleType mod)
+{
+    D::m_activeModules |= mod;
+}
+
+std::map<D::RegisteredModuleType, std::string> D::fillInModuleTypes()
+{
+    std::map<RegisteredModuleType, std::string> map;
+    map.insert(std::make_pair(D::MPSREADER, "MpsReader"));
+    map.insert(std::make_pair(D::PRESOLVER, "Presolver"));
+    map.insert(std::make_pair(D::CFMAKER, "ComputationalFormMaker"));
+    map.insert(std::make_pair(D::STARTINGBASISFINDER, "StartingBasisFinder"));
+    map.insert(std::make_pair(D::PFIMAKER, "PFIMaker"));
+    map.insert(std::make_pair(D::SIMPLEX, "Simplex"));
+    map.insert(std::make_pair(D::RATIOTEST, "RatioTest"));
+    map.insert(std::make_pair(D::FEASIBILITYCHECK, "FeasibilityCheck"));
+    map.insert(std::make_pair(D::MODEL, "Model"));
+    map.insert(std::make_pair(D::PRICING, "Pricing"));
+    map.insert(std::make_pair(D::SBF_SUPER, "SBF/Super"));
+    map.insert(std::make_pair(D::SBF_LOGICAL, "SBF/Logical"));
+    map.insert(std::make_pair(D::SBF_SYMBO, "SBF/SymboCrash"));
+    map.insert(std::make_pair(D::SBF_LTSF, "SBF/LTSF"));
+    map.insert(std::make_pair(D::SBF_ADG, "SBF/ADGl"));
+    map.insert(std::make_pair(D::SBF_CPLEX, "SBF/CPLEX"));
+    return map;
+}
+
+int D::fillInActiveModules()
+{
+    int am = 0;
+    //        am |= D::MPSREADER;
+    //        am |= D::PRESOLVER;
+    //        am |= D::CFMAKER;
+    //        am |= D::STARTINGBASISFINDER;
+    //        am |= D::PFIMAKER;
+    //        am |= D::SBF1;
+    //        am |= D::SIMPLEX;
+    //        am |= D::RATIOTEST;
+    //        am |= D::FEASIBILITYCHECK;
+    //        am |= D::MODEL;
+    //        am |= D::PRICING;
+    return am;
+}
+
+void D::init() {
+    m_registeredModules = new std::map<RegisteredModuleType, std::string>;
+    *m_registeredModules = D::fillInModuleTypes();
+
+    m_activeModules = D::fillInActiveModules();
+}
+
+void D::release() {
+    delete m_registeredModules;
+}
+
+
+
 #ifdef DEVELOPMENT
 
 unsigned int _debug_strlen_(const std::string strr)

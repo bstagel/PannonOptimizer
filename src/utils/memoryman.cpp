@@ -7,6 +7,7 @@
 #include <initpanopt.h>
 #include <cstring>
 #include <macros.h>
+#include <utils/architecture.h>
 
 #ifndef CLASSIC_NEW_DELETE
 

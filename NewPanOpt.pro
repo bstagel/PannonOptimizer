@@ -160,7 +160,8 @@ HEADERS += include/debug.h \
     include/initpanopt.h \
     include/utils/primitives.h \
     include/macros.h \
-    include/utils/arch/unknown.h
+    include/utils/arch/unknown.h \
+    include/utils/architectureinterface.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -226,7 +227,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/initpanopt.cpp \
     src/utils/architecture.cpp \
     src/utils/primitives.cpp \
-    src/utils/arch/unknown.cpp
+    src/utils/arch/unknown.cpp \
+    src/test.cpp
 
 #OBJECTS_DIR = .o
 

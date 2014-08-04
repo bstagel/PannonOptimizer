@@ -13,12 +13,15 @@
 #include <cstring>
 #include <iostream>
 #include <debug.h>
-#include <utils/doublehistory.h>
 
 #define DOUBLE_CLASSIC 0
 #define DOUBLE_HISTORY 1
 
 #define DOUBLE_TYPE DOUBLE_CLASSIC
+
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+#include <utils/doublehistory.h>
+#endif
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
 #define COPY_DOUBLES(dest, src, count) panOptMemcpy(dest, src, sizeof(Numerical::Double) * count);

@@ -10,136 +10,21 @@
 #include <set>
 #include <vector>
 
+#include <utils/architectureinterface.h>
+
 /**
  * This pure virtual class is used to detect and use specific architectures.
  * Certain operations are faster with using architecture-specific CPU commands.
  */
-class Architecture {
+class Architecture: public ArchitectureInterface {
 public:
-
-
-    typedef void (*MemSetNoCache)(const void * dest,
-                                  unsigned char value,
-                                  unsigned int size);
-
-
-    typedef void (*MemSetCache)(const void * dest,
-                                unsigned char value,
-                                unsigned int size);
-
-
-    /******************************************
-     * Copies size bytes from src to dest area.
-     *       - 32 or 64 bit
-     *       - Unix or Windows arguments
-     *       - SSE2 (copy without cache)
-     *****************************************/
-
-    typedef void* (*MemCpyNoCache)(void * dest,
-                                  const void * src,
-                                  size_t size);
-
-    /******************************************
-     * Copies size bytes from src to dest area.
-     *       - 32 or 64 bit
-     *       - Unix or Windows arguments
-     *       - Classic copy, with cache, SSE2
-     *****************************************/
-
-    typedef void* (*MemCpyCache)(void * dest,
-                                const void * src,
-                                size_t size);
-
-    /******************************************
-     * Dot product dense to dense, unstable:
-     *       - 32 or 64 bit
-     *       - Unix or Windows arguments
-     *       - SSE2 or AVX
-     *****************************************/
-
-    typedef double (*DenseToDenseDotProductUnstable)(const double * vec1,
-                                                     const double * vec2,
-                                                     size_t count);
-
-    /******************************************
-     * Dot product dense to dense:
-     *       - 32 or 64 bit
-     *       - Unix or Windows arguments
-     *       - SSE2 or AVX
-     *****************************************/
-
-    typedef double * (*DenseToDenseDotProduct)(const double * vec1,
-                                               const double * vec2,
-                                               unsigned int count);
-
-    /******************************************
-     * Add dense to dense:
-     *      - count nonzeros in result?
-     *      - using relative tolerance?
-     *      - using absolute tolerance?
-     *      - using both tolerances?
-     *      - 32 or 64 bit
-     *      - Unix or Windows arguments
-     *      - vectors are sparse or not
-     *      - SSE2 or AVX
-     *****************************************/
-
-
-    typedef unsigned int (*AddVecDenseToDense_NonzCount)(const double * vec1,
-                                                         const double * vec2,
-                                                         double * result,
-                                                         double lambda,
-                                                         unsigned int count,
-                                                         unsigned int nonzeros1,
-                                                         unsigned int nonzeros2,
-                                                         unsigned int tolerances);
-
-    typedef void (*AddVecDenseToDense)(const double * vec1,
-                                       const double * vec2,
-                                       double * result,
-                                       double lambda,
-                                       unsigned int count,
-                                       unsigned int nonzeros1,
-                                       unsigned int nonzeros2,
-                                       unsigned int tolerances);
-
-
-    /**
-     * This type describes the type of a system cache.
-     */
-    enum CACHE_TYPE {
-        DATA_CACHE = 1,
-        INSTRUCTION_CACHE = 2,
-        UNIFIED_CACHE = 3
-    };
-
-    /**
-     * This struct describes a system cache.
-     */
-    struct Cache {
-        unsigned int m_level;
-        unsigned int m_size;
-        unsigned int m_lineSize;
-        bool m_fullAssociative;
-        unsigned int m_associativity;
-        unsigned int m_linePartitions;
-        int m_sets;
-        enum CACHE_TYPE m_type;
-        unsigned int m_threads;
-    };
 
     /**
      * Default constructor of the Architecture class.
      *
      * @constructor
      */
-    Architecture():
-        m_cpuCount(0),
-        m_coreCount(0),
-        m_totalMemory(0)
-    {
-
-    }
+    Architecture();
 
     /**
      * Detects the properties of specific architectures.
@@ -153,45 +38,35 @@ public:
      * @param feature The feature name to be searched for.
      * @return True if the given feature is supported by the processor.
      */
-    bool featureExists(const std::string & feature) const {
-        return m_features.find(feature) != m_features.end();
-    }
+    bool featureExists(const char * feature) const;
 
     /**
      * Returns the number of CPUs in the system.
      *
      * @return The number of CPUs in the system.
      */
-    unsigned int getCPUCount() const {
-        return m_cpuCount;
-    }
+    unsigned int getCPUCount() const;
 
     /**
      * Returns the number of processor cores in the system.
      *
      * @return The number of processor cores in the system.
      */
-    unsigned int getCoreCount() const {
-        return m_coreCount;
-    }
+    unsigned int getCoreCount() const;
 
     /**
      * Returns the name of the CPU.
      *
      * @return The name of the CPU.
      */
-    const std::string & getCPUName() const {
-        return m_cpuName;
-    }
+    const char * getCPUName() const;
 
     /**
      * Returns the number of cache levels in the system.
      *
      * @return The number of cache levels in the system.
      */
-    unsigned int getCacheLevelCount() const {
-        return m_caches.size();
-    }
+    unsigned int getCacheLevelCount() const;
 
     /**
      * Returns a cache with the given index.
@@ -199,36 +74,28 @@ public:
      * @param index The index of the cache to be returned.
      * @return The cache with the given index.
      */
-    const Cache & getCache(unsigned int index) const {
-        return m_caches[index];
-    }
+    const Cache & getCache(unsigned int index) const;
 
     /**
      * Returns the name of the architecture.
      *
      * @return The name of the architecture.
      */
-    const std::string & getArchitectureName() const {
-        return m_architectureName;
-    }
+    const char * getArchitectureName() const;
 
     /**
      * Returns the name of the CPU architecture.
      *
      * @return The name of the CPU architecture.
      */
-    const std::string & getCPUArchitectureName() const {
-        return m_cpuArchitectureName;
-    }
+    const char * getCPUArchitectureName() const;
 
     /**
      * Returns the size of the memory in the system.
      *
      * @return The size of the memory in the system.
      */
-    unsigned long long int getTotalMemorySize() const {
-        return m_totalMemory;
-    }
+    unsigned long long int getTotalMemorySize() const;
 
     /**
      * Custom architecture specific custom function for effective dense vector-dense vector addition.
@@ -247,21 +114,13 @@ public:
      */
     virtual AddVecDenseToDense getAddVecDenseToDense() const = 0;
 
-    static MemCpyCache getMemCpyCache() {
-        return sm_memCpyCachePtr;
-    }
+    static MemCpyCache getMemCpyCache();
 
-    static MemCpyNoCache getMemCpyNoCache() {
-        return sm_memCpyNoCachePtr;
-    }
+    static MemCpyNoCache getMemCpyNoCache();
 
-    static DenseToDenseDotProductUnstable getDenseToDenseDotProductUnstable() {
-        return sm_denseToDenseDotProductUnstablePtr;
-    }
+    static DenseToDenseDotProductUnstable getDenseToDenseDotProductUnstable();
 
-    static size_t getLargestCacheSize() {
-        return sm_largestCacheSize;
-    }
+    static size_t getLargestCacheSize();
 
 protected:
 
