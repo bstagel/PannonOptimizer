@@ -11,7 +11,7 @@
 
 #include <cstdio>
 
-THREAD_STATIC_DEF const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
+thread_local const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
 
 LinalgParameterHandler * LinalgParameterHandler::sm_instance;
 

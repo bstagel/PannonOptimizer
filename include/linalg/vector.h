@@ -1,6 +1,6 @@
 /**
  * @file vector.h This file contains the API of the Vector class.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef VECTOR_H
@@ -57,12 +57,12 @@ class Vector
 public:
 
     /**
-     * Displays the Vector in a human-readable format
+     * Displays the Vector in a human-readable format.
      */
     void show() const;
 
     /**
-     * Checks the vector. You can implement arbitrary checking code for debug.
+     * Checks the vector. You can implement arbitrary checking code for debugging purposes.
      */
     void check(const char *) const
     {
@@ -71,66 +71,60 @@ public:
 
     /**
      * Indicates the storing method of vector.
+     * - SPARSE_VECTOR is a vector storing (index, value) pairs. It is effective
+     * if the number of nonzeros is low in the vector.
+     * - DENSE_VECTOR is a traditional vector implementation using array.
+     * - DEFAULT_VECTOR_TYPE specifies that the vector is adjusted dynamically
+     * according to the actual sparsity ratio.
      */
     enum VECTOR_TYPE
     {
         SPARSE_VECTOR, DENSE_VECTOR, DEFAULT_VECTOR_TYPE
     };
 
-    class CommonIterator;
-    class Iterator;
-    class NonzeroIterator;
-
 #include <linalg/vector_iterator.h>
 
     /**
-     * This constructor initializes a vector, with dimension given by parameter.
+     * This constructor initializes a vector, with a given dimension.
      * When the sparsity threshold is higher than the number of nonzeros, the
-     * vector will be sparse vector, and m_data array is initialized for size
-     * ELBOWROOM. Logically, the vector contains dimension piece of zeros.
-     * Increases sm_fullLenghtReferenceCounter for garbage collector mechanism.
+     * vector will be sparse vector, and the m_data array is initialized for size
+     * ELBOWROOM. Logically, the vector is a zero vector containing zeros.
+     * Increases the sm_fullLenghtReferenceCounter for garbage collector mechanism.
      *
      * Complexity: O(1)
      *
      * @constructor
-     * @param dimension Describes the dimension of vector
+     * @param dimension The dimension of the vector.
      * @param type The representation type of the vector to be initialized.
      */
     explicit Vector(unsigned int dimension = 0, VECTOR_TYPE type = DEFAULT_VECTOR_TYPE);
 
+    //TODO: Ez mire, mikor kell? Irjuk bele a doxyba, vagy szedjuk ki a fuggvenyt.
     /**
      * This constructor is used to initialize a vector very fast.
      * The vector is not prepared for data after initializing with this constructor.
+     * Increases the sm_fullLenghtReferenceCounter for garbage collector mechanism.
      *
      * Complexity: O(1)
      *
      * @constructor
      */
     explicit Vector(void *, void *, void *);
+
     /**
-     * Releases the vector.
-     * Decreases sm_fullLenghtReferenceCounter, and when this variable reaches zero,
-     * the descructor releases the sm_fullLengthVector.
-     *
-     * Complexity: O(1)
-     *
-     * @destructor
-     */
-    virtual ~Vector();
-    /**
-     * Copy constructor of Vector class. Copies the vector given by parameter, and
-     * increases sm_fullLenghtReferenceCounter.
+     * Copy constructor of the Vector class.
+     * Copies the given vector and increases sm_fullLenghtReferenceCounter.
      *
      * Complexity: O(n)
      *
      * @constructor
-     * @param original The original vector, the function creates a copy from this
-     * object
+     * @param original The original vector, the function creates a copy of this.
      */
     Vector(const Vector & original);
 
     /**
-     * Constructor of Vector class. Copies the vector given by parameter, and
+     * Creates a scaled copy from a vector.
+     * Copies the vector and multiply the elements by lambda., and
      * increases sm_fullLenghtReferenceCounter. The elements of result vector
      * are multiplied by lambda.
      *
@@ -144,12 +138,23 @@ public:
     Vector(const Vector & original, Numerical::Double lambda);
 
     /**
-     * Sets each nonzero to zero in the vector.
+     * Releases the vector.
+     * Decreases sm_fullLenghtReferenceCounter, and when this variable reaches zero,
+     * the descructor releases the sm_fullLengthVector.
+     *
+     * Complexity: O(1)
+     *
+     * @destructor
+     */
+    virtual ~Vector();
+
+    /**
+     * Set every element to zero in the vector.
      */
     void clear();
 
     /**
-     * Fills the vector with the value.
+     * Fills the vector with a given value.
      *
      * @param value The new value of every components in the vector.
      */
@@ -174,7 +179,7 @@ public:
      * Calculates the sum of the absolute values of the elements.
      * Also gives a pointer to the squares of the absolute values of the elements.
      *
-     * @param squareSumPtr Pointer to the variable storing the sum of the squares of
+     * @param squareSumPtr Pointer to the variable to store the sum of the squares of
      * the absolute values of the elements.
      * @return The sum of the absolute values of the elements.
      */
@@ -185,12 +190,12 @@ public:
      * Gives pointers to the squares of the absolute values of the elements, as well as the
      * maximal and minimal absolute values of the elements.
      *
-     * @see absMaxSums()
-     * @param squareSumPtr Pointer to the variable storing the sum of the squares of
+     * @see absMaxSums
+     * @param squareSumPtr Pointer to the variable to store the sum of the squares of
      * the absolute values of the elements.
-     * @param minPtr Pointer to the variable storing the minimal absolute value of the
+     * @param minPtr Pointer to the variable to store the minimal absolute value of the
      * elements.
-     * @param maxPtr Pointer to the variable storing the maximal absolute value of the
+     * @param maxPtr Pointer to the variable to store the maximal absolute value of the
      * elements.
      * @return The sum of the absolute values of the elements.
      */
@@ -200,6 +205,7 @@ public:
 
     /**
      * Scales the vector with the given multipliers.
+     * The values are scaled with unique multipliers and a commom multiplier too.
      * Returns the sum of the absolute values of the elements, the squares of the absolute
      * values of the elements, and the maximal and minimal absolute values of the elements.
      *
@@ -222,7 +228,7 @@ public:
                                          Numerical::Double * maxPtr);
 
     /**
-     * The function set logically the index'th element of vector for value.
+     * Set logically the index'th element of the vector.
      * Example:
      * <pre>
      * ELBOWROOM = 5
@@ -251,11 +257,11 @@ public:
      * m_nonZeros = 2
      * m_sparsityRatio = 0.5
      * m_sparsityThreshold = 3
-     * m_data = {5.0, 4.0 | X, X, X, X, X}
+     * m_data = {5.0, 4.0, | X, X, X, X, X}
      * m_index = {2, 4, | X, X, X, X, X}
      *
      * set(2, 0)
-     * m_data = {4.0 | X, X, X, X, X, X}
+     * m_data = {4.0, | X, X, X, X, X, X}
      * m_index = {4, | X, X, X, X, X, X}
      * m_size = 1
      * m_nonZeros = 1
@@ -307,22 +313,24 @@ public:
      * </tr>
      * </table>
      *
-     * @param index The function changes the index'th element of vector
-     * @param value The new value of the index'th element of vector
+     * @param index The function changes the index'th element.
+     * @param value The new value of the element.
      */
     void set(unsigned int index, Numerical::Double value);
 
     /**
      * Similar to the set, but it assumes that the index-th element of vector is not zero.
+     * This function is faster in this special case, if the specified element is zero it
+     * will lead to undefined behaviour.
      *
-     * @see set()
+     * @see set
      * @param index The function changes the index'th element of vector
      * @param value The new value of the index'th element of vector
      */
     void change(unsigned int index, Numerical::Double value);
 
     /**
-     * Multiplies and element of the vector by a given value.
+     * Multiplies an element of the vector by a given value.
      *
      * @param index The index of the element to be scaled.
      * @param lambda The multiplier which is applied to the element.
@@ -330,35 +338,38 @@ public:
     void scaleElementBy(unsigned int index, Numerical::Double lambda);
 
     /**
-     * Returns a row vector yield by multiplying vector with a matrix.
+     * Gives a vector as a product of multiplying the vector with a matrix from the right.
      * If the given right matrix's row count (m) is not the same as the length of
      * the vector, then this vector will be interpreted as an m-length row vector,
      * filled up by zeros if needed.
      *
-     * @param matrix The matrix used to multiply this vector
-     * @return a row vector containing the result of multiplication
+     * @param matrix The matrix used to multiply this vector.
+     * @return a row vector containing the result of multiplication.
      */
     Vector operator*(const Matrix& matrix) const;
 
     /**
-     * Returns a vector multiplied by the given number
+     * Constructs new vector which as a multiply of the actual vector.
+     * The vector is copied and scaled by the multiplier.
      *
-     * @see scaleBy()
-     * @param m The multiplicator
-     * @return a vector containing the result of multiplication
+     * @see scaleBy
+     * @param lambda The multiplicator.
+     * @return A vector containing the result of the multiplication.
      */
-    Vector operator*(Numerical::Double m) const;
+    Vector operator*(Numerical::Double lambda) const;
 
     /**
-     * Returns the difference vector yield by subtracting another vector from a vector.
+     * Returns the difference vector yield by subtracting a vector from the actual vector.
+     * The vector is copied and the other vector is substracted from the copy.
      *
-     * @param vector The vector subtracted from this vector
-     * @return a vector containing the result of subtraction
+     * @param vector The vector subtracted from the actual vector.
+     * @return A vector containing the result of the subtraction.
      */
     Vector operator-(const Vector& vector) const;
 
     /**
-     * Returns the sum vector yield by adding another vector to a vector.
+     * Returns the sum vector yield by adding a vector to the actual vector.
+     * The vector is copied and the other vector is added to the copy.
      *
      * @param vector The vector added to this vector
      * @return a vector containing the result of adding
@@ -366,7 +377,7 @@ public:
     Vector operator+(const Vector& vector) const;
 
     /**
-     * Returns with the value of index'th element of vector.
+     * Gives the value of index'th element.
      *
      * <table>
      * <tr align="center">
@@ -383,47 +394,56 @@ public:
      * </tr>
      * </table>
      *
-     * @param index The index of the element of we need
-     * @return The index'th element of vector
+     * @param index The index of the element.
+     * @return The index'th element of vector.
      */
     const Numerical::Double &at(unsigned int index) const;
 
     /**
-     * Returns with the pointer of the index'th dense element.
+     * Gives the pointer of the index'th element of a dense vector.
      * Do not use this function on a sparse vector!
+     * It will lead to undefined behaviour on sparse vectors.
+     *
      * Complexity: O(1)
      *
      * @param index Index of a dense element.
-     * @return Pointer of the index'th dense element.
+     * @return Pointer to the index'th dense element.
      */
     const Numerical::Double * getDenseElementPointer(unsigned int index) const;
 
     /**
-     * Returns with the logical length of vector.
+     * Returns with the logical length (the dimension) of vector.
      *
      * Complexity: O(1)
      *
      * @return Logical lenght of vector, which equals to m_dimension.
      */
     unsigned int length() const;
+
     /**
      * Returns with the capacity of vector.
+     * Capacity means the number of nonzeros that can be stored on the allocated memory.
      *
      * Complexity: O(1)
      *
      * @return Capacity of vector
      */
     unsigned int capacity() const;
+
     /**
-     * The function returns with the index of last stored element.
+     * Gives the maximal index of the stored nonzeros.
+     * Dense vectors give the index of the last nonzero element, while
+     * sparse vectors give the maximal index of the stored elements.
      *
      * Complexity: O(n)
      *
-     * @return The index of last non zero element
+     * @return The maximal index of the stored nonzeros.
      */
     unsigned int maxIndex() const;
+
     /**
-     * The function muliplies the vector by lambda.
+     * Muliply the vector by lambda.
+     * Every element is multiplied by a given multiplier lambda.
      * When lambda is zero, the function converts the vector to an empty sparse vector.
      * Example:
      * <pre>
@@ -468,12 +488,13 @@ public:
      * </tr>
      * </table>
      *
-     * @param lambda The value which with the elements of vector are multiplied
-     * @return Reference of the vector
+     * @param lambda The value of the multiplier.
+     * @return Reference of the vector.
      */
     Vector & scaleBy(Numerical::Double lambda);
+
     /**
-     * Returns with value of dot product between 2 vectors.
+     * Gives the result of the dot product of two vectors.
      *
      * <table>
      * <tr align="center">
@@ -503,49 +524,63 @@ public:
      * </tr>
      * </table>
      *
-     * @param vector The vector which with the operation have to be performed
-     * @return Value of dot product
+     * @param vector The operand vector of the dot product.
+     * @param stableAddAbs Use stable addition with absolute tolerance.
+     * @param stableAddRel Use stable addition with relative tolerance.
+     * @return The value of the dot product.
      */
-    Numerical::Double dotProduct(const Vector & vector, bool stableAddAbs = true, bool stableAddRel = true) const;
+    Numerical::Double dotProduct(const Vector & vector,
+                                 bool stableAddAbs = true,
+                                 bool stableAddRel = true) const;
 
     /**
      * Calculates the Euclidean norm of the vector.
      *
-     * @return Value of the Euclidean norm of the vector.
+     * @return The Euclidean norm of the vector.
      */
     Numerical::Double euclidNorm() const;
 
     Numerical::Double l1Norm() const;
 
+
+    //TODO: A Numerical::ADD_TYPE-ot egyforman kezelni itt meg a felette levo fuggvenyben.
+
     /**
-     * The function performs the next operation: a = a + lambda * b.
-     * a and b are Vector type objects.
+     * The function performs the operation: a = a + lambda * b.
+     * Where a and b are Vector objects.
      *
-     * @param lambda Multiplier of parameter vector
-     * @param vector The function adds this vector to the other vector
-     * @return The function returns with the reference of modified vector
+     * @see Numerical::stableAdd
+     * @param lambda Multiplier of the parameter vector,
+     * @param vector The vector to be added to the actual vector.
+     * @param addType Specifies the stable addition method.
+     * @return The reference of the modified vector.
      */
-    Vector & addVector(Numerical::Double lambda, const Vector & vector,
+    Vector & addVector(Numerical::Double lambda,
+                       const Vector & vector,
                        Numerical::ADD_TYPE addType = Numerical::ADD_ABS_REL);
 
     /**
      * Performs an elementary forward transformation on the vector.
-     * This operation is the multiplication of the vector with a special matrix.
+     * This operation is the multiplication of the vector with an
+     * elementary transformation matrix: v = ETM * v. It differs from the
+     * unit matrix in only one column this column can be specified with
+     * a vector and its position.
      *
      * @param eta The eta vector of the elementary transformation matrix.
-     * @param pivot The index of the eta vector in the elementary transformation
-     * matrix.
+     * @param pivot The index of the eta vector in the elementary transformation matrix.
      * @return Reference of the vector.
      */
     Vector & elementaryFtran(const Vector & eta, unsigned int pivot);
 
     /**
      * Performs an elementary backward transformation on the vector.
-     * This operation is the multiplication of the vector with a special matrix.
+     * This operation is the multiplication of the vector with an
+     * elementary transformation matrix: v = v * ETM. It differs from the
+     * unit matrix in only one column this column can be specified with
+     * a vector and its position.
      *
      * @param eta The eta vector of the elementary transformation matrix.
-     * @param pivot The index of the eta vector in the elementary transformation
-     * matrix
+     * @param pivot The index of the eta vector in the elementary transformation matrix.
      * @return Reference of the vector.
      */
     Vector & elementaryBtran(const Vector & eta, unsigned int pivot);
@@ -578,7 +613,8 @@ public:
 
     /**
      * Appends a new vector to the end of the vector.
-     * This operation increases the dimension of the vector by the dimension of the new vector.
+     * This operation increases the dimension of the vector by the
+     * dimension of the operand vector.
      *
      * @param vector The new vector to be appended.
      */
@@ -587,6 +623,7 @@ public:
     /**
      * Reinitializes the vector to the given dimension.
      * This operation also reallocates the data storage of the vector.
+     * Data in the vector will be lost after this operation.
      *
      * @param dimension The dimension of the reinitialized vector.
      */
@@ -601,6 +638,8 @@ public:
     void setSparsityRatio(Numerical::Double ratio);
 
     /**
+     * Gives the actual sparsity ratio of the vector.
+     *
      * @see SPARSITY_RATIO
      * @return The value of the sparsity ratio of the vector.
      */
@@ -608,21 +647,26 @@ public:
 
     /**
      * Changes a previously zero value of the vector to a new, nonzero value.
+     * If this function is applied to a nonzero element it will lead to
+     * undefined behaviour.
      *
-     * @param index The index of the element to be changed.
-     * @param value The value of the element to be changed.
+     * @param index The index of the element to be added.
+     * @param value The value of the element to be added.
      */
     void setNewNonzero(unsigned int index, Numerical::Double value);
 
     /**
-     * Makes the vector equal to a given vector.
+     * Assignes a vector to the actual vector.
+     * The data in the vector is overwritten, the values of the operand will be
+     * copied to the actual vector.
      *
      * @param vector Reference to the vector.
+     * @return The reference of the vector.
      */
     Vector & operator=(const Vector & vector);
 
     /**
-     * Returns true if the two vectors are equal.
+     * Gives whether the two vectors are equal.
      *
      * @param vector Reference to the other vector.
      * @return Logical equivalence of the two vectors.
@@ -630,7 +674,7 @@ public:
     bool operator==(const Vector & vector) const;
 
     /**
-     * Returns false if the two vectors are equal.
+     * Gives whether the two vectors are not equal.
      *
      * @param vector Reference to the other vector.
      * @return Complement of logical equivalence of the two vectors.
@@ -641,9 +685,10 @@ public:
     }
 
     /**
-     * Returns the current representation type of the vector.
+     * Gives the current representation type of the vector.
+     * It can be sparse or dense vector.
      *
-     * @see m_vectorType
+     * @see VECTOR_TYPE
      * @return The current representation type of the vector.
      */
     inline VECTOR_TYPE getType() const
@@ -663,19 +708,20 @@ public:
     }
 
     /**
-     * Prints the properties of the vector.
+     * Prints the properties of the vector to an output stream.
      *
      * @param os Reference of the output stream to be printed on.
-     * @param vector Reference of the vector.
+     * @param vector The vector to be printed.
      * @return Reference of the output stream with the printed data.
      */
     friend std::ostream & operator<<(std::ostream & os, const Vector & vector);
 
     /**
-     * Returns an Iterator pointing to the first element of the vector.
+     * Gives an Iterator pointing to the first element of the vector.
+     * The first element is the element at position 0.
      *
      * @see Iterator
-     * @return Iterator pointing to the first element of the vector.
+     * @return An Iterator pointing to the first element.
      */
     inline Iterator begin() const
     {
@@ -683,14 +729,13 @@ public:
     }
 
     /**
-     * Returns a NonzeroIterator pointing to the first element of the vector.
+     * Gives a NonzeroIterator pointing to the first nonzero element of the vector.
      *
      * @see NonzeroIterator
-     * @return NonzeroIterator pointing to the first element of the vector.
+     * @return A NonzeroIterator pointing to the first nonzero.
      */
     inline NonzeroIterator beginNonzero() const
     {
-        //CHECK;
         if (m_size == 0) {
             return endNonzero();
         }
@@ -700,9 +745,10 @@ public:
 
     /**
      * Returns an Iterator pointing to the end of the vector.
+     * It points after the last element, whether it is 0 or not.
      *
      * @see Iterator
-     * @return Iterator pointing to the end of the vector.
+     * @return An Iterator pointing to the end of the vector.
      */
     inline Iterator end() const
     {
@@ -710,11 +756,13 @@ public:
                         m_index ? m_index + m_size : 0);
     }
 
+    //TODO: Az end es az endNonzero ugyanoda mutatnak?
     /**
      * Returns a NonzeroIterator pointing to the end of the vector.
+     * It points after the last element, whether it is 0 or not.
      *
      * @see NonzeroIterator
-     * @return NonzeroIterator pointing to the end of the vector.
+     * @return A NonzeroIterator pointing to the end of the vector.
      */
     inline NonzeroIterator endNonzero() const
     {
@@ -919,7 +967,7 @@ protected:
     /**
      * Temporary vector for linear time dot product and add operations.
      */
-    THREAD_STATIC_DECL Numerical::Double * sm_fullLengthVector;
+    static thread_local Numerical::Double * sm_fullLengthVector;
 
     /**
      * Describes the size of sm_fullLengthVector.
@@ -929,7 +977,7 @@ protected:
      *
      * @see sm_fullLengthVector
      */
-    THREAD_STATIC_DECL unsigned int sm_fullLengthVectorLenght;
+    static thread_local unsigned int sm_fullLengthVectorLenght;
 
     /**
      * Describes how many Vector type objects exists.
@@ -938,14 +986,14 @@ protected:
      *
      * @see sm_fullLengthVector
      */
-    THREAD_STATIC_DECL unsigned int sm_fullLenghtReferenceCounter;
+    static thread_local unsigned int sm_fullLenghtReferenceCounter;
 
     /**
      * Temporary vector for the counting sort vector sorting algorithm.
      *
      * @see countingSort
      */
-    THREAD_STATIC_DECL unsigned long * sm_countingSortBitVector;
+    static thread_local unsigned long * sm_countingSortBitVector;
 
     /**
      * Describes the size of sm_countingSortBitVector.
@@ -956,7 +1004,7 @@ protected:
      *
      * @see sm_countingSortBitVector
      */
-    THREAD_STATIC_DECL unsigned int sm_countingSortBitVectorLength;
+    static thread_local unsigned int sm_countingSortBitVectorLength;
 
     /**
      * Initializes the vector with the given dimension.

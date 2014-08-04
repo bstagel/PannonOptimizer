@@ -61,7 +61,7 @@ private:
     unsigned int m_transformationCount;
     double m_transformationAverage;
     double m_mNumAverage;
-    THREAD_STATIC_DECL int m_inversionCount;
+    static thread_local int m_inversionCount;
 
     //Threshold value for threshold pivoting
     const double & m_threshold;

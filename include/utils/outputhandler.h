@@ -150,7 +150,7 @@ public:
      *
      * @return A reference to the OutputHandler instance.
      */
-    THREAD_STATIC_DECL OutputHandler & getInstance();
+    static OutputHandler & getInstance();
 
     /**
      * Sets the information message handler of the program to a given handler object.

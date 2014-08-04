@@ -11,7 +11,7 @@
 
 #include <utils/thirdparty/prettyprint.h>
 
-THREAD_STATIC_DEF int LuBasis::m_inversionCount = 0;
+thread_local int LuBasis::m_inversionCount = 0;
 
 LuBasis::LuBasis(const SimplexModel& model,
                  std::vector<int>* basisHead,

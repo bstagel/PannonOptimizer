@@ -214,7 +214,7 @@ private:
     unsigned int m_transformationCount;
     double m_transformationAverage;
     double m_mNumAverage;
-    THREAD_STATIC_DECL int m_inversionCount;
+    static thread_local int m_inversionCount;
 
     //Run parameters
     //Non-triangular method parameter

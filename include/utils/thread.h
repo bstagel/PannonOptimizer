@@ -1,6 +1,6 @@
 /**
  * @file thread.h This file contains macros defining the parallel processing settings.
- * @author smidla
+ * @author Jozsef Smidla
  */
 
 #ifndef THREAD_H
@@ -9,40 +9,36 @@
 #include <utils/platform.h>
 #include <thread>
 
-#ifdef GNU_COMPILER
+//Instead of this thread_local macro thread_local C++0x specifier is used
 
-#define THREAD_STATIC_DECL static __thread
-#define THREAD_STATIC_DEF  __thread
+//#ifdef GNU_COMPILER
+//#define thread_local __thread
+//#endif
 
-#endif
+//#ifdef INTEL_COMPILER
 
-#ifdef INTEL_COMPILER
+//#ifdef thread_local
+//#undef thread_local
+//#endif
 
-#ifdef THREAD_STATIC_DECL
-#undef THREAD_STATIC_DECL
-#undef THREAD_STATIC_DEF
-#endif
+//#ifdef UNIX
 
-#ifdef UNIX
+//#define thread_local __thread
 
-#define THREAD_STATIC_DECL static __thread
-#define THREAD_STATIC_DEF  __thread
+//#endif
+//#ifdef WIN32
 
-#endif
-#ifdef WIN32
+//#define thread_local __declspec(thread)
 
-#define THREAD_STATIC_DECL static __declspec(thread)
-#define THREAD_STATIC_DEF  __declspec(thread)
+//#endif
 
-#endif
+//#endif
 
-#endif
-
-// TODO: majd kesobb meg kiegeszitjuk a tobbi platformhoz es forditohoz
+// Majd kesobb meg kiegeszitjuk a tobbi platformhoz es forditohoz
 // Segitseg: http://sourceforge.net/p/predef/wiki/Compilers/
 
-#ifndef THREAD_STATIC_DECL
-    #error Cannot use thread local variables.
-#endif
+//#ifndef thread_local
+//    #error Cannot use thread local variables.
+//#endif
 
 #endif // THREAD_H

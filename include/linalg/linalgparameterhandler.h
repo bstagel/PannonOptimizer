@@ -1,6 +1,6 @@
 /**
  * @file linalgparameterhandler.h This file contains the API for the LinalgParameterHandler class
- * @author smidla
+ * @author Peter Tar
  */
 
 #ifndef LINALGPARAMETERHANDLER_H
@@ -24,15 +24,16 @@ public:
      *
      * @return An instance of the ParameterHandler static object.
      */
-    THREAD_STATIC_DECL ParameterHandler & getInstance();
+    static ParameterHandler & getInstance();
 
     /**
-     * Creates a new parameter file for the linear algebra specific parameters and fills it with the default data.
+     * Creates a new parameter file for the linear algebra specific parameters.
+     * The file is created with the default paramteres.
      */
     void writeParameterFile();
 
     /**
-     * Initializes the default linear algebra specific parameters.
+     * Initializes the handler with the default linear algebra specific parameters.
      */
     void initParameters();
 
@@ -41,7 +42,7 @@ private:
     /**
      * The default filename to read the paramters from or write them to.
      */
-    THREAD_STATIC_DECL const char * sm_defaultFilename;
+    static thread_local const char * sm_defaultFilename;
 
     static LinalgParameterHandler * sm_instance;
 
@@ -54,12 +55,16 @@ private:
      */
     LinalgParameterHandler();
 
+    //TODO: No implementation here
     /**
      * Copy constructor of the LinalgParameterHandler class.
      *
      * @constructor
+     * @param original The function copies this handler.
      */
-    LinalgParameterHandler(const LinalgParameterHandler &){}
+    LinalgParameterHandler(const LinalgParameterHandler & original){
+        __UNUSED(original);
+    }
 };
 
 #endif // LINALGPARAMETERHANDLER_H

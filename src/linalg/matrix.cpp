@@ -165,8 +165,7 @@ void Matrix::resize(unsigned int rowCount, unsigned int columnCount)
     m_columnCount = columnCount;
 }
 
-void Matrix::reInit(unsigned int rowCount, unsigned int columnCount, bool
-    initVectors)
+void Matrix::reInit(unsigned int rowCount, unsigned int columnCount, bool initVectors)
 {
     clear();
     init(rowCount, columnCount, initVectors);
@@ -414,23 +413,23 @@ void Matrix::prependColumn(const Vector & vector)
     insertColumn(0, vector);
 }
 
-void Matrix::setNewNonzero(unsigned int y, unsigned int x, Numerical::Double value)
+void Matrix::setNewNonzero(unsigned int rowindex, unsigned int columnindex, Numerical::Double value)
 {
     m_fastColumnScaling = false;
-    m_rowWise[y]->setNewNonzero(x, value);
-    m_columnWise[x]->setNewNonzero(y, value);
+    m_rowWise[rowindex]->setNewNonzero(columnindex, value);
+    m_columnWise[columnindex]->setNewNonzero(rowindex, value);
 }
 
-void Matrix::set(unsigned int y, unsigned int x, Numerical::Double value)
+void Matrix::set(unsigned int rowindex, unsigned int columnindex, Numerical::Double value)
 {
     m_fastColumnScaling = false;
-    m_rowWise[y]->set(x, value);
-    m_columnWise[x]->set(y, value);
+    m_rowWise[rowindex]->set(columnindex, value);
+    m_columnWise[columnindex]->set(rowindex, value);
 }
 
-Numerical::Double Matrix::get(unsigned int y, unsigned int x) const
+Numerical::Double Matrix::get(unsigned int rowindex, unsigned int columnindex) const
 {
-    return m_rowWise[y]->at(x);
+    return m_rowWise[rowindex]->at(columnindex);
     // TODO: azt hasznalja, amelyik dense
 }
 
@@ -705,8 +704,7 @@ void Matrix::copy(const Matrix & matrix)
     }
 }
 
-void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool
-    initVectors)
+void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool initVectors)
 {
     unsigned int index;
     m_isDiagonal = false;
@@ -774,7 +772,7 @@ Matrix Matrix::createColumnMatrix(const Vector& column)
 
 Matrix Matrix::operator*(const Matrix& other) const
 {
-    /* FIXME: check wether dimensions are correct */
+    // TODO: check whether dimensions are correct or not
     Matrix result(m_rowCount, other.m_columnCount);
     if (m_isDiagonal == true) {
         unsigned int columnIndex;
@@ -823,7 +821,7 @@ Matrix Matrix::operator*(const Matrix& other) const
 
 Matrix Matrix::operator-(const Matrix& other) const
 {
-    /* FIXME: check wether dimensions are correct */
+    // TODO: check whether dimensions are correct or not
     Matrix result(*this);
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
@@ -838,7 +836,7 @@ Matrix Matrix::operator-(const Matrix& other) const
 
 void Matrix::operator-=(const Matrix& other)
 {
-    /* FIXME: check wether dimensions are correct */
+    // TODO: check whether dimensions are correct or not
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
         m_rowWise[row]->addVector(-1.0, *other.m_rowWise[row]);
@@ -850,7 +848,7 @@ void Matrix::operator-=(const Matrix& other)
 
 Matrix Matrix::operator+(const Matrix& other) const
 {
-    /* FIXME: check wether dimensions are correct */
+    // TODO: check whether dimensions are correct or not
     Matrix result(*this);
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
@@ -865,7 +863,7 @@ Matrix Matrix::operator+(const Matrix& other) const
 
 void Matrix::operator+=(const Matrix& other)
 {
-    /* FIXME: check wether dimensions are correct */
+    // TODO: check whether dimensions are correct or not
     unsigned int row, column;
     for (row = 0; row < m_rowCount; row++) {
         m_rowWise[row]->addVector(1.0, *other.m_rowWise[row]);
@@ -875,43 +873,40 @@ void Matrix::operator+=(const Matrix& other)
     }
 }
 
-Matrix operator*(Numerical::Double d, const Matrix& right)
-{
-    Matrix m(0, 0);
-    unsigned int index;
-    m.m_rowCount = right.m_rowCount;
-    m.m_columnCount = right.m_columnCount;
-    m.m_isDiagonal = right.m_isDiagonal;
-    m.m_rowWise = 0;
-    m.m_columnWise = 0;
+//Matrix operator*(Numerical::Double d, const Matrix& right)
+//{
+//    Matrix m(0, 0);
+//    unsigned int index;
+//    m.m_rowCount = right.m_rowCount;
+//    m.m_columnCount = right.m_columnCount;
+//    m.m_isDiagonal = right.m_isDiagonal;
+//    m.m_rowWise = 0;
+//    m.m_columnWise = 0;
 
-    m.m_rowWise = new Vector*[ m.m_rowCount ];
-    for (index = 0; index < m.m_rowCount; index++) {
-        m.m_rowWise[index] = new Vector(*right.m_rowWise[index], d);
-    }
-    m.m_columnWise = new Vector*[ m.m_columnCount ];
-    for (index = 0; index < m.m_columnCount; index++) {
-        m.m_columnWise[index] = new Vector(*right.m_columnWise[index], d);
-    }
-    return m;
-}
+//    m.m_rowWise = new Vector*[ m.m_rowCount ];
+//    for (index = 0; index < m.m_rowCount; index++) {
+//        m.m_rowWise[index] = new Vector(*right.m_rowWise[index], d);
+//    }
+//    m.m_columnWise = new Vector*[ m.m_columnCount ];
+//    for (index = 0; index < m.m_columnCount; index++) {
+//        m.m_columnWise[index] = new Vector(*right.m_columnWise[index], d);
+//    }
+//    return m;
+//}
 
-Matrix operator+(Numerical::Double d, const Matrix& right)
-{
-    Matrix m = right;
-    for (unsigned int i = 0; i < right.rowCount(); i++) {
-        for (unsigned int j = 0; j < right.columnCount(); j++) {
-            m.set(i, j, d + right.get(i, j));
-        }
-    }
-    return m;
-}
+//Matrix operator+(Numerical::Double d, const Matrix& right)
+//{
+//    Matrix m = right;
+//    for (unsigned int i = 0; i < right.rowCount(); i++) {
+//        for (unsigned int j = 0; j < right.columnCount(); j++) {
+//            m.set(i, j, d + right.get(i, j));
+//        }
+//    }
+//    return m;
+//}
 
 void Matrix::sortVectors() const
 {
-    ///clock_t cl_start, cl_end;
-    //LPINFO("start sorting");
-    //cl_start = clock();
     unsigned int index;
     for (index = 0; index < rowCount(); index++) {
         row(index).sortElements();
@@ -919,9 +914,6 @@ void Matrix::sortVectors() const
     for (index = 0; index < columnCount(); index++) {
         column(index).sortElements();
     }
-    //exit(1);
-    //cl_end = clock();
-    //LPINFO("sorting time: " << ((Numerical::Double) (cl_end - cl_start) / (Numerical::Double) CLOCKS_PER_SEC) << " sec");
 }
 
 int Matrix::gaussianElimination(bool gaussianJordan)
