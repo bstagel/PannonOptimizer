@@ -39,7 +39,7 @@ VectorTestSuite::VectorTestSuite(const char * name) : UnitTest(name)
 
 bool VectorTestSuite::integrityCheck(const Vector & vector)
 {
-    if (Vector::sm_fullLenghtReferenceCounter == 0 && Vector::sm_fullLengthVectorLenght != 0) {
+    if (Vector::sm_fullLenghtReferenceCounter == 0 && Vector::sm_fullLengthVectorLength != 0) {
         return false;
     }
     if (Vector::sm_fullLenghtReferenceCounter == 0 && Vector::sm_fullLengthVector != 0) {
@@ -50,7 +50,7 @@ bool VectorTestSuite::integrityCheck(const Vector & vector)
     }
 
     Numerical::Double * dataPtr = Vector::sm_fullLengthVector;
-    Numerical::Double * dataPtrEnd = dataPtr + Vector::sm_fullLengthVectorLenght;
+    Numerical::Double * dataPtrEnd = dataPtr + Vector::sm_fullLengthVectorLength;
     for (; dataPtr < dataPtrEnd; dataPtr++) {
         if (*dataPtr != 0.0) {
             return false;

@@ -20,7 +20,7 @@
 int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
 double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
 thread_local Numerical::Double * Vector::sm_fullLengthVector = 0;
-thread_local unsigned int Vector::sm_fullLengthVectorLenght = 0;
+thread_local unsigned int Vector::sm_fullLengthVectorLength = 0;
 thread_local unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
 thread_local unsigned long * Vector::sm_countingSortBitVector = 0;
 thread_local unsigned int Vector::sm_countingSortBitVectorLength = 0;
@@ -99,7 +99,7 @@ Vector::~Vector()
         release(sm_fullLengthVector);
         //delete [] sm_fullLengthVector;
         sm_fullLengthVector = 0;
-        sm_fullLengthVectorLenght = 0;
+        sm_fullLengthVectorLength = 0;
 
         release(sm_countingSortBitVector);
         //delete [] sm_countingSortBitVector;
@@ -863,7 +863,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         // both of them are sparse
         needScatter = true;
         if (m_nonZeros >= vector.m_nonZeros) {
-            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, *this);
+            scatter(sm_fullLengthVector, sm_fullLengthVectorLength, *this);
             denseVector = sm_fullLengthVector;
             data = vector.m_data;
             index = vector.m_index;
@@ -871,7 +871,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
             origIndex = m_index;
             origSize = m_size;
         } else {
-            scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
+            scatter(sm_fullLengthVector, sm_fullLengthVectorLength, vector);
             denseVector = sm_fullLengthVector;
             data = m_data;
             index = m_index;
@@ -1100,7 +1100,7 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
                                Numerical::ADD_TYPE addType)
 {
     m_sorted = false;
-    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, vector);
+    scatter(sm_fullLengthVector, sm_fullLengthVectorLength, vector);
 
     Numerical::Double * denseVector = sm_fullLengthVector;
     Numerical::Double * ptrActualVector = m_data;
@@ -1505,7 +1505,7 @@ void Vector::countingSort() const
     }
 
 
-    scatter(sm_fullLengthVector, sm_fullLengthVectorLenght, *this);
+    scatter(sm_fullLengthVector, sm_fullLengthVectorLength, *this);
     static int count = 0;
     count++;
 
@@ -2121,12 +2121,12 @@ Numerical::Double Vector::absMaxSums(Numerical::Double * squareSumPtr) const {
     return absSum;
 }
 
-Vector operator*(Numerical::Double m, const Vector& v)
-{
-    Vector ret(v);
-    ret.scaleBy(m);
-    return ret;
-}
+//Vector operator*(Numerical::Double m, const Vector& v)
+//{
+//    Vector ret(v);
+//    ret.scaleBy(m);
+//    return ret;
+//}
 
 void Vector::swap(Vector * vector1, Vector * vector2) {
     // new and delete are too slow
