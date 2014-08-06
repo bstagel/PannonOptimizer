@@ -17,8 +17,8 @@
 
 #include <utils/flags.h>
 
-int ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
-double SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+int ELBOWROOM = 0;
+double SPARSITY_RATIO = 0;
 thread_local Numerical::Double * Vector::sm_fullLengthVector = 0;
 thread_local unsigned int Vector::sm_fullLengthVectorLength = 0;
 thread_local unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
@@ -28,6 +28,11 @@ thread_local unsigned int Vector::sm_countingSortBitVectorLength = 0;
 #ifdef ANALYSE_DOT_PRODUCT
     std::vector<int> diffs(3000);
 #endif
+
+void Vector::_globalInit() {
+    ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+    SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+}
 
 Vector::Vector(unsigned int dimension, VECTOR_TYPE type)
 {
@@ -835,6 +840,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
             ptr1++;
             ptr2++;
         }
+
         return summarizer.getResult(stableAddAbs, stableAddRel);
     }
 
@@ -845,6 +851,16 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     Numerical::Double * denseVector = sm_fullLengthVector;
     unsigned int * origIndex = 0;
     unsigned int origSize = 0;
+
+
+    clock_t start, endT;
+    static double _time = 0;
+    static int _counter = 0;
+    _counter++;
+    if (_counter % 10 == 0) {
+        start = clock();
+    }
+
     // when both of them are sparse, it has to be converted to dense
     if (m_vectorType == DENSE_VECTOR || vector.m_vectorType == DENSE_VECTOR) {
         needScatter = false;
@@ -882,6 +898,14 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     }
 
 
+    if (_counter % 10 == 0) {
+        endT = clock();
+        _time += (endT - start) / (double)CLOCKS_PER_SEC;
+        if (_counter % 1000000 == 0) {
+            LPINFO(_time << "   " <<  sm_fullLengthVectorLenght);
+        }
+    }
+
     const Numerical::Double * ptrSparse = data;
     const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
     const unsigned int * ptrIndex = index;
@@ -899,6 +923,8 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
+
+
     return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 

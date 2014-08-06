@@ -43,7 +43,7 @@ class Numerical
 {
     friend class InitPanOpt;
 private:
-    static void init();
+    static void _globalInit();
 
 public:
 

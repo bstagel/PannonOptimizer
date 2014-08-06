@@ -41,7 +41,7 @@ ParameterHandler& LinalgParameterHandler::getInstance()
     }
 }
 
-void LinalgParameterHandler::init() {
+void LinalgParameterHandler::_globalInit() {
     sm_instance = new LinalgParameterHandler;
     sm_instance->initParameters();
     sm_instance->readParameterFile(sm_defaultFilename);

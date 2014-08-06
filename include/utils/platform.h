@@ -6,7 +6,7 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <cstdint>
+//#include <cstdint>
 
 /**
  * @def WIN32
@@ -64,6 +64,10 @@
 
 #ifdef __GNUC__
     #define GNU_COMPILER
+    #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+    #error Too old gcc version. Use unless 4.8.0. or higher!
+    #endif
+
 #endif
 
 #ifdef __INTEL_COMPILER
@@ -80,12 +84,21 @@
  * ARCHITECTURES
  ***********************************************/
 
-#if INTPTR_MAX == INT32_MAX
+/*#if INTPTR_MAX == INT32_MAX
     #define ENVIRONMENT_32
 #elif INTPTR_MAX == INT64_MAX
     #define ENVIRONMENT_64
 #else
     #error "Environment not 32 or 64-bit."
+#endif
+*/
+
+#if __GNUC__
+#if __x86_64__ || __ppc64__
+#define ENVIRONMENT_64
+#else
+#define ENVIRONMENT_32
+#endif
 #endif
 
 #ifdef __x86_64

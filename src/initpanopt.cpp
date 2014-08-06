@@ -51,10 +51,10 @@ void InitPanOpt::init() {
 
     sm_instance = new InitPanOpt();
 
-    LinalgParameterHandler::init();
-    SimplexParameterHandler::init();
-    Numerical::init();
-
+    LinalgParameterHandler::_globalInit();
+    SimplexParameterHandler::_globalInit();
+    Numerical::_globalInit();
+    Vector::_globalInit();
 
 #ifdef PLATFORM_X86
     sm_architecture = new ArchitectureX86;
@@ -76,9 +76,6 @@ void initPanOpt() {
     printf("INIT PanOpt!\n");
 
     InitPanOpt::init();
-
-    ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
-    SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
 
 }
 
