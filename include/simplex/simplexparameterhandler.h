@@ -26,7 +26,7 @@ private:
 
     static SimplexParameterHandler * sm_instance;
 
-    static void init();
+    static void _globalInit();
 
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}

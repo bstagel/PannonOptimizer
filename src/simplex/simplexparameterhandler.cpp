@@ -42,7 +42,7 @@ ParameterHandler& SimplexParameterHandler::getInstance()
     }
 }
 
-void SimplexParameterHandler::init() {
+void SimplexParameterHandler::_globalInit() {
     sm_instance = new SimplexParameterHandler;
     sm_instance->initParameters();
     sm_instance->readParameterFile(sm_defaultFilename);

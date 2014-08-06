@@ -46,7 +46,7 @@ private:
 
     static LinalgParameterHandler * sm_instance;
 
-    static void init();
+    static void _globalInit();
 
     /**
      * Constructor of the LinalgParameterHandler class.

@@ -54,6 +54,7 @@ class Vector
     friend class PfiBasis;
     friend class LuBasis;
     friend class VectorTestSuite;
+    friend class InitPanOpt;
 public:
 
     /**
@@ -1273,6 +1274,7 @@ protected:
     static void clearFullLenghtVector(Numerical::Double * denseVector,
                                       unsigned int * sparseIndex, unsigned int sparseLength);
 
+    static void _globalInit();
 #undef IN_VECTOR
 };
 

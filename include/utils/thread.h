@@ -6,8 +6,8 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#include <utils/platform.h>
-#include <thread>
+//#include <utils/platform.h>
+//#include <thread>
 
 //Instead of this thread_local macro thread_local C++0x specifier is used
 

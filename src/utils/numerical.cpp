@@ -21,7 +21,7 @@ Numerical::Double Numerical::RelativeTolerance = 0;
 const Numerical::Double ZERO = 0.0;
 const Numerical::Double INVALID = -DBL_MAX;
 
-void Numerical::init() {
+void Numerical::_globalInit() {
     AbsoluteTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_absolute");
     RelativeTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative");
 }

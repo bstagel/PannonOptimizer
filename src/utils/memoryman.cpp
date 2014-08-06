@@ -37,9 +37,9 @@ void release(void * ptr) {
 void panOptMemcpy(void * dest,
                   const void * src,
                   size_t size) {
-    memcpy(dest, src, size);
-    return;
-    if (likely(size < Architecture::getLargestCacheSize())) {
+    //memcpy(dest, src, size);
+    //return;
+    if (likely(size < Architecture::getLargestCacheSize() )) {
         Architecture::getMemCpyCache()(dest, src, size);
     } else {
         Architecture::getMemCpyNoCache()(dest, src, size);

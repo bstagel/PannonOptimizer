@@ -13,7 +13,7 @@ MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
     ADD_TEST_EXTRA(MatrixTestSuite::subtract, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::subtractFromThis, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::multipleByVector, MatrixTester);
-    ADD_TEST_EXTRA(MatrixTestSuite::multipleByDouble, MatrixTester);
+    //ADD_TEST_EXTRA(MatrixTestSuite::multipleByDouble, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::multipleByMatrix_1, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::multipleByMatrix_2, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::multipleByDiagonalMatrix, MatrixTester);
@@ -48,7 +48,7 @@ MatrixTestSuite::MatrixTestSuite(const char * name) : UnitTest(name)
     ADD_TEST_EXTRA(MatrixTestSuite::removeColumn, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::nonZerosAndDensity, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::newNonzero, MatrixTester);
-    ADD_TEST_EXTRA(MatrixTestSuite::addScalarMatrix, MatrixTester);
+    //ADD_TEST_EXTRA(MatrixTestSuite::addScalarMatrix, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::sortElements, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::determinant, MatrixTester);
     ADD_TEST_EXTRA(MatrixTestSuite::reInit, MatrixTester);
@@ -885,7 +885,7 @@ void MatrixTestSuite::multipleByVector()
     ASSERT_EQ(110, result.at(2));
 }
 
-void MatrixTestSuite::multipleByDouble()
+/*void MatrixTestSuite::multipleByDouble()
 {
     Matrix m(2, 3);
     m.set(0, 0, 2);
@@ -931,7 +931,7 @@ void MatrixTestSuite::multipleByDouble()
     ASSERT_EQ(2, v5.length());
     ASSERT_EQ(3, v5.at(0));
     ASSERT_EQ(6, v5.at(1));
-}
+}*/
 
 void MatrixTestSuite::multipleByMatrix_1()
 {
@@ -4276,7 +4276,7 @@ void MatrixTestSuite::newNonzero()
     ASSERT_EQ(12, v7.at(3));
 }
 
-void MatrixTestSuite::addScalarMatrix()
+/*void MatrixTestSuite::addScalarMatrix()
 {
     Matrix m(2, 3);
     m.set(0, 0, 11);
@@ -4360,7 +4360,7 @@ void MatrixTestSuite::addScalarMatrix()
     ASSERT_EQ(32, v10.at(1));
     ASSERT_EQ(33, v10.at(2));
 
-}
+}*/
 
 void MatrixTestSuite::sortElements()
 {
