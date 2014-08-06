@@ -318,7 +318,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
     if (vector.m_vectorType == Vector::DENSE_VECTOR) {
         denseVector = vector.m_data;
     } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght, vector);
+        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
         denseVector = Vector::sm_fullLengthVector;
     }
 
@@ -474,7 +474,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
         denseVector = vector.m_data;
         checkDenseVector = checkVector.m_data;
     } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght, vector);
+        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
         denseVector = Vector::sm_fullLengthVector;
     }
     checkDenseVector = alloc<Numerical::Double, 16>( vector.length() );
@@ -657,7 +657,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     if (vector.m_vectorType == Vector::DENSE_VECTOR) {
         denseVector = vector.m_data;
     } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLenght, vector);
+        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
         denseVector = Vector::sm_fullLengthVector;
     }
 

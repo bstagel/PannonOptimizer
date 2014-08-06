@@ -13,7 +13,7 @@
 #include <utils/numerical.h>
 
 /**
- * This class describes the basic functions needed by every Iterator classes.
+ * This class describes the basic functions needed by all the Iterator classes.
  *
  * @class CommonIterator
  */
@@ -42,6 +42,8 @@ public:
         m_start(start), m_end(end), m_data(data), m_index(index) {}
 
     /**
+     * Get the index of the pointed element.
+     *
      * @return The index of the currently pointed element.
      */
     inline unsigned int getIndex() const
@@ -123,19 +125,15 @@ public:
     }
 
     /**
-     * Returns a pointer to the currently pointed element.
+     * Returns a reference to the currently pointed element.
      *
-     * @return Pointer to the currently pointed element.
+     * @return The currently pointed element.
      */
     inline const Numerical::Double & operator*() const
     {
         return *m_data;
     }
 
-//    inline Numerical::Double * operator->() const
-//    {
-//        return m_data;
-//    }
 protected:
     /**
      * Pointer to the first element of the iteration.
