@@ -853,13 +853,13 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     unsigned int origSize = 0;
 
 
-    clock_t start, endT;
+    /*clock_t start, endT;
     static double _time = 0;
     static int _counter = 0;
     _counter++;
     if (_counter % 10 == 0) {
         start = clock();
-    }
+    }*/
 
     // when both of them are sparse, it has to be converted to dense
     if (m_vectorType == DENSE_VECTOR || vector.m_vectorType == DENSE_VECTOR) {
@@ -898,13 +898,13 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     }
 
 
-    if (_counter % 10 == 0) {
+    /*if (_counter % 10 == 0) {
         endT = clock();
         _time += (endT - start) / (double)CLOCKS_PER_SEC;
         if (_counter % 1000000 == 0) {
             LPINFO(_time << "   " <<  sm_fullLengthVectorLenght);
         }
-    }
+    }*/
 
     const Numerical::Double * ptrSparse = data;
     const Numerical::Double * const ptrSparseEnd = ptrSparse + size;

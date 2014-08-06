@@ -11,16 +11,17 @@ SECTION .data
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 global _denseToSparseDotProduct_unstable_SSE2_64_linux
-_denseToDenseDotProduct_unstable_SSE2_64_linux:
+_denseToSparseDotProduct_unstable_SSE2_64_linux:
 
 push    rbp
 mov     rbp, rsp
 
 push    rcx
 
-; rdi: address1
-; rsi: address2
-; rdx: count
+; rdi: dense address
+; rsi: sparse address
+; rdx: sparse index address
+;
 
 xorpd   xmm4, xmm4
 xorpd   xmm5, xmm5
@@ -32,10 +33,10 @@ shr     rcx, 3
 and     rdx, 0x7
 
 cmp     rcx, 1
-jl      _denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1
+jl      _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1
 
 align 16
-_denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa:
+_denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa:
 
 movapd  xmm0, [rdi]
 movapd  xmm1, [rdi+16]
@@ -56,18 +57,18 @@ addpd   xmm7, xmm3
 add     rdi, 64
 add     rsi, 64
 
-loop    _denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa
+loop    _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa
 
-_denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1:
+_denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1:
 
 mov     rcx, rdx
 shr     rcx, 1
 and     rdx, 1
 
 cmp     rcx, 1
-jl      _denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2
+jl      _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2
 
-_denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2:
+_denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2:
 
 movapd  xmm0, [rdi]
 mulpd   xmm0, [rsi]
@@ -76,18 +77,18 @@ addpd   xmm4, xmm0
 add     rdi, 16
 add     rsi, 16
 
-loop    _denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2
+loop    _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2
 
-_denseToDenseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2:
+_denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2:
 
 cmp     rdx, 0
-je      _denseToDenseDotProduct_unstable_SSE2_64_linux_end
+je      _denseToSparseDotProduct_unstable_SSE2_64_linux_end
 
 movsd   xmm0, [rdi]
 mulsd   xmm0, [rsi]
 addsd   xmm4, xmm0
 
-_denseToDenseDotProduct_unstable_SSE2_64_linux_end:
+_denseToSparseDotProduct_unstable_SSE2_64_linux_end:
 
 addpd   xmm4, xmm5
 addpd   xmm4, xmm6
