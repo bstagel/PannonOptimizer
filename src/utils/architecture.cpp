@@ -1,9 +1,14 @@
 #include <globals.h>
 #include <utils/architecture.h>
+#include <utils/primitives.h>
+#include <cstring>
 
 Architecture::MemCpyCache Architecture::sm_memCpyCachePtr;
 Architecture::MemCpyNoCache Architecture::sm_memCpyNoCachePtr;
 Architecture::DenseToDenseDotProductUnstable Architecture::sm_denseToDenseDotProductUnstablePtr;
+Architecture::DenseToDenseDotProductStable Architecture::sm_denseToDenseDotProductStablePtr;
+Architecture::DenseToSparseDotProductUnstable Architecture::sm_denseToSparseDotProductUnstablePtr;
+Architecture::DenseToSparseDotProductStable Architecture::sm_denseToSparseDotProductStablePtr;
 
 size_t Architecture::sm_largestCacheSize;
 
@@ -12,7 +17,13 @@ Architecture::Architecture():
     m_coreCount(0),
     m_totalMemory(0)
 {
+    sm_memCpyCachePtr = memcpy;
+    sm_memCpyNoCachePtr = memcpy;
 
+    sm_denseToDenseDotProductUnstablePtr = denseToDenseDotProductUnstable;
+    sm_denseToSparseDotProductUnstablePtr = denseToSparseDotProductUnstable;
+    sm_denseToDenseDotProductStablePtr = denseToDenseDotProductStable;
+    sm_denseToSparseDotProductStablePtr = denseToSparseDotProductStable;
 }
 
 bool Architecture::featureExists(const char *feature) const {
@@ -61,6 +72,18 @@ Architecture::MemCpyNoCache Architecture::getMemCpyNoCache() {
 
 Architecture::DenseToDenseDotProductUnstable Architecture::getDenseToDenseDotProductUnstable() {
     return sm_denseToDenseDotProductUnstablePtr;
+}
+
+ArchitectureInterface::DenseToSparseDotProductUnstable Architecture::getDenseToSparseDotProductUnstable() {
+    return sm_denseToSparseDotProductUnstablePtr;
+}
+
+ArchitectureInterface::DenseToDenseDotProductStable Architecture::getDenseToDenseDotProductStable() {
+    return sm_denseToDenseDotProductStablePtr;
+}
+
+ArchitectureInterface::DenseToSparseDotProductStable Architecture::getDenseToSparseDotProductStable() {
+    return sm_denseToSparseDotProductStablePtr;
 }
 
 size_t Architecture::getLargestCacheSize() {

@@ -1,6 +1,6 @@
 
 
-SECTION .data
+SECTION .text
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Dense to sparse dot product, unstable,
@@ -16,76 +16,149 @@ _denseToSparseDotProduct_unstable_SSE2_64_linux:
 push    rbp
 mov     rbp, rsp
 
-push    rcx
+push    rax
+push    rbx
 
 ; rdi: dense address
 ; rsi: sparse address
 ; rdx: sparse index address
-;
+; rcx: sparse count
+; rbx: sparse count
+
+mov     rbx,  rcx
 
 xorpd   xmm4, xmm4
 xorpd   xmm5, xmm5
 xorpd   xmm6, xmm6
 xorpd   xmm7, xmm7
 
-mov     rcx, rdx
 shr     rcx, 3
-and     rdx, 0x7
+and     rbx, 0x7
 
 cmp     rcx, 1
 jl      _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1
 
+xor     rax, rax
+
 align 16
 _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa:
+movapd  xmm0, [rsi]
+mov     eax, [rdx]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm8, [rdi+rax*8]
+mov     eax, [rdx+4]
+;shl     rax, 3
+;add     rax, rdi
+movhpd  xmm8, [rdi+rax*8]
 
-movapd  xmm0, [rdi]
-movapd  xmm1, [rdi+16]
-movapd  xmm2, [rdi+32]
-movapd  xmm3, [rdi+48]
 
-mulpd   xmm0, [rsi]
-mulpd   xmm1, [rsi+16]
-mulpd   xmm2, [rsi+32]
-mulpd   xmm3, [rsi+48]
+movapd  xmm1, [rsi+16]
+mov     eax, [rdx+8]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm9, [rdi+rax*8]
+mov     eax, [rdx+12]
+;shl     rax, 3
+;add     rax, rdi
+movhpd  xmm9, [rdi+rax*8]
 
+movapd  xmm2, [rsi+32]
+mov     eax, [rdx+16]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm10, [rdi+rax*8]
+mov     eax, [rdx+20]
+;shl     rax, 3
+;add     rax, rdi
+movhpd  xmm10, [rdi+rax*8]
+
+movapd  xmm3, [rsi+48]
+mov     eax, [rdx+24]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm11, [rdi+rax*8]
+mov     eax, [rdx+28]
+;shl     rax, 3
+;add     rax, rdi
+movhpd  xmm11, [rdi+rax*8]
+
+;pop     rbx
+;pop     rax
+
+;mov     rsp, rbp
+;pop     rbp
+;ret
+
+
+mulpd   xmm0, xmm8
+mulpd   xmm1, xmm9
+mulpd   xmm2, xmm10
+mulpd   xmm3, xmm11
 
 addpd   xmm4, xmm0
-addpd   xmm5, xmm1
-addpd   xmm6, xmm2
-addpd   xmm7, xmm3
+addpd   xmm4, xmm1
+addpd   xmm4, xmm2
+addpd   xmm4, xmm3
 
-add     rdi, 64
 add     rsi, 64
+add     rdx, 32
 
-loop    _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa
+dec     ecx
+jnz    _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa
 
 _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop1:
 
-mov     rcx, rdx
+;pop     rbx
+;pop     rax
+
+;mov     rsp, rbp
+;pop     rbp
+;ret
+
+
+
+mov     rcx, rbx
 shr     rcx, 1
-and     rdx, 1
+and     rbx, 1
 
 cmp     rcx, 1
 jl      _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2
 
 _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2:
 
-movapd  xmm0, [rdi]
-mulpd   xmm0, [rsi]
+movapd  xmm0, [rsi]
+mov     eax, [rdx]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm8, [rdi+rax*8]
+mov     eax, [rdx+4]
+;shl     rax, 3
+;add     rax, rdi
+movhpd  xmm8, [rdi+rax*8]
+
+mulpd   xmm0, xmm8
 addpd   xmm4, xmm0
 
-add     rdi, 16
 add     rsi, 16
+add     rdx, 8
 
 loop    _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_loop2
 
 _denseToSparseDotProduct_unstable_SSE2_64_linux_loop_aa_after_loop2:
 
-cmp     rdx, 0
+cmp     rbx, 0
 je      _denseToSparseDotProduct_unstable_SSE2_64_linux_end
 
-movsd   xmm0, [rdi]
-mulsd   xmm0, [rsi]
+;movsd   xmm0, [rdi]
+;mulsd   xmm0, [rsi]
+
+movsd   xmm0, [rsi]
+mov     eax, [rdx]
+;shl     rax, 3
+;add     rax, rdi
+movlpd  xmm8, [rdi+rax*8]
+mulsd   xmm0, xmm8
 addsd   xmm4, xmm0
 
 _denseToSparseDotProduct_unstable_SSE2_64_linux_end:
@@ -99,7 +172,8 @@ haddpd  xmm4, xmm4
 ; result
 movsd   xmm0, xmm4
 
-pop     rcx
+pop     rbx
+pop     rax
 
 mov     rsp, rbp
 pop     rbp

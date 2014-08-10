@@ -13,6 +13,7 @@ private:
     void memset();
 
     void denseToDenseDotProduct();
+    void denseToSparseDotProduct();
 };
 
 #endif // CORETEST_H

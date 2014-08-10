@@ -101,6 +101,8 @@
 #endif
 #endif
 
+// source: http://sourceforge.net/p/predef/wiki/Architectures/
+
 #ifdef __x86_64
 #define     PLATFORM_X86
 #endif
@@ -119,6 +121,26 @@
 
 #ifdef _i386_
 #define     PLATFORM_X86
+#endif
+
+#ifdef __arm__
+#define     PLATFORM_ARM
+#endif
+
+#ifdef __powerpc
+#define     PLATFORM_POWERPC
+#endif
+
+#ifdef __powerpc__
+#define     PLATFORM_POWERPC
+#endif
+
+#ifdef __POWERPC__
+#define     PLATFORM_POWERPC
+#endif
+
+#ifdef __sparc__
+#define     PLATFORM_SPARC
 #endif
 
 

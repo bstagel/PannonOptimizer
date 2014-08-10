@@ -10,12 +10,15 @@
 #include <utils/heap.h>
 #include <linalg/linalgparameterhandler.h>
 //#include <simplex/linalg.h>
+#include <utils/architecture.h>
 
 #include <climits>
 #include <cstring>
 #include <cmath>
 
 #include <utils/flags.h>
+
+#include <utils/primitives.h>
 
 int ELBOWROOM = 0;
 double SPARSITY_RATIO = 0;
@@ -909,23 +912,90 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     const Numerical::Double * ptrSparse = data;
     const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
     const unsigned int * ptrIndex = index;
+    //double res = 0;
+    Numerical::Double pos = 0;
+    Numerical::Double neg = 0;
+    //static unsigned long long int _counter = 0;
+    //_counter++;
 
-    while (ptrSparse < ptrSparseEnd) {
+    /*if (_counter == 219418115) {
+        __prim_debug = true;
+    } else {
+        __prim_debug = false;
+    }*/
+
+    /*pos = Architecture::getDenseToSparseDotProductStable()(
+                denseVector,
+                ptrSparse,
+                ptrIndex,
+                size,
+                &neg);*/
+
+    pos = Architecture::getDenseToSparseDotProductUnstable()(
+                denseVector,
+                ptrSparse,
+                ptrIndex,
+                size);
+
+    /*double ref = ::denseToSparseDotProductUnstable(
+                denseVector,
+                ptrSparse,
+                ptrIndex,
+                size);
+    if ((ref != 0 || pos != 0) && ref != pos) {
+        if (Numerical::fabs(ref - pos) > 1e-1) {
+            LPINFO(ref << " - " << pos << " = " << ref - pos );
+            LPINFO("size = " << size);
+            LPINFO(denseVector[ ptrIndex[0] ] << " * " << ptrSparse[0]);
+            LPINFO(denseVector[ ptrIndex[1] ] << " * " << ptrSparse[1]);
+            LPINFO(denseVector[ ptrIndex[2] ] << " * " << ptrSparse[2]);
+            LPINFO(ptrIndex[0]);
+            LPINFO(ptrIndex[1]);
+            LPINFO(ptrIndex[2]);
+            // LPINFO(_counter);
+            std::cin.get();
+        }
+        //std::cin.get();
+    }*/
+    //LPINFO(ref << " vs " << pos);
+    //std::cin.get();
+    /*while (ptrSparse < ptrSparseEnd) {
 
         temp = denseVector[ *ptrIndex ] * *ptrSparse;
+        //res += temp;
         summarizer.add(temp);
         if (needScatter) {
             // denseVector[ *ptrIndex ] = 0.0;
         }
         ptrSparse++;
         ptrIndex++;
-    }
+    }*/
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
-
-
-    return summarizer.getResult(stableAddAbs, stableAddRel);
+    Numerical::Double result = 0;
+    if(stableAddAbs && stableAddRel){
+        result = Numerical::stableAdd(neg, pos);
+    } else if(stableAddAbs){
+        result = Numerical::stableAddAbs(neg, pos);
+    } else if(stableAddRel){
+        result = Numerical::stableAddRel(neg, pos);
+    } else {
+        result = pos + neg;
+    }
+    /*Numerical::Double refResult = summarizer.getResult(stableAddAbs, stableAddRel);
+    if ((refResult != 0 || result != 0) && refResult != result) {
+        if (Numerical::fabs(refResult - result) > 1e-1) {
+            LPINFO(result << " - " << refResult << " = " << result - refResult );
+            LPINFO(_counter);
+            std::cin.get();
+        }
+        //std::cin.get();
+    }*/
+    return result;
+    //return pos + neg;
+    //return res;
+    //return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 
 Vector & Vector::addVector(Numerical::Double lambda,
