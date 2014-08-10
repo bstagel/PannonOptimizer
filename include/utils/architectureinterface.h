@@ -25,8 +25,8 @@ public:
      *****************************************/
 
     typedef void* (*MemCpyNoCache)(void * dest,
-                                  const void * src,
-                                  size_t size);
+                                   const void * src,
+                                   size_t size);
 
     /******************************************
      * Copies size bytes from src to dest area.
@@ -36,8 +36,8 @@ public:
      *****************************************/
 
     typedef void* (*MemCpyCache)(void * dest,
-                                const void * src,
-                                size_t size);
+                                 const void * src,
+                                 size_t size);
 
     /******************************************
      * Dot product dense to dense, unstable:
@@ -51,15 +51,42 @@ public:
                                                      size_t count);
 
     /******************************************
-     * Dot product dense to dense:
+     * Dot product dense to sparse, unstable:
      *       - 32 or 64 bit
      *       - Unix or Windows arguments
      *       - SSE2 or AVX
      *****************************************/
 
-    typedef double * (*DenseToDenseDotProduct)(const double * vec1,
-                                               const double * vec2,
-                                               unsigned int count);
+    typedef double (*DenseToSparseDotProductUnstable)(const double * dense,
+                                                      const double * sparse,
+                                                      const unsigned int * indices,
+                                                      size_t count);
+
+    /******************************************
+     * Dot product dense to dense, stable
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - SSE2 or AVX
+     *****************************************/
+
+    typedef double (*DenseToDenseDotProductStable)(const double * vec1,
+                                                   const double * vec2,
+                                                   size_t count,
+                                                   double * negPtr);
+
+    /******************************************
+     * Dot product dense to sparse, stable:
+     *       - 32 or 64 bit
+     *       - Unix or Windows arguments
+     *       - SSE2 or AVX
+     *****************************************/
+
+    typedef double (*DenseToSparseDotProductStable)(const double * dense,
+                                                    const double * sparse,
+                                                    const unsigned int * indices,
+                                                    size_t count,
+                                                    double * negPtr);
+
 
     /******************************************
      * Add dense to dense:

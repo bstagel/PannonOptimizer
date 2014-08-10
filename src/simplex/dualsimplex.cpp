@@ -624,7 +624,10 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
             //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
-            alpha->set(columnIndex, m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
+            //Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+            Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+            //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
+            alpha->set(columnIndex, dotProd);
             //std::cin.get();
         } else {
             alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));

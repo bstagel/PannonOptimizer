@@ -20,8 +20,9 @@ enum MEMCPY_SIZE_CASES {
 
 CoreTestSuite::CoreTestSuite(const char *name): UnitTest(name) {
     //ADD_TEST(CoreTestSuite::memcpy);
-    ADD_TEST(CoreTestSuite::memset);
-    ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
+    //ADD_TEST(CoreTestSuite::memset);
+    //ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
+    ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
 }
 
 void CoreTestSuite::memcpy() {
@@ -194,12 +195,12 @@ void CoreTestSuite::denseToDenseDotProduct() {
                 break;
             case 2:
                 if (InitPanOpt::getInstance().getArchitecture().featureExists("SSE2") ) {
-                    result = DENSE_TO_DENSE_UNSTABLE_SSE2(arrayA + 4, arrayB + 4, count);
+                    result = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2(arrayA + 4, arrayB + 4, count);
                 }
                 break;
             case 3:
                 if (InitPanOpt::getInstance().getArchitecture().featureExists("AVX") ) {
-                    result = DENSE_TO_DENSE_UNSTABLE_AVX(arrayA + 4, arrayB + 4, count);
+                    result = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX(arrayA + 4, arrayB + 4, count);
                 }
                 break;
             }
@@ -225,4 +226,32 @@ void CoreTestSuite::denseToDenseDotProduct() {
 
     release(arrayA);
     release(arrayB);
+}
+
+void CoreTestSuite::denseToSparseDotProduct() {
+    double * arrayA = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
+    double * arrayB = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
+    double * arrayARef = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
+    double * arrayBRef = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
+    unsigned int * indicesB = alloc<unsigned int, 32>(3);
+    indicesB[0] = 2154;
+    indicesB[1] = 2155;
+    indicesB[2] = 2156;
+    unsigned int index;
+    for (index = 0; index < DOT_PRODUCT_MAX_SIZE; index++) {
+        arrayA[index] = 0;
+        arrayB[index] = 0;
+    }
+    arrayB[0] = -1;
+    arrayB[1] = -2;
+    arrayB[2] = -3;
+    arrayA[2156] = 1;
+    LPINFO(arrayA);
+    LPINFO(arrayB);
+    LPINFO(indicesB);
+    double res = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2(arrayA,
+                                                          arrayB,
+                                                          indicesB,
+                                                          3);
+    LPINFO("res = " << res);
 }

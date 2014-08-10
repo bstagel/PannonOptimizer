@@ -32,7 +32,7 @@ linux-g++:contains(QMAKE_HOST.arch, x86_64):{
                     src/linalg/arch/x86/dotproduct64.asm
     #message($${DESTDIR}../$${OBJECTS_DIR})
     nasmproc64.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
-    nasmproc64.commands = nasm -f elf64 ${QMAKE_FILE_NAME} -g -o ${QMAKE_FILE_OUT}
+    nasmproc64.commands = nasm -f elf64 ${QMAKE_FILE_NAME} -g3 -o ${QMAKE_FILE_OUT}
     nasmproc64.input = ASM_SRCS_64
 
 }
@@ -44,7 +44,7 @@ linux-g++:contains(QMAKE_HOST.arch, x86_32):{
         src/utils/arch/x86/memcpy32.asm
     #message($${DESTDIR}../$${OBJECTS_DIR})
     nasmproc32.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
-    nasmproc32.commands = nasm -f elf32 ${QMAKE_FILE_NAME} -g -o ${QMAKE_FILE_OUT}
+    nasmproc32.commands = nasm -f elf32 ${QMAKE_FILE_NAME} -g3 -o ${QMAKE_FILE_OUT}
     nasmproc32.input = ASM_SRCS_32
 
 }
@@ -161,7 +161,8 @@ HEADERS += include/debug.h \
     include/utils/primitives.h \
     include/macros.h \
     include/utils/arch/unknown.h \
-    include/utils/architectureinterface.h
+    include/utils/architectureinterface.h \
+    include/linalg/lpmatrix.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -228,7 +229,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/architecture.cpp \
     src/utils/primitives.cpp \
     src/utils/arch/unknown.cpp \
-    src/test.cpp
+    src/test.cpp \
+    src/linalg/lpmatrix.cpp
 
 #OBJECTS_DIR = .o
 

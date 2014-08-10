@@ -11,6 +11,8 @@
 #include <cstring>
 #include <utils/platform.h>
 
+#ifdef PLATFORM_X86
+
 extern "C" void _cpuinfo_64_linux(unsigned int eax,
                                   unsigned int ebx,
                                   unsigned int ecx,
@@ -36,6 +38,11 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
                                                                 const double * vec2,
                                                                 size_t count);
 
+extern "C" double _denseToSparseDotProduct_unstable_SSE2_64_linux(const double * dense,
+                                                                  const double * sparse,
+                                                                  const unsigned int * indices,
+                                                                  size_t count);
+
 // TODO: lehet hogy 32 bit alatt ugyanugy nez majd ki linux es windows alatt
 // ezt meg ellenorizni kell, ha igaz, akkor egyszerubbe valik a kod kicsit
 
@@ -58,8 +65,10 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
 #define MEMCPY_CACHE_SSE2 ::memcpy
 #define MEMCPY_NO_CACHE_SSE4_1 ::memcpy
 
-#define DENSE_TO_DENSE_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
-#define DENSE_TO_DENSE_UNSTABLE_AVX ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX ::denseToDenseDotProductUnstable
+
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
 
 #else
 #ifdef UNIX
@@ -73,8 +82,10 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
 #define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_linux_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_linux_ntread_ntwrite
 
-#define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_64_linux
-#define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_linux
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_64_linux
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_linux
+
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 _denseToSparseDotProduct_unstable_SSE2_64_linux
 
 #else
 /*****************************************
@@ -92,9 +103,10 @@ extern "C" double _denseToDenseDotProduct_unstable_AVX_64_linux(const double * v
 #define MEMCPY_CACHE_SSE2 ::memcpy
 #define MEMCPY_NO_CACHE_SSE4_1 ::memcpy
 
-#define DENSE_TO_DENSE_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
-#define DENSE_TO_DENSE_UNSTABLE_AVX ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX ::denseToDenseDotProductUnstable
 
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
 
 #endif
 #endif
@@ -237,7 +249,9 @@ protected:
 
     void setMemcpy();
 
-    void setDenseToDenseDotProduct();
+    void setDotProduct();
 };
+
+#endif
 
 #endif // X86_H

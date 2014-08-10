@@ -8,6 +8,8 @@
 #include <utils/primitives.h>
 #include <utils/platform.h>
 
+#ifdef PLATFORM_X86
+
 ArchitectureX86::ArchitectureX86() {
 
 }
@@ -28,37 +30,32 @@ void ArchitectureX86::detect() {
 
 void ArchitectureX86::setPrimitives() {
     setMemcpy();
-    setDenseToDenseDotProduct();
+    setDotProduct();
 }
 
 void ArchitectureX86::setMemcpy() {
     // memcpy, with cache
     if (featureExists("SSE2")) {
         sm_memCpyCachePtr = MEMCPY_CACHE_SSE2;
-    } else {
-        sm_memCpyCachePtr = memcpy;
     }
     // TODO: egy MMX-es verzio arra az esetre ha nem lenne SSE2
     // illetve egy SSE-s verzio is jol johet
 
     // memcpy, without cache
     if (featureExists("SSE4-1")) {
-        sm_memCpyCachePtr = MEMCPY_NO_CACHE_SSE4_1;
+        sm_memCpyNoCachePtr = MEMCPY_NO_CACHE_SSE4_1;
         // ebbol csak sse4-1-es van
-    } else {
-        sm_memCpyCachePtr = memcpy;
     }
-
 }
 
-void ArchitectureX86::setDenseToDenseDotProduct() {
+void ArchitectureX86::setDotProduct() {
     if (featureExists("AVX")) {
-        sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_UNSTABLE_AVX;
+        sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX;
     } else if (featureExists("SSE2")) {
-        sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_UNSTABLE_SSE2;
-    } else {
-        sm_denseToDenseDotProductUnstablePtr = denseToDenseDotProductUnstable;
+        sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2;
     }
+    sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
+
 }
 
 unsigned int ArchitectureX86::getBits(unsigned int pattern,
@@ -611,3 +608,5 @@ ArchitectureX86::AddVecDenseToDense ArchitectureX86::getAddVecDenseToDense() con
     //Return to avoid warning
     return 0;
 }
+
+#endif
