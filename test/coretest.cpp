@@ -234,9 +234,16 @@ void CoreTestSuite::denseToSparseDotProduct() {
     double * arrayARef = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
     double * arrayBRef = alloc<double, 32>(DOT_PRODUCT_MAX_SIZE);
     unsigned int * indicesB = alloc<unsigned int, 32>(3);
-    indicesB[0] = 2154;
-    indicesB[1] = 2155;
-    indicesB[2] = 2156;
+    indicesB[0] = 1000;
+    indicesB[1] = 1020;
+    indicesB[2] = 1120;
+    indicesB[3] = 1156;
+    indicesB[4] = 1220;
+    indicesB[5] = 1320;
+    indicesB[6] = 1420;
+    indicesB[7] = 1520;
+    indicesB[8] = 1620;
+    indicesB[9] = 2156;
     unsigned int index;
     for (index = 0; index < DOT_PRODUCT_MAX_SIZE; index++) {
         arrayA[index] = 0;
@@ -245,13 +252,30 @@ void CoreTestSuite::denseToSparseDotProduct() {
     arrayB[0] = -1;
     arrayB[1] = -2;
     arrayB[2] = -3;
-    arrayA[2156] = 1;
+    arrayB[3] = -4;
+    arrayB[4] = -5;
+    arrayB[5] = -6;
+    arrayB[6] = -7;
+    arrayB[7] = -8;
+    arrayB[8] = -9;
+    arrayB[9] = -10;
+    arrayA[1000] = 1;
+    arrayA[1020] = 2;
+    arrayA[1120] = 3;
+    arrayA[1156] = 4;
+    arrayA[1220] = 5;
+    arrayA[1320] = 6;
+    arrayA[1420] = 7;
+    arrayA[1520] = 8;
+    arrayA[1620] = 9;
+    arrayA[2156] = 10;
+
     LPINFO(arrayA);
     LPINFO(arrayB);
     LPINFO(indicesB);
-    double res = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2(arrayA,
-                                                          arrayB,
-                                                          indicesB,
-                                                          3);
+    double res = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX(arrayA,
+                                                         arrayB,
+                                                         indicesB,
+                                                         10);
     LPINFO("res = " << res);
 }

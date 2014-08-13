@@ -6,10 +6,10 @@
 
 #include <simplex/pfibasis.h>
 #include <simplex/simplex.h>
-
 #include <simplex/simplexparameterhandler.h>
 
 #include <utils/thirdparty/prettyprint.h>
+#include <utils/architecture.h>
 
 double expDiffSquareSum = 0;
 double expDiffSum = 0;
@@ -332,52 +332,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             continue;
         }
 
-        if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-            Numerical::Double * ptrValue2 = iter->eta->m_data;
-            Numerical::Double * ptrValue1 = denseVector;
-            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-            while (ptrValue1 < ptrValueEnd) {
-                const Numerical::Double value = *ptrValue2;
-                if (value != 0.0) {
-                    //                    const Numerical::Double val = Numerical::stableAdd(*ptrValue1, pivotValue * value);
-
-                    /*if (*ptrValue1 != 0.0) {
-                        Numerical::Float64 a;
-                        a.m_value = *ptrValue1;
-                        Numerical::Float64 b;
-                        b.m_value = pivotValue * value;
-                        int expDiff = abs( a.m_bits.m_exponent - b.m_bits.m_exponent );
-                        if (expDiff > 10) {
-                            LPINFO("FTRAN: " << expDiff);
-                            std::cin.get();
-                        }
-
-                    }*/
-
-                    const Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
-                    //                    const Numerical::Double val = *ptrValue1 + pivotValue * value;
-                    //LPINFO(*ptrValue1 << " + " << (pivotValue * value) << " = " << val);
-                    if (*ptrValue1 == 0.0 && val != 0.0) {
-                        vector.m_nonZeros++;
-                    } else if (*ptrValue1 != 0.0 && val == 0.0) {
-                        vector.m_nonZeros--;
-                    }
-                    *ptrValue1 = val;
-                }
-                ptrValue1++;
-                ptrValue2++;
-            }
-           // std::cin.get();
-            //A vegen lerendezzuk a pivot poziciot is:
-            const Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
-            if (denseVector[iter->index] == 0.0 && val != 0.0) {
-                vector.m_nonZeros++;
-            } else if (denseVector[iter->index] != 0.0 && val == 0.0) {
-                vector.m_nonZeros--;
-            }
-            denseVector[iter->index] = val;
-
-        } else {
+        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
             Numerical::Double * ptrEta = iter->eta->m_data;
             unsigned int * ptrIndex = iter->eta->m_index;
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
@@ -387,21 +342,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
                 if (*ptrEta != 0.0) {
                     Numerical::Double val;
                     if (*ptrIndex != pivotPosition) {
-                        //                        val = Numerical::stableAdd(originalValue, pivotValue * *ptrEta);
-                        /*{
-                            Numerical::Float64 a;
-                            a.m_value = originalValue;
-                            Numerical::Float64 b;
-                            b.m_value = pivotValue * *ptrEta;
-                            int expDiff = abs( a.m_bits.m_exponent - b.m_bits.m_exponent );
-                            if (expDiff > 10 && originalValue != 0.0) {
-                                LPINFO("FTRAN: " << expDiff);
-                                std::cin.get();
-                            }
-
-                        }*/
                         val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-                        //                        val = originalValue + pivotValue * *ptrEta;
                         if (originalValue == 0.0 && val != 0.0) {
                             vector.m_nonZeros++;
                         } else if (originalValue != 0.0 && val == 0.0) {
@@ -415,6 +356,34 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
                 ptrIndex++;
                 ptrEta++;
             }
+
+        } else {
+            Numerical::Double * ptrValue2 = iter->eta->m_data;
+            Numerical::Double * ptrValue1 = denseVector;
+            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
+            while (ptrValue1 < ptrValueEnd) {
+                const Numerical::Double value = *ptrValue2;
+                if (value != 0.0) {
+                    const Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
+                    if (*ptrValue1 == 0.0 && val != 0.0) {
+                        vector.m_nonZeros++;
+                    } else if (*ptrValue1 != 0.0 && val == 0.0) {
+                        vector.m_nonZeros--;
+                    }
+                    *ptrValue1 = val;
+                }
+                ptrValue1++;
+                ptrValue2++;
+            }
+            //A vegen lerendezzuk a pivot poziciot is:
+            const Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
+            if (denseVector[iter->index] == 0.0 && val != 0.0) {
+                vector.m_nonZeros++;
+            } else if (denseVector[iter->index] != 0.0 && val == 0.0) {
+                vector.m_nonZeros--;
+            }
+            denseVector[iter->index] = val;
+
         }
     }
 
@@ -530,7 +499,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                 ptrValue2++;
                 checkValue++;
             }
-           // std::cin.get();
+            // std::cin.get();
             //A vegen lerendezzuk a pivot poziciot is:
             Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
             if (denseVector[iter->index] == 0.0 && val != 0.0) {
@@ -570,8 +539,8 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                         checkVal = checkPivotValue * *ptrEta;
                     }
 
-//                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
-//                    mul = 1.0;
+                    //                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+                    //                    mul = 1.0;
                     originalValue = val;
                     originalCheckValue = checkVal + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);
 
@@ -634,10 +603,6 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
 
-#ifdef ANALYSE_DOT_PRODUCT
-    static int __counter = 0;
-    __counter++;
-#endif
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -653,7 +618,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     //The btran operation.
     Numerical::Double * denseVector;
 
-    // 1. lepes: ha kell akkor atvaltjuk dense-re
+    // 1. convert the input vector to dense form if necessary
     if (vector.m_vectorType == Vector::DENSE_VECTOR) {
         denseVector = vector.m_data;
     } else {
@@ -661,227 +626,68 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         denseVector = Vector::sm_fullLengthVector;
     }
 
-    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a skalaris szorzast
+    // 2. perform the dot products
     std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
     const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
 
-    //    const ETM * iter = m_basis->data().data() + m_basis->size() - 1;
-    //    const ETM * iterEnd = m_basis->data() - 1;
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter++, etaIndex++) {
         unsigned int nonZeros = vector.nonZeros();
 
-        //    static Numerical::BucketSummarizer summarizer(10); // ez a klasszikus neg-pos-os, minel lejjebb visszuk
-        // annal pontosabb, de annal lassabb is
-
-        //    Numerical::BucketSummarizer summarizer(8);
         Numerical::Summarizer summarizer;
-        //#ifdef ANALYSE_DOT_PRODUCT
-        bool aprInv = rand() % 1000 < exp( etaIndex / (double)m_basis->size() ) * 10;
-        aprInv = true;
-        //#endif
+        Numerical::Double dotProduct = 0;
 
-        if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-            //#ifdef ANALYSE_DOT_PRODUCT
-//            unsigned int maxExponent = 0;
-//            unsigned int minExponent = 0;
-//            unsigned int sumExponentDiff = 0;
-            unsigned int expCounter = 0;
-            Numerical::Double neg = 0, pos = 0;
-            //#endif
+        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
+            Numerical::Double * ptrValue = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_index;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            // if the input vector has less nonzeros than the eta vector,
+            // this implementation can be faster
+            if (nonZeros < iter->eta->m_size) {
+                while (ptrIndex < ptrIndexEnd && nonZeros) {
+                    const Numerical::Double value = denseVector[*ptrIndex];
+                    if (value != 0.0) {
+                        nonZeros--;
+                        summarizer.add(value * *ptrValue);
+
+                    }
+                    ptrIndex++;
+                    ptrValue++;
+                }
+            } else {
+                while (ptrIndex < ptrIndexEnd) {
+                    const Numerical::Double value = denseVector[*ptrIndex];
+                    if (value != 0.0) {
+                        summarizer.add(value * *ptrValue);
+                    }
+                    ptrIndex++;
+                    ptrValue++;
+                }
+            }
+
+            dotProduct = summarizer.getResult();
+        } else {
             Numerical::Double * ptrValue2 = iter->eta->m_data;
             Numerical::Double * ptrValue1 = denseVector;
             const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
 
-            //#ifdef ANALYSE_DOT_PRODUCT
-            if  (unlikely(aprInv)) {
-                while (ptrValue1 < ptrValueEnd && nonZeros) {
-                    //TODO vajon melyik ritkasabb?
-                    const Numerical::Double value = *ptrValue1;
-                    if (value != 0.0) {
-                        nonZeros--;
-                        if (unlikely(aprInv)) {
-                            Numerical::Double product = value * *ptrValue2;
-//                            Numerical::Float64 bits;
-//                            bits.m_value = product;
+            while (ptrValue1 < ptrValueEnd && nonZeros) {
+                // if the input vector has less nonzeros than the eta vector,
+                // this implementation can be faster
+                const Numerical::Double value = *ptrValue1;
+                if (value != 0.0) {
+                    nonZeros--;
 
-                            if (product < 0.0 && neg != 0.0) {
-                                Numerical::Float64 bits1, bits2;
-                                bits1.m_value = neg;
-                                bits2.m_value = product;
-                                //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
-                                //LPINFO("sum: " << sumExponentDiff);
-                                int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                                //sumExponentDiff += diff;
-                                //expDiffSquareSum += diff * diff;
-                                //expDiffSum += diff;
-                                //::expCounter++;
-                                if (aprInv) {
-                                    ::aprExpCounter++;
-                                    ::aprExpDiffSum += diff;
-                                    ::aprExpDiffSquareSum += diff * diff;
-                                }
-
-                                expCounter++;
-                                //                            neg += product;
-                            } else if (pos != 0.0 ){
-                                Numerical::Float64 bits1, bits2;
-                                bits1.m_value = pos;
-                                bits2.m_value = product;
-                                //LPINFO("exponents: " << bits1.m_bits.m_exponent << ", " << bits2.m_bits.m_exponent);
-                                //LPINFO("sum: " << sumExponentDiff);
-
-                                int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                                //sumExponentDiff += diff;
-                                //expDiffSquareSum += diff * diff;
-                                //expDiffSum += diff;
-                                //::expCounter++;
-                                //expCounter++;
-                                if (aprInv) {
-                                    ::aprExpCounter++;
-                                    ::aprExpDiffSum += diff;
-                                    ::aprExpDiffSquareSum += diff * diff;
-                                }
-
-                            }
-                            if (product < 0.0) {
-                                //LPINFO("neg: " << neg << " product: " << product);
-                                //std::cin.get();
-                                neg += product;
-                            } else {
-                                //LPINFO("pos: " << pos << " product: " << product);
-                                //std::cin.get();
-                                pos += product;
-                            }
-
-                        }
-
-                        summarizer.add(value * *ptrValue2);
-                    }
-                    ptrValue1++;
-                    ptrValue2++;
+                    summarizer.add(value * *ptrValue2);
                 }
-            } else {
-                //#endif
-
-                while (ptrValue1 < ptrValueEnd && nonZeros) {
-                    //TODO vajon melyik ritkasabb?
-                    const Numerical::Double value = *ptrValue1;
-                    if (value != 0.0) {
-                        nonZeros--;
-
-                        summarizer.add(value * *ptrValue2);
-                    }
-                    ptrValue1++;
-                    ptrValue2++;
-                }
+                ptrValue1++;
+                ptrValue2++;
             }
-            //LPERROR("neg: " << neg << " pos: " << pos << "  " << (neg + pos));
-            //std::cin.get();
+            dotProduct = summarizer.getResult();
 
-        } else {
-            Numerical::Double * ptrValue = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_index;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-            //#ifdef ANALYSE_DOT_PRODUCT
-//            unsigned int maxExponent = 0;
-//            unsigned int minExponent = 0;
-//            unsigned int sumExponentDiff = 0;
-//            unsigned int expCounter = 0;
-            Numerical::Double neg = 0, pos = 0;
-            //#endif
-            // TODO: ezt atrakni kulon fuggvenybe
-            if (unlikely(aprInv)) {
-                while (ptrIndex < ptrIndexEnd && nonZeros) {
-                    const Numerical::Double value = denseVector[*ptrIndex];
-                    if (value != 0.0) {
-                        nonZeros--;
-                        summarizer.add(value * *ptrValue);
-
-                        //if (product != 0.0) {
-                        Numerical::Double product = value * *ptrValue;
-//                        Numerical::Float64 bits;
-//                        bits.m_value = product;
-
-                        if (product < 0.0 && neg != 0.0) {
-                            Numerical::Float64 bits1, bits2;
-                            bits1.m_value = neg;
-                            bits2.m_value = product;
-                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            //sumExponentDiff += diff;
-                            //expDiffSquareSum += diff * diff;
-                            //expDiffSum += diff;
-                            //::expCounter++;
-                            //expCounter++;
-                            if (aprInv) {
-                                ::aprExpCounter++;
-                                ::aprExpDiffSum += diff;
-                                ::aprExpDiffSquareSum += diff * diff;
-                            }
-                            //neg += product;
-                        } else if (pos != 0.0){
-                            Numerical::Float64 bits1, bits2;
-                            bits1.m_value = pos;
-                            bits2.m_value = product;
-                            int diff = abs( (int)bits1.m_bits.m_exponent - (int)bits2.m_bits.m_exponent );
-                            //sumExponentDiff += diff;
-                            //expDiffSquareSum += diff * diff;
-                            //expDiffSum += diff;
-                            //::expCounter++;
-                            //expCounter++;
-                            if (aprInv) {
-                                ::aprExpCounter++;
-                                ::aprExpDiffSum += diff;
-                                ::aprExpDiffSquareSum += diff * diff;
-                            }
-                            //pos += product;
-                        }
-                        if (product < 0.0) {
-                            //LPINFO("neg: " << neg << " product: " << product);
-                            //std::cin.get();
-                            neg += product;
-                        } else {
-                            //LPINFO("pos: " << pos << " product: " << product);
-                            //std::cin.get();
-                            pos += product;
-                        }
-                        //if (maxExponent < bits.m_bits.m_exponent) {
-                        //    maxExponent = bits.m_bits.m_exponent;
-                        //}
-                        //if (minExponent == 0 || minExponent > bits.m_bits.m_exponent) {
-                        //    minExponent = bits.m_bits.m_exponent;
-                        //}
-
-                    }
-                    ptrIndex++;
-                    ptrValue++;
-                }
-
-            } else {
-                while (ptrIndex < ptrIndexEnd && nonZeros) {
-                    const Numerical::Double value = denseVector[*ptrIndex];
-                    if (value != 0.0) {
-                        nonZeros--;
-                        summarizer.add(value * *ptrValue);
-
-                    }
-                    ptrIndex++;
-                    ptrValue++;
-                }
-
-            }
-#ifdef ANALYSE_DOT_PRODUCT
-            /*if (minExponent != 0 && expCounter > 0) {
-                diffs[sumExponentDiff / expCounter]++;
-                //diffs[maxExponent - minExponent]++;
-            }*/
-#endif
-            //LPERROR("neg: " << neg << " pos: " << pos << "  " << (neg + pos));
-            //std::cin.get();
         }
 
-        Numerical::Double dotProduct = summarizer.getResult();
-
+        // store the dot product, and update the nonzero counter
         const int pivot = iter->index;
         if (denseVector[pivot] != 0.0 && dotProduct == 0.0) {
             vector.m_nonZeros--;
@@ -891,64 +697,10 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         }
         denseVector[pivot] = dotProduct;
     }
-#ifdef ANALYSE_DOT_PRODUCT
-    /*{
-        // LPWARNING(expDiffSquareSum << ", " << ::expCounter);
-        // std::cin.get();
-        std::ofstream ofs("chart.csv", std::ios_base::app );
-        double var;
-        if (::expCounter == 0) {
-            ofs << "0;0;0;";
-        } else {
-            var = (
-                        (expDiffSquareSum / ::expCounter) - (expDiffSum / ::expCounter)*(expDiffSum / ::expCounter) );
-            ofs << (expDiffSum / ::expCounter)  << ";" << sqrt(var) << ";";
-            ofs << (expDiffSum / ::expCounter + sqrt(var)) << ";";
-        }
-        if (::aprExpCounter == 0) {
-            ofs << "0;0;0;";
-        } else {
-            var = ((aprExpDiffSquareSum / ::aprExpCounter) - (aprExpDiffSum / ::aprExpCounter)*(aprExpDiffSum / ::aprExpCounter) );
-            ofs << (aprExpDiffSum / ::aprExpCounter)  << ";" << sqrt(var) << ";";
-            ofs << (aprExpDiffSum / ::aprExpCounter + sqrt(var)) << ";";
-        }
-        ofs << std::endl;
 
-        //        var = (etaExpSquareSum / (double)etaExpCount) - (etaExpSum / (double)etaExpCount) * (etaExpSum / (double)etaExpCount);
-//        ofs << var;
-//        ofs << ";";
-//        ofs << sqrt(var) << std::endl;
-        ofs.close();
-    }*/
-    if (__counter >= 30) {
-        LPINFO("mintavetelezesek: " << aprExpCounter << " / " << expCounter);
-        double var = (
-                    (expDiffSquareSum / ::expCounter) - (expDiffSum / ::expCounter)*(expDiffSum / ::expCounter) );
-        LPINFO("average: " << (expDiffSum / ::expCounter)  << " var: " << var  << " sqrt var: " << sqrt(var));
-
-        if (::aprExpCounter == 0) {
-            LPINFO("\tapproximate: 0 0 0");
-        } else {
-            var = ( ::aprExpDiffSquareSum / ::aprExpCounter) -
-                   (aprExpDiffSum / ::aprExpCounter)*(aprExpDiffSum / ::aprExpCounter);
-            LPINFO("\tapproximate: " << (aprExpDiffSum / ::aprExpCounter)  << " var: " << var  << " sqrt var: " << sqrt(var));
-        }
-        LPINFO("");
-        //var = (etaExpSquareSum / (double)etaExpCount) - (etaExpSum / (double)etaExpCount) * (etaExpSum / (double)etaExpCount);
-        //LPINFO("\taverage: " << ( etaExpSum / (double)etaExpCount ) << " var: " << var  << " sqrt var: " << sqrt(var));
-        //LPINFO("\t" << etaExpSquareSum << ", " << etaExpSum << ", " << etaExpCount);
-        __counter = 0;
-        std::ofstream ofs("diffs.txt");
-        unsigned int index = 0;
-        for (index = 0; index < diffs.size(); index++) {
-            ofs << index << ";" << diffs[index] << endl;
-        }
-        ofs.close();
-    }
-#endif
-
-    // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni
+    // 3. store the result in the output vector
     Vector::VECTOR_TYPE newType;
+    // operating vector and output are the same
     if (vector.m_nonZeros < vector.m_sparsityThreshold) {
         newType = Vector::SPARSE_VECTOR;
     } else {
@@ -962,6 +714,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
             vector.denseToSparse();
         }
     } else {
+        // build the result vector, if the original vector was sparse
         vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
         Numerical::Double * ptrValue = denseVector;
         const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;

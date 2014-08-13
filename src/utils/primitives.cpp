@@ -33,15 +33,15 @@ Numerical::Double denseToSparseDotProductUnstable(const Numerical::Double * __re
     Numerical::Double result1 = 0.0;
     Numerical::Double result2 = 0.0;
     unsigned int index;
-    unsigned int one = count % 2;
-    count -= one;
-    for (index = 0; index < count; index += 2) {
+    //unsigned int one = count % 2;
+    //count -= one;
+    for (index = 0; index < count; index += 1) {
         result1 += dense[ indices[index] ] * sparse[index];
-        result2 += dense[ indices[index + 1] ] * sparse[index + 1];
+       // result2 += dense[ indices[index + 1] ] * sparse[index + 1];
     }
-    if (one == 1) {
+    /*if (one == 1) {
         result1 += dense[ indices[count] ] * sparse[count];
-    }
+    }*/
     return result1 + result2;
 }
 
