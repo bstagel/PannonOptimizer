@@ -17,7 +17,7 @@ ArchitectureX86::ArchitectureX86() {
 void ArchitectureX86::detect() {
     std::cout << "X86 detect" << std::endl;
     m_architectureName = "X86";
-    if (cpuidSupported() == true) {
+    if (cpuidSupported() == true && false) {
         setCPUData();
         setCacheData();
         setFeatureList();
@@ -51,10 +51,11 @@ void ArchitectureX86::setMemcpy() {
 void ArchitectureX86::setDotProduct() {
     if (featureExists("AVX")) {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX;
+        sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX;
     } else if (featureExists("SSE2")) {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2;
+        sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
     }
-    sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
 
 }
 

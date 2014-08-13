@@ -43,6 +43,12 @@ extern "C" double _denseToSparseDotProduct_unstable_SSE2_64_linux(const double *
                                                                   const unsigned int * indices,
                                                                   size_t count);
 
+extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * dense,
+                                                                  const double * sparse,
+                                                                  const unsigned int * indices,
+                                                                  size_t count);
+
+
 // TODO: lehet hogy 32 bit alatt ugyanugy nez majd ki linux es windows alatt
 // ezt meg ellenorizni kell, ha igaz, akkor egyszerubbe valik a kod kicsit
 
@@ -69,6 +75,7 @@ extern "C" double _denseToSparseDotProduct_unstable_SSE2_64_linux(const double *
 #define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX ::denseToDenseDotProductUnstable
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX ::denseToSparseDotProductUnstable
 
 #else
 #ifdef UNIX
@@ -86,6 +93,8 @@ extern "C" double _denseToSparseDotProduct_unstable_SSE2_64_linux(const double *
 #define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_linux
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 _denseToSparseDotProduct_unstable_SSE2_64_linux
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX _denseToSparseDotProduct_unstable_AVX_64_linux
+
 
 #else
 /*****************************************
@@ -107,6 +116,7 @@ extern "C" double _denseToSparseDotProduct_unstable_SSE2_64_linux(const double *
 #define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX ::denseToDenseDotProductUnstable
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX ::denseToSparseDotProductUnstable
 
 #endif
 #endif

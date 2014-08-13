@@ -924,18 +924,18 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         __prim_debug = false;
     }*/
 
-    /*pos = Architecture::getDenseToSparseDotProductStable()(
-                denseVector,
-                ptrSparse,
-                ptrIndex,
-                size,
-                &neg);*/
-
-    pos = Architecture::getDenseToSparseDotProductUnstable()(
+  /*  pos = Architecture::getDenseToSparseDotProductUnstable()(
                 denseVector,
                 ptrSparse,
                 ptrIndex,
                 size);
+*/
+     pos = Architecture::getDenseToSparseDotProductStable()(
+                 denseVector,
+                 ptrSparse,
+                 ptrIndex,
+                 size,
+                 &neg);
 
     /*double ref = ::denseToSparseDotProductUnstable(
                 denseVector,
