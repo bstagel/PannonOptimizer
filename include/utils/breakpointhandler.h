@@ -145,7 +145,8 @@ public:
     /**
      * Function returning the second pass ratios of expand procedure.
      * In the first pass ratios with expanded bounds are defined, and a theta steplength is choosen among them.
-     * In the second pass we need ratios (defined with exact bounds) smaller than parameter theta.
+     * In the second pass of the Harris ratio test and the Expand procedure we need ratios
+     * (defined with exact bounds) smaller than parameter theta.
      * @param theta is the steplength definded by expanded bounds
      */
     const std::vector<BreakPoint>& getExpandSecondPass(Numerical::Double theta);
@@ -175,7 +176,9 @@ private:
     bool m_expand;
 
     /**
-     * Vector containing the ratios of the expand second pass.
+     * Vector containing the ratios of the expand second pass used in the Harris ratio test and the Expand procedure.
+     * These ratios are defined by the exact bounds and at the end of the procedure, the ratio with the biggest
+     *  absolute alpha value is choosen. So it provides a stable pivot and is degeneracy avare strategy.
      */
     std::vector<BreakPoint> m_secondPassRatios;
 

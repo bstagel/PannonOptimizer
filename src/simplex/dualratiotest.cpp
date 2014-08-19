@@ -9,6 +9,7 @@
 #include <simplex/simplex.h>
 #include <globals.h>
 #include <simplex/simplexparameterhandler.h>
+#include <prettyprint.h>
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              const Vector& reducedCosts,
@@ -943,6 +944,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
                 while ( breakpoint->value < 0) {
                     if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > m_optimalityTolerance){
+//                        LPERROR("d: "<<Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex))<<
+//                                "e_opt: "<<m_optimalityTolerance);
                         throw FallbackException("Infeasible variable in phase 2");
                     }
                     fakeFeasibilityCounter++;
@@ -1001,13 +1004,17 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 if(m_expandDualPhase2 > 0){
                     std::vector<BreakpointHandler::BreakPoint> secondPassRatios;
                     secondPassRatios = m_breakpointHandler.getExpandSecondPass(m_dualSteplength);
+                    unsigned size = secondPassRatios.size();
+                    if(size == 0){
+                        LPWARNING("No second pass breakpoints defined!");
+                    }
 
                     int maxBreakpointId = 0;
                     int maxAlphaId = secondPassRatios.at(0).variableIndex;
                     int variableIndex = -1;
 
                     //choosing best pivot candidate
-                    for(unsigned i=1; i < secondPassRatios.size(); i++){
+                    for(unsigned i=1; i < size; i++){
                         variableIndex = secondPassRatios.at(i).variableIndex;
                         if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
                             maxAlphaId = variableIndex;
@@ -1020,6 +1027,17 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     if(secondPassRatios.at(maxBreakpointId).value > 0){
                         theta = m_tPositive ? secondPassRatios.at(maxBreakpointId).value :
                                               - secondPassRatios.at(maxBreakpointId).value;
+                    }else{
+                        //Expand procedure ensures a positive step
+                        if(m_expandDualPhase2 > 1){
+                            Numerical::Double toleranceStep = (m_optimalityTolerance *
+                              (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier"))) /
+                                    SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
+                            theta = toleranceStep / alpha.at(maxAlphaId);
+                        }
+//                        LPINFO(secondPassRatios);
+//                        m_incomingVariableIndex = -1;
+                        LPWARNING("Theta_min is choosen at the end of the expand procedure! Theta: " << theta);
                     }
                     m_incomingVariableIndex = maxAlphaId;
                     m_dualSteplength = theta;
@@ -1029,9 +1047,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             LPWARNING(" - Ratiotest - No breakpoint found!");
             throw DualUnboundedException("No breakpoint found!");
         }
-//        if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < 1e-6){
-//            LPWARNING("small pivot in phase2: "<<alpha.at(m_incomingVariableIndex));
-//        }
     }
 }
 

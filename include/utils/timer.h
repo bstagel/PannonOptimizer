@@ -7,6 +7,7 @@
 #define TIMER_H_
 
 #include <globals.h>
+#include <time.h>
 
 #ifdef WIN32   // Windows system specific
     #include <windows.h>
