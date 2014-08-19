@@ -557,7 +557,7 @@ void DualSimplex::checkReferenceObjective() {
 
 void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") > 1 ) {
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") > 1 ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {
