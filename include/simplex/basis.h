@@ -29,25 +29,30 @@ extern int etaExpCount;
  * This struct is used throughout the inversion process and the FTRAN and BTRAN
  * operations. Az ETM is a $m \times m$ matrix.
  *
- *@struct
+ *@struct ETM
  */
 struct ETM
 {
     /**
-     * Default constructor.
+     * Default constructor, creates an empty ETM.
+     *
+     * @constructor
      */
     ETM(): eta(NULL), index(0) {}
 
     /**
      * Initializing constructor.
-     * @param eta is the nontrivial column of the ETM.
-     * @param index of the nontrivial column
+     *
+     * @constructor
+     * @param eta The nontrivial column of the ETM.
+     * @param index The index of the nontrivial column.
      */
     ETM(Vector* eta, unsigned int index): eta(eta), index(index){}
+
     /**
      * Eta vector.
      * The nontrivial column of the ETM is the eta column. This is a pointer of
-     * that vector, it is allocated dynamically .
+     * that vector, it is allocated dynamically.
      */
     Vector* eta;
 
@@ -55,12 +60,12 @@ struct ETM
      * Index of the nontrivial column.
      */
     unsigned int index;
-
 };
 
 /**
  * This class describes a general basis.
  * A basis is a nonsingular matrix.
+ *
  * @class Basis
  */
 class Basis {
@@ -86,12 +91,12 @@ public:
 
     /**
      * Initializing constructor of the class.
-     * @param model holds the LP problem.
-     * @param basisHead contains the basicvariable indices
-     * @param variableStates indexlist containing variable states (being at lower upper bound)
-     * @param basicVariableValues the X_B vector
      *
      * @constructor
+     * @param model Holds the LP problem.
+     * @param basisHead Contains the indices of the basic variables.
+     * @param variableStates An index list containing variable states (being at lower or upper bound)
+     * @param basicVariableValues The X_B vector.
      */
     Basis(const SimplexModel& model,
           std::vector<int>* basisHead,
@@ -108,7 +113,7 @@ public:
     /**
      * Gives information about the state of the inverse.
      * An inverse is considered fresh, if it is in the state after factorization.
-     * (There was no modification since then)
+     * (There was no modification since then.)
      *
      * @return true if the basis is fresh, otherwise false.
      */

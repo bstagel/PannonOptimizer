@@ -37,12 +37,12 @@ const int DefaultParameters::SIMPRI_PHASEII_IMPROVING_CANDIDATES = 0;
 //Ratiotest
 const int DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 2;
-const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 2;
+const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 0;
 const int DefaultParameters::ENABLE_FAKE_FEASIBILITY = 1;
-const double DefaultParameters::EXPAND_MULTIPLIER = 1;
-const int DefaultParameters::EXPAND_DIVIDER = 1;
+const double DefaultParameters::EXPAND_MULTIPLIER = 0.5;
+const int DefaultParameters::EXPAND_DIVIDER = 10000;
 const int DefaultParameters::EXPAND_DUAL_PHASEI = 0;
-const int DefaultParameters::EXPAND_DUAL_PHASEII = 0;
+const int DefaultParameters::EXPAND_DUAL_PHASEII = 2;
 //Perturbation
 const int DefaultParameters::PERTURB_COST_VECTOR = 0;
 const double DefaultParameters::EPSILON_COST_VECTOR = 1.e-6;

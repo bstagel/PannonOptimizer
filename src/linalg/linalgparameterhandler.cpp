@@ -1,6 +1,7 @@
 /**
  * @file linalgparameterhandler.cpp
  */
+
 #include <linalg/linalgparameterhandler.h>
 
 #include <fstream>

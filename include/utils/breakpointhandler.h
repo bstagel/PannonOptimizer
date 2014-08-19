@@ -70,6 +70,7 @@ public:
          */
         friend std::ostream & operator<<(std::ostream & os, const BreakPoint & breakpoint){
             os << "(" << breakpoint.variableIndex << "; " << breakpoint.value <<
+                  "; " << breakpoint.expandedValue <<
                   "; " << breakpoint.functionValue << ")";
             return os;
         }
@@ -82,6 +83,7 @@ public:
         const BreakPoint& operator=(const BreakPoint& other){
             variableIndex = other.variableIndex;
             value = other.value;
+            expandedValue = other.expandedValue;
             functionValue = other.functionValue;
             return *this;
         }
@@ -149,7 +151,7 @@ public:
      * (defined with exact bounds) smaller than parameter theta.
      * @param theta is the steplength definded by expanded bounds
      */
-    const std::vector<BreakPoint>& getExpandSecondPass(Numerical::Double theta);
+    const std::vector<const BreakPoint *> &getExpandSecondPass(Numerical::Double theta);
 
 private:
     /**
@@ -180,7 +182,7 @@ private:
      * These ratios are defined by the exact bounds and at the end of the procedure, the ratio with the biggest
      *  absolute alpha value is choosen. So it provides a stable pivot and is degeneracy avare strategy.
      */
-    std::vector<BreakPoint> m_secondPassRatios;
+    std::vector<const BreakPoint*> m_secondPassRatios;
 
     /**
      * An implemented sorting method: the selection sort algorithm.

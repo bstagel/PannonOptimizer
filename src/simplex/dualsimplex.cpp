@@ -379,6 +379,7 @@ void DualSimplex::selectPivot() {
         }
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
+
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
@@ -434,13 +435,6 @@ void DualSimplex::update() {
 
     //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
-        //TODO DEBUG
-        //        LPINFO("m_basishead: "<<m_basisHead);
-        //        LPINFO("pricing reduced cost: "<<m_pricing->getReducedCost());
-        //        LPINFO("outgoing var (original index): "<<m_basisHead.at(m_outgoingIndex));
-        //        LPINFO("x_B: "<<m_basicVariableValues);
-        //        LPINFO("obj val: "<<m_objectiveValue);
-        //        LPINFO("reference obj val: "<<m_referenceObjective);
         //Save whether the basis is to be changed
         m_baseChanged = true;
 
@@ -501,6 +495,7 @@ void DualSimplex::update() {
         //Update the solution vector and the objective value
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
+//        LPINFO("objval: "<<std::scientific<<std::setprecision(16)<<m_objectiveValue);
 
         //Perform the basis change
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
@@ -521,7 +516,7 @@ void DualSimplex::update() {
         }
     }
     //Update the reduced costs
-    computeReducedCosts();
+    updateReducedCosts();
 
     //Update the feasibility sets in phase I
     if(!m_feasible){
