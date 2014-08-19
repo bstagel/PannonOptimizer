@@ -1,15 +1,11 @@
 /**
  * @file basis.cpp
  */
-
 #include <simplex/basis.h>
-
 #include <simplex/simplex.h>
 #include <simplex/simplexmodel.h>
 #include <simplex/simplexparameterhandler.h>
-
 #include <utils/thirdparty/prettyprint.h>
-
 #include <fstream>
 
 int etaExpSum = 0;

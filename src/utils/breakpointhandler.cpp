@@ -79,9 +79,12 @@ void BreakpointHandler::init(unsigned maxNumberOfBreakpoints)
     m_breakpoints.reserve(maxNumberOfBreakpoints);
 }
 
-const std::vector<BreakpointHandler::BreakPoint> &BreakpointHandler::getExpandSecondPass(Numerical::Double theta)
+const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getExpandSecondPass(Numerical::Double theta)
 {
+    //Reinit the heap with the exact values
+    selectMethod(false);
     //reserve the maximal possible number: total number of breakpoints
+    m_secondPassRatios.clear();
     m_secondPassRatios.reserve(m_breakpoints.size());
     const BreakPoint * breakpoint = NULL;
 
@@ -89,7 +92,7 @@ const std::vector<BreakpointHandler::BreakPoint> &BreakpointHandler::getExpandSe
         breakpoint = getBreakpoint(i);
         //actual values smaller than the theta parameter
         if(breakpoint->value <= theta){
-            m_secondPassRatios.push_back(*breakpoint);
+            m_secondPassRatios.push_back(breakpoint);
         //breakpoints come sorted, breaking out at first bigger value
         }else{
             break;

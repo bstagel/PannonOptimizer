@@ -858,67 +858,68 @@ void Simplex::computeReducedCosts() {
     } else if (m_incomingIndex >= 0 && m_outgoingIndex >= 0) {
         updateReducedCosts();
         return;
-        Vector dj = m_reducedCosts;
+        //TODO: Joco ez szerinted mikor fut le?
+//        Vector dj = m_reducedCosts;
 
-        m_reducedCosts.clear();
-        unsigned int rowCount = m_simplexModel->getRowCount();
-        unsigned int columnCount = m_simplexModel->getColumnCount();
+//        m_reducedCosts.clear();
+//        unsigned int rowCount = m_simplexModel->getRowCount();
+//        unsigned int columnCount = m_simplexModel->getColumnCount();
 
-        //Get the c_B vector
-        Vector simplexMultiplier(rowCount);
-        simplexMultiplier.setSparsityRatio(DENSE);
-        const Vector& costVector = m_simplexModel->getCostVector();
-        for(unsigned int i = 0; i<m_basisHead.size(); i++){
-            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
-            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
-                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
-            }
-        }
-        //Compute simplex multiplier
-        m_basis->Btran(simplexMultiplier);
+//        //Get the c_B vector
+//        Vector simplexMultiplier(rowCount);
+//        simplexMultiplier.setSparsityRatio(DENSE);
+//        const Vector& costVector = m_simplexModel->getCostVector();
+//        for(unsigned int i = 0; i<m_basisHead.size(); i++){
+//            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
+//            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+//                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
+//            }
+//        }
+//        //Compute simplex multiplier
+//        m_basis->Btran(simplexMultiplier);
 
-        //For each variable
-        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-            if(m_variableStates.where(i) == Simplex::BASIC){
-                m_reducedCosts.set(i, 0.0);
-                continue;
-            }
-            //Compute the dot product and the reduced cost
-            Numerical::Double reducedCost;
-            if(i < columnCount){
-                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
-            } else {
-                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
-            }
-            if(reducedCost != 0.0){
-                m_reducedCosts.setNewNonzero(i, reducedCost);
-            }
-        }
+//        //For each variable
+//        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+//            if(m_variableStates.where(i) == Simplex::BASIC){
+//                m_reducedCosts.set(i, 0.0);
+//                continue;
+//            }
+//            //Compute the dot product and the reduced cost
+//            Numerical::Double reducedCost;
+//            if(i < columnCount){
+//                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
+//            } else {
+//                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+//            }
+//            if(reducedCost != 0.0){
+//                m_reducedCosts.setNewNonzero(i, reducedCost);
+//            }
+//        }
 
-        Vector original = dj;
-        dj.addVector( -1, m_reducedCosts );
+//        Vector original = dj;
+//        dj.addVector( -1, m_reducedCosts );
 
-        Vector::NonzeroIterator iter = dj.beginNonzero();
-        Vector::NonzeroIterator iterEnd = dj.endNonzero();
-        Numerical::Double max = - Numerical::Infinity;
-        Numerical::Double a, b;
-        for (; iter != iterEnd; iter++) {
-            if (Numerical::fabs(*iter) > 1e-10) {
-                if (Numerical::fabs(*iter) > max) {
-                    max = Numerical::fabs(*iter);
-                    a = m_reducedCosts.at(iter.getIndex());
-                    b = original.at(iter.getIndex());
-                }
-            }
-        }
-        if (max > -Numerical::Infinity) {
-            dj.setSparsityRatio(0.35);
-            LPERROR("diff: " << dj);
-            LPERROR("| max | = " << max << "  " << a << "  " << b);
-            std::cin.get();
+//        Vector::NonzeroIterator iter = dj.beginNonzero();
+//        Vector::NonzeroIterator iterEnd = dj.endNonzero();
+//        Numerical::Double max = - Numerical::Infinity;
+//        Numerical::Double a, b;
+//        for (; iter != iterEnd; iter++) {
+//            if (Numerical::fabs(*iter) > 1e-10) {
+//                if (Numerical::fabs(*iter) > max) {
+//                    max = Numerical::fabs(*iter);
+//                    a = m_reducedCosts.at(iter.getIndex());
+//                    b = original.at(iter.getIndex());
+//                }
+//            }
+//        }
+//        if (max > -Numerical::Infinity) {
+//            dj.setSparsityRatio(0.35);
+//            LPERROR("diff: " << dj);
+//            LPERROR("| max | = " << max << "  " << a << "  " << b);
+//            std::cin.get();
 
 
-        }
+//        }
 
     }
 }
