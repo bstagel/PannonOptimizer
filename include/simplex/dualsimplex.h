@@ -172,17 +172,6 @@ private:
      */
     void computeTransformedRow(Vector* alpha, int rowIndex);
 
-    /**
-     * Function computing the value of the primal theta.
-     * It can be computed as the ratio of the outgoing variable and the alpha pivot value.
-     * @param alpha is the denominator of the primal theta
-     * @param outgoingIndex is needed in the numerator of the primal theta
-     * @param outgoingState the value of the primal theta depends on the state of the outgoing variable
-     * @return the computed value of the primal theta.
-     * @throws PanOptException in case of invalid outgoing state
-     */
-    Numerical::Double computePrimalTheta(const Vector& alpha, int outgoingIndex, VARIABLE_STATE outgoingState);
-
     // Interface of the iteration report provider:
     /**
      * The function returns the iteration report fields of this class, see IterationReportProvider.
