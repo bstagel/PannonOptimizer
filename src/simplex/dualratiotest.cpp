@@ -770,6 +770,10 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
                 it++;
             }
         }
+        if( expandedValueOfVariable < 0){
+            LPERROR("ERROR EXPANDED VALUE");
+            exit(-1);
+        }
     }
 }
 
@@ -925,6 +929,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         functionSlope = outgoingVariableValue - outgoingVariable.getUpperBound();
         m_tPositive = true;
     }
+
     if(m_expandDualPhase2 > 0){
         generateExpandedBreakpointsPhase2(alpha,workingTolerance);
     }else{
@@ -1037,7 +1042,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 //                                }
                                 if(secondPassRatios.at(maxBreakpointId)->value < thetaMin){
                                     //Expand procedure ensures a positive step
-//                                    LPWARNING("Theta_min is choosen at the end of the expand procedure! Theta: " << thetaMin);
+//                                    LPWARNING("Theta_min is choosen at the end of the expand procedure: value: "<<
+//                                              secondPassRatios.at(maxBreakpointId)->value << "  -  thetamin  " <<thetaMin);
                                     theta = m_tPositive ? thetaMin : -thetaMin;
                                 } else {
                                     theta = m_tPositive ? secondPassRatios.at(maxBreakpointId)->value :

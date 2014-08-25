@@ -459,14 +459,16 @@ void DualSimplex::update() {
             if(!m_feasible){
                 //In Phase-I to maintain feasibility of the outgoing variable
                 if(m_ratiotest->getDualSteplength() < 0){
-                    outgoingState = NONBASIC_AT_UB;
-                } else {
+                    //The outgoing variable will have a reduced cost equal to -theta,
+                    //which implies its state to satisfy its optimality condition
                     outgoingState = NONBASIC_AT_LB;
+                } else {
+                    outgoingState = NONBASIC_AT_UB;
                 }
             } else {
                 //In Phase-II
                 const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
-                if(m_basicVariableValues.at(m_outgoingIndex) - outgoingVariable.getLowerBound() < 0){
+                if(m_basicVariableValues.at(m_outgoingIndex) < outgoingVariable.getLowerBound()){
                     //Phase-II: Bounded variable leaves at lower bound (comes from M)
                     outgoingState = NONBASIC_AT_LB;
                 }else{
@@ -490,12 +492,30 @@ void DualSimplex::update() {
 
 
         //Compute the primal theta
-        m_primalTheta = computePrimalTheta(m_incomingAlpha, m_outgoingIndex, outgoingState);
-
         //Update the solution vector and the objective value
+        Numerical::Double beta;
+        Numerical::Double outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
+        const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex));
+        switch(outgoingState){
+        case NONBASIC_FIXED:
+            beta = outgoingVariableValue - outgoingVariable.getLowerBound();
+            break;
+        case NONBASIC_AT_LB:
+            beta = outgoingVariableValue - outgoingVariable.getLowerBound();
+            break;
+        case NONBASIC_AT_UB:
+            beta = outgoingVariableValue - outgoingVariable.getUpperBound();
+            break;
+        case NONBASIC_FREE:
+            LPWARNING("FREE variable is going to leave the basis!");
+            beta = outgoingVariableValue;
+        default:
+            throw PanOptException("Invalid outgoing state!");
+        }
+        m_primalTheta = beta / m_incomingAlpha.at(m_outgoingIndex);
+
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
-        m_objectiveValue += m_primalReducedCost * m_primalTheta;
-//        LPINFO("objval: "<<std::scientific<<std::setprecision(16)<<m_objectiveValue);
+        m_objectiveValue += beta * m_dualTheta;
 
         //Perform the basis change
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
@@ -716,27 +736,6 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
         }
         *alpha = a;
     }*/
-}
-
-Numerical::Double DualSimplex::computePrimalTheta(const Vector& alpha,
-                                                  int outgoingIndex,
-                                                  Simplex::VARIABLE_STATE outgoingState){
-    Numerical::Double outgoingVariableValue = m_basicVariableValues.at(outgoingIndex);
-    const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(outgoingIndex));
-
-    switch (outgoingState) {
-    case NONBASIC_FIXED:
-        return (outgoingVariableValue - outgoingVariable.getLowerBound()) / alpha.at(outgoingIndex);
-    case NONBASIC_AT_LB:
-        return (outgoingVariableValue - outgoingVariable.getLowerBound()) / alpha.at(outgoingIndex);
-    case NONBASIC_AT_UB:
-        return (outgoingVariableValue - outgoingVariable.getUpperBound()) / alpha.at(outgoingIndex);
-    case NONBASIC_FREE:
-        LPWARNING("FREE variable is going to leave the basis!");
-        return outgoingVariableValue / alpha.at(outgoingIndex);
-    default:
-        throw PanOptException("Invalid outgoing state!");
-    }
 }
 
 void DualSimplex::updateReducedCosts() {
