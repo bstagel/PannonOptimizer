@@ -339,17 +339,8 @@ void DualSimplex::price() {
 
 void DualSimplex::selectPivot() {
 
-    //Vector alpha;
-
     m_incomingIndex = -1;
-
-    //    if(m_simplexModel->getVariable(m_incomingIndex).getType() == Variable::PLUS
-    //            && m_pricing->getReducedCost() > 0){
-    //        LPINFO("t < 0, PLUS, error");
-    //    }
-
     while(m_incomingIndex == -1 ){
-
         computeTransformedRow(&m_pivotRow, m_outgoingIndex);
 
         if(!m_feasible){
@@ -369,7 +360,6 @@ void DualSimplex::selectPivot() {
         if(m_incomingIndex == -1){
             //Ask for another row
             LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
-            //LPERROR("pivot row: " << m_pivotRow);
             if (m_pricing) {
                 m_pricing->lockLastIndex();
             } else {
@@ -379,6 +369,7 @@ void DualSimplex::selectPivot() {
         }
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
+    m_degenerate = m_ratiotest->isDegenerate();
 
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
@@ -495,7 +486,7 @@ void DualSimplex::update() {
         //Update the solution vector and the objective value
         Numerical::Double beta;
         Numerical::Double outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
-        const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex));
+        const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
         switch(outgoingState){
         case NONBASIC_FIXED:
             beta = outgoingVariableValue - outgoingVariable.getLowerBound();

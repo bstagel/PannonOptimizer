@@ -283,12 +283,12 @@ int main(int argc, char** argv) {
     }
 
     for(unsigned int i=0; i<solvables.size(); i++){
-        if(solvables.at(i).first.compare("d") == 0){
-            solveDir(solvables.at(i).second);
-        } else if(solvables.at(i).first.compare("f") == 0){
-            solve(solvables.at(i).second);
-        } else if(solvables.at(i).first.compare("fl") == 0){
-            solveFileList(solvables.at(i).second);
+        if(solvables[i].first.compare("d") == 0){
+            solveDir(solvables[i].second);
+        } else if(solvables[i].first.compare("f") == 0){
+            solve(solvables[i].second);
+        } else if(solvables[i].first.compare("fl") == 0){
+            solveFileList(solvables[i].second);
         }
     }
 

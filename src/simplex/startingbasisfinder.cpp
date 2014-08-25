@@ -56,7 +56,7 @@ void StartingBasisFinder::print (int printLevel)
         stringstream out;
 
         for (unsigned int i=0; i < m_basisHead->size(); i++) {
-            out << m_basisHead->at(i) << " ";
+            out << (*m_basisHead)[i] << " ";
         }
         string basisHeadString = out.str();
         LPINFO("Starting basis found. Head contains the following variables: \n" << basisHeadString );
@@ -67,8 +67,8 @@ void StartingBasisFinder::print (int printLevel)
         unsigned int basisSize = m_model.getRowCount();
 
         for (unsigned int i=0; i < m_basisHead->size(); i++) {
-            if ((unsigned int)m_basisHead->at(i) < basisSize) {
-                out  << m_basisHead->at(i) << " ";
+            if ((unsigned int) (*m_basisHead)[i] < basisSize) {
+                out  << (*m_basisHead)[i] << " ";
             }
         }
 

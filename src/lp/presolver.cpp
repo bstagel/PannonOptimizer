@@ -38,15 +38,15 @@ Presolver::Presolver(Model *model) {
 
         m_rowNonzeros->set(i, m_model->getConstraint(i).getVector()->nonZeros());
         m_columnNonzeros->set(i, m_model->getVariable(i).getVector()->nonZeros());
-        m_impliedLower->set(i, m_variables->at(i).getLowerBound());
-        m_impliedUpper->set(i, m_variables->at(i).getUpperBound());
-        if(m_variables->at(i).getType() == Variable::BOUNDED) {
+        m_impliedLower->set(i, (*m_variables)[i].getLowerBound());
+        m_impliedUpper->set(i, (*m_variables)[i].getUpperBound());
+        if((*m_variables)[i].getType() == Variable::BOUNDED) {
             //Change extra bound sums
             //Bounded variables are treated without their upper bound, which are handled with extra constraints
             m_extraDualLowerSum->set(i, m_extraDualLowerSum->at(i) + 1);
         }
         //Set dual variable bounds
-        if(m_constraints->at(i).getType() == Constraint::RANGE) {
+        if((*m_constraints)[i].getType() == Constraint::RANGE) {
             //Range constraints are trated without their lower bound, which are handled with extra constraints
             m_impliedDualLower->set(i, -Numerical::Infinity);
             Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
@@ -59,14 +59,14 @@ Presolver::Presolver(Model *model) {
                 }
             }
         } else {
-            if(m_constraints->at(i).getType() == Constraint::EQUALITY) {
+            if((*m_constraints)[i].getType() == Constraint::EQUALITY) {
                 m_impliedDualLower->set(i, -Numerical::Infinity);
                 m_impliedDualUpper->set(i, Numerical::Infinity);
             } else {
-                if(m_constraints->at(i).getLowerBound() != -Numerical::Infinity) {
+                if((*m_constraints)[i].getLowerBound() != -Numerical::Infinity) {
                     m_impliedDualUpper->set(i, Numerical::Infinity);
                 }
-                if(m_constraints->at(i).getUpperBound() != Numerical::Infinity) {
+                if((*m_constraints)[i].getUpperBound() != Numerical::Infinity) {
                     m_impliedDualLower->set(i, -Numerical::Infinity);
                 }
             }
@@ -76,7 +76,7 @@ Presolver::Presolver(Model *model) {
         for(unsigned int i = columnCount; i < rowCount; i++) {
             m_rowNonzeros->set(i, m_model->getConstraint(i).getVector()->nonZeros());
             //Set dual variable bounds
-            if(m_constraints->at(i).getType() == Constraint::RANGE) {
+            if((*m_constraints)[i].getType() == Constraint::RANGE) {
                 //Range constraints are trated without their lower bound, which are handled with extra constraints
                 m_impliedDualLower->set(i, -Numerical::Infinity);
                 Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
@@ -89,14 +89,14 @@ Presolver::Presolver(Model *model) {
                     }
                 }
             } else {
-                if(m_constraints->at(i).getType() == Constraint::EQUALITY) {
+                if((*m_constraints)[i].getType() == Constraint::EQUALITY) {
                     m_impliedDualLower->set(i, -Numerical::Infinity);
                     m_impliedDualUpper->set(i, Numerical::Infinity);
                 } else {
-                    if(m_constraints->at(i).getLowerBound() != -Numerical::Infinity) {
+                    if((*m_constraints)[i].getLowerBound() != -Numerical::Infinity) {
                         m_impliedDualUpper->set(i, Numerical::Infinity);
                     }
-                    if(m_constraints->at(i).getUpperBound() != Numerical::Infinity) {
+                    if((*m_constraints)[i].getUpperBound() != Numerical::Infinity) {
                         m_impliedDualLower->set(i, -Numerical::Infinity);
                     }
                 }
@@ -105,9 +105,9 @@ Presolver::Presolver(Model *model) {
     } else {
         for(unsigned int i = rowCount; i < columnCount; i++) {
             m_columnNonzeros->set(i, m_model->getVariable(i).getVector()->nonZeros());
-            m_impliedLower->set(i, m_variables->at(i).getLowerBound());
-            m_impliedUpper->set(i, m_variables->at(i).getUpperBound());
-            if(m_variables->at(i).getType() == Variable::BOUNDED) {
+            m_impliedLower->set(i, (*m_variables)[i].getLowerBound());
+            m_impliedUpper->set(i, (*m_variables)[i].getUpperBound());
+            if((*m_variables)[i].getType() == Variable::BOUNDED) {
                 //Change extra bound sums
                 //Bounded variables are treated without their upper bound, which are handled with extra constraints
                 m_extraDualLowerSum->set(i, m_extraDualLowerSum->at(i) + 1);
@@ -127,9 +127,11 @@ void Presolver::printStatistics() {
     int eC = 0;
     LPINFO("[Presolver] Finished sucessfully!");
     for(unsigned int i = 0; i < m_modules.size(); i++) {
-        eR += m_modules.at(i)->getRemovedConstraintCount();
-        eC += m_modules.at(i)->getRemovedVariableCount();
-        LPINFO("[Presolver] Module " << m_modules.at(i)->getName() << " stats: eliminated rows - " << m_modules.at(i)->getRemovedConstraintCount() << ", eliminated columns - " << m_modules.at(i)->getRemovedVariableCount());
+        eR += m_modules[i]->getRemovedConstraintCount();
+        eC += m_modules[i]->getRemovedVariableCount();
+        LPINFO("[Presolver] Module " << m_modules[i]->getName() <<
+               " stats: eliminated rows - " << m_modules[i]->getRemovedConstraintCount() <<
+               ", eliminated columns - " << m_modules[i]->getRemovedVariableCount());
     }
     LPINFO("[Presolver] Total eliminated rows: " << eR);
     LPINFO("[Presolver] Total eliminated columns: " << eC << " (+" << m_impliedFreeCount << " implied free variables)");
@@ -147,7 +149,7 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
     Vector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
     Vector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
     for(;it != itEnd; it++) {
-        m_constraints->at(it.getIndex()).setBounds(Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getLowerBound(), -1 * (*it) * value),
+        (*m_constraints)[it.getIndex()].setBounds(Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getLowerBound(), -1 * (*it) * value),
                                                    Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getUpperBound(), -1 * (*it) * value));
         m_rowNonzeros->set(it.getIndex(), m_rowNonzeros->at(it.getIndex()) - 1);
 
@@ -188,9 +190,9 @@ void Presolver::presolve() {
         last = elim;
         elim = 0;
         for(unsigned int i = 0; i < m_modules.size(); i++) {
-            m_modules.at(i)->executeMethod();
-            elim += m_modules.at(i)->getRemovedConstraintCount();
-            elim += m_modules.at(i)->getRemovedVariableCount();
+            m_modules[i]->executeMethod();
+            elim += m_modules[i]->getRemovedConstraintCount();
+            elim += m_modules[i]->getRemovedVariableCount();
         }
         itc++;
     }

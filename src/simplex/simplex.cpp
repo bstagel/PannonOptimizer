@@ -51,6 +51,7 @@ const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibi
 
 Simplex::Simplex():
     m_simplexModel(NULL),
+    m_degenerate(false),
     m_variableStates(0,0),
     m_basicVariableFeasibilities(0,0),
     m_reducedCostFeasibilities(0,0),
@@ -733,7 +734,7 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
         }
         const std::vector<Vector*> * subsVectors = m_simplexModel->getModel().getSubstituteVectors();
         for(int i = subsVectors->size() - 1; i >= 0; i--) {
-            Vector* currentSubstituteVector = subsVectors->at(i);
+            Vector* currentSubstituteVector = (*subsVectors)[i];
             LPINFO("restoring variable to index " << currentSubstituteVector->at(currentSubstituteVector->length()-2));
             structuralSolution.insertElement(currentSubstituteVector->at(currentSubstituteVector->length()-2), structuralSolution.dotProduct(*currentSubstituteVector));
             totalVariableCount++;
@@ -761,18 +762,14 @@ void Simplex::reinvert() {
     releaseLocks();
     m_inversionTimer.start();
     m_basis->invert();
-
-    //    Checker::checkBasisWithFtran(*this);
-    //    Checker::checkBasisWithBtran(*this);
-    //    Checker::checkBasisWithReducedCost(*this);
-    //    Checker::checkBasisWithNonbasicReducedCost(*this);
-
     m_inversionTimer.stop();
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();
     m_computeBasicSolutionTimer.stop();
     m_computeReducedCostsTimer.start();
-    computeReducedCosts();
+//    if(!m_degenerate){
+        computeReducedCosts();
+//    }
     m_computeReducedCostsTimer.stop();
     m_computeFeasibilityTimer.start();
     computeFeasibility();
@@ -787,7 +784,7 @@ void Simplex::computeBasicSolution() {
     //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})
     IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itend;
-    //This iterates through Simplex::NONBASIC_AT_LB and Simplex::NONBASIC_AT_UB too -- BUG with 2 partitions
+    //This iterates through Simplex::NONBASIC_AT_LB, Simplex::NONBASIC_AT_UB and Simplex::NONBASIC_FIXED
     m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
     for(; it != itend; it++) {
@@ -798,7 +795,7 @@ void Simplex::computeBasicSolution() {
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
                                           Numerical::stableAdd(m_basicVariableValues.at(it.getData() - columnCount), - *(it.getAttached())));
-                //                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+//                                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
             }
         }
     }
@@ -815,111 +812,38 @@ void Simplex::computeBasicSolution() {
 }
 
 void Simplex::computeReducedCosts() {
+    m_reducedCosts.clear();
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    unsigned int columnCount = m_simplexModel->getColumnCount();
 
-    if ( m_basis->isFresh()) {
-
-        /*LPINFO("IS FRESH");
-        std::cin.get();*/
-
-        m_reducedCosts.clear();
-        unsigned int rowCount = m_simplexModel->getRowCount();
-        unsigned int columnCount = m_simplexModel->getColumnCount();
-
-        //Get the c_B vector
-        Vector simplexMultiplier(rowCount);
-        simplexMultiplier.setSparsityRatio(DENSE);
-        const Vector& costVector = m_simplexModel->getCostVector();
-        for(unsigned int i = 0; i<m_basisHead.size(); i++){
-            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
-            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
-                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
-            }
+    //Get the c_B vector
+    Vector simplexMultiplier(rowCount);
+    simplexMultiplier.setSparsityRatio(DENSE);
+    const Vector& costVector = m_simplexModel->getCostVector();
+    for(unsigned int i = 0; i<m_basisHead.size(); i++){
+        // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
+        if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+            simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
         }
-        //Compute simplex multiplier
-        m_basis->Btran(simplexMultiplier);
+    }
+    //Compute simplex multiplier
+    m_basis->Btran(simplexMultiplier);
 
-        //For each variable
-        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-            if(m_variableStates.where(i) == Simplex::BASIC){
-                //m_reducedCosts.set(i, 0.0);
-                continue;
-            }
-            //Compute the dot product and the reduced cost
-            Numerical::Double reducedCost;
-            if(i < columnCount){
-                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
-            } else {
-                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
-            }
-            if(reducedCost != 0.0){
-                m_reducedCosts.setNewNonzero(i, reducedCost);
-            }
+    //For each variable
+    for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+        if(m_variableStates.where(i) == Simplex::BASIC){
+            //m_reducedCosts.set(i, 0.0);
+            continue;
         }
-    } else if (m_incomingIndex >= 0 && m_outgoingIndex >= 0) {
-        updateReducedCosts();
-        return;
-        //TODO: Joco ez szerinted mikor fut le?
-//        Vector dj = m_reducedCosts;
-
-//        m_reducedCosts.clear();
-//        unsigned int rowCount = m_simplexModel->getRowCount();
-//        unsigned int columnCount = m_simplexModel->getColumnCount();
-
-//        //Get the c_B vector
-//        Vector simplexMultiplier(rowCount);
-//        simplexMultiplier.setSparsityRatio(DENSE);
-//        const Vector& costVector = m_simplexModel->getCostVector();
-//        for(unsigned int i = 0; i<m_basisHead.size(); i++){
-//            // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
-//            if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
-//                simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
-//            }
-//        }
-//        //Compute simplex multiplier
-//        m_basis->Btran(simplexMultiplier);
-
-//        //For each variable
-//        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-//            if(m_variableStates.where(i) == Simplex::BASIC){
-//                m_reducedCosts.set(i, 0.0);
-//                continue;
-//            }
-//            //Compute the dot product and the reduced cost
-//            Numerical::Double reducedCost;
-//            if(i < columnCount){
-//                reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
-//            } else {
-//                reducedCost = -1 * simplexMultiplier.at(i - columnCount);
-//            }
-//            if(reducedCost != 0.0){
-//                m_reducedCosts.setNewNonzero(i, reducedCost);
-//            }
-//        }
-
-//        Vector original = dj;
-//        dj.addVector( -1, m_reducedCosts );
-
-//        Vector::NonzeroIterator iter = dj.beginNonzero();
-//        Vector::NonzeroIterator iterEnd = dj.endNonzero();
-//        Numerical::Double max = - Numerical::Infinity;
-//        Numerical::Double a, b;
-//        for (; iter != iterEnd; iter++) {
-//            if (Numerical::fabs(*iter) > 1e-10) {
-//                if (Numerical::fabs(*iter) > max) {
-//                    max = Numerical::fabs(*iter);
-//                    a = m_reducedCosts.at(iter.getIndex());
-//                    b = original.at(iter.getIndex());
-//                }
-//            }
-//        }
-//        if (max > -Numerical::Infinity) {
-//            dj.setSparsityRatio(0.35);
-//            LPERROR("diff: " << dj);
-//            LPERROR("| max | = " << max << "  " << a << "  " << b);
-//            std::cin.get();
-
-
-//        }
-
+        //Compute the dot product and the reduced cost
+        Numerical::Double reducedCost;
+        if(i < columnCount){
+            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
+        } else {
+            reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+        }
+        if(reducedCost != 0.0){
+            m_reducedCosts.setNewNonzero(i, reducedCost);
+        }
     }
 }

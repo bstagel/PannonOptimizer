@@ -61,7 +61,7 @@ Model::~Model()
 {
     if(m_presolved) {
         for(unsigned int i = 0; i < m_substituteVectors->size(); i++) {
-            delete m_substituteVectors->at(i);
+            delete (*m_substituteVectors)[i];
         }
     }
 }

@@ -115,7 +115,11 @@ protected:
      */
     std::vector<int> m_basisHead;
 
-    //Template parameter holds the value of the variable
+    /**
+     * Indicates wheter we are in a degenerate situation or not.
+     */
+    bool m_degenerate;
+
     /**
      * An indexlist stroing the variable states described at Simplex::VARIABLE_STATE.
      * The template parameter holds the value of the variable.

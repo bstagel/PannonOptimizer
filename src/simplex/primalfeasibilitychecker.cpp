@@ -51,10 +51,10 @@ void PrimalFeasibilityChecker::computeFeasibilities()
     Numerical::Double valueOfVariable = 0;
 
     for(unsigned int basisIndex = 0; basisIndex < m_basisHead.size(); basisIndex++){
-        const Variable & basicVariable = m_model.getVariable(m_basisHead.at(basisIndex));
+        const Variable & basicVariable = m_model.getVariable(m_basisHead[basisIndex]);
         lbOfVariable = basicVariable.getLowerBound();
         ubOfVariable = basicVariable.getUpperBound();
-        valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead.at(basisIndex)));
+        valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead[basisIndex]));
 
     //basic variables with M type infeasibility
         if ( Numerical::lessthan(valueOfVariable, lbOfVariable, m_feasibilityTolerance) ) {

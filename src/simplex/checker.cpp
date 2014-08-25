@@ -68,7 +68,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
     std::vector<Vector>::iterator basisIt;
     for (basisIt = basisCopy.begin(); basisIt < basisCopy.end(); basisIt++) {
         for (Vector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); vectorIt++) {
-            rowbasis.at(vectorIt.getIndex()).setNewNonzero(basisIt - basisCopy.begin(), *vectorIt);
+            rowbasis[vectorIt.getIndex()].setNewNonzero(basisIt - basisCopy.begin(), *vectorIt);
         }
     }
     //Use BTRAN to check the inverse
@@ -204,7 +204,7 @@ bool Checker::checkVariableStateAttachedValues(const Simplex& simplex){
         if(simplex.m_variableStates.where(i) == Simplex::BASIC){
             int basisindex = -1;
             for(int j=0; j<(int)simplex.m_basisHead.size(); j++){
-                if(simplex.m_basisHead.at(j) == i){
+                if(simplex.m_basisHead[j] == i){
                     basisindex = j;
                     break;
                 }
@@ -308,25 +308,25 @@ bool Checker::checkPrimalTheta(const Simplex& simplex,
 
     checkAlphaValue(simplex, rowIndex, columnIndex, pivotFromCol, pivotFromRow);
 
-    Variable::VARIABLE_TYPE typeOfIthVariable = simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getType();
+    Variable::VARIABLE_TYPE typeOfIthVariable = simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getType();
     Numerical::Double valueOfOutgoingVariable = simplex.m_basicVariableValues.at(rowIndex);
 
     if (typeOfIthVariable == Variable::FIXED) {
-        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromCol;
-        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromRow;
     }
     else if (typeOfIthVariable == Variable::BOUNDED) {
-        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromCol;
-        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromRow;
     }
     else if (typeOfIthVariable == Variable::PLUS) {
-        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromCol;
-        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromRow;
     }
     else if (typeOfIthVariable == Variable::FREE) {
@@ -334,9 +334,9 @@ bool Checker::checkPrimalTheta(const Simplex& simplex,
         thetaFromRow = valueOfOutgoingVariable  / pivotFromRow;
     }
     else if (typeOfIthVariable == Variable::MINUS) {
-        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getUpperBound()) /
+        thetaFromCol = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getUpperBound()) /
                 pivotFromCol;
-        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(rowIndex)).getLowerBound()) /
+        thetaFromRow = (valueOfOutgoingVariable - simplex.m_simplexModel->getVariable(simplex.m_basisHead[rowIndex]).getLowerBound()) /
                 pivotFromRow;
     }
 
@@ -352,7 +352,7 @@ bool Checker::checkFeasibilityConditions(const Simplex& simplex, bool print, Num
 {
     bool okay = true;
     for(unsigned int basisIndex=0; basisIndex<simplex.m_simplexModel->getRowCount(); basisIndex++){
-        unsigned int variableIndex = simplex.m_basisHead.at(basisIndex);
+        unsigned int variableIndex = simplex.m_basisHead[basisIndex];
         if(Numerical::lessthan(simplex.m_basicVariableValues.at(basisIndex),simplex.m_simplexModel->getVariable(variableIndex).getLowerBound(),tolerance) ||
            Numerical::lessthan(simplex.m_simplexModel->getVariable(variableIndex).getUpperBound(),simplex.m_basicVariableValues.at(basisIndex),tolerance)){
             if(print){
@@ -518,11 +518,11 @@ bool Checker::checkBasicVariableStates(const Simplex &simplex, bool print)
 {
     bool okay = true;
     for(unsigned int basisIndex=0; basisIndex<simplex.m_basisHead.size(); basisIndex++){
-        if(simplex.m_variableStates.where(simplex.m_basisHead.at(basisIndex))!=Simplex::BASIC){
+        if(simplex.m_variableStates.where(simplex.m_basisHead[basisIndex])!=Simplex::BASIC){
             if(print){
                 LPINFO("UNSATISFIED BASIC STATE: "
-                       << " state:  " << simplex.m_variableStates.getAttachedData(simplex.m_basisHead.at(basisIndex))
-                       << " val: " << *simplex.m_variableStates.getAttachedData(simplex.m_basisHead.at(basisIndex)));
+                       << " state:  " << simplex.m_variableStates.getAttachedData(simplex.m_basisHead[basisIndex])
+                       << " val: " << *simplex.m_variableStates.getAttachedData(simplex.m_basisHead[basisIndex]));
             }
             okay = false;
         }
@@ -539,7 +539,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
 {
     bool okay = true;
     for(unsigned int basisIndex=0; basisIndex<simplex.m_basisHead.size(); basisIndex++){
-        const Variable & variable = simplex.m_simplexModel->getVariable(simplex.m_basisHead.at(basisIndex));
+        const Variable & variable = simplex.m_simplexModel->getVariable(simplex.m_basisHead[basisIndex]);
         unsigned int state = simplex.m_basicVariableFeasibilities.where(basisIndex);
         Numerical::Double lb = variable.getLowerBound();
         Numerical::Double ub = variable.getUpperBound();
