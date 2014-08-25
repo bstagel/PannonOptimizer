@@ -307,14 +307,14 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                 }
             } else {
                 throw SyntaxErrorException("Application name error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
         } else if(tokens[i].m_value.compare("PARAMETER_SYNTAX") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0 &&
-                    rows.at(tokens[i].m_row).find("$PARAMETER_NAME") != std::string::npos &&
-                    rows.at(tokens[i].m_row).find("$PARAMETER_VALUE") != std::string::npos){
+                    rows[tokens[i].m_row].find("$PARAMETER_NAME") != std::string::npos &&
+                    rows[tokens[i].m_row].find("$PARAMETER_VALUE") != std::string::npos){
                 i+=2;
                 application->parameterSyntax = "";
                 unsigned int currentRow = tokens[i].m_row;
@@ -333,13 +333,13 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
         } else if(tokens[i].m_value.compare("PROBLEM_SYNTAX") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0 &&
-                    rows.at(tokens[i].m_row).find("$PROBLEM_NAME") != std::string::npos){
+                    rows[tokens[i].m_row].find("$PROBLEM_NAME") != std::string::npos){
                 i+=2;
                 application->problemSyntax = "";
                 unsigned int currentRow = tokens[i].m_row;
@@ -358,13 +358,13 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
         }  else if(tokens[i].m_value.compare("OUTPUT_SYNTAX") == 0){
             if(i+2 < tokens.size() && tokens[i+1].m_value.compare("=") == 0 &&
-                    rows.at(tokens[i].m_row).find("$OUTPUT_NAME") != std::string::npos){
+                    rows[tokens[i].m_row].find("$OUTPUT_NAME") != std::string::npos){
                 i+=2;
                 application->outputSyntax = "";
                 unsigned int currentRow = tokens[i].m_row;
@@ -388,7 +388,7 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
@@ -433,7 +433,7 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                     application->sets.insert(std::pair<std::string, Set>(name, set));
                 } else {
                     throw SyntaxErrorException("Invalid set, syntax error! ",
-                                               rows.at(tokens[i].m_row),
+                                               rows[tokens[i].m_row],
                                                tokens[i].m_row,
                                                tokens[i].m_column);
                 }
@@ -465,7 +465,7 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                             i++;
                         } else {
                             throw SyntaxErrorException("Invalid range parameter, syntax error! ",
-                                                       rows.at(tokens[i].m_row),
+                                                      rows[tokens[i].m_row],
                                                        tokens[i].m_row,
                                                        tokens[i].m_column);
                         }
@@ -474,14 +474,14 @@ bool parseApplicationDescriptor(ApplicationConfiguration* application, const std
                     application->ranges.insert(std::pair<std::string, Range>(name, range));
                 } else {
                     throw SyntaxErrorException("Invalid range, syntax error! ",
-                                               rows.at(tokens[i].m_row),
+                                               rows[tokens[i].m_row],
                                                tokens[i].m_row,
                                                tokens[i].m_column);
                 }
             }
         } else {
             throw SyntaxErrorException("Invalid token! ",
-                                       rows.at(tokens[i].m_row),
+                                       rows[tokens[i].m_row],
                                        tokens[i].m_row,
                                        tokens[i].m_column);
         }
@@ -517,7 +517,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
             } else {
                 throw SyntaxErrorException("Application name error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
@@ -537,7 +537,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
@@ -561,7 +561,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
@@ -585,7 +585,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                 }
             } else {
                 throw SyntaxErrorException("Parameter syntax error",
-                                           rows.at(tokens[i].m_row),
+                                           rows[tokens[i].m_row],
                                            tokens[i].m_row,
                                            tokens[i].m_column);
             }
@@ -632,7 +632,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                     sweep->sets.insert(std::pair<std::string, Set>(name, set));
                 } else {
                     throw SyntaxErrorException("Invalid set, syntax error! ",
-                                               rows.at(tokens[i].m_row),
+                                               rows[tokens[i].m_row],
                                                tokens[i].m_row,
                                                tokens[i].m_column);
                 }
@@ -664,7 +664,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                         range.setLogarithmic(true);
                     } else {
                         throw SyntaxErrorException("Invalid range parameter, syntax error! ",
-                                                   rows.at(tokens[i].m_row),
+                                                   rows[tokens[i].m_row],
                                                    tokens[i].m_row,
                                                    tokens[i].m_column);
                     }
@@ -673,7 +673,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
                     sweep->ranges.insert(std::pair<std::string, Range>(name, range));
                 } else {
                     throw SyntaxErrorException("Invalid range, syntax error! ",
-                                               rows.at(tokens[i].m_row),
+                                               rows[tokens[i].m_row],
                                                tokens[i].m_row,
                                                tokens[i].m_column);
                 }
@@ -695,7 +695,7 @@ bool parseSweepDescriptor(SweepConfiguration* sweep, const std::string & path){
 
         } else {
             throw SyntaxErrorException("Invalid token! ",
-                                       rows.at(tokens[i].m_row),
+                                       rows[tokens[i].m_row],
                                        tokens[i].m_row,
                                        tokens[i].m_column);
         }
@@ -804,7 +804,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
         //Print parameters
         std::string nameid("$PARAMETER_NAME");
         std::string valueid("$PARAMETER_VALUE");
-        for(auto it = values.at(arglistCount).cbegin(); it != values.at(arglistCount).cend(); it++){
+        for(auto it = values[arglistCount].cbegin(); it != values[arglistCount].cend(); it++){
             std::string parameter(application.parameterSyntax);
             unsigned int namepos = parameter.find(nameid);
             if(namepos == std::string::npos){

@@ -279,7 +279,7 @@ void BasisHeadPanOpt::finishReading() {
         if (NodeFile::Node::checkInteger(arrayIter->second) == false ) {
             throw PanOptException("Invalid index format at the basis head: " + arrayIter->second);
         }
-        m_basisHeadPtr->at( arrayIter->first ) = atoi( arrayIter->second.c_str() );
+        (*m_basisHeadPtr)[arrayIter->first] = atoi( arrayIter->second.c_str() );
         m_variableStatesPtr->insert(Simplex::BASIC, atoi( arrayIter->second.c_str() ), 0);
     }
 

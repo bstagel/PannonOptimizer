@@ -55,27 +55,27 @@ void SimplexModel::makeComputationalForm()
 
     //Set the logical variables
     for (i=0; i < rowCount; i++) {
-        m_variables[columnCount + i].setName(constraints.at(i).getName());
+        m_variables[columnCount + i].setName(constraints[i].getName());
 
-        switch (constraints.at(i).getType()) {
+        switch (constraints[i].getType()) {
         case Constraint::LESS_OR_EQUAL: {
             m_variables[columnCount + i].setLowerBound(0.);
             m_variables[columnCount + i].setUpperBound(Numerical::Infinity);
-            m_rhs.set(i, constraints.at(i).getUpperBound());
+            m_rhs.set(i, constraints[i].getUpperBound());
             break;
         }
 
         case Constraint::GREATER_OR_EQUAL: {
             m_variables[columnCount + i].setLowerBound(-Numerical::Infinity);
             m_variables[columnCount + i].setUpperBound(0.);
-            m_rhs.set(i, constraints.at(i).getLowerBound());
+            m_rhs.set(i, constraints[i].getLowerBound());
             break;
         }
 
         case Constraint::RANGE: {
             m_variables[columnCount + i].setLowerBound(0.);
-            m_variables[columnCount + i].setUpperBound(constraints.at(i).getUpperBound() - constraints.at(i).getLowerBound());
-            m_rhs.set(i, constraints.at(i).getUpperBound());
+            m_variables[columnCount + i].setUpperBound(constraints[i].getUpperBound() - constraints[i].getLowerBound());
+            m_rhs.set(i, constraints[i].getUpperBound());
             break;
         }
 
@@ -83,8 +83,8 @@ void SimplexModel::makeComputationalForm()
             m_variables[columnCount + i].setLowerBound(-Numerical::Infinity);
             m_variables[columnCount + i].setUpperBound(Numerical::Infinity);
             m_rhs.set(i, 0.);
-            Numerical::Double temp = constraints.at(i).getUpperBound();
-            Numerical::Double temp2 = constraints.at(i).getLowerBound();
+            Numerical::Double temp = constraints[i].getUpperBound();
+            Numerical::Double temp2 = constraints[i].getLowerBound();
             if ( temp != -Numerical::Infinity) {
                 m_rhs.set(i, temp);
             } else if ( temp2 != Numerical::Infinity) {
@@ -98,7 +98,7 @@ void SimplexModel::makeComputationalForm()
         case Constraint::EQUALITY: {
             m_variables[columnCount + i].setLowerBound(0.);
             m_variables[columnCount + i].setUpperBound(0.);
-            m_rhs.set(i, constraints.at(i).getUpperBound());
+            m_rhs.set(i, constraints[i].getUpperBound());
             break;
         }
 
@@ -215,6 +215,7 @@ void SimplexModel::shiftBounds()
     const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_bounds");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
+    //TODO: Ezt mashogy kell lefoglalni, feltolteni
     Vector epsilonValuesLower;
     Vector epsilonValuesUpper;
     for(unsigned i=0;i < getColumnCount();i++){
@@ -228,10 +229,10 @@ void SimplexModel::shiftBounds()
         lb = m_model.getVariable(i).getLowerBound();
         ub = m_model.getVariable(i).getUpperBound();
         if (lb != -Numerical::Infinity){
-            m_variables.at(i).setLowerBound(lb+epsilonValuesLower.at(i));
+            m_variables[i].setLowerBound(lb+epsilonValuesLower.at(i));
         }
         if (ub != Numerical::Infinity){
-            m_variables.at(i).setUpperBound(ub+epsilonValuesUpper.at(i));
+            m_variables[i].setUpperBound(ub+epsilonValuesUpper.at(i));
         }
     }
 
@@ -255,8 +256,8 @@ void SimplexModel::resetModel()
         for(unsigned i=0;i < getColumnCount();i++){
             lb = m_model.getVariable(i).getLowerBound();
             ub = m_model.getVariable(i).getUpperBound();
-            m_variables.at(i).setLowerBound(lb);
-            m_variables.at(i).setUpperBound(ub);
+            m_variables[i].setLowerBound(lb);
+            m_variables[i].setUpperBound(ub);
         }
     }
 }

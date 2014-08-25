@@ -33,7 +33,7 @@ void SingletonRowsModule::executeMethod() {
         while(currentRow < lastRow) {
             //handle empty rows
             if(*currentRow == 0) {
-                if(m_parent->getConstraints()->at(currentRow.getIndex()).getLowerBound() > 0 || m_parent->getConstraints()->at(currentRow.getIndex()).getUpperBound() < 0) {
+                if((*m_parent->getConstraints())[currentRow.getIndex()].getLowerBound() > 0 || (*m_parent->getConstraints())[currentRow.getIndex()].getUpperBound() < 0) {
                     throw Presolver::PresolverException("The problem is primal infeasible.");
                     return;
                 } else {
@@ -51,12 +51,12 @@ void SingletonRowsModule::executeMethod() {
             //handle singleton rows
             if(*currentRow == 1) {
                 //get the singleton position with skipping the removed column indices
-                Vector::NonzeroIterator it = m_parent->getConstraints()->at(currentRow.getIndex()).getVector()->beginNonzero();
+                Vector::NonzeroIterator it = (*m_parent->getConstraints())[currentRow.getIndex()].getVector()->beginNonzero();
                 int varIdx = it.getIndex();
-                Numerical::Double varLowerBound = /*m_parent->getImpliedLower()->at(varIdx);*/m_parent->getVariables()->at(varIdx).getLowerBound();
-                Numerical::Double varUpperBound = /*m_parent->getImpliedUpper()->at(varIdx);*/m_parent->getVariables()->at(varIdx).getUpperBound();
-                Numerical::Double rowLowerBound = m_parent->getConstraints()->at(currentRow.getIndex()).getLowerBound();
-                Numerical::Double rowUpperBound = m_parent->getConstraints()->at(currentRow.getIndex()).getUpperBound();
+                Numerical::Double varLowerBound = /*m_parent->getImpliedLower()->at(varIdx);*/(*m_parent->getVariables())[varIdx].getLowerBound();
+                Numerical::Double varUpperBound = /*m_parent->getImpliedUpper()->at(varIdx);*/(*m_parent->getVariables())[varIdx].getUpperBound();
+                Numerical::Double rowLowerBound = (*m_parent->getConstraints())[currentRow.getIndex()].getLowerBound();
+                Numerical::Double rowUpperBound = (*m_parent->getConstraints())[currentRow.getIndex()].getUpperBound();
 
                 //report infeasibility if bounds conflict
                 //example for the 4 cases here:
@@ -78,7 +78,7 @@ void SingletonRowsModule::executeMethod() {
                 //TODO: Numerical::Double hasznalata eseten nem fordul le ambiguous conversion miatt (DoubleHistory -> bool)
 //                Numerical::Double fixVal;
                 double fixVal;
-                if((m_parent->getConstraints()->at(currentRow.getIndex()).getType() == Constraint::EQUALITY && (fixVal = 1)) ||
+                if(((*m_parent->getConstraints())[currentRow.getIndex()].getType() == Constraint::EQUALITY && (fixVal = 1)) ||
                    ((*it) > 0 && Numerical::stableAdd(varLowerBound * (*it), (-1) * rowUpperBound) == 0 && (fixVal = 1)) ||
                    ((*it) > 0 && Numerical::stableAdd(varUpperBound * (*it), (-1) * rowLowerBound) == 0 && (fixVal = 2)) ||
                    ((*it) < 0 && Numerical::stableAdd(varLowerBound * (*it), (-1) * rowLowerBound) == 0 && (fixVal = 2)) ||
@@ -105,20 +105,20 @@ void SingletonRowsModule::executeMethod() {
                     //update variable bounds
                     if((*it) > 0) {
                         if(varLowerBound < rowLowerBound / (*it)) {
-                            m_parent->getVariables()->at(varIdx).setLowerBound(rowLowerBound / (*it));
+                            (*m_parent->getVariables())[varIdx].setLowerBound(rowLowerBound / (*it));
                             m_parent->getImpliedLower()->set(varIdx, rowLowerBound / (*it));
                         }
                         if(varUpperBound > rowUpperBound / (*it)) {
-                            m_parent->getVariables()->at(varIdx).setUpperBound(rowUpperBound / (*it));
+                            (*m_parent->getVariables())[varIdx].setUpperBound(rowUpperBound / (*it));
                             m_parent->getImpliedUpper()->set(varIdx, rowUpperBound / (*it));
                         }
                     } else {
                         if(varLowerBound < rowUpperBound / (*it)) {
-                            m_parent->getVariables()->at(varIdx).setLowerBound(rowUpperBound / (*it));
+                            (*m_parent->getVariables())[varIdx].setLowerBound(rowUpperBound / (*it));
                             m_parent->getImpliedLower()->set(varIdx, rowUpperBound / (*it));
                         }
                         if(varUpperBound > rowLowerBound / (*it)) {
-                            m_parent->getVariables()->at(varIdx).setUpperBound(rowLowerBound / (*it));
+                            (*m_parent->getVariables())[varIdx].setUpperBound(rowLowerBound / (*it));
                             m_parent->getImpliedUpper()->set(varIdx, rowLowerBound / (*it));
                         }
                     }
@@ -158,9 +158,10 @@ void SingletonColumnsModule::executeMethod() {
         while(currentColumn < lastColumn) {
 
             //handle fixed variables
-            if(Numerical::stableAdd(m_parent->getVariables()->at(currentColumn.getIndex()).getLowerBound(), -1 * m_parent->getVariables()->at(currentColumn.getIndex()).getUpperBound()) == 0) {
+            if(Numerical::stableAdd((*m_parent->getVariables())[currentColumn.getIndex()].getLowerBound(),
+                                    -1 * (*m_parent->getVariables())[currentColumn.getIndex()].getUpperBound()) == 0) {
 
-                m_parent->fixVariable(currentColumn.getIndex(), m_parent->getVariables()->at(currentColumn.getIndex()).getLowerBound());
+                m_parent->fixVariable(currentColumn.getIndex(), (*m_parent->getVariables())[currentColumn.getIndex()].getLowerBound());
                 lastColumn = m_parent->getColumnNonzeros()->end();
                 m_removedVariables++;
                 continue;
@@ -169,30 +170,30 @@ void SingletonColumnsModule::executeMethod() {
             //handle empty columns
             if(*currentColumn == 0) {
                 if(m_parent->getModel()->getObjectiveType() == MINIMIZE) {
-                    if((m_parent->getModel()->getVariables()->at(currentColumn.getIndex()).getLowerBound() == -Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) > 0) ||
-                       (m_parent->getModel()->getVariables()->at(currentColumn.getIndex()).getUpperBound() == Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) < 0)) {
+                    if(((*m_parent->getModel()->getVariables())[currentColumn.getIndex()].getLowerBound() == -Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) > 0) ||
+                       ((*m_parent->getModel()->getVariables())[currentColumn.getIndex()].getUpperBound() == Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) < 0)) {
                         throw Presolver::PresolverException("The problem is primal unbounded.");
                         return;
                     } else {
                         if(m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) > 0) {
-                            m_parent->fixVariable(currentColumn.getIndex(), m_parent->getVariables()->at(currentColumn.getIndex()).getLowerBound());
+                            m_parent->fixVariable(currentColumn.getIndex(), (*m_parent->getVariables())[currentColumn.getIndex()].getLowerBound());
                         } else {
-                            m_parent->fixVariable(currentColumn.getIndex(), m_parent->getVariables()->at(currentColumn.getIndex()).getUpperBound());
+                            m_parent->fixVariable(currentColumn.getIndex(), (*m_parent->getVariables())[currentColumn.getIndex()].getUpperBound());
                         }
                         lastColumn = m_parent->getColumnNonzeros()->end();
                         m_removedVariables++;
                         continue;
                     }
                 } else {
-                    if((m_parent->getModel()->getVariables()->at(currentColumn.getIndex()).getLowerBound() == -Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) < 0) ||
-                       (m_parent->getModel()->getVariables()->at(currentColumn.getIndex()).getUpperBound() == Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) > 0)) {
+                    if(((*m_parent->getModel()->getVariables())[currentColumn.getIndex()].getLowerBound() == -Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) < 0) ||
+                       ((*m_parent->getModel()->getVariables())[currentColumn.getIndex()].getUpperBound() == Numerical::Infinity && m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) > 0)) {
                         throw Presolver::PresolverException("The problem is primal unbounded.");
                         return;
                     } else {
                         if(m_parent->getModel()->getCostVector().at(currentColumn.getIndex()) < 0) {
-                            m_parent->fixVariable(currentColumn.getIndex(), m_parent->getVariables()->at(currentColumn.getIndex()).getLowerBound());
+                            m_parent->fixVariable(currentColumn.getIndex(), (*m_parent->getVariables())[currentColumn.getIndex()].getLowerBound());
                         } else {
-                            m_parent->fixVariable(currentColumn.getIndex(), m_parent->getVariables()->at(currentColumn.getIndex()).getUpperBound());
+                            m_parent->fixVariable(currentColumn.getIndex(), (*m_parent->getVariables())[currentColumn.getIndex()].getUpperBound());
                         }
                         lastColumn = m_parent->getColumnNonzeros()->end();
                         m_removedVariables++;
@@ -204,7 +205,7 @@ void SingletonColumnsModule::executeMethod() {
             //handle singleton columns
             if(*currentColumn == 1) {
                 //get the singleton position with skipping the removed row indices
-                Vector::NonzeroIterator it = m_parent->getVariables()->at(currentColumn.getIndex()).getVector()->beginNonzero();
+                Vector::NonzeroIterator it = (*m_parent->getVariables())[currentColumn.getIndex()].getVector()->beginNonzero();
                 int constraintIdx = it.getIndex();
 
                 //this module only treats free variables, implied free variables are checked in the implied
@@ -229,9 +230,9 @@ void SingletonColumnsModule::executeMethod() {
 
                         //get the constraint bound to fix the variable
                         if(costCoeff > 0) {
-                            fixBound = m_parent->getModel()->getConstraints()->at(constraintIdx).getLowerBound();
+                            fixBound = (*m_parent->getModel()->getConstraints())[constraintIdx].getLowerBound();
                         } else {
-                            fixBound = m_parent->getModel()->getConstraints()->at(constraintIdx).getUpperBound();
+                            fixBound = (*m_parent->getModel()->getConstraints())[constraintIdx].getUpperBound();
                         }
 
                         //detect unboundedness
@@ -243,9 +244,9 @@ void SingletonColumnsModule::executeMethod() {
 
                         //get the constraint bound to fix the variable
                         if(costCoeff > 0) {
-                            fixBound = m_parent->getModel()->getConstraints()->at(constraintIdx).getUpperBound();
+                            fixBound = (*m_parent->getModel()->getConstraints())[constraintIdx].getUpperBound();
                         } else {
-                            fixBound = m_parent->getModel()->getConstraints()->at(constraintIdx).getLowerBound();
+                            fixBound = (*m_parent->getModel()->getConstraints())[constraintIdx].getLowerBound();
                         }
 
                         //detect unboundedness
@@ -258,8 +259,8 @@ void SingletonColumnsModule::executeMethod() {
                     //substitute the variable with the other variables present in the constraint,
                     //change the cost vector, and remove the constraint and the variable from the model
                     Vector * substituteVector = new Vector(m_parent->getModel()->variableCount() + 3);
-                    Vector::NonzeroIterator ConstraintIt = m_parent->getModel()->getConstraints()->at(constraintIdx).getVector()->beginNonzero();
-                    Vector::NonzeroIterator ConstraintItEnd = m_parent->getModel()->getConstraints()->at(constraintIdx).getVector()->endNonzero();
+                    Vector::NonzeroIterator ConstraintIt = (*m_parent->getModel()->getConstraints())[constraintIdx].getVector()->beginNonzero();
+                    Vector::NonzeroIterator ConstraintItEnd = (*m_parent->getModel()->getConstraints())[constraintIdx].getVector()->endNonzero();
                     for(; ConstraintIt < ConstraintItEnd; ConstraintIt++) {
                         substituteVector->set(ConstraintIt.getIndex(), (-1) * (*ConstraintIt) / (*it));
                         m_parent->getColumnNonzeros()->set(ConstraintIt.getIndex(), m_parent->getColumnNonzeros()->at(ConstraintIt.getIndex()) - 1);
@@ -350,7 +351,7 @@ void ImpliedBoundsModule::executeMethod() {
             }
         }
 
-        Constraint& currentConstraint = m_parent->getConstraints()->at(begin.getIndex());
+        Constraint& currentConstraint = (*m_parent->getConstraints())[begin.getIndex()];
 
         if(Numerical::stableAdd(impliedLB, -1 * currentConstraint.getUpperBound()) > 0 ||
            Numerical::stableAdd(impliedUB, -1 * currentConstraint.getLowerBound()) < 0) {
@@ -582,7 +583,7 @@ void DualBoundsModule::executeMethod() {
             impliedUB = Numerical::Infinity;
         }
 
-        Variable& currentVariable = m_parent->getVariables()->at(begin.getIndex());
+        Variable& currentVariable = (*m_parent->getVariables())[begin.getIndex()];
         //Check if variable is dominated
 
         const Vector& costVector = m_parent->getModel()->getCostVector();

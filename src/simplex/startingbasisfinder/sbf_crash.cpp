@@ -148,7 +148,7 @@ void SbfCrash::run()
     // set variable types
     // basic variables
     for (index = 0; index < rowCount; index++) {
-        m_variableStates->insert(Simplex::BASIC, m_basisHead->at(index), &ZERO);
+        m_variableStates->insert(Simplex::BASIC, (*m_basisHead)[index], &ZERO);
     }
 
     // nonbasic variables

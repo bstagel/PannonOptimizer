@@ -39,13 +39,13 @@ void Basis::setNewHead() {
     std::vector<char> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
     //First mark the positions of the given basis head
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
-        nonbasic.at(*it) = true;
+        nonbasic[*it] = true;
     }
     //Update the basis head with the recomputed one
     m_basisHead->assign(m_basisNewHead.begin(), m_basisNewHead.end());
     //Set the basic variables state and remove their traces from the pattern vector
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
-        nonbasic.at(*it) = false;
+        nonbasic[*it] = false;
         if(m_variableStates->where(*it) != Simplex::BASIC) {
             m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
         } else {

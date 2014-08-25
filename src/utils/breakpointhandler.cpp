@@ -177,22 +177,22 @@ void BreakpointHandler::checkHeap(){
 
     //check expanded Values
     if(m_expand){
-        ref = m_breakpoints.at(0).expandedValue;
+        ref = m_breakpoints[0].expandedValue;
         for(int i=0; i<m_unsorted; i++){
-            if(m_breakpoints.at(i).expandedValue < ref){
+            if(m_breakpoints[i].expandedValue < ref){
                 LPINFO("BAD HEAP: ");
                 LPINFO("ref: "<<ref);
-                LPINFO("expandedValue: "<<m_breakpoints.at(i).expandedValue);
+                LPINFO("expandedValue: "<<m_breakpoints[i].expandedValue);
                 LPINFO("unsorted: "<<m_unsorted);
                 printBreakpoints();
                 exit(-1);
             }
         }
         for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
-            if(ref < m_breakpoints.at(i).expandedValue){
+            if(ref < m_breakpoints[i].expandedValue){
                 LPINFO("BAD SORT:");
                 LPINFO("ref: "<<ref);
-                LPINFO("expandedValue: "<<m_breakpoints.at(i).expandedValue);
+                LPINFO("expandedValue: "<<m_breakpoints[i].expandedValue);
                 LPINFO("unsorted: "<<m_unsorted);
                 printBreakpoints();
                 exit(-1);
@@ -201,22 +201,22 @@ void BreakpointHandler::checkHeap(){
 
     //check actual Values
     }else{
-        ref = m_breakpoints.at(0).value;
+        ref = m_breakpoints[0].value;
         for(int i=0; i<m_unsorted; i++){
-            if(m_breakpoints.at(i).value < ref){
+            if(m_breakpoints[i].value < ref){
                 LPINFO("BAD HEAP: ");
                 LPINFO("ref: "<<ref);
-                LPINFO("val: "<<m_breakpoints.at(i).value);
+                LPINFO("val: "<<m_breakpoints[i].value);
                 LPINFO("unsorted: "<<m_unsorted);
                 printBreakpoints();
                 exit(-1);
             }
         }
         for(unsigned int i=m_unsorted; i<m_breakpoints.size(); i++){
-            if(ref < m_breakpoints.at(i).value){
+            if(ref < m_breakpoints[i].value){
                 LPINFO("BAD SORT:");
                 LPINFO("ref: "<<ref);
-                LPINFO("val: "<<m_breakpoints.at(i).value);
+                LPINFO("val: "<<m_breakpoints[i].value);
                 LPINFO("unsorted: "<<m_unsorted);
                 printBreakpoints();
                 exit(-1);

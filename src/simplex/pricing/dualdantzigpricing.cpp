@@ -40,7 +40,7 @@ int DualDantzigPricing::performPricingPhase1() {
             continue;
         }
         //LPINFO("SIMPRI: " << index);
-        unsigned int variableIndex = m_basisHead.at(index);
+        unsigned int variableIndex = m_basisHead[index];
         Variable::VARIABLE_TYPE variableType = m_simplexModel.getVariable(variableIndex).getType();
         if ( variableType == Variable::FIXED ||
              variableType == Variable::BOUNDED ||

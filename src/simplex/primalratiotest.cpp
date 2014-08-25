@@ -46,7 +46,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
             m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
-                const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
                 if (alpha.at(basisIndex) < 0) {
 //                    LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
                     value = (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
@@ -64,7 +64,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
             m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
-                const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
                 if (alpha.at(basisIndex) > 0) {
 //                    LPINFO("Ratio in P "<<basisIndex<<" type: "<<variable.getType());
                     value = (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
@@ -82,7 +82,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
             m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
             for (; it != endit; it++) {
                 basisIndex = it.getData();
-                const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
               //F->P
                 if (alpha.at(basisIndex) < 0 && (variable.getUpperBound() != Numerical::Infinity) ) {
 //                    LPINFO("Ratio in F->P "<<basisIndex<<" type: "<<variable.getType());
@@ -102,7 +102,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                 m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
                 for (; it != endit; it++) {
                     basisIndex = it.getData();
-                    const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                    const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
                     if (alpha.at(basisIndex) > 0) {
 //                        LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
                         value = - (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
@@ -120,7 +120,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                 m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
                 for (; it != endit; it++) {
                     basisIndex = it.getData();
-                    const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                    const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
                     if (alpha.at(basisIndex) < 0) {
 //                        LPINFO("Ratio in P "<<basisIndex<<" type: "<<variable.getType());
                         value = - (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
@@ -138,7 +138,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
                 m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
                 for (; it != endit; it++) {
                     basisIndex = it.getData();
-                    const Variable & variable = m_model.getVariable(m_basishead.at(basisIndex));
+                    const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
                   //F->P
                     if (alpha.at(basisIndex) > 0 && (variable.getUpperBound() != Numerical::Infinity) ) {
 //                        LPINFO("Ratio in F->P "<<basisIndex<<" type: "<<variable.getType());
@@ -400,7 +400,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
         m_boundflips.push_back(incomingVariableIndex);
         m_primalSteplength = 0;
     } else if (m_outgoingVariableIndex != -1){
-        double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead.at(m_outgoingVariableIndex)).getUpperBound())
+        double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
                       / alpha.at(m_outgoingVariableIndex));
 
 //        LPINFO("m_primalsteplength   : "<<setw(40)<<scientific<<setprecision(36)<<m_primalSteplength);
@@ -424,7 +424,7 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha)
     Numerical::Double value = 0;
 
     for (unsigned int basisIndex = 0; basisIndex < m_basicVariableValues.length(); basisIndex++) {
-        const Variable& variable = m_model.getVariable(m_basishead.at(basisIndex));
+        const Variable& variable = m_model.getVariable(m_basishead[basisIndex]);
       //t>=0 case
         if (m_tPositive) {
             if ( alpha.at(basisIndex) > 0 && variable.getLowerBound() != - Numerical::Infinity) {

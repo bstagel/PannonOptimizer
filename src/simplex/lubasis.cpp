@@ -119,17 +119,17 @@ void LuBasis::invert()
 
     //Free the copied columns
     for(unsigned int i=0; i<m_basicColumnCopies.size(); i++){
-        if(m_basicColumnCopies.at(i) != NULL){
-            delete m_basicColumnCopies.at(i);
-            m_basicColumnCopies.at(i) = NULL;
+        if(m_basicColumnCopies[i] != NULL){
+            delete m_basicColumnCopies[i];
+            m_basicColumnCopies[i] = NULL;
         }
     }
 
     //Free the basic rows
     for(unsigned int i=0; i<m_basicRows.size(); i++){
-        if(m_basicRows.at(i) != NULL){
-            delete m_basicRows.at(i);
-            m_basicRows.at(i) = NULL;
+        if(m_basicRows[i] != NULL){
+            delete m_basicRows[i];
+            m_basicRows[i] = NULL;
         }
     }
 
@@ -140,18 +140,18 @@ void LuBasis::invert()
     int basisSize = m_basisHead->size();
     //Create the rowwise representation of L
     for(int i=0; i<basisSize; i++){
-        Vector::NonzeroIterator it = m_lower->at(i).column->beginNonzero();
-        Vector::NonzeroIterator itend = m_lower->at(i).column->endNonzero();
+        Vector::NonzeroIterator it = (*m_lower)[i].column->beginNonzero();
+        Vector::NonzeroIterator itend = (*m_lower)[i].column->endNonzero();
         for(; it != itend; it++){
-            m_lower->at(it.getIndex()).row->setNewNonzero(i, *it);
+            (*m_lower)[it.getIndex()].row->setNewNonzero(i, *it);
         }
     }
     //Create the columnwise representation of U
     for(int i=0; i<basisSize; i++){
-        Vector::NonzeroIterator it = m_upper->at(i).row->beginNonzero();
-        Vector::NonzeroIterator itend = m_upper->at(i).row->endNonzero();
+        Vector::NonzeroIterator it = (*m_upper)[i].row->beginNonzero();
+        Vector::NonzeroIterator itend = (*m_upper)[i].row->endNonzero();
         for(; it != itend; it++){
-            m_upper->at(it.getIndex()).column->setNewNonzero(i, *it);
+            (*m_upper)[it.getIndex()].column->setNewNonzero(i, *it);
         }
     }
 
@@ -183,8 +183,8 @@ void LuBasis::copyBasis()
 #ifndef NDEBUG
     std::vector<char> headChecker(rowCount + columnCount, 0);
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
-        if (headChecker.at(*it) == 0) {
-            headChecker.at(*it) = 1;
+        if (headChecker[*it] == 0) {
+            headChecker[*it] = 1;
         } else {
             LPWARNING("Duplicate index in basis head: " << *it);
             throw PanOptException("Duplicate index in the basis head!");
@@ -199,9 +199,9 @@ void LuBasis::copyBasis()
             DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
             //Ignore logical columns from the inverse
             int basisIndex = it-m_basisHead->begin();
-            m_basicColumnCopies.at(basisIndex) = new Vector(rowCount);
-            m_basicColumnCopies.at(basisIndex)->setNewNonzero(*it - columnCount, 1);
-            m_basicColumns.push_back(m_basicColumnCopies.at(basisIndex));
+            m_basicColumnCopies[basisIndex] = new Vector(rowCount);
+            m_basicColumnCopies[basisIndex]->setNewNonzero(*it - columnCount, 1);
+            m_basicColumns.push_back(m_basicColumnCopies[basisIndex]);
             if(maxColumnCount < 1){
                 maxColumnCount = 1;
             }
@@ -215,7 +215,7 @@ void LuBasis::copyBasis()
             }
             m_basisNonzeros += m_basicColumns.back()->nonZeros();
         }
-        m_basicRows.at(it - m_basisHead->begin()) = new Vector(rowCount);
+        m_basicRows[it - m_basisHead->begin()] = new Vector(rowCount);
     }
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
     for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); it++) {
@@ -224,13 +224,13 @@ void LuBasis::copyBasis()
         Vector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
         for (; vectorIt < vectorItEnd; vectorIt++) {
             int rowIndex = vectorIt.getIndex();
-            m_basicRows.at(rowIndex)->setNewNonzero(columnIndex, *vectorIt);
+            m_basicRows[rowIndex]->setNewNonzero(columnIndex, *vectorIt);
         }
     }
     unsigned int maxRowCount = 0;
     for (unsigned int i = 0; i < m_basicRows.size(); i++) {
-        if (maxRowCount < m_basicRows.at(i)->nonZeros()) {
-            maxRowCount = m_basicRows.at(i)->nonZeros();
+        if (maxRowCount < m_basicRows[i]->nonZeros()) {
+            maxRowCount = m_basicRows[i]->nonZeros();
         }
     }
 
@@ -242,11 +242,11 @@ void LuBasis::copyBasis()
     }
 
     for (unsigned int i = 0; i < m_basicRows.size(); i++) {
-        m_rowCountIndexList.insert(m_basicRows.at(i)->nonZeros(), i);
+        m_rowCountIndexList.insert(m_basicRows[i]->nonZeros(), i);
     }
 
     for (unsigned int i = 0; i < m_basicColumns.size(); i++) {
-        m_columnCountIndexList.insert(m_basicColumns.at(i)->nonZeros(), i);
+        m_columnCountIndexList.insert(m_basicColumns[i]->nonZeros(), i);
     }
 }
 
@@ -262,7 +262,7 @@ void LuBasis::invertC()
         while(m_columnCountIndexList.firstElement(1) != -1) {
             int columnindex = m_columnCountIndexList.firstElement(1);
             int rowindex;
-            const Vector * currentColumn = m_basicColumns.at(columnindex);
+            const Vector * currentColumn = m_basicColumns[columnindex];
             //Get the active nonzero from the column
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
@@ -278,18 +278,18 @@ void LuBasis::invertC()
                 LPERROR("COUNT ERROR");
                 exit(-1);
             }
-            const Vector * currentRow = m_basicRows.at(rowindex);
+            const Vector * currentRow = m_basicRows[rowindex];
 
             int basisSize = m_basisHead->size();
             Vector* unitColumn = new Vector(basisSize);
             unitColumn->setNewNonzero(rowindex, 1.0);
-            m_lower->at(columnindex) = DoubleETM(new Vector(basisSize), unitColumn);
-            m_upper->at(rowindex) = DoubleETM(new Vector(*currentRow), new Vector(basisSize));
+            (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), unitColumn);
+            (*m_upper)[rowindex] = DoubleETM(new Vector(*currentRow), new Vector(basisSize));
             m_pivots.emplace_back(rowindex, columnindex);
-            m_pivotIndices.at(rowindex).rowindex = m_factorizedPart;
-            m_pivotIndices.at(columnindex).columnindex = m_factorizedPart;
+            m_pivotIndices[rowindex].rowindex = m_factorizedPart;
+            m_pivotIndices[columnindex].columnindex = m_factorizedPart;
 
-            m_basisNewHead.at(columnindex) = m_basisHead->at(columnindex);
+            m_basisNewHead[columnindex] = (*m_basisHead)[columnindex];
 
             //Update the column lists and column counts
             it = currentRow->beginNonzero();
@@ -325,7 +325,7 @@ void LuBasis::invertR()
         while(m_rowCountIndexList.firstElement(1) != -1) {
             int rowindex = m_rowCountIndexList.firstElement(1);
             int columnindex;
-            const Vector * currentRow = m_basicRows.at(rowindex);
+            const Vector * currentRow = m_basicRows[rowindex];
             //Get the active nonzero from the column
             Vector::NonzeroIterator it = currentRow->beginNonzero();
             Vector::NonzeroIterator itend = currentRow->endNonzero();
@@ -338,7 +338,7 @@ void LuBasis::invertR()
 
 //            LPINFO("PIVOT ELEMENT: rowindex: "<<rowindex<< " - columnindex: "<<columnindex);
             //Create the vector to be transformed into an eta vector
-            const Vector * currentColumn = m_basicColumns.at(columnindex);
+            const Vector * currentColumn = m_basicColumns[columnindex];
             Vector transformVector (currentColumn->length());
             it = currentColumn->beginNonzero();
             itend = currentColumn->endNonzero();
@@ -352,13 +352,13 @@ void LuBasis::invertR()
             int basisSize = m_basisHead->size();
             Vector* unitRow = new Vector(basisSize);
             unitRow->setNewNonzero(columnindex, 1.0);
-            m_lower->at(columnindex) = DoubleETM(new Vector(basisSize), createEta(transformVector,rowindex));
-            m_upper->at(rowindex) = DoubleETM(unitRow, new Vector(basisSize));
+            (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), createEta(transformVector,rowindex));
+            (*m_upper)[rowindex] = DoubleETM(unitRow, new Vector(basisSize));
             m_pivots.emplace_back(rowindex, columnindex);
-            m_pivotIndices.at(rowindex).rowindex = m_factorizedPart;
-            m_pivotIndices.at(columnindex).columnindex = m_factorizedPart;
+            m_pivotIndices[rowindex].rowindex = m_factorizedPart;
+            m_pivotIndices[columnindex].columnindex = m_factorizedPart;
 
-            m_basisNewHead.at(columnindex) = m_basisHead->at(columnindex);
+            m_basisNewHead[columnindex] = (*m_basisHead)[columnindex];
 
             //Update the row lists and row counts
             it = transformVector.beginNonzero();
@@ -405,18 +405,18 @@ void LuBasis::invertM()
             activeRows.push_back(rowIndex);
             //Collect the active nonzeros
             Vector* kernelRow = new Vector(basisSize);
-            Vector::NonzeroIterator it = m_basicRows.at(rowIndex)->beginNonzero();
-            Vector::NonzeroIterator itend = m_basicRows.at(rowIndex)->endNonzero();
+            Vector::NonzeroIterator it = m_basicRows[rowIndex]->beginNonzero();
+            Vector::NonzeroIterator itend = m_basicRows[rowIndex]->endNonzero();
             for(; it != itend; it++){
                 if(m_columnCountIndexList.where(it.getIndex()) < columnPartitionCount){
                     kernelRow->setNewNonzero(it.getIndex(),*it);
-                    if(rowAbsMaxs.at(rowIndex) < Numerical::fabs(*it)){
-                        rowAbsMaxs.at(rowIndex) = Numerical::fabs(*it);
+                    if(rowAbsMaxs[rowIndex] < Numerical::fabs(*it)){
+                        rowAbsMaxs[rowIndex] = Numerical::fabs(*it);
                     }
                 }
             }
-            delete m_basicRows.at(rowIndex);
-            m_basicRows.at(rowIndex) = kernelRow;
+            delete m_basicRows[rowIndex];
+            m_basicRows[rowIndex] = kernelRow;
         }
     }
     while(activeRows.size()>0){
@@ -451,26 +451,26 @@ void LuBasis::invertM()
         for(; activeRowIt != activeRowItend; activeRowIt++){
             int rowindex = *activeRowIt;
             int currentMarkowitz;
-            Vector::NonzeroIterator it = m_basicRows.at(rowindex)->beginNonzero();
-            Vector::NonzeroIterator itend = m_basicRows.at(rowindex)->endNonzero();
+            Vector::NonzeroIterator it = m_basicRows[rowindex]->beginNonzero();
+            Vector::NonzeroIterator itend = m_basicRows[rowindex]->endNonzero();
             for(; it != itend; it++){
                 int columnindex = it.getIndex();
                 //If the column is singleton, set the only possible choice
                 if(m_columnCountIndexList.where(columnindex) == 1){
-                    columnMarkowitzs.at(columnindex) = 0;
-                    columnMarkowitzRowIndices.at(columnindex) = rowindex;
+                    columnMarkowitzs[columnindex] = 0;
+                    columnMarkowitzRowIndices[columnindex] = rowindex;
                 } else
                 //Check the threshold pivot criterion
-                if(Numerical::fabs(*it) >= rowAbsMaxs.at(rowindex)*pivotThreshold){
+                if(Numerical::fabs(*it) >= rowAbsMaxs[rowindex]*pivotThreshold){
                     //Update the Markowitz numbers
                     currentMarkowitz = (m_rowCountIndexList.where(rowindex)-1) * (m_columnCountIndexList.where(columnindex)-1);
-                    if(currentMarkowitz < rowMarkowitzs.at(rowindex)){
-                        rowMarkowitzs.at(rowindex) = currentMarkowitz;
-                        rowMarkowitzColumnIndices.at(rowindex) = columnindex;
+                    if(currentMarkowitz < rowMarkowitzs[rowindex]){
+                        rowMarkowitzs[rowindex] = currentMarkowitz;
+                        rowMarkowitzColumnIndices[rowindex] = columnindex;
                     }
-                    if(currentMarkowitz < columnMarkowitzs.at(columnindex)){
-                        columnMarkowitzs.at(columnindex) = currentMarkowitz;
-                        columnMarkowitzRowIndices.at(columnindex) = rowindex;
+                    if(currentMarkowitz < columnMarkowitzs[columnindex]){
+                        columnMarkowitzs[columnindex] = currentMarkowitz;
+                        columnMarkowitzRowIndices[columnindex] = rowindex;
                     }
                 }
             }
@@ -481,9 +481,9 @@ void LuBasis::invertM()
         int columnindex;
         findPivot(rowindex, columnindex, rowMarkowitzs, columnMarkowitzs, rowMarkowitzColumnIndices, columnMarkowitzRowIndices);
         //pivotU first
-        Vector * pivotRow = m_basicRows.at(rowindex);
+        Vector * pivotRow = m_basicRows[rowindex];
         m_inverseNonzeros += pivotRow->nonZeros();
-        m_upper->at(rowindex) = DoubleETM(new Vector(*pivotRow), new Vector(basisSize));
+        (*m_upper)[rowindex] = DoubleETM(new Vector(*pivotRow), new Vector(basisSize));
         //Compute the eta column for pivotL and do the elimination
         Vector * etaColumn = new Vector(basisSize);
         //Set the unit element in the eta column
@@ -507,7 +507,7 @@ void LuBasis::invertM()
                 activeRows.erase(activeRowIt++);
                 m_rowCountIndexList.remove(rowindex);
             } else {
-                Vector * currentRow = m_basicRows.at(*activeRowIt);
+                Vector * currentRow = m_basicRows[*activeRowIt];
                 Numerical::Double pivotColumnValue = currentRow->at(columnindex);
                 //If the row should be updated
                 if(pivotColumnValue != 0){
@@ -523,13 +523,13 @@ void LuBasis::invertM()
                     currentRow->addVector(eta, *pivotRow);
 
                     //Add the column counts on the updated row and update the max element
-                    rowAbsMaxs.at(*activeRowIt) = 0.0;
+                    rowAbsMaxs[*activeRowIt] = 0.0;
                     rowIt = currentRow->beginNonzero();
                     rowItend = currentRow->endNonzero();
                     for(; rowIt != rowItend; rowIt++){
                         m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())+1);
-                        if(rowAbsMaxs.at(*activeRowIt) < *rowIt){
-                            rowAbsMaxs.at(*activeRowIt) = *rowIt;
+                        if(rowAbsMaxs[*activeRowIt] < *rowIt){
+                            rowAbsMaxs[*activeRowIt] = *rowIt;
                         }
                     }
                     m_rowCountIndexList.move(*activeRowIt, currentRow->nonZeros());
@@ -545,12 +545,12 @@ void LuBasis::invertM()
         m_columnCountIndexList.remove(columnindex);
         //Do the pivotL and update the basis head
         m_inverseNonzeros += etaColumn->nonZeros();
-        m_lower->at(columnindex) = DoubleETM(new Vector(basisSize), etaColumn);
+        (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), etaColumn);
         m_pivots.emplace_back(rowindex, columnindex);
-        m_pivotIndices.at(rowindex).rowindex = m_factorizedPart;
-        m_pivotIndices.at(columnindex).columnindex = m_factorizedPart;
+        m_pivotIndices[rowindex].rowindex = m_factorizedPart;
+        m_pivotIndices[columnindex].columnindex = m_factorizedPart;
 
-        m_basisNewHead.at(columnindex) = m_basisHead->at(columnindex);
+        m_basisNewHead[columnindex] = (*m_basisHead)[columnindex];
 
         mNum++;
         m_factorizedPart++;
@@ -568,8 +568,8 @@ void LuBasis::checkIndexListValidities(){
         for(; it != itend; it++){
             int rowindex = it.getData();
             int activeCounter = 0;
-            Vector::NonzeroIterator rowit = m_basicRows.at(rowindex)->beginNonzero();
-            Vector::NonzeroIterator rowitend = m_basicRows.at(rowindex)->endNonzero();
+            Vector::NonzeroIterator rowit = m_basicRows[rowindex]->beginNonzero();
+            Vector::NonzeroIterator rowitend = m_basicRows[rowindex]->endNonzero();
             for(; rowit != rowitend; rowit++){
                 if(m_columnCountIndexList.where(rowit.getIndex()) < columnPartitionCount){
                     activeCounter++;
@@ -589,7 +589,7 @@ void LuBasis::checkIndexListValidities(){
             int activeCounter = 0;
             for(int j = 0; j < (int)m_basisHead->size(); j++){
                 if(m_rowCountIndexList.where(j) < rowPartitionCount){
-                    if(m_basicRows.at(j)->at(columnindex) != 0){
+                    if(m_basicRows[j]->at(columnindex) != 0){
                         activeCounter++;
                     }
                 }
@@ -612,18 +612,16 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
 
     //Since the kernel is stored rowwise only, row singleton comes first
     if(m_rowCountIndexList.firstElement(1) != -1){
-//        LPINFO("SR");
         rowindex = m_rowCountIndexList.firstElement(1);
-        if(m_basicRows.at(rowindex)->nonZeros() != 1){
+        if(m_basicRows[rowindex]->nonZeros() != 1){
             LPERROR("False singleton row!");
         }
-        columnindex = m_basicRows.at(rowindex)->beginNonzero().getIndex();
+        columnindex = m_basicRows[rowindex]->beginNonzero().getIndex();
         return;
     }
     if(m_columnCountIndexList.firstElement(1) != -1){
-//        LPINFO("SC");
         columnindex = m_columnCountIndexList.firstElement(1);
-        rowindex = columnMarkowitzRowIndices.at(columnindex);
+        rowindex = columnMarkowitzRowIndices[columnindex];
         return;
     }
     unsigned int basisSize = m_basisHead->size();
@@ -644,10 +642,10 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
             IndexList<>::Iterator itend;
             m_columnCountIndexList.getIterators(&it, &itend, k);
             for(; it != itend; it++){
-                if(columnMarkowitzs.at(it.getData()) < (int)bestMarkowitz){
-                    bestMarkowitz = columnMarkowitzs.at(it.getData());
+                if(columnMarkowitzs[it.getData()] < (int)bestMarkowitz){
+                    bestMarkowitz = columnMarkowitzs[it.getData()];
                     columnindex = it.getData();
-                    rowindex = columnMarkowitzRowIndices.at(it.getData());
+                    rowindex = columnMarkowitzRowIndices[it.getData()];
                     pivotFound = true;
                     if(bestMarkowitz < (k-1)*(k-1)){
                         return;
@@ -664,10 +662,10 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
             IndexList<>::Iterator itend;
             m_rowCountIndexList.getIterators(&it, &itend, k);
             for(; it != itend; it++){
-                if(rowMarkowitzs.at(it.getData()) < (int)bestMarkowitz){
-                    bestMarkowitz = rowMarkowitzs.at(it.getData());
+                if(rowMarkowitzs[it.getData()] < (int)bestMarkowitz){
+                    bestMarkowitz = rowMarkowitzs[it.getData()];
                     rowindex = it.getData();
-                    columnindex = rowMarkowitzColumnIndices.at(it.getData());
+                    columnindex = rowMarkowitzColumnIndices[it.getData()];
                     pivotFound = true;
                     if(bestMarkowitz < (k-1)*(k-1)){
                         return;
@@ -686,7 +684,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
 
 void LuBasis::append(const Vector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState)
 {
-    int outgoing = m_basisHead->at(pivotRow);
+    int outgoing = (*m_basisHead)[pivotRow];
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
 
     if (outgoingState == Simplex::NONBASIC_AT_LB) {
@@ -732,7 +730,7 @@ void LuBasis::append(const Vector &vector, int pivotRow, int incoming, Simplex::
         cerr.unsetf(ios_base::floatfield);
         throw NumericalException(std::string("Invalid outgoing variable state"));
     }
-    m_basisHead->at(pivotRow) = incoming;
+    (*m_basisHead)[pivotRow] = incoming;
     m_isFresh = false;
 }
 
@@ -743,16 +741,16 @@ void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
     unsigned int basisSize = m_basisHead->size();
 
     for (unsigned int i = 0; i < basisSize; i++) {
-        int rowindex = m_pivots.at(i).rowindex;
-        int columnindex = m_pivots.at(i).columnindex;
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
         const Numerical::Double pivotValue = vector.at(rowindex);
         if (pivotValue == 0.0) {
             continue;
         }
         //Get the pivot multiplier from the ETM
-        const Numerical::Double pivotMultiplier = m_lower->at(columnindex).column->at(rowindex);
+        const Numerical::Double pivotMultiplier = (*m_lower)[columnindex].column->at(rowindex);
         //Add the vector
-        vector.addVector(pivotValue, *(m_lower->at(columnindex).column));
+        vector.addVector(pivotValue, *((*m_lower)[columnindex].column));
         //Set the pivot position
         vector.set(rowindex, pivotValue * pivotMultiplier);
     }
@@ -762,17 +760,17 @@ void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
     alpha.clear();
     for (int i = (int)basisSize-1; i >= 0; i--) {
 
-        int rowindex = m_pivots.at(i).rowindex;
-        int columnindex = m_pivots.at(i).columnindex;
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
         const Numerical::Double pivotValue = vector.at(rowindex);
         if (pivotValue == 0.0) {
             continue;
         }
         //Get the pivot multiplier from the ETM
-        const Numerical::Double pivotMultiplier = m_upper->at(columnindex).column->at(rowindex);
+        const Numerical::Double pivotMultiplier = (*m_upper)[columnindex].column->at(rowindex);
         const Numerical::Double newPivotValue = pivotValue / pivotMultiplier;
         //Add the vector
-        vector.addVector(- newPivotValue, *(m_upper->at(columnindex).column));
+        vector.addVector(- newPivotValue, *((*m_upper)[columnindex].column));
         //Set the pivot position
         alpha.setNewNonzero(columnindex, newPivotValue);
     }
@@ -834,17 +832,17 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     Vector alpha(vector.length());
     alpha.clear();
     for (unsigned int i = 0; i < basisSize; i++) {
-        int rowindex = m_pivots.at(i).rowindex;
-        int columnindex = m_pivots.at(i).columnindex;
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
         const Numerical::Double pivotValue = vector.at(columnindex);
         if (pivotValue == 0.0) {
             continue;
         }
         //Get the pivot multiplier from the ETM
-        const Numerical::Double pivotMultiplier = m_upper->at(rowindex).row->at(columnindex);
+        const Numerical::Double pivotMultiplier = (*m_upper)[rowindex].row->at(columnindex);
         const Numerical::Double newPivotValue = pivotValue / pivotMultiplier;
         //Add the vector
-        vector.addVector(- newPivotValue, *(m_upper->at(rowindex).row));
+        vector.addVector(- newPivotValue, *((*m_upper)[rowindex].row));
         //Set the pivot position
         alpha.setNewNonzero(rowindex, newPivotValue);
     }
@@ -860,18 +858,18 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     //Sparsity expoiting BTRAN
     std::vector<Numerical::Summarizer> summarizerVector(vector.length());
     for (int i = (int)basisSize-1; i >= 0; i--) {
-        int rowindex = m_pivots.at(i).rowindex;
-        int columnindex = m_pivots.at(i).columnindex;
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
         const Numerical::Double pivotValue = vector.at(rowindex);
         //Get the pivot multiplier from the ETM
-        const Numerical::Double pivotMultiplier = m_lower->at(rowindex).row->at(columnindex);
-        const Numerical::Double newPivotValue = Numerical::stableAdd(summarizerVector.at(columnindex).getResult(), pivotValue * pivotMultiplier);
+        const Numerical::Double pivotMultiplier = (*m_lower)[rowindex].row->at(columnindex);
+        const Numerical::Double newPivotValue = Numerical::stableAdd(summarizerVector[columnindex].getResult(), pivotValue * pivotMultiplier);
         //Add the vector
         if(newPivotValue != 0.0){
-            Vector::NonzeroIterator it = m_lower->at(rowindex).row->beginNonzero();
-            Vector::NonzeroIterator itend = m_lower->at(rowindex).row->endNonzero();
+            Vector::NonzeroIterator it = (*m_lower)[rowindex].row->beginNonzero();
+            Vector::NonzeroIterator itend = (*m_lower)[rowindex].row->endNonzero();
             for(; it != itend; it++){
-                summarizerVector.at(it.getIndex()).add(newPivotValue * *it);
+                summarizerVector[it.getIndex()].add(newPivotValue * *it);
             }
         }
         //Set the pivot position

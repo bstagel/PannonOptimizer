@@ -152,6 +152,11 @@ public:
      */
     inline int getFakeFeasibilityCounterPhase2() const {return m_fakeFeasibilityCounterPhase2;}
 
+    /**
+     * Return whether the last iteration was degenerate or not.
+     */
+    inline int isDegenerate() const {return m_degenerate;}
+
 private:
     /**
      * The model provides information about the varaibles, bounds etc.
@@ -315,6 +320,11 @@ private:
      * see SimplexParameterHandler for details.
      */
     const int & m_expandDualPhase2;
+
+    /**
+     * Holds whether the last iteration was degenerate or not.
+     */
+    bool m_degenerate;
 
     /**
      * This function computes the ratios in dual phase 1.

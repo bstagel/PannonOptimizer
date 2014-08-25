@@ -1543,7 +1543,7 @@ void MpsModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
         //columnPattern[ *indexPtr ] = false;
         columnVector->newNonZero( *valuePtr, *indexPtr );
 
-        nonzeros->at( *indexPtr )++;
+        (*nonzeros)[*indexPtr]++;
         indexPtr++;
         valuePtr++;
         if (indexPtr >= endPtr) {

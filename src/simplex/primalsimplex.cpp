@@ -348,7 +348,7 @@ void PrimalSimplex::update() {
         m_baseChanged = true;
 
         Simplex::VARIABLE_STATE outgoingState;
-        Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getType();
+        Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
 
         if (outgoingType == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;

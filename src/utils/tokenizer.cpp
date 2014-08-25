@@ -20,7 +20,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
     transitionTablePtr->clear();
     transitionTablePtr->resize(TOKENIZER_STATE_COUNT);
     for (state = 0; state < TOKENIZER_STATE_COUNT; state++) {
-        transitionTablePtr->at(state).resize(TOKENIZER_STATE_COUNT);
+        (*transitionTablePtr)[state].resize(TOKENIZER_STATE_COUNT);
     }
 
     for (state = 0; state < TOKENIZER_STATE_COUNT; state++) {
@@ -32,23 +32,23 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
             }
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "c";
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
             for (index = '0'; index <= '9'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_NUMBER;
             }
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "c";
             (*tablePtr)[state]['.'] = TOKENIZER_ELLIPSIS_OR_NUMBER;
-            transitionTablePtr->at(state)[TOKENIZER_ELLIPSIS_OR_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_ELLIPSIS_OR_NUMBER] = "c";
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
             (*tablePtr)[state]['{'] = TOKENIZER_START;
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "cad";
 
             (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
@@ -58,7 +58,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "c";
 
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
@@ -71,9 +71,9 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
         case TOKENIZER_ELLIPSIS_OR_NUMBER:
             // . is a valid token, means 0.0
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "ad";
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "adc";
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['e'] = TOKENIZER_NUMBER;
@@ -82,13 +82,13 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             for (index = '0'; index <= '9'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_NUMBER;
             }
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "c";
 
             for (index = '\0'; index <= ' '; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
                 // . means 0.0
             }
-            transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_WHITESPACE] = "ad";
             (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 if (index == 'e') {
@@ -103,30 +103,30 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "adc";
 
             (*tablePtr)[state]['.'] = TOKENIZER_ELLIPSIS_2;
-            transitionTablePtr->at(state)[TOKENIZER_ELLIPSIS_2] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_ELLIPSIS_2] = "c";
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
             (*tablePtr)[state]['{'] = TOKENIZER_START;
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "adcad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "adcad";
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
         case TOKENIZER_ELLIPSIS_2:
             (*tablePtr)[state]['.'] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "cad";
             (*tablePtr)[state][0] = TOKENIZER_ERROR;
             break;
         case TOKENIZER_NUMBER:
 
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "ad";
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "adc";
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['e'] = TOKENIZER_NUMBER;
@@ -135,13 +135,13 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             for (index = '0'; index <= '9'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_NUMBER;
             }
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "c";
 
             for (index = '\0'; index <= ' '; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
                 // . means 0.0
             }
-            transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_WHITESPACE] = "ad";
             (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 if (index == 'e') {
@@ -156,10 +156,10 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "adc";
 
             (*tablePtr)[state]['.'] = TOKENIZER_NUMBER_WIDTH_DOT;
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER_WIDTH_DOT] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER_WIDTH_DOT] = "c";
 
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
@@ -167,16 +167,16 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "adcad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "adcad";
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
         case TOKENIZER_NUMBER_WIDTH_DOT:
             (*tablePtr)[state]['.'] = TOKENIZER_ELLIPSIS_2;
-            transitionTablePtr->at(state)[TOKENIZER_ELLIPSIS_2] = "s1c";
+            (*transitionTablePtr)[state][TOKENIZER_ELLIPSIS_2] = "s1c";
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "ad";
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "ad";
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['e'] = TOKENIZER_NUMBER;
@@ -185,13 +185,13 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             for (index = '0'; index <= '9'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_NUMBER;
             }
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "c";
 
             for (index = '\0'; index <= ' '; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
                 // . means 0.0
             }
-            transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_WHITESPACE] = "ad";
 
             for (index = 'a'; index <= 'z'; index++) {
                 if (index == 'e') {
@@ -207,7 +207,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "adc";
 
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
@@ -215,15 +215,15 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "adcad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "adcad";
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
         case TOKENIZER_WORD:
             for (index = '\0'; index <= ' '; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
             }
-            transitionTablePtr->at(state)[TOKENIZER_WHITESPACE] = "ad";
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_WHITESPACE] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "ad";
             (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
@@ -235,49 +235,49 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "c";
 
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
-            transitionTablePtr->at(state)[TOKENIZER_COMMENT] = "ad";
+            (*transitionTablePtr)[state][TOKENIZER_COMMENT] = "ad";
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "adc";
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "adc";
             (*tablePtr)[state]['.'] = TOKENIZER_ELLIPSIS_OR_NUMBER;
-            transitionTablePtr->at(state)[TOKENIZER_ELLIPSIS_OR_NUMBER] = "adc";
+            (*transitionTablePtr)[state][TOKENIZER_ELLIPSIS_OR_NUMBER] = "adc";
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
             (*tablePtr)[state]['{'] = TOKENIZER_START;
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "adcad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "adcad";
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
         case TOKENIZER_STRING:
             for (index = ' '; index < 128; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_STRING;
             }
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "c";
             (*tablePtr)[state]['\"'] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "cad";
             (*tablePtr)[state]['\\'] = TOKENIZER_ESCAPE_SEQ;
             (*tablePtr)[state][0] = TOKENIZER_ERROR;
             break;
         case TOKENIZER_ESCAPE_SEQ:
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
             (*tablePtr)[state]['\\'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "c";
             (*tablePtr)[state][0] = TOKENIZER_ERROR;
             break;
         case TOKENIZER_WHITESPACE:
             (*tablePtr)[state]['\"'] = TOKENIZER_STRING;
-            transitionTablePtr->at(state)[TOKENIZER_STRING] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_STRING] = "c";
             (*tablePtr)[state]['#'] = TOKENIZER_COMMENT;
             (*tablePtr)[state]['+'] = TOKENIZER_NUMBER;
             (*tablePtr)[state]['-'] = TOKENIZER_NUMBER;
-            transitionTablePtr->at(state)[TOKENIZER_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_NUMBER] = "c";
             for (index = '\0'; index <= ' '; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WHITESPACE;
             }
@@ -287,14 +287,14 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
             }
 
             (*tablePtr)[state]['.'] = TOKENIZER_ELLIPSIS_OR_NUMBER;
-            transitionTablePtr->at(state)[TOKENIZER_ELLIPSIS_OR_NUMBER] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_ELLIPSIS_OR_NUMBER] = "c";
             (*tablePtr)[state]['['] = TOKENIZER_START;
             (*tablePtr)[state][']'] = TOKENIZER_START;
             (*tablePtr)[state]['{'] = TOKENIZER_START;
             (*tablePtr)[state]['}'] = TOKENIZER_START;
             (*tablePtr)[state]['='] = TOKENIZER_START;
             (*tablePtr)[state][','] = TOKENIZER_START;
-            transitionTablePtr->at(state)[TOKENIZER_START] = "cad";
+            (*transitionTablePtr)[state][TOKENIZER_START] = "cad";
             (*tablePtr)[state]['$'] = TOKENIZER_WORD;
             for (index = 'a'; index <= 'z'; index++) {
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
@@ -303,7 +303,7 @@ void Tokenizer::initStateTable(std::vector< std::vector<TOKENIZER_STATE> > * tab
                 (*tablePtr)[state][index] = TOKENIZER_WORD;
             }
             (*tablePtr)[state]['_'] = TOKENIZER_WORD;
-            transitionTablePtr->at(state)[TOKENIZER_WORD] = "c";
+            (*transitionTablePtr)[state][TOKENIZER_WORD] = "c";
             (*tablePtr)[state][0] = TOKENIZER_END;
             break;
         case TOKENIZER_END:

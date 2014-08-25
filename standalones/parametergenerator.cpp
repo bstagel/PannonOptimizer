@@ -87,7 +87,7 @@ void removeOldParameterFiles() {
 
 bool checkParameters(std::vector<ParameterRange> & ranges, const ParameterHandler & handler) {
     for(unsigned int i=0; i < ranges.size(); i++){
-        if(! handler.hasParameter(ranges.at(i).name)){
+        if(! handler.hasParameter(ranges[i].name)){
             return false;
         }
     }
@@ -96,7 +96,7 @@ bool checkParameters(std::vector<ParameterRange> & ranges, const ParameterHandle
 
 bool checkParameters(std::vector<ParameterValue> & values, const ParameterHandler & handler) {
     for(unsigned int i=0; i < values.size(); i++){
-        if(! handler.hasParameter(values.at(i).name)){
+        if(! handler.hasParameter(values[i].name)){
             return false;
         }
     }
@@ -105,11 +105,11 @@ bool checkParameters(std::vector<ParameterValue> & values, const ParameterHandle
 
 void computeParameter(std::vector<ParameterRange> & ranges, unsigned int rangeIndex, ParameterHandler & handler ){
     if(rangeIndex<ranges.size()){
-        for(int i=0; i<ranges.at(rangeIndex).number; i++){
-            if(ranges.at(rangeIndex).type.compare("double") == 0){
-                handler.setParameterValue(ranges.at(rangeIndex).name, ranges.at(rangeIndex).getDoubleStep(i));
-            } else if(ranges.at(rangeIndex).type.compare("int") == 0){
-                handler.setParameterValue(ranges.at(rangeIndex).name, ranges.at(rangeIndex).getIntStep(i));
+        for(int i=0; i<ranges[rangeIndex].number; i++){
+            if(ranges[rangeIndex].type.compare("double") == 0){
+                handler.setParameterValue(ranges[rangeIndex].name, ranges[rangeIndex].getDoubleStep(i));
+            } else if(ranges[rangeIndex].type.compare("int") == 0){
+                handler.setParameterValue(ranges[rangeIndex].name, ranges[rangeIndex].getIntStep(i));
             } else {
                 std::cout << "Invalid parameter Type specified!\n";
                 break;
@@ -136,21 +136,21 @@ void computeParameter(std::vector<ParameterRange> & ranges, unsigned int rangeIn
 void generateParameters(std::vector<ParameterRange> & ranges, std::vector<ParameterValue> values, ParameterHandler & handler ) {
     if(checkParameters(ranges, handler)){
         for(unsigned int i=0; i<values.size(); i++){
-            if(values.at(i).type.compare("double") == 0){
-                handler.setParameterValue(values.at(i).name, atof(values.at(i).value.c_str()));
-            } else if(values.at(i).type.compare("int") == 0){
-                handler.setParameterValue(values.at(i).name, atoi(values.at(i).value.c_str()));
-            } else if(values.at(i).type.compare("bool") == 0) {
-                if(values.at(i).value.compare("true") == 0){
-                    handler.setParameterValue(values.at(i).name, true);
-                } else if(values.at(i).value.compare("false") == 0){
-                    handler.setParameterValue(values.at(i).name, false);
+            if(values[i].type.compare("double") == 0){
+                handler.setParameterValue(values[i].name, atof(values[i].value.c_str()));
+            } else if(values[i].type.compare("int") == 0){
+                handler.setParameterValue(values[i].name, atoi(values[i].value.c_str()));
+            } else if(values[i].type.compare("bool") == 0) {
+                if(values[i].value.compare("true") == 0){
+                    handler.setParameterValue(values[i].name, true);
+                } else if(values[i].value.compare("false") == 0){
+                    handler.setParameterValue(values[i].name, false);
                 } else {
                     std::cout << "Wrong value for bool parameter!\n";
                     break;
                 }
-            } else if(values.at(i).type.compare("string") == 0) {
-                handler.setParameterValue(values.at(i).name, (values.at(i).value));
+            } else if(values[i].type.compare("string") == 0) {
+                handler.setParameterValue(values[i].name, (values[i].value));
             } else {
                 std::cout << "Invalid parameter Type specified!\n";
                 break;

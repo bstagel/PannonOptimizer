@@ -41,7 +41,8 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")),
     m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility")),
     m_expandDualPhase1(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI")),
-    m_expandDualPhase2(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII"))
+    m_expandDualPhase2(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII")),
+    m_degenerate(false)
 {
 
 }
@@ -1007,13 +1008,13 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios =
                                     m_breakpointHandler.getExpandSecondPass(breakpoint->expandedValue);
                             int maxBreakpointId = 0;
-                            int maxAlphaId = secondPassRatios.at(0)->variableIndex;
+                            int maxAlphaId = secondPassRatios[0]->variableIndex;
                             int variableIndex = -1;
 
                             //choosing best pivot candidate
                             //TODO: megvizsgálni, hogy egy másik kiválasztása mit eredményez
                             for(unsigned i=1; i < secondPassRatios.size(); i++){
-                                variableIndex = secondPassRatios.at(i)->variableIndex;
+                                variableIndex = secondPassRatios[i]->variableIndex;
                                 if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
                                     maxAlphaId = variableIndex;
                                     maxBreakpointId = i;
@@ -1024,12 +1025,12 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             //theta remains zero if the choosen breakpoint value is negative
                             if(m_expandDualPhase2 == 1){
                                 //HARRIS
-                                if(secondPassRatios.at(maxBreakpointId)->value < 0){
+                                if(secondPassRatios[maxBreakpointId]->value < 0){
                                     LPINFO("Harris ratiotest theta is zero!");
                                     theta = 0;
                                 } else {
-                                    theta = m_tPositive ? secondPassRatios.at(maxBreakpointId)->value :
-                                                          - secondPassRatios.at(maxBreakpointId)->value;
+                                    theta = m_tPositive ? secondPassRatios[maxBreakpointId]->value :
+                                                          - secondPassRatios[maxBreakpointId]->value;
                                 }
                             } else {
                                 //EXPAND
@@ -1037,37 +1038,19 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                   (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier"))) /
                                         SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
                                 Numerical::Double thetaMin = toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
-//                                if(thetaMin < 0){
-//                                    LPERROR("Theta_min "<<std::scientific<<std::setprecision(16)<<thetaMin);
-//                                }
-                                if(secondPassRatios.at(maxBreakpointId)->value < thetaMin){
+                                if(secondPassRatios[maxBreakpointId]->value < thetaMin){
                                     //Expand procedure ensures a positive step
-//                                    LPWARNING("Theta_min is choosen at the end of the expand procedure: value: "<<
-//                                              secondPassRatios.at(maxBreakpointId)->value << "  -  thetamin  " <<thetaMin);
                                     theta = m_tPositive ? thetaMin : -thetaMin;
+                                    m_degenerate = true;
                                 } else {
-                                    theta = m_tPositive ? secondPassRatios.at(maxBreakpointId)->value :
-                                                          - secondPassRatios.at(maxBreakpointId)->value;
+                                    theta = m_tPositive ? secondPassRatios[maxBreakpointId]->value :
+                                                          - secondPassRatios[maxBreakpointId]->value;
+                                    m_degenerate = false;
                                 }
                             }
                             m_incomingVariableIndex = maxAlphaId;
                             m_dualSteplength = theta;
 
-                            //TODO: DEBUG CODE REMOVAL
-                            if(m_expandDualPhase2 == 1){
-                                if((m_tPositive && m_dualSteplength < 0) ||(!m_tPositive && m_dualSteplength>0)){
-                                    LPERROR("THETA_MIN has wrong sign!");
-                                    exit(-1);
-                                }
-                            } else {
-                                if((m_tPositive && m_dualSteplength <= 0) ||(!m_tPositive && m_dualSteplength>=0)){
-                                    LPERROR("THETA_MIN has wrong sign!");
-                                    LPERROR("m_tPositive: "<<m_tPositive);
-                                    LPERROR("m_dualSteplength "<<std::scientific<<m_dualSteplength);
-                                    m_breakpointHandler.printBreakpoints();
-                                    exit(-1);
-                                }
-                            }
                         }
                         break;
                     }
