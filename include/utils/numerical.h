@@ -25,11 +25,17 @@
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
 #define COPY_DOUBLES(dest, src, count) panOptMemcpy(dest, src, sizeof(Numerical::Double) * count);
+#define CLEAR_DOUBLES(dest, count) panOptMemset(dest, 0, sizeof(Numerical::Double) * count);
 //memcpy(dest, src, sizeof(Numerical::Double) * count);
 #else
 #define COPY_DOUBLES(dest, src, count) {unsigned int _count = (count); \
     for(unsigned int i = 0; i < _count; i++) { \
     dest[i] = src[i]; \
+    } \
+    }
+#define CLEAR_DOUBLES(dest, count) {unsigned int _count = (count); \
+    for(unsigned int i = 0; i < _count; i++) { \
+    dest[i] = 0.0;
     } \
     }
 #endif

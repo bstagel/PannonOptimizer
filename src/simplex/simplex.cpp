@@ -801,14 +801,54 @@ void Simplex::computeBasicSolution() {
     }
 
     //    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
-    m_basis->Ftran(m_basicVariableValues);
+    //    Vector checkVector;
 
+        m_basis->Ftran(m_basicVariableValues);
+
+        /*m_basis->FtranCheck(m_basicVariableValues, checkVector);
+        //LPINFO(m_basicVariableValues << checkVector);
+        Numerical::Double norm1 = m_basicVariableValues.euclidNorm();
+
+        double sum = 0.0;
+        for (int i = 0; i < checkVector.length(); i++) {
+            double a = m_basicVariableValues.at(i);
+            double b = checkVector.at(i);
+            if (a != 0 && b != 0) {
+                double ratio = fabs(a) > fabs(b) ? a / b : b / a;
+                sum += ratio * ratio;
+            }
+        }
+        LPINFO("ratio norm: " << sqrt(sum));
+
+        checkVector.addVector(-1, m_basicVariableValues);
+
+        Numerical::Double norm2 = checkVector.euclidNorm();
+        //LPINFO(checkVector);
+        Numerical::Double normRatio = norm1 > norm2 ? norm1 / norm2 : norm2 / norm1;
+        LPINFO("------ CHECK EUCLID NORM " << checkVector.euclidNorm() << "  " << norm1 << " " << norm2);
+        LPINFO("ratio: " << normRatio << "   " << (normRatio - 1.0) << "  " << (normRatio - 1.0 >= 1e-5));
+
+
+
+        if (normRatio - 1.0 >= 1e-4) {
+            static int _counter = 0;
+            _counter++;
+            cout << "nagyobb " << _counter << endl;
+            Timer timer;
+            timer.start();
+            sensitivityAnalysisRhs();
+            timer.stop();
+            cout << "time: " << timer.getTotalElapsed() << endl;
+            cin.get();
+            cin.get();
+        }*/
     m_variableStates.getIterators(&it, &itend, Simplex::BASIC);
     for(; it != itend; it++) {
         if(it.getData() < columnCount){
             m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
         }
     }
+
 }
 
 void Simplex::computeReducedCosts() {
@@ -846,4 +886,97 @@ void Simplex::computeReducedCosts() {
             m_reducedCosts.setNewNonzero(i, reducedCost);
         }
     }
+}
+
+Numerical::Double Simplex::sensitivityAnalysisRhs() const
+{
+    LPINFO("SENSITIVITY ANALYSIS");
+    Numerical::Double lower = -Numerical::Infinity;
+    Numerical::Double upper = Numerical::Infinity;
+    Numerical::Double feasibilityTolerance =
+            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility") * 1000;
+
+    unsigned int columnIndex;
+    unsigned int rowIndex;
+    const unsigned int rowCount = m_simplexModel->getMatrix().rowCount();
+    const std::vector<Variable> & variables = m_simplexModel->getVariables();
+
+    std::vector<Numerical::Double> lowerBoundDiffs(rowCount, -feasibilityTolerance);
+    std::vector<Numerical::Double> upperBoundDiffs(rowCount, feasibilityTolerance);
+    for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+        const unsigned int variableIndex = m_basisHead[rowIndex];
+        const Numerical::Double lowerBound = variables[variableIndex].getLowerBound() - feasibilityTolerance;
+        const Numerical::Double upperBound = variables[variableIndex].getUpperBound() + feasibilityTolerance;
+        const Numerical::Double value = m_basicVariableValues.at(rowIndex);
+        if (value >= lowerBound && value <= upperBound) {
+            lowerBoundDiffs[rowIndex] = value - lowerBound;
+            upperBoundDiffs[rowIndex] = upperBound - value;
+        } else if (value < lowerBound) {
+            lowerBoundDiffs[rowIndex] = Numerical::Infinity;
+            upperBoundDiffs[rowIndex] = upperBound - value;
+        } else if (value > upperBound) {
+            lowerBoundDiffs[rowIndex] = value - lowerBound;
+            upperBoundDiffs[rowIndex] = Numerical::Infinity;
+        }
+    }
+
+    Vector beta(rowCount, Vector::DENSE_VECTOR);
+    Numerical::Double sumMinLog = 0.0;
+    Numerical::Double sumMaxLog = 0.0;
+    Numerical::Double sumDiffLog = 0.0;
+    for (columnIndex = 0; columnIndex < rowCount; columnIndex++) {
+        lower = -Numerical::Infinity;
+        upper = Numerical::Infinity;
+
+        beta.clear();
+        beta.setNewNonzero(columnIndex, 1.0);
+        m_basis->Ftran(beta);
+
+        Vector::NonzeroIterator betaIter = beta.beginNonzero();
+        Vector::NonzeroIterator betaIterEnd = beta.endNonzero();
+        for (; betaIter != betaIterEnd; betaIter++) {
+            const unsigned int rowIndex = betaIter.getIndex();
+            Numerical::Double ratio = -lowerBoundDiffs.at(rowIndex) / *betaIter;
+            if (ratio > lower && *betaIter > 0.0) {
+                lower = ratio;
+            }
+            if (ratio < upper && *betaIter < 0.0) {
+                upper = ratio;
+            }
+            ratio = -upperBoundDiffs.at(rowIndex) / *betaIter;
+            if (ratio > lower && *betaIter > 0.0) {
+                lower = ratio;
+            }
+            if (ratio < upper && *betaIter < 0.0) {
+                upper = ratio;
+            }
+
+        }
+
+        const unsigned int variableIndex = m_basisHead[rowIndex];
+        const Numerical::Double lowerBound = variables[variableIndex].getLowerBound() - feasibilityTolerance;
+        const Numerical::Double upperBound = variables[variableIndex].getUpperBound() + feasibilityTolerance;
+        const Numerical::Double value = m_basicVariableValues.at(rowIndex);
+
+        if (value == lowerBound || value == upperBound) {
+            //continue;
+        }
+
+       // LPINFO(lowerBound << " <= " << value << " <= " << upperBound);
+       // LPINFO(columnIndex << ": " << lower << " <= delta <= " << upper << "   " << (upper - lower) << "   " <<
+       //        log10(Numerical::fabs(lower)) << "  " << log10(Numerical::fabs(upper)));
+
+        if (Numerical::fabs(lower) != Numerical::Infinity && lower != 0.0) {
+            sumMinLog += log10(Numerical::fabs(lower));
+        }
+        if (Numerical::fabs(upper) != Numerical::Infinity && upper != 0.0) {
+            sumMaxLog += log10(Numerical::fabs(upper));
+        }
+        if (Numerical::fabs(upper - lower) != Numerical::Infinity && upper != lower) {
+            sumDiffLog += log10(Numerical::fabs(upper - lower));
+        }
+
+    }
+    LPINFO((sumMinLog / rowCount) << ", " << (sumMaxLog / rowCount) << "  " << (sumDiffLog / rowCount));
+    return upper - lower;
 }
