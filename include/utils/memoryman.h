@@ -303,5 +303,6 @@ void panOptMemcpy(void *dest,
                   const void * src,
                   size_t size);
 
+void panOptMemset(void * dest, int value, size_t size);
 
 #endif // MEMORYMAN_H

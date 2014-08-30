@@ -26,6 +26,9 @@ void ArchitectureX86::detect() {
     }
     setMemoryData();
     setPrimitives();
+    m_features.insert("AVX");
+    m_features.insert("SSE2");
+    //loadFeature(regs.m_ecx, 28, "AVX");
 }
 
 void ArchitectureX86::setPrimitives() {
@@ -52,11 +55,12 @@ void ArchitectureX86::setDotProduct() {
     if (featureExists("AVX")) {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX;
         sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX;
+        sm_denseToSparseDotProductStablePtr = DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX;
     } else if (featureExists("SSE2")) {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2;
         sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
+        sm_denseToSparseDotProductStablePtr = DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2;
     }
-
 }
 
 unsigned int ArchitectureX86::getBits(unsigned int pattern,
@@ -348,6 +352,15 @@ void ArchitectureX86::setFeatureList() {
         loadFeature(regs.m_edx, 29, "LM");
         loadFeature(regs.m_edx, 30, "3DNOWEXT");
         loadFeature(regs.m_edx, 31, "3DNOW");
+    }
+    if ( featureExists("AVX") && featureExists("OSXSAVE") ) {
+        // check that the OS has enabled AVX
+        if (AVX_ENABLED_BY_OS()) {
+            std::cout << std::endl << "AVX enabled by OS" << std::endl;
+        } else {
+            std::cout << std::endl << "AVX disabled by OS" << std::endl;
+            m_features.erase( m_features.find("AVX") );
+        }
     }
     std::cout << std::endl;
 }

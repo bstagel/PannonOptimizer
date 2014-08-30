@@ -45,3 +45,9 @@ void panOptMemcpy(void * dest,
         Architecture::getMemCpyNoCache()(dest, src, size);
     }
 }
+
+
+void panOptMemset(void *dest, int value, size_t size)
+{
+    memset(dest, value, size);
+}

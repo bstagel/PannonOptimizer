@@ -627,11 +627,13 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     }
 
     // 2. perform the dot products
-    std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
-    const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
+    //std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
+    //const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
+    ETM * iterEnd = m_basis->data() - 1;
+    ETM * iter = iterEnd + m_basis->size();
 
     unsigned int etaIndex = 0;
-    for (; iter != iterEnd; iter++, etaIndex++) {
+    for (; iter != iterEnd; iter--, etaIndex++) {
         unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;

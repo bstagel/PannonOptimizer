@@ -70,3 +70,18 @@ pop     ecx
 mov     esp, ebp
 pop     ebp
 ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+global _avx_enabled_by_32
+_avx_enabled_by_32:
+push    ebp
+mov     ebp, esp
+
+mov     ecx, 0
+xgetbv
+and     eax, 0x06
+
+mov     esp, ebp
+pop     ebp
+ret

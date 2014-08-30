@@ -278,4 +278,53 @@ void CoreTestSuite::denseToSparseDotProduct() {
                                                          indicesB,
                                                          10);
     LPINFO("res = " << res);
+
+    int aSize = 1000000;
+    int bSize = 10;
+    int indexSize = bSize;
+    int repeat = 10000000;
+    unsigned int repIndex;
+
+    double * a = alloc<double, 32>(aSize);
+    double * b = alloc<double, 32>(bSize);
+    unsigned int * indices = alloc<unsigned int, 32>(indexSize);
+    for (index = 0; index < aSize; index++) {
+        a[index] = rand() % 10000 / 1000.0 - 6;
+    }
+    for (index = 0; index < bSize; index++) {
+        b[index] = rand() % 10000 / 1000.0;
+    }
+    // fill indices with random indices
+    for (index = 0; index < indexSize; index++) {
+        indices[index] = index;
+    }
+    for (index = 0; index < indexSize * 100; index++) {
+        int i = rand() % indexSize;
+        int j = rand() % indexSize;
+        unsigned int temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
+    }
+    clock_t start, end;
+    res = 0;
+    start = clock();
+    for (repIndex = 0; repIndex < repeat; repIndex++) {
+        double neg = 0.0;
+        res = DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX(a, b, indices, indexSize, &neg);
+        res += neg;
+        //res = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2(a, b, indices, indexSize);
+    }
+    end = clock();
+    LPINFO("time = " << ( end - start ) / (double)CLOCKS_PER_SEC );
+    LPINFO("res = " << res);
+    //return;
+
+    start = clock();
+    for (repIndex = 0; repIndex < repeat; repIndex++) {
+        res = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX(a, b, indices, indexSize);
+    }
+    end = clock();
+    LPINFO("time = " << ( end - start ) / (double)CLOCKS_PER_SEC );
+    LPINFO("res = " << res);
+
 }

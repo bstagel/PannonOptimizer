@@ -27,6 +27,10 @@ extern "C" void cpuinfo_32(unsigned int eax,
 
 extern "C" int cpuinfo_supported_32();
 
+extern "C" int _avx_enabled_by_64();
+
+extern "C" int _avx_enabled_by_32();
+
 extern "C" void * _memcpy_sse2_64_linux_cread_cwrite(void * dest, const void * src, unsigned long count);
 extern "C" void * _memcpy_sse4_1_64_linux_ntread_ntwrite(void * dest, const void * src, unsigned long count);
 
@@ -48,6 +52,17 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
                                                                   const unsigned int * indices,
                                                                   size_t count);
 
+extern "C" double _denseToSparseDotProduct_stable_SSE2_64_linux(const double * dense,
+                                                                const double * sparse,
+                                                                const unsigned int * indices,
+                                                                size_t count,
+                                                                double * negPtr);
+extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * dense,
+                                                               const double * sparse,
+                                                               const unsigned int * indices,
+                                                               size_t count,
+                                                               double * negPtr);
+
 
 // TODO: lehet hogy 32 bit alatt ugyanugy nez majd ki linux es windows alatt
 // ezt meg ellenorizni kell, ha igaz, akkor egyszerubbe valik a kod kicsit
@@ -62,6 +77,7 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
 
 #define CPUID(eax, ebx, ecx, edx, results) \
     cpuinfo_32(eax, ebx, ecx, edx, results);
+#define AVX_ENABLED_BY_OS _avx_enabled_by_32
 /*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_32_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_32_ntread_ntwrite
 
@@ -77,6 +93,9 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX ::denseToSparseDotProductUnstable
 
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 ::denseToSparseDotProductStable
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX ::denseToSparseDotProductStable
+
 #else
 #ifdef UNIX
 
@@ -86,6 +105,7 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
 
 #define CPUID(eax, ebx, ecx, edx, results) \
     _cpuinfo_64_linux(eax, ebx, ecx, edx, results);
+#define AVX_ENABLED_BY_OS _avx_enabled_by_64
 #define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_linux_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_linux_ntread_ntwrite
 
@@ -95,6 +115,8 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 _denseToSparseDotProduct_unstable_SSE2_64_linux
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX _denseToSparseDotProduct_unstable_AVX_64_linux
 
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 _denseToSparseDotProduct_stable_SSE2_64_linux
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX _denseToSparseDotProduct_stable_AVX_64_linux
 
 #else
 /*****************************************
@@ -102,6 +124,7 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
  ****************************************/
 #define CPUID(eax, ebx, ecx, edx, results) \
     _cpuinfo_64_windows(eax, ebx, ecx, edx, results);
+#define AVX_ENABLED_BY_OS _avx_enabled_by_64
 /*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_windows_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_windows_ntread_ntwrite
 
@@ -117,6 +140,9 @@ extern "C" double _denseToSparseDotProduct_unstable_AVX_64_linux(const double * 
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
 #define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX ::denseToSparseDotProductUnstable
+
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 ::denseToSparseDotProductStable
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX ::denseToSparseDotProductStable
 
 #endif
 #endif

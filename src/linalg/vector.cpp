@@ -924,13 +924,13 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         __prim_debug = false;
     }*/
 
-  /*  pos = Architecture::getDenseToSparseDotProductUnstable()(
+    /*pos = Architecture::getDenseToSparseDotProductUnstable()(
                 denseVector,
                 ptrSparse,
                 ptrIndex,
-                size);
-*/
-     pos = Architecture::getDenseToSparseDotProductStable()(
+                size);*/
+
+    pos = Architecture::getDenseToSparseDotProductStable()(
                  denseVector,
                  ptrSparse,
                  ptrIndex,

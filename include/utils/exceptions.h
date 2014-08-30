@@ -81,6 +81,77 @@ public:
 };
 
 /**
+ * This exception should be thrown when the program attempts to use an invalid index.
+ *
+ * @class InvalidIndexException
+ */
+class InvalidIndexException: PanOptException {
+public:
+
+    /**
+     * Constructor of the InvalidIndexException class.
+     *
+     * @param message Custom message describing the circumstances of the exception.
+     * @param min Describes the minimum valid value of the index.
+     * @param max Describes the maximum valid value of the index.
+     * @param value Describes the real value of the index.
+     */
+    InvalidIndexException(const std::string & message,
+                          long long int min,
+                          long long int max,
+                          long long int value):
+        PanOptException(message),
+        m_min(min),
+        m_max(max),
+        m_value(value)
+    {}
+
+    /**
+     * Returns with the minimum valid value of the index.
+     *
+     * @return Minimum value of the index.
+     */
+    long long int getMin() const {
+        return m_min;
+    }
+
+    /**
+     * Returns with the maximum valid value of the index.
+     *
+     * @return Maximum value of the index.
+     */
+    long long int getMax() const {
+        return m_min;
+    }
+
+    /**
+     * Returns with the real value of the index.
+     *
+     * @return Real value of the index.
+     */
+    long long int getValue() const {
+        return m_min;
+    }
+
+protected:
+
+    /**
+     * Minimum valid value of the index.
+     */
+    long long int m_min;
+
+    /**
+     * Maximum valid value of the index.
+     */
+    long long int m_max;
+
+    /**
+     * Real value of the index.
+     */
+    long long int m_value;
+};
+
+/**
  * Base class of all exceptions returning information about the solution of the problem.
  *
  * @see OptimalException

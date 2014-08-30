@@ -2,6 +2,7 @@
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/vector.h>
+#include <linalg/sparsevector.h>
 #include <debug.h>
 #include <iostream>
 #include <cstdio>
@@ -55,6 +56,7 @@ void InitPanOpt::init() {
     SimplexParameterHandler::_globalInit();
     Numerical::_globalInit();
     Vector::_globalInit();
+    SparseVector::_globalInit();
 
 #ifdef PLATFORM_X86
     sm_architecture = new ArchitectureX86;
