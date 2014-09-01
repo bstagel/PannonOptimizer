@@ -30,6 +30,7 @@ extern "C" int cpuinfo_supported_32();
 extern "C" int _avx_enabled_by_64();
 
 extern "C" int _avx_enabled_by_32();
+extern "C" int avx_enabled_by_32();
 
 extern "C" void * _memcpy_sse2_64_linux_cread_cwrite(void * dest, const void * src, unsigned long count);
 extern "C" void * _memcpy_sse4_1_64_linux_ntread_ntwrite(void * dest, const void * src, unsigned long count);
@@ -77,7 +78,7 @@ extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * de
 
 #define CPUID(eax, ebx, ecx, edx, results) \
     cpuinfo_32(eax, ebx, ecx, edx, results);
-#define AVX_ENABLED_BY_OS _avx_enabled_by_32
+#define AVX_ENABLED_BY_OS avx_enabled_by_32
 /*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_32_cread_cwrite
 #define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_32_ntread_ntwrite
 
