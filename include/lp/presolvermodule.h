@@ -1,7 +1,7 @@
 /**
  * @file presolvermodule.h This file contains the API of the PresolverModule class, and every
  * individual child class executing different presolving methods.
- * @author borocz
+ * @author Peter Borocz
  */
 
 
@@ -64,6 +64,12 @@ public:
      * @return The name of the module.
      */
     inline const std::string & getName() { return m_name; }
+
+    /**
+     * Prints the statistics of the module to the output.
+     * This contains the number of the eliminated variales, constaints and nonzero elements of the model.
+     */
+    void printStatistics();
 
 protected:
 
@@ -307,6 +313,56 @@ private:
      * The list of dual constraint indices to be checked in the next iteration of the module.
      */
     Vector * m_variableStack;
+};
+
+/**
+ * Presolver module checking the model for duplicate rows and columns and making the coefficient matrix sparser.
+ * Duplicate vectors are identified via the hashing of nonzero pattern. The improvement of sparsity in the
+ * coefficient matrix is ensured by linear algebraic operation between its vectors. Linear dependency of multiple
+ * vectors is not checked nor used due to the heavy resource usage of such operations.
+ *
+ * @throws InfeasibilityException if infeasibility is detected.
+ * @throws UnboundedException if unboundedness is detected.
+ *
+ * @class LinearAlgebraicModule
+ */
+class LinearAlgebraicModule : public PresolverModule {
+public:
+
+    /**
+     * Default constructor of the LinearAlgebraicModule class.
+     *
+     * @constructor
+     * @param parent Pointer to the parent Presolver containing this module.
+     */
+    LinearAlgebraicModule(Presolver * parent);
+
+    /**
+     * Destructor of the LinearAlgebraicModule class.
+     *
+     * @destructor
+     */
+    ~LinearAlgebraicModule();
+
+    /**
+     * Executes the presolving techniques implemented by the LinearAlgebraicModule.
+     * These are found in the literature by the names "Duplicate Rows", "Duplicate Columns" and
+     * "Making A Sparser".
+     */
+    void executeMethod();
+
+    /**
+     * Prints the statistics of the module to the output.
+     * This contains the number of the eliminated variales, constaints and nonzero elements of the model.
+     */
+    void printStatistics();
+
+private:
+
+    /**
+     * The number of elimiinated nonzero elements.
+     */
+    unsigned int m_removedNzr;
 };
 
 #endif // PRESOLVERMODULE_H
