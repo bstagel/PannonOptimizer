@@ -129,9 +129,7 @@ void Presolver::printStatistics() {
     for(unsigned int i = 0; i < m_modules.size(); i++) {
         eR += m_modules[i]->getRemovedConstraintCount();
         eC += m_modules[i]->getRemovedVariableCount();
-        LPINFO("[Presolver] Module " << m_modules[i]->getName() <<
-               " stats: eliminated rows - " << m_modules[i]->getRemovedConstraintCount() <<
-               ", eliminated columns - " << m_modules[i]->getRemovedVariableCount());
+        m_modules[i]->printStatistics();
     }
     LPINFO("[Presolver] Total eliminated rows: " << eR);
     LPINFO("[Presolver] Total eliminated columns: " << eC << " (+" << m_impliedFreeCount << " implied free variables)");
@@ -177,15 +175,18 @@ void Presolver::presolve() {
         clearModules();
     if(m_mode == DEFAULT) {
         clearModules();
+        addModule( new DualBoundsModule(this));
         addModule( new ImpliedBoundsModule(this));
         addModule( new SingletonRowsModule(this));
         addModule( new SingletonColumnsModule(this));
-        addModule( new DualBoundsModule(this));
+        addModule( new LinearAlgebraicModule(this));
     }
+
     int elim = 0;
     int itc = 0;
     int last = -1;
     m_timer->start();
+
     while(elim > last && itc < (int)m_iterationLimit) {
         last = elim;
         elim = 0;
