@@ -37,6 +37,20 @@ public:
             functionValue(functionValue){}
 
         /**
+         * This is an initializing constructor.
+         * If the expandedValue parameter is not given it will be initialized with the value parameter.
+         * @param variableIndex shows the variable, which defined this breakpoint
+         * @param value shows the actual value of the ratio
+         * @param functionValue defines the corresponding objective function value to the ratio
+         * @constructor
+         */
+        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double functionValue):
+            variableIndex(variableIndex),
+            value(value),
+            expandedValue(value),
+            functionValue(functionValue){}
+
+        /**
          * Default desctructor of the Breakpoint structure.
          * @destructor
          */
@@ -150,8 +164,11 @@ public:
      * In the second pass of the Harris ratio test and the Expand procedure we need ratios
      * (defined with exact bounds) smaller than parameter theta.
      * @param theta is the steplength definded by expanded bounds
+     * @param boundflips This vector contains the boundflipping variables, these are left out from
+     *  the second pass ratios of the expand procedure.
      */
-    const std::vector<const BreakPoint *> &getExpandSecondPass(Numerical::Double theta);
+    const std::vector<const BreakPoint *> &getExpandSecondPass(Numerical::Double theta,
+                                                               const std::vector<unsigned int>& boundflips);
 
 private:
     /**

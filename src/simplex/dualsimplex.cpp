@@ -292,11 +292,19 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() {
-    m_feasibilityChecker->computeFeasibility(m_workingTolerance);
+    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 0){
+        m_feasibilityChecker->computeFeasibility(m_masterTolerance);
+    }else{
+        m_feasibilityChecker->computeFeasibility(m_workingTolerance);
+    }
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
-    //In phase II check whether the basic variables are correct or not
+    //In phase II check whether the bounded variables are correct or not
     if(m_feasible){
-        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
+        if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") == 0){
+            m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_masterTolerance);
+        }else{
+            m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
+        }
     }
 }
 
@@ -388,7 +396,7 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; it++){
-        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -531,6 +539,7 @@ void DualSimplex::update() {
 
     //Update the feasibility sets in phase I
     if(!m_feasible){
+        //TODO: phase 1 expand, milyen toleranciat hasznaljon?
         computeFeasibility();
     }
 }

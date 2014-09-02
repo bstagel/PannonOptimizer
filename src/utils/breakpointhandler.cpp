@@ -79,7 +79,8 @@ void BreakpointHandler::init(unsigned maxNumberOfBreakpoints)
     m_breakpoints.reserve(maxNumberOfBreakpoints);
 }
 
-const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getExpandSecondPass(Numerical::Double theta)
+const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getExpandSecondPass(Numerical::Double theta,
+                                                                                                const std::vector<unsigned int>& boundflips)
 {
     //Reinit the heap with the exact values
     selectMethod(false);
@@ -87,12 +88,23 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
     m_secondPassRatios.clear();
     m_secondPassRatios.reserve(m_breakpoints.size());
     const BreakPoint * breakpoint = NULL;
+    bool isBoundflipping;
 
     for(unsigned i=0; i < m_breakpoints.size(); i++){
         breakpoint = getBreakpoint(i);
+        isBoundflipping = false;
         //actual values smaller than the theta parameter
         if(breakpoint->value <= theta){
-            m_secondPassRatios.push_back(breakpoint);
+            for(unsigned int i=0; i < boundflips.size(); i++){
+                if(boundflips[i] == breakpoint->variableIndex){
+                    isBoundflipping = true;
+                    break;
+                }
+            }
+            //if it's boundflipping it won't be choosen
+            if(!isBoundflipping){
+                m_secondPassRatios.push_back(breakpoint);
+            }
         //breakpoints come sorted, breaking out at first bigger value
         }else{
             break;

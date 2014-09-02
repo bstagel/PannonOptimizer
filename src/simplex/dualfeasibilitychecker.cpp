@@ -32,6 +32,35 @@ bool DualFeasibilityChecker::checkFeasibility(){
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
+        //DEBUG
+//        int variableIndex = -1;
+//        Numerical::Double tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+//        IndexList<const Numerical::Double*>::Iterator it;
+//        IndexList<const Numerical::Double*>::Iterator endit;
+//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_AT_LB);
+//        for(; it != endit; it++){
+//            variableIndex = it.getData();
+//            if(m_reducedCosts.at(variableIndex) < -tolerance){
+//                LPINFO("Nonbasic_at_LB d: "<<m_reducedCosts.at(variableIndex));
+//                return false;
+//            }
+//        }
+//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_AT_UB);
+//        for(; it != endit; it++){
+//            variableIndex = it.getData();
+//            if(m_reducedCosts.at(variableIndex) > tolerance){
+//                LPINFO("Nonbasic_at_UB, d: "<<m_reducedCosts.at(variableIndex));
+//                return false;
+//            }
+//        }
+//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_FREE);
+//        for(; it != endit; it++){
+//            variableIndex = it.getData();
+//            if(Numerical::fabs(m_reducedCosts.at(variableIndex)) > tolerance){
+//                LPINFO("Nonbasic_FREE, d: "<<m_reducedCosts.at(variableIndex));
+//                return false;
+//            }
+//        }
         return true;
     }
     return false;
@@ -39,7 +68,6 @@ bool DualFeasibilityChecker::checkFeasibility(){
 
 void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phase I objective function value
-
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);
     m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
     m_reducedCostFeasibilities->clearPartition(Simplex::PLUS);
@@ -52,14 +80,14 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
 
     //nonbasic variables with M type infeasibility
-                if (Numerical::lessthan(m_reducedCosts.at(variableIndex), 0,tolerance) &&
+                if (m_reducedCosts.at(variableIndex) < -tolerance &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::MINUS,variableIndex);
                     m_phaseIObjectiveValue += m_reducedCosts.at(variableIndex);
                 } else
 
     //nonbasic variables with P type infeasibility
-                if (Numerical::lessthan(0, m_reducedCosts.at(variableIndex), tolerance) &&
+                if (m_reducedCosts.at(variableIndex) > tolerance &&
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
                     m_phaseIObjectiveValue -= m_reducedCosts.at(variableIndex);
