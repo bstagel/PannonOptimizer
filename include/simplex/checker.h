@@ -47,7 +47,7 @@ public:
      * Checks the reduced cost values of the nonbasic variables.
      * It computes the values with Ftran and Btran, if the values are equal considering
      * some tolerance the check passes.
-     * The reduced cost vector can be computed as d = c_j - c_B^T * B^-1 * a_j.
+     * The reduced cost vector can be computed as d = c - c_B^T * B^-1 * a.
      * @param simplex provides the cost vector and basis and the matrix
      * @return true if the reduced cost values of the nonbasic variables is correct.
      */

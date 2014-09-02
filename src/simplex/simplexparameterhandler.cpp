@@ -343,7 +343,7 @@ void SimplexParameterHandler::initParameters()
     createParameter("expand_divider", Entry::INTEGER);
     setParameterValue("expand_divider", DefaultParameters::EXPAND_DIVIDER);
     createParameter("expand_dual_phaseI", Entry::INTEGER);
-    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEII);
+    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEI);
     createParameter("expand_dual_phaseII", Entry::INTEGER);
     setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
 
