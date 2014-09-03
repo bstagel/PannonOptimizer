@@ -554,7 +554,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
             //If the first breakpoint is fake feasible filter them
             while (breakpoint->value < 0 && functionSlope >=0 ) {
 #ifndef NDEBUG
-                LPINFO("Fake feasibility detected: " << breakpoint->value);
+//                LPINFO("Fake feasibility detected: " << breakpoint->value);
 #endif
                 fakeFeasibilityCounter++;
 
@@ -753,8 +753,9 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
                     expandedValueOfVariable = (m_reducedCosts.at(variableIndex) - workingTolerance ) / alpha.at(variableIndex);
                     m_breakpointHandler.insertBreakpoint(variableIndex,valueOfVariable,expandedValueOfVariable);
                 }
-#ifndef NDEBUG
+//#ifndef NDEBUG
                 if( expandedValueOfVariable < 0){
+                    throw FallbackException("Expanded value negative. ");
                     LPERROR("ERROR EXPANDED VALUE: "<<expandedValueOfVariable);
                     LPINFO("type: "<<m_model.getVariable(variableIndex).getType());
                     LPINFO("d: "<<m_reducedCosts.at(variableIndex));
@@ -762,7 +763,7 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
                     LPINFO("t_positive: "<<m_tPositive);
                     exit(-1);
                 }
-#endif
+//#endif
                 it++;
             }
 
@@ -785,16 +786,18 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
 //                    LPINFO("d: "<<m_reducedCosts.at(variableIndex)<<" alpha: "<<alpha.at(variableIndex));
 //                    LPINFO("type: "<<m_model.getVariable(variableIndex).getType());
                 }
-#ifndef NDEBUG
+//#ifndef NDEBUG
                 if( expandedValueOfVariable < 0){
+                    throw FallbackException("Expanded value negative. ");
                     LPERROR("ERROR EXPANDED VALUE: "<<expandedValueOfVariable);
                     LPINFO("type: "<<m_model.getVariable(variableIndex).getType());
                     LPINFO("d: "<<m_reducedCosts.at(variableIndex));
+                    LPINFO("workingTolerance: "<<workingTolerance);
                     LPINFO("alpha: "<<alpha.at(variableIndex));
                     LPINFO("t_positive: "<<m_tPositive);
                     exit(-1);
                 }
-#endif
+//#endif
                 it++;
             }
         }
@@ -808,7 +811,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
     unsigned int length = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
-    Numerical::Double primalSteplength = 0;
+    Numerical::Double absPrimalSteplength = 0;
 
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
 
@@ -820,15 +823,12 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
         m_phaseIIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = m_phaseIIObjectiveValue;
 
-        if (m_tPositive) {
-            primalSteplength = functionSlope / alpha.at(actualBreakpoint->variableIndex);
-        } else{
-            primalSteplength = - functionSlope / alpha.at(actualBreakpoint->variableIndex);
-        }
+
+        absPrimalSteplength = functionSlope / alpha.at(actualBreakpoint->variableIndex);
 
         const Variable & variable = m_model.getVariable(actualBreakpoint->variableIndex);
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)) *
-                Numerical::fabs(variable.getUpperBound() - variable.getLowerBound());
+                (variable.getUpperBound() - variable.getLowerBound());
 
         if (functionSlope < 0) {
             if(m_expandDualPhase2 == 0){
@@ -843,7 +843,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
         }
 
         if(variable.getType() == Variable::BOUNDED){
-            if((variable.getUpperBound() - variable.getLowerBound()) < Numerical::fabs(primalSteplength) ) {
+            if((variable.getUpperBound() - variable.getLowerBound()) < absPrimalSteplength ) {
                 m_boundflips.push_back(actualBreakpoint->variableIndex);
             } else{
                 if(m_expandDualPhase2 == 0){
@@ -1094,13 +1094,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                           (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier"))) /
                                 SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
                         Numerical::Double thetaMin = toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
-//                                if(thetaMin < 0){
-//                                    LPERROR("Theta_min "<<std::scientific<<std::setprecision(16)<<thetaMin);
-//                                }
+
+                        //Expand procedure ensures a positive step
                         if(secondPassRatios[maxBreakpointId]->value < thetaMin){
-                            //Expand procedure ensures a positive step
-//                                    LPWARNING("Theta_min is choosen at the end of the expand procedure: value: "<<
-//                                              secondPassRatios.at(maxBreakpointId)->value << "  -  thetamin  " <<thetaMin);
                             theta = m_tPositive ? thetaMin : -thetaMin;
                         } else {
                             theta = m_tPositive ? secondPassRatios[maxBreakpointId]->value :

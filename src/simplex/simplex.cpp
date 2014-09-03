@@ -32,8 +32,6 @@ const static char * SOLUTION_SELECT_PIVOT_TIMER_NAME = "Pivot selection time";
 const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
 
 const static char * EXPORT_PROBLEM_NAME = "export_problem_name";
-const static char * EXPORT_PHASE1_ITERATION = "export_phase1_iteration";
-const static char * EXPORT_PHASE1_TIME = "export_phase1_time";
 const static char * EXPORT_SOLUTION = "export_solution";
 const static char * EXPORT_FALLBACK = "export_fallback";
 const static char * EXPORT_SINGULARITY = "export_singularity";
@@ -49,7 +47,8 @@ const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_du
 const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
 
-Simplex::Simplex():
+Simplex::Simplex(SimplexController &simplexController):
+    m_simplexController(simplexController),
     m_simplexModel(NULL),
     m_degenerate(false),
     m_variableStates(0,0),
@@ -76,8 +75,6 @@ Simplex::Simplex():
     m_workingTolerance(0),
     //Measures
     m_referenceObjective(0),
-    m_phase1Iteration(-1),
-    m_phase1Time(0.0),
     m_fallbacks(0),
     m_badIterations(0),
     m_degenerateIterations(0),
@@ -151,12 +148,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         if(m_exportType == 0){
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
-            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_FLOAT, *this,
-                                                  6, IterationReportField::IRF_FIXED));
-            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
+           result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
             result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
@@ -189,11 +181,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         } else if (m_exportType == 1) {
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
-            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_INT, *this));
-            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_FLOAT, *this,
-                                                  6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
@@ -256,10 +243,6 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
     case IterationReportProvider::IRF_EXPORT:
         if(name == EXPORT_PROBLEM_NAME){
             reply.m_string = new std::string(m_simplexModel->getName());
-        } else if(name == EXPORT_PHASE1_ITERATION){
-            reply.m_integer = m_phase1Iteration;
-        } else if(name == EXPORT_PHASE1_TIME){
-            reply.m_double = m_phase1Time;
         } else if(name == EXPORT_SOLUTION){
             reply.m_double = m_objectiveValue;
         } else if(name == EXPORT_FALLBACK){
@@ -385,9 +368,11 @@ void Simplex::iterate()
 
     m_priceTimer.start();
     price();
+
     m_priceTimer.stop();
     m_selectPivotTimer.start();
     selectPivot();
+
     m_selectPivotTimer.stop();
     m_updateTimer.start();
     update();
@@ -763,10 +748,17 @@ void Simplex::reinvert() {
     m_inversionTimer.start();
     m_basis->invert();
     m_inversionTimer.stop();
+
+//    Checker::checkBasisWithFtran(*this);
+//    Checker::checkBasisWithBtran(*this);
+//    Checker::checkBasisWithNonbasicReducedCost(*this);
+//    Checker::checkBasisWithReducedCost(*this);
+
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();
     m_computeBasicSolutionTimer.stop();
     m_computeReducedCostsTimer.start();
+
 //    if(!m_degenerate){
         computeReducedCosts();
 //    }
@@ -848,7 +840,6 @@ void Simplex::computeBasicSolution() {
             m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
         }
     }
-
 }
 
 void Simplex::computeReducedCosts() {

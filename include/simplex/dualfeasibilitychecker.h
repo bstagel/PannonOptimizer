@@ -49,8 +49,9 @@ public:
      * It determines the M, F, P feasibility sets, and the phase 1 objective value,
      * the sum of dual infeasibilities.
      * @param tolerance is the currently used dual feasibility tolerance
+     * @return True if everything is dual feasible
      */
-    void computeFeasibility(Numerical::Double tolerance);
+    bool computeFeasibility(Numerical::Double tolerance);
 
     /**
      * This function performs the feasibility correction.

@@ -741,6 +741,8 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator it = m_rowNonzeroIndices[rowindex].begin();
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
+    static thread_local std::vector<int> helper;
+    helper.resize(m_model.getRowCount(), 0);
     for (; it != itend; it++) {
         if (*it != (int) columnindex) {
             if(m_basicColumnCopies[*it]==NULL){
@@ -753,8 +755,9 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             Vector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    m_rowNonzeroIndices[columnIt.getIndex()].remove(*it);
-                    m_rowCounts[columnIt.getIndex()]--;
+//                    m_rowNonzeroIndices[columnIt.getIndex()].remove(*it);
+//                    m_rowCounts[columnIt.getIndex()]--;
+                    helper[columnIt.getIndex()]--;
                 }
             }
             //            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
@@ -767,16 +770,32 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    m_rowNonzeroIndices[columnIt.getIndex()].push_back(*it);
-                    m_rowCounts[columnIt.getIndex()]++;
+                    helper[columnIt.getIndex()]++;
+//                    m_rowNonzeroIndices[columnIt.getIndex()].push_back(*it);
+//                    m_rowCounts[columnIt.getIndex()]++;
                     newColumnCount++;
                 }
             }
 
             //Update the column count
             m_columnCounts[*it] = newColumnCount;
+
+            std::vector<int>::iterator helperIt = helper.begin();
+            std::vector<int>::iterator helperItend = helper.end();
+            for(int columnIndex = 0; helperIt != helperItend; helperIt++, columnIndex++){
+                if(*helperIt == -1){
+                    *helperIt = 0;
+                    m_rowNonzeroIndices[columnIndex].remove(*it);
+                    m_rowCounts[columnIndex]--;
+                } else if (*helperIt == 1){
+                    *helperIt = 0;
+                    m_rowNonzeroIndices[columnIndex].push_back(*it);
+                    m_rowCounts[columnIndex]++;
+                }
+            }
         }
     }
+
 }
 
 void PfiBasis::pivot(const Vector& column, int pivotRow) {

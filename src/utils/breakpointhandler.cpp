@@ -97,6 +97,7 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
         if(breakpoint->value <= theta){
             for(unsigned int i=0; i < boundflips.size(); i++){
                 if(boundflips[i] == breakpoint->variableIndex){
+//                    LPINFO("secondpass not boundflipping");
                     isBoundflipping = true;
                     break;
                 }

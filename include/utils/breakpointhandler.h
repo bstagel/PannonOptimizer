@@ -168,7 +168,7 @@ public:
      *  the second pass ratios of the expand procedure.
      */
     const std::vector<const BreakPoint *> &getExpandSecondPass(Numerical::Double theta,
-                                                               const std::vector<unsigned int>& boundflips);
+                                                               const std::vector<unsigned int> &boundflips);
 
 private:
     /**

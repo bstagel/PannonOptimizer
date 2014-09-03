@@ -82,6 +82,13 @@ public:
      */
     const std::vector<Numerical::Double> getDualSolution() const;
 
+    /**
+     * Record the actual iteration number as phase 1 iterations.
+     *
+     * @param phase1Time The time spent in phase 1.
+     */
+    void logPhase1Iteration(Numerical::Double phase1Time);
+
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.
@@ -109,6 +116,16 @@ private:
      * This counts the simplex iterations.
      */
     int m_iterationIndex;
+
+    /**
+     * The number of iterations spent in phase 1 before entering phsae 2 for the first time.
+     */
+    int m_phase1Iteration;
+
+    /**
+     * Time spent by the solver in phase 1.
+     */
+    Numerical::Double m_phase1Time;
 
     /**
      * This boolean variable is true, if the basis has been inverted in the current iteration.

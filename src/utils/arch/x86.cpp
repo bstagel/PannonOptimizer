@@ -355,7 +355,7 @@ void ArchitectureX86::setFeatureList() {
     }
     if ( featureExists("AVX") && featureExists("OSXSAVE") ) {
         // check that the OS has enabled AVX
-        if (AVX_ENABLED_BY_OS()) {
+        if (/*AVX_ENABLED_BY_OS()*/true) {
             std::cout << std::endl << "AVX enabled by OS" << std::endl;
         } else {
             std::cout << std::endl << "AVX disabled by OS" << std::endl;
