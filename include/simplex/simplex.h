@@ -17,6 +17,7 @@
 #include <utils/timer.h>
 #include <simplex/pricing.h>
 
+class SimplexController;
 class StartingBasisFinder;
 class Basis;
 class BasisHeadIO;
@@ -75,9 +76,10 @@ public:
     /**
      * Default constructor of the class.
      *
+     * @param simplexController A reference to the controller to reach the controller API.
      * @constructor
      */
-    Simplex();
+    Simplex(SimplexController& simplexController);
 
     /**
      * Default destructor of the class.
@@ -104,6 +106,11 @@ protected:
      * Pointer to the iteration reporter.
      */
     IterationReport * m_iterationReport;
+
+    /**
+     * Holds a reference to the simplex controller to gain the ability to log some events.
+     */
+    SimplexController & m_simplexController;
 
     /**
      * The simplex model stores all information about the given LP problem.
@@ -330,16 +337,6 @@ protected:
      * So degenerate iterations, bad iterations can be discovered.
      */
     Numerical::Double m_referenceObjective;
-
-    /**
-     * Number of phase 1 iterations.
-     */
-    int m_phase1Iteration;
-
-    /**
-     * Time spent by the solver in phase 1.
-     */
-    Numerical::Double m_phase1Time;
 
     /**
      * Number of fallbacks to phase 1.

@@ -25,9 +25,10 @@ private:
     /**
      * Default constructor of the class.
      *
+     * @param simplexController A reference to the controller to reach the controller API.
      * @constructor
      */
-    PrimalSimplex();
+    PrimalSimplex(SimplexController & simplexController);
 
     /**
      * Default destructor of the class.

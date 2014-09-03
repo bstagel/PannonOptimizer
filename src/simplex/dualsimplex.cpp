@@ -11,6 +11,7 @@
 #include <simplex/pfibasis.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/checker.h>
+#include <simplex/simplexcontroller.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -35,7 +36,8 @@ const static char * EXPORT_STABLE_PIVOT_NOT_FOUND_PHASE2 = "export_stable_pivot_
 const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2 = "export_fake_feasibility_activation_phase2";
 const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasibility_counter_phase2";
 
-DualSimplex::DualSimplex():
+DualSimplex::DualSimplex(SimplexController &simplexController):
+    Simplex(simplexController),
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
@@ -292,13 +294,14 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() {
-    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseI") == 0){
-        m_feasibilityChecker->computeFeasibility(m_masterTolerance);
+    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") == 0){
+        m_feasible = m_feasibilityChecker->computeFeasibility(m_masterTolerance);
     }else{
-        m_feasibilityChecker->computeFeasibility(m_workingTolerance);
+        m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
     }
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //In phase II check whether the bounded variables are correct or not
+    //Do the feasibility correction if we entered phase two
     if(m_feasible){
         if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") == 0){
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_masterTolerance);
@@ -316,13 +319,7 @@ void DualSimplex::checkFeasibility() {
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
             throw SwitchAlgorithmException("phase-2 entered!");
         }
-        if(m_phase1Iteration == -1){
-            //            m_phase1Iteration = m_iterationIndex;
-            m_phase1Time = m_solveTimer->getCPURunningTime();
-        }
-        //Do the feasibility correction
-        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues, m_workingTolerance);
-        m_referenceObjective = m_objectiveValue;
+        m_simplexController.logPhase1Iteration(m_solveTimer->getCPURunningTime());
     } else if(m_lastFeasible == true && m_feasible == false ){
         //Becomes infeasible, count the falback
         m_fallbacks++;
@@ -395,8 +392,27 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
+//    Checker::checkBasicVariableFeasibilityStates(*this);
+
+    //check whther the boundflips cause bad iterations
+//    int variableIndex = -1;
+//    for(; it < itend; it++){
+//        variableIndex = *it;
+//        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+//                m_reducedCosts.at(variableIndex) > 0){
+//            LPERROR("Bad boundflip forseen. LB d: "<<m_reducedCosts.at(variableIndex));
+//            exit(-1);
+//        }
+//        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+//                m_reducedCosts.at(variableIndex) < 0){
+//            LPERROR("Bad boundflip forseen. UB d: "<<m_reducedCosts.at(variableIndex));
+//            exit(-1);
+//        }
+//    }
+
+    it = m_ratiotest->getBoundflips().begin();
     for(; it < itend; it++){
-        LPWARNING("BOUNDFLIPPING at: "<<*it);
+//        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -414,7 +430,7 @@ void DualSimplex::update() {
             Numerical::Double referenceObjective = m_objectiveValue;
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
             if(referenceObjective > m_objectiveValue){
-                LPERROR("Bad boundflip done!");
+                LPERROR("Bad boundflip done! diff: " <<m_objectiveValue - referenceObjective);
             }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
@@ -424,7 +440,7 @@ void DualSimplex::update() {
             Numerical::Double referenceObjective = m_objectiveValue;
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
             if(referenceObjective > m_objectiveValue){
-                LPERROR("Bad boundflip done!");
+                LPERROR("Bad boundflip done! diff: " <<m_objectiveValue - referenceObjective);
             }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
@@ -513,6 +529,9 @@ void DualSimplex::update() {
         }
         m_primalTheta = beta / m_incomingAlpha.at(m_outgoingIndex);
 
+//        LPINFO("Before going out("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<outgoingVariable.getLowerBound()<<" , UB: "<<outgoingVariable.getUpperBound());
+
+
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += beta * m_dualTheta;
 
@@ -522,6 +541,13 @@ void DualSimplex::update() {
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
+//        outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
+//        const Variable & incomingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
+//        LPINFO("After coming in ("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<incomingVariable.getLowerBound()<<" , UB: "<<incomingVariable.getUpperBound());
+
+//        Checker::checkNonbasicVariableStates(*this);
+//        Checker::checkBasicVariableStates(*this);
+//        Checker::checkVariableStateAttachedValues(*this);
 
         //Update the pricing
         if (m_pricing) {

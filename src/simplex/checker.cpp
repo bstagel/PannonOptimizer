@@ -546,7 +546,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
         Numerical::Double value = simplex.m_basicVariableValues.at(basisIndex);
         if((Numerical::lessthan(value, lb, tolerance) &&  state != Simplex::MINUS)){
             if(print){
-                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY (var: " << simplex.m_basisHead[basisIndex] << ") << : "
                        << " state : " << state << " - NOT MINUS"
                        << " lb    : " << lb
                        << " value : " << value
@@ -556,7 +556,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
             okay = false;
         } else if((Numerical::lessthan(ub, value, tolerance) &&  state != Simplex::PLUS)){
             if(print){
-                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY (var: " << simplex.m_basisHead[basisIndex] << ") << : "
                        << " state : " << state << " - NOT PLUS"
                        << " lb    : " << lb
                        << " value : " << value
@@ -566,7 +566,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
             okay = false;
         } else if(Numerical::lessthan(lb, value, tolerance) && Numerical::lessthan(value, ub, tolerance) &&  state != Simplex::FEASIBLE){
             if(print){
-                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY: "
+                LPINFO("UNSATISFIED BASIC VARIABLE FEASIBILITY (var: " << simplex.m_basisHead[basisIndex] << ") << : "
                        << " state : " << state << " - NOT FEASIBLE"
                        << " lb    : " << lb
                        << " value : " << value

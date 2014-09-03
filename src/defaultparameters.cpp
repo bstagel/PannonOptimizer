@@ -7,7 +7,7 @@
 //Linalg Parameters
 const double DefaultParameters::E_ABSOLUTE = 1.0E-14;
 const double DefaultParameters::E_RELATIVE = 1.0E-10;
-const double DefaultParameters::SPARSITY_RATIO = 0.05;
+const double DefaultParameters::SPARSITY_RATIO = 0.45;
 const int DefaultParameters::ELBOWROOM = 5;
 
 //Simplex Parameters
@@ -37,8 +37,8 @@ const int DefaultParameters::SIMPRI_PHASEII_IMPROVING_CANDIDATES = 0;
 //Ratiotest
 const int DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 2;
-const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 0;
-const int DefaultParameters::ENABLE_FAKE_FEASIBILITY = 1;
+const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 2;
+const int DefaultParameters::ENABLE_FAKE_FEASIBILITY = 0;
 const double DefaultParameters::EXPAND_MULTIPLIER = 0.5;
 const int DefaultParameters::EXPAND_DIVIDER = 10000;
 const int DefaultParameters::EXPAND_DUAL_PHASEI = 0;

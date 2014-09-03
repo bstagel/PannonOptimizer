@@ -12,6 +12,8 @@ const static char * ITERATION_INVERSION_NAME = "Inv";
 const static char * SOLUTION_ITERATION_NAME = "Total iterations";
 const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
 
+const static char * EXPORT_PHASE1_ITERATION = "export_phase1_iteration";
+const static char * EXPORT_PHASE1_TIME = "export_phase1_time";
 const static char * EXPORT_ITERATION = "export_iteration";
 const static char * EXPORT_TIME = "export_time";
 
@@ -21,6 +23,9 @@ SimplexController::SimplexController():
     m_primalSimplex(NULL),
     m_dualSimplex(NULL),
     m_currentSimplex(NULL),
+    m_iterationIndex(0),
+    m_phase1Iteration(0),
+    m_phase1Time(0.0),
     m_freshBasis(false),
     //Parameter references
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
@@ -106,6 +111,11 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
         if(m_exportType == 0){
             result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
@@ -115,6 +125,11 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
         } else if (m_exportType == 1) {
             result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_PHASE1_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
             result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
@@ -165,6 +180,10 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
     case IterationReportProvider::IRF_EXPORT:
         if(name == EXPORT_TRIGGERED_REINVERSION){
             reply.m_integer = m_triggeredReinversion;
+        } else if(name == EXPORT_PHASE1_TIME){
+            reply.m_double = m_phase1Time;
+        } else if(name == EXPORT_PHASE1_ITERATION){
+            reply.m_integer = m_phase1Iteration;
         } else if(name == EXPORT_ITERATION){
             reply.m_integer = m_iterationIndex;
         } else if(name == EXPORT_TIME){
@@ -219,6 +238,12 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
                                                    m_dualSimplex->getDualSolution();
 }
 
+void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
+{
+    m_phase1Iteration = m_iterationIndex;
+    m_phase1Time = phase1Time;
+}
+
 void SimplexController::solve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -232,10 +257,10 @@ void SimplexController::solve(const Model &model)
     m_currentAlgorithm = (Simplex::ALGORITHM)simplexParameters.getIntegerParameterValue("starting_algorithm");
 
     if (m_currentAlgorithm == Simplex::PRIMAL){
-        m_primalSimplex = new PrimalSimplex();
+        m_primalSimplex = new PrimalSimplex(*this);
         m_currentSimplex = m_primalSimplex;
     }else{
-        m_dualSimplex = new DualSimplex();
+        m_dualSimplex = new DualSimplex(*this);
         m_currentSimplex = m_dualSimplex;
     }
 
@@ -406,14 +431,14 @@ void SimplexController::switchAlgorithm(const Model &model)
 {
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
-        m_primalSimplex = new PrimalSimplex();
+        m_primalSimplex = new PrimalSimplex(*this);
         m_primalSimplex->setModel(model);
         m_primalSimplex->setSolveTimer(&m_solveTimer);
         m_primalSimplex->setIterationReport(m_iterationReport);
         m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
-        m_dualSimplex = new DualSimplex();
+        m_dualSimplex = new DualSimplex(*this);
         m_dualSimplex->setModel(model);
         m_dualSimplex->setSolveTimer(&m_solveTimer);
         m_dualSimplex->setIterationReport(m_iterationReport);

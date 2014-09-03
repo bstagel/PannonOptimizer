@@ -32,7 +32,7 @@ bool DualFeasibilityChecker::checkFeasibility(){
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
-        //DEBUG
+//        //DEBUG
 //        int variableIndex = -1;
 //        Numerical::Double tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
 //        IndexList<const Numerical::Double*>::Iterator it;
@@ -42,6 +42,8 @@ bool DualFeasibilityChecker::checkFeasibility(){
 //            variableIndex = it.getData();
 //            if(m_reducedCosts.at(variableIndex) < -tolerance){
 //                LPINFO("Nonbasic_at_LB d: "<<m_reducedCosts.at(variableIndex));
+//                LPINFO(m_model.getVariable(variableIndex));
+//                exit(-1);
 //                return false;
 //            }
 //        }
@@ -50,6 +52,7 @@ bool DualFeasibilityChecker::checkFeasibility(){
 //            variableIndex = it.getData();
 //            if(m_reducedCosts.at(variableIndex) > tolerance){
 //                LPINFO("Nonbasic_at_UB, d: "<<m_reducedCosts.at(variableIndex));
+//                exit(-1);
 //                return false;
 //            }
 //        }
@@ -58,6 +61,7 @@ bool DualFeasibilityChecker::checkFeasibility(){
 //            variableIndex = it.getData();
 //            if(Numerical::fabs(m_reducedCosts.at(variableIndex)) > tolerance){
 //                LPINFO("Nonbasic_FREE, d: "<<m_reducedCosts.at(variableIndex));
+//                exit(-1);
 //                return false;
 //            }
 //        }
@@ -66,7 +70,7 @@ bool DualFeasibilityChecker::checkFeasibility(){
     return false;
 }
 
-void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
+bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phase I objective function value
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);
     m_reducedCostFeasibilities->clearPartition(Simplex::MINUS);
@@ -98,10 +102,19 @@ void DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
                 }
         }
     }
+
+    IndexList<>::Iterator setMit;
+    IndexList<>::Iterator setMendit;
+    IndexList<>::Iterator setPit;
+    IndexList<>::Iterator setPendit;
+
+    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
+    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
+
+    return ((setMit == setMendit) && (setPit == setPendit));
 }
 
 void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, Numerical::Double tolerance) {
-//    LPINFO(" -- FEAS CORRECTION -- ");
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
 
@@ -112,7 +125,8 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, 
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
-            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < tolerance){
+            if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < -tolerance){
+//                LPINFO("Do a bound flip LB -> UB (T+ set)");
                 //Do a bound flip LB -> UB (T+ set)
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 //Compute (l_j-u_j)*a_j
@@ -126,6 +140,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, 
                 }
             } else
                 if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB && m_reducedCosts.at(variableIndex) > tolerance){
+//                LPINFO("Do a bound flip UB -> LB (T- set)");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));

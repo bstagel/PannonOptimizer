@@ -910,7 +910,7 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     }*/
 
     const Numerical::Double * ptrSparse = data;
-    const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
+//    const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
     const unsigned int * ptrIndex = index;
     //double res = 0;
     Numerical::Double pos = 0;
