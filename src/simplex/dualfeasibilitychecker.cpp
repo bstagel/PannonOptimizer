@@ -181,15 +181,13 @@ void DualFeasibilityChecker::updateFeasibilities(const std::vector<int> & update
                 m_reducedCostFeasibilities->move(index,Simplex::MINUS);
             }
         } else
-        if (updateVector[index] == 2) {
-            if (m_reducedCostFeasibilities->where(index) == Simplex::MINUS) {
+        if (updateVector[index] == 2 &&
+             (m_reducedCostFeasibilities->where(index) == Simplex::MINUS)) {
                 m_reducedCostFeasibilities->move(index,Simplex::PLUS);
-            }
         } else
-        if (updateVector[index] == -2) {
-            if (m_reducedCostFeasibilities->where(index) == Simplex::PLUS) {
+        if (updateVector[index] == -2 &&
+            (m_reducedCostFeasibilities->where(index) == Simplex::PLUS)) {
                 m_reducedCostFeasibilities->move(index,Simplex::MINUS);
             }
-        }
     }
 }
