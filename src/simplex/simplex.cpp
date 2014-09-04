@@ -368,12 +368,12 @@ void Simplex::iterate()
 
     m_priceTimer.start();
     price();
-
     m_priceTimer.stop();
+
     m_selectPivotTimer.start();
     selectPivot();
-
     m_selectPivotTimer.stop();
+
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
