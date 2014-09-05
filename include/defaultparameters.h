@@ -46,8 +46,7 @@ public:
     static const int ENABLE_FAKE_FEASIBILITY;
     static const double EXPAND_MULTIPLIER;
     static const int EXPAND_DIVIDER;
-    static const int EXPAND_DUAL_PHASEI;
-    static const int EXPAND_DUAL_PHASEII;
+    static const int EXPAND;
     //Perturbation
     static const int PERTURB_COST_VECTOR;
     static const double EPSILON_COST_VECTOR;

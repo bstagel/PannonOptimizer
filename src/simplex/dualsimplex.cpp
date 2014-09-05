@@ -294,7 +294,7 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() {
-    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") == 0){
+    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
         m_feasible = m_feasibilityChecker->computeFeasibility(m_masterTolerance);
     }else{
         m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
@@ -303,7 +303,7 @@ void DualSimplex::computeFeasibility() {
     //In phase II check whether the bounded variables are correct or not
     //Do the feasibility correction if we entered phase two
     if(m_feasible){
-        if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") == 0){
+        if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_masterTolerance);
         }else{
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
@@ -598,7 +598,7 @@ void DualSimplex::checkReferenceObjective() {
 
 void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_dual_phaseII") > 1 ) {
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") > 1 ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {

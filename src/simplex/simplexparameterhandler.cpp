@@ -175,17 +175,11 @@ void SimplexParameterHandler::writeParameterFile(){
         out << "! EXPAND divider initializing value \n"
                "\t" << "expand_divider = " << writeParameter("expand_divider") << "\n";
 
-        out << "! EXPAND procedure in Dual Phase I \n"
+        out << "! EXPAND procedure \n"
                "\t! 0 = Inactive \n"
                "\t! 1 = Harris ratiotest \n"
                "\t! 2 = Expanding tolerance \n"
-               "\t" << "expand_dual_phaseI = " << writeParameter("expand_dual_phaseI") << "\n";
-
-        out << "! EXPAND procedure in Dual Phase II \n"
-               "\t! 0 = Inactive \n"
-               "\t! 1 = Harris ratiotest \n"
-               "\t! 2 = Expanding tolerance \n"
-               "\t" << "expand_dual_phaseII = " << writeParameter("expand_dual_phaseII") << "\n";
+               "\t" << "expand = " << writeParameter("expand") << "\n";
 
         out << "! Cost vector perturbation \n"
                "\t! 0 = Inactive \n"
@@ -342,10 +336,8 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("expand_multiplier", DefaultParameters::EXPAND_MULTIPLIER);
     createParameter("expand_divider", Entry::INTEGER);
     setParameterValue("expand_divider", DefaultParameters::EXPAND_DIVIDER);
-    createParameter("expand_dual_phaseI", Entry::INTEGER);
-    setParameterValue("expand_dual_phaseI", DefaultParameters::EXPAND_DUAL_PHASEI);
-    createParameter("expand_dual_phaseII", Entry::INTEGER);
-    setParameterValue("expand_dual_phaseII", DefaultParameters::EXPAND_DUAL_PHASEII);
+    createParameter("expand", Entry::INTEGER);
+    setParameterValue("expand", DefaultParameters::EXPAND);
 
     //Perturbation
     createParameter("perturb_cost_vector",Entry::INTEGER);

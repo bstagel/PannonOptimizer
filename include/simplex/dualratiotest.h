@@ -310,16 +310,15 @@ private:
     const int & m_enableFakeFeasibility;
 
     /**
-     * Parameter reference of  run-time parameter "expand_dual_phaseI",
+     * Parameter reference of run-time parameter "expand",
      * see SimplexParameterHandler for details.
      */
-    const int & m_expandDualPhase1;
+    const int & m_expand;
 
     /**
-     * Parameter reference of  run-time parameter "expand_dual_phaseII",
-     * see SimplexParameterHandler for details.
+     * This is the value of the tolerance increment in the expand procedure.
      */
-    const int & m_expandDualPhase2;
+    Numerical::Double m_toleranceStep;
 
     /**
      * Holds whether the last iteration was degenerate or not.
@@ -331,16 +330,6 @@ private:
      * @param alpha the reduced cost values are devided by the alpha values
      */
     void generateSignedBreakpointsPhase1(const Vector& alpha);
-
-    /**
-     * With this function we can define ratios corresponding to the expanding tolerance.
-     * @param alpha the reduced cost values are devided by the alpha values
-     * @param workingTolerance shows the value of the expanding tolerance in the current iteration
-     * @param secondTurn is an optional parameter for the second pass of the expand procedure
-     */
-    void generateExpandedBreakpointsPhase1(const Vector& alpha,
-                                           Numerical::Double workingTolerance,
-                                           bool secondTurn = false);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 1.
