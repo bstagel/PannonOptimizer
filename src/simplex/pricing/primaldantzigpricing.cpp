@@ -184,20 +184,20 @@ int PrimalDantzigPricing::performPricingPhase1()
     IndexList<const Numerical::Double*>::Iterator endit;
     m_variableStates.getIterators(&it,&endit,0,5);
 
-    for(;it!=endit;it++){
-        if(m_phase1ReducedCosts[it.getData()] < 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB){
-            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-        }
-        if(m_phase1ReducedCosts[it.getData()] > 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_UB){
-            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-        }
-        if(m_phase1ReducedCosts[it.getData()] != 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_FREE){
-            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-        }
-    }
+//    for(;it!=endit;it++){
+//        if(m_phase1ReducedCosts[it.getData()] < 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB){
+//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+//        }
+//        if(m_phase1ReducedCosts[it.getData()] > 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_UB){
+//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+//        }
+//        if(m_phase1ReducedCosts[it.getData()] != 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_FREE){
+//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
+//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
+//        }
+//    }
 
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;

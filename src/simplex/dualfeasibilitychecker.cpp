@@ -32,39 +32,6 @@ bool DualFeasibilityChecker::checkFeasibility(){
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
 
     if ( (setMit == setMendit) && (setPit == setPendit) ) {
-//        //DEBUG
-//        int variableIndex = -1;
-//        Numerical::Double tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-//        IndexList<const Numerical::Double*>::Iterator it;
-//        IndexList<const Numerical::Double*>::Iterator endit;
-//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_AT_LB);
-//        for(; it != endit; it++){
-//            variableIndex = it.getData();
-//            if(m_reducedCosts.at(variableIndex) < -tolerance){
-//                LPINFO("Nonbasic_at_LB d: "<<m_reducedCosts.at(variableIndex));
-//                LPINFO(m_model.getVariable(variableIndex));
-//                exit(-1);
-//                return false;
-//            }
-//        }
-//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_AT_UB);
-//        for(; it != endit; it++){
-//            variableIndex = it.getData();
-//            if(m_reducedCosts.at(variableIndex) > tolerance){
-//                LPINFO("Nonbasic_at_UB, d: "<<m_reducedCosts.at(variableIndex));
-//                exit(-1);
-//                return false;
-//            }
-//        }
-//        m_variableStates->getIterators(&it,&endit,Simplex::NONBASIC_FREE);
-//        for(; it != endit; it++){
-//            variableIndex = it.getData();
-//            if(Numerical::fabs(m_reducedCosts.at(variableIndex)) > tolerance){
-//                LPINFO("Nonbasic_FREE, d: "<<m_reducedCosts.at(variableIndex));
-//                exit(-1);
-//                return false;
-//            }
-//        }
         return true;
     }
     return false;
