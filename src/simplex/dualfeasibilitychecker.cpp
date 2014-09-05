@@ -22,21 +22,6 @@ DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
 
 }
 
-bool DualFeasibilityChecker::checkFeasibility(){
-    IndexList<>::Iterator setMit;
-    IndexList<>::Iterator setMendit;
-    IndexList<>::Iterator setPit;
-    IndexList<>::Iterator setPendit;
-
-    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
-    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
-
-    if ( (setMit == setMendit) && (setPit == setPendit) ) {
-        return true;
-    }
-    return false;
-}
-
 bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phase I objective function value
     m_reducedCostFeasibilities->clearPartition(Simplex::FEASIBLE);

@@ -19,25 +19,10 @@ PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
 
 }
 
-bool PrimalFeasibilityChecker::checkFeasibility()
+bool PrimalFeasibilityChecker::computeFeasibilities(Numerical::Double tolerance)
 {
-//    computeFeasibilities();
-    IndexList<>::Iterator setMit;
-    IndexList<>::Iterator setMendit;
-    IndexList<>::Iterator setPit;
-    IndexList<>::Iterator setPendit;
-
-    m_basicVariableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
-    m_basicVariableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
-
-    if ( (setMit == setMendit) && (setPit == setPendit) ) {
-        return true;
-    }
-    return false;
-}
-
-void PrimalFeasibilityChecker::computeFeasibilities()
-{
+    //TODO: Toleranciakezeles
+    __UNUSED(tolerance);
     //this function determines M/F/P sets, phaseI objective value
 
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
@@ -71,4 +56,14 @@ void PrimalFeasibilityChecker::computeFeasibilities()
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, basisIndex);
         }
     }
+
+    IndexList<>::Iterator setMit;
+    IndexList<>::Iterator setMendit;
+    IndexList<>::Iterator setPit;
+    IndexList<>::Iterator setPendit;
+
+    m_basicVariableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
+    m_basicVariableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+
+    return ( (setMit == setMendit) && (setPit == setPendit) );
 }

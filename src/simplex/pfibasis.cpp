@@ -744,7 +744,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     static thread_local std::vector<int> helper;
     helper.resize(m_model.getRowCount(), 0);
     for (; it != itend; it++) {
-        if (*it != (int) columnindex) {
+        if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
             if(m_basicColumnCopies[*it]==NULL){
                 m_basicColumnCopies[*it] = new Vector(*(m_basicColumns[*it]));
                 m_basicColumns[*it] = m_basicColumnCopies[*it];
@@ -755,8 +755,6 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             Vector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-//                    m_rowNonzeroIndices[columnIt.getIndex()].remove(*it);
-//                    m_rowCounts[columnIt.getIndex()]--;
                     helper[columnIt.getIndex()]--;
                 }
             }
@@ -771,8 +769,6 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             for (; columnIt < columnItend; columnIt++) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
                     helper[columnIt.getIndex()]++;
-//                    m_rowNonzeroIndices[columnIt.getIndex()].push_back(*it);
-//                    m_rowCounts[columnIt.getIndex()]++;
                     newColumnCount++;
                 }
             }
@@ -931,7 +927,7 @@ void PfiBasis::invertM() {
                         for (; vectorIt < vectorItend; vectorIt++) {
                             if (m_rowCounts[vectorIt.getIndex()] >= 0) {
                                 m_rowCounts[vectorIt.getIndex()]--;
-                                m_rowNonzeroIndices[vectorIt.getIndex()].remove(columnindex);
+//                                m_rowNonzeroIndices[vectorIt.getIndex()].remove(columnindex);
                             }
                         }
                         //Update the column counts too
@@ -1004,7 +1000,7 @@ void PfiBasis::invertM() {
                         //If the row of the iterated element is still active
                         if (m_rowCounts[index] > -1) {
                             m_rowCounts[index]--;
-                            m_rowNonzeroIndices[index].remove(columnindex);
+//                            m_rowNonzeroIndices[index].remove(columnindex);
                         }
                     }
                     //Update the column counts too
@@ -1032,7 +1028,7 @@ void PfiBasis::invertM() {
                         //If the row of the iterated element is still active
                         if (m_rowCounts[index] > -1) {
                             m_rowCounts[index]--;
-                            m_rowNonzeroIndices[index].remove(columnindex);
+//                            m_rowNonzeroIndices[index].remove(columnindex);
                         }
                     }
                     //Set the column count to zero to represent that which column is unstable.

@@ -229,8 +229,6 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
             reply.m_double = m_computeReducedCostsTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME) {
             reply.m_double = m_computeFeasibilityTimer.getCPUTotalElapsed();
-        } else if (name == SOLUTION_CHECK_FEASIBILITY_TIMER_NAME) {
-            reply.m_double = m_checkFeasibilityTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_PRICE_TIMER_NAME) {
             reply.m_double = m_priceTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_SELECT_PIVOT_TIMER_NAME) {
@@ -360,12 +358,6 @@ void Simplex::iterate()
 {
     computeWorkingTolerance();
 
-    m_checkFeasibilityTimer.start();
-    checkFeasibility();
-    m_checkFeasibilityTimer.stop();
-
-    setReferenceObjective();
-
     m_priceTimer.start();
     price();
     m_priceTimer.stop();
@@ -377,8 +369,6 @@ void Simplex::iterate()
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
-
-    checkReferenceObjective();
 }
 
 //void Simplex::constraintAdded()

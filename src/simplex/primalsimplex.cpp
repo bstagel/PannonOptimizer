@@ -201,13 +201,10 @@ void PrimalSimplex::releaseModules() {
 }
 
 void PrimalSimplex::computeFeasibility() {
-    m_feasibilityChecker->computeFeasibilities();
-    m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
-}
-
-void PrimalSimplex::checkFeasibility() {
+    //TODO: A toleranciakezelest helyretenni
     bool lastFeasible = m_feasible;
-    m_feasible = m_feasibilityChecker->checkFeasibility();
+    m_feasible = m_feasibilityChecker->computeFeasibilities(m_workingTolerance);
+    m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
     if(lastFeasible == false && m_feasible == true){
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
@@ -218,7 +215,6 @@ void PrimalSimplex::checkFeasibility() {
         //Becomes infeasible
         m_fallbacks++;
     }
-
 }
 
 void PrimalSimplex::price() {
