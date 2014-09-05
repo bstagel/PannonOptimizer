@@ -30,17 +30,12 @@ public:
                              const std::vector<int> &basisHead);
 
     /**
-     * This function checks, if there is any basic variable with M or P type infeasibility.
-     * @return the boolean value of the feasibility property.
-     */
-    bool checkFeasibility();
-
-    /**
      * This function computes the feasibilities of the basic variables.
      * It determines the M, F, P feasibility sets, and the phase 1 objective value, the sum of primal infeasibilities.
      * @param tolerance is the currently used primal feasibility tolerance
+     * @return True if everything is dual feasible
      */
-    void computeFeasibilities();
+    bool computeFeasibilities(Numerical::Double tolerance);
 
     /**
      * Getter of the primal phase 1 objective value, the sum of primal infeasibilities.

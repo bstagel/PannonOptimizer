@@ -39,12 +39,6 @@ public:
                            const Basis& basis);
 
     /**
-     * This function checks, if there is any reduced cost with M or P type infeasibility.
-     * @return the boolean value of the feasibility property.
-     */
-    bool checkFeasibility();
-
-    /**
      * This function computes the feasibilities of the reduced costs.
      * It determines the M, F, P feasibility sets, and the phase 1 objective value,
      * the sum of dual infeasibilities.

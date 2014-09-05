@@ -294,6 +294,7 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() {
+	m_lastFeasible = m_feasible;
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
         m_feasible = m_feasibilityChecker->computeFeasibility(m_masterTolerance);
     }else{
@@ -309,11 +310,6 @@ void DualSimplex::computeFeasibility() {
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
         }
     }
-}
-
-void DualSimplex::checkFeasibility() {
-    m_lastFeasible = m_feasible;
-    m_feasible = m_feasibilityChecker->checkFeasibility();
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
         if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
@@ -386,11 +382,14 @@ void DualSimplex::selectPivot() {
 
 void DualSimplex::update() {
 
+
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
+
+    setReferenceObjective();
 
 //    Checker::checkBasicVariableFeasibilityStates(*this);
 
@@ -560,6 +559,9 @@ void DualSimplex::update() {
                                         m_pivotRowOfBasisInverse);
         }
     }
+
+    checkReferenceObjective();
+
     //Update the reduced costs
     updateReducedCosts();
 
@@ -775,7 +777,7 @@ void DualSimplex::updateReducedCosts() {
     //LPWARNING(dualTheta << " vs " << m_dualTheta << "  " << (m_dualTheta - dualTheta) << "   = " << (m_reducedCosts.at( m_incomingIndex )) <<
     //          " / " << m_incomingAlpha.at( m_outgoingIndex ) << "   " << m_pivotRow.at( m_incomingIndex ));
 
-    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow );
+    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
 }

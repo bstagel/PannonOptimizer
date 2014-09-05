@@ -116,7 +116,9 @@ public:
      * @param value is the actual value of the ratio
      * @param expandedValue is the expanded value of the ratio
      */
-    void insertBreakpoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue = Numerical::Infinity);
+    ALWAYS_INLINE void insertBreakpoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue = Numerical::Infinity){
+        m_breakpoints.emplace_back(variableIndex,value,expandedValue,-Numerical::Infinity);
+    }
 
     /**
      * This is the function which provides the breakpoints to the ratiotests.
@@ -148,9 +150,8 @@ public:
 
     /**
      * In this function we can implement in what case what sorting algorithm we want to use.
-     * @param expand shows if the expanded values of the breakpoints should be considered
      */
-    void selectMethod(bool expand = false);
+    void initSorting();
 
     /**
      * A simple initializing function which performs a clear() and a reserve() operation.
@@ -163,12 +164,8 @@ public:
      * In the first pass ratios with expanded bounds are defined, and a theta steplength is choosen among them.
      * In the second pass of the Harris ratio test and the Expand procedure we need ratios
      * (defined with exact bounds) smaller than parameter theta.
-     * @param theta is the steplength definded by expanded bounds
-     * @param boundflips This vector contains the boundflipping variables, these are left out from
-     *  the second pass ratios of the expand procedure.
      */
-    const std::vector<const BreakPoint *> &getExpandSecondPass(Numerical::Double theta,
-                                                               const std::vector<unsigned int> &boundflips);
+    const std::vector<const BreakPoint *> &getExpandSecondPass();
 
 private:
     /**
@@ -187,12 +184,6 @@ private:
      * can be obtained if we substract this value from the size of the vector.
      */
     int m_unsorted;
-
-    /**
-     * This member indicates whther the expand procedure is turned on or not.
-     * If it is on then the expanded values of the breakpoints will be considered.
-     */
-    bool m_expand;
 
     /**
      * Vector containing the ratios of the expand second pass used in the Harris ratio test and the Expand procedure.

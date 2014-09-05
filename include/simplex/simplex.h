@@ -227,11 +227,6 @@ protected:
     Timer m_computeFeasibilityTimer;
 
     /**
-     * Computes the time of simply checking the feasibility.
-     */
-    Timer m_checkFeasibilityTimer;
-
-    /**
      * Computes the time that the pricing takes.
      */
     Timer m_priceTimer;
@@ -512,11 +507,6 @@ protected:
      * Pure virtual function for computing the feasibility, implemented in child classes.
      */
     virtual void computeFeasibility() = 0;
-
-    /**
-     * Pure virtual function for checking the feasibility, implemented in child classes.
-     */
-    virtual void checkFeasibility() = 0;
 
     /**
      * Pure virtual function for the pricing module,

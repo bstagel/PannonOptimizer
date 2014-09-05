@@ -105,14 +105,9 @@ private:
 
     /**
      * Inherited from the parent Simplex class, computing the measure of dual infeasibility of the reduced costs.
-     */
-    virtual void computeFeasibility();
-
-    /**
-     * Inherited from the parent Simplex class, checking the dual feasibility of the reduced costs.
      * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
-    virtual void checkFeasibility();
+    virtual void computeFeasibility();
 
     /**
      * Inherited from the parent Simplex class, performing the dual pricing.

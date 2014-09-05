@@ -39,7 +39,7 @@ const int DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION = 1;
 const int DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION = 1;
 const int DefaultParameters::ENABLE_FAKE_FEASIBILITY = 0;
-const double DefaultParameters::EXPAND_MULTIPLIER = 0.5;
+const double DefaultParameters::EXPAND_MULTIPLIER = 0.01;
 const int DefaultParameters::EXPAND_DIVIDER = 10000;
 const int DefaultParameters::EXPAND = 2;
 //Perturbation
