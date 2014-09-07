@@ -737,7 +737,7 @@ public:
     }
 
     /**
-     * Gives a rator pointing to the first nonzero element of the vector.
+     * Gives a NonzeroIterator pointing to the first nonzero element of the vector.
      *
      * @see NonzeroIterator
      * @return A NonzeroIterator pointing to the first nonzero.
