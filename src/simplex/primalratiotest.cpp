@@ -22,9 +22,9 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_phaseIObjectiveValue(0),
     m_phaseIIObjectiveValue(0),
     m_nonlinearPrimalPhaseIFunction(static_cast<PRIMAL_RATIOTEST_METHOD>
-                                    (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function"))),
-    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")),
-    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility"))
+                                    (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_primal_phaseI_function"))),
+    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
+    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility"))
 {
 
 }

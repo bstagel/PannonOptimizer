@@ -258,7 +258,7 @@ protected:
      * Parameter reference of the run-time parameter "export_type",
      * see SimplexParameterHandler for details.
      */
-    const int & m_exportType;
+    const std::string & m_exportType;
 
     /**
      * Parameter reference of the run-time parameter "save_format",

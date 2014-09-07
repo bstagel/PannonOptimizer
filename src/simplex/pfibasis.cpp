@@ -26,11 +26,14 @@ PfiBasis::PfiBasis(const SimplexModel& model,
                    IndexList<const Numerical::Double*>* variableStates,
                    const Vector& basicVariableValues) :
     Basis(model, basisHead, variableStates, basicVariableValues),
-    m_nontriangularMethod(static_cast<NONTRIANGULAR_METHOD>
-                          (SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_method"))),
-    m_nontriangularPivotRule(static_cast<NONTRIANGULAR_PIVOT_RULE>
-                             (SimplexParameterHandler::getInstance().getIntegerParameterValue("nontriangular_pivot_rule"))),
-    m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold"))
+    m_nontriangularMethod(getNontriangularMethod(SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
+    //m_nontriangularMethod(static_cast<NONTRIANGULAR_METHOD>
+    //                      (SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
+    m_nontriangularPivotRule(getNontriangularPivotRule(
+                                 SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_pivot_rule"))),
+    //m_nontriangularPivotRule(static_cast<NONTRIANGULAR_PIVOT_RULE>
+    //                         (SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.PFI.nontriangular_pivot_rule"))),
+    m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold"))
 {
     m_basis = new std::vector<ETM>();
 

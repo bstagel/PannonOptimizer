@@ -28,16 +28,16 @@ SimplexController::SimplexController():
     m_phase1Time(0.0),
     m_freshBasis(false),
     //Parameter references
-    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
-    m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_basis")),
-    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("save_filename")),
-    m_saveLastBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("save_last_basis")),
-    m_loadBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("load_basis")),
-    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
-    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
-    m_exportType(SimplexParameterHandler::getInstance().getIntegerParameterValue("export_type")),
-    m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_export")),
-    m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
+    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
+    m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.SaveBasis.basis")),
+    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.SaveBasis.filename")),
+    m_saveLastBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.SaveBasis.last_basis")),
+    m_loadBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.LoadBasis.basis")),
+    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.filename")),
+    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.format")),
+    m_exportType(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.type")),
+    m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
+    m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0)
 {
     m_iterationReport = new IterationReport();
@@ -108,7 +108,7 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
     case IterationReportProvider::IRF_EXPORT:
     {
         // Parameter study export set
-        if(m_exportType == 0){
+        if(m_exportType == "PARAMETER_STUDY"){
             result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
@@ -122,7 +122,7 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   6, IterationReportField::IRF_FIXED));
             // Ratio test research set
-        } else if (m_exportType == 1) {
+        } else if (m_exportType == "RATIOTEST_STUDY") {
             result.push_back(IterationReportField(EXPORT_TRIGGERED_REINVERSION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
@@ -303,16 +303,21 @@ void SimplexController::solve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
-    const int & iterationLimit = simplexParameters.getIntegerParameterValue("iteration_limit");
-    const double & timeLimit = simplexParameters.getDoubleParameterValue("time_limit");
-    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
+    const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
+    const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
-    const int & switching = simplexParameters.getIntegerParameterValue("switch_algorithm");
+    const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
 
     const int & threadCount = 1;
     __UNUSED(threadCount);
 
-    m_currentAlgorithm = (Simplex::ALGORITHM)simplexParameters.getIntegerParameterValue("starting_algorithm");
+    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
+        m_currentAlgorithm = Simplex::PRIMAL;
+    }
+    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
+    }
 
     if (m_currentAlgorithm == Simplex::PRIMAL){
         m_primalSimplex = new PrimalSimplex(*this);
@@ -353,24 +358,32 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
                 m_freshBasis = true;
-                switch(switching){
+                //switch(switching){
                 //every reinversion
-                case 1:
+                //case 1:
+                if (switching == "SWITCH_BEFORE_INV") {
                     if (m_iterationIndex > 1){
                         switchAlgorithm(model);
                     }
-                    break;
-                    //                //at entering phase-2
-                case 2:
-                    break;
-                    //                first reinversion in phase-2
-                case 3:
+                }
+                //   break;
+                //                //at entering phase-2
+                if (switching == "SWITCH_WHEN_ENTER_PH2") {
+
+                }
+                //case 2:
+                //    break;
+                //                first reinversion in phase-2
+                //case 3:
+                if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
                         switchAlgorithm(model);
                     }
-                    break;
-                    //at degeneracy
-                case 4:
+                }
+                //  break;
+                //at degeneracy
+                //case 4:
+                if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
                             switchAlgorithm(model);
@@ -378,8 +391,9 @@ void SimplexController::solve(const Model &model)
                             switchAlgorithm(model);
                         }
                     }
-                    break;
                 }
+                //  break;
+                //}
             }
             //  lastObjective = parallelIterations(model, reinversionFrequency);
             try{

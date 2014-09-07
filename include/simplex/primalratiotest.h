@@ -247,7 +247,7 @@ private:
      * Reference of the "enable_fake_feasibility" run-time parameter,
      * see SimplexParameterHandler for details.
      */
-    const int & m_enableFakeFeasibility;
+    const bool & m_enableFakeFeasibility;
 
     /**
      * This function computes the ratios in primal phase 1.

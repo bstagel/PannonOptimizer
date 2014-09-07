@@ -184,7 +184,7 @@ private:
      * Parameter reference for "export_type" run-time parameter,
      * for details see SimplexParameterHandler.
      */
-    const int & m_exportType;
+    const std::string & m_exportType;
 
     /**
      * Parameter reference for "enable_export" run-time parameter,

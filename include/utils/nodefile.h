@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <iostream>
 
 /**
@@ -64,6 +65,20 @@ public:
          */
         void getArray(const std::string & name, std::map<unsigned int, std::string>::const_iterator * beginIterator,
                       std::map<unsigned int, std::string>::const_iterator * endIterator) const;
+
+        /**
+         * Returns the set contains the node names.
+         *
+         * @return The set.
+         */
+        std::set<std::string> getNodeNames() const;
+
+        /**
+         * Returns the set contains the value names.
+         *
+         * @return The set.
+         */
+        std::set<std::string> getValueNames() const;
 
         /**
          * Builds the node from the tokenized file.

@@ -22,14 +22,14 @@ PrimalPricing::PrimalPricing(const Vector & basicVariableValues,
     m_simplexModel(model),
     m_basis(basis),
     m_reducedCosts(reducedCosts),
-    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility")),
-    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
-    m_phaseIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_clusters")),
-    m_phaseIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_visit_clusters")),
-    m_phaseIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseI_improving_candidates")),
-    m_phaseIIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_clusters")),
-    m_phaseIIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_visit_clusters")),
-    m_phaseIIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("simpri_phaseII_improving_candidates"))
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility")),
+    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality")),
+    m_phaseIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_clusters")),
+    m_phaseIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_visit_clusters")),
+    m_phaseIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_improving_candidates")),
+    m_phaseIIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_clusters")),
+    m_phaseIIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_visit_clusters")),
+    m_phaseIIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_improving_candidates"))
 
 {
     m_reducedCost = 0.0;

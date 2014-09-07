@@ -63,7 +63,8 @@ public:
      * one with the least row count (to minimize column updates) are choosen to be the pivot.
      */
     enum NONTRIANGULAR_PIVOT_RULE{
-        NONE, THRESHOLD
+        NONE,
+        THRESHOLD
     };
 
     /**
@@ -258,6 +259,31 @@ private:
     void printBlocks() const;
     void printStatistics() const;
     void printTransformationStatistics() const;
+
+    static NONTRIANGULAR_METHOD getNontriangularMethod(const std::string & method) {
+        if (method == "SIMPLE_KERNEL") {
+            return SEARCH;
+        }
+        if (method == "BLOCK_PIVOT") {
+            return BLOCK_TRIANGULAR;
+        }
+        if (method == "BLOCK_ORDER") {
+            return BLOCK_ORDERED_TRIANGULAR;
+        }
+        // TODO: exception
+        return SEARCH;
+    }
+
+    static NONTRIANGULAR_PIVOT_RULE getNontriangularPivotRule(const std::string & method) {
+        if (method == "SIMPLE_PIVOT") {
+            return NONE;
+        }
+        if (method == "THRESHOLD_PIVOT") {
+            return THRESHOLD;
+        }
+        // TODO: exception
+        return NONE;
+    }
 };
 
 #endif // PFIBASIS_H

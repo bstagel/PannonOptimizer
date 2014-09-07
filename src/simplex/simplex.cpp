@@ -61,15 +61,15 @@ Simplex::Simplex(SimplexController &simplexController):
     m_feasible(false),
     m_baseChanged(false),
     //Parameter references
-    m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_export")),
-    m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("export_filename")),
-    m_exportType(SimplexParameterHandler::getInstance().getIntegerParameterValue("export_type")),
-    m_saveFormat(SimplexParameterHandler::getInstance().getStringParameterValue("save_format")),
-    m_saveIteration(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_iteration")),
-    m_savePeriodically(SimplexParameterHandler::getInstance().getIntegerParameterValue("save_periodically")),
-    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("save_filename")),
-    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("load_filename")),
-    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("load_format")),
+    m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
+    m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
+    m_exportType(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.type")),
+    m_saveFormat(SimplexParameterHandler::getInstance().getStringParameterValue("Global.SaveBasis.format")),
+    m_saveIteration(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.SaveBasis.iteration")),
+    m_savePeriodically(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.SaveBasis.periodically")),
+    m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.SaveBasis.filename")),
+    m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.filename")),
+    m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.format")),
     m_masterTolerance(0),
     m_toleranceStep(0),
     m_workingTolerance(0),
@@ -145,7 +145,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     case IterationReportProvider::IRF_EXPORT:
     {
         // Parameter study export set
-        if(m_exportType == 0){
+        if(m_exportType == "PARAMETER_STUDY"){
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
@@ -178,7 +178,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
             // Ratio test research set
-        } else if (m_exportType == 1) {
+        } else if (m_exportType == "RATIOTEST_STUDY") {
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
             result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
@@ -256,19 +256,19 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
         } else if(name == EXPORT_E_RELATIVE){
             reply.m_double = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative");
         } else if(name == EXPORT_E_FEASIBILITY){
-            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
+            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
         } else if(name == EXPORT_E_OPTIMALITY){
-            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
+            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
         } else if(name == EXPORT_E_PIVOT){
-            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
+            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
         } else if(name == EXPORT_PIVOT_THRESHOLD){
-            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
+            reply.m_double = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold");
         } else if(name == EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION){
-            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function");
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseI_function");
         } else if(name == EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION){
-            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function");
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseII_function");
         } else if(name == EXPORT_ENABLE_FAKE_FEASIBILITY){
-            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility");
+            reply.m_integer = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.enable_fake_feasibility");
         }
         break;
 
@@ -300,13 +300,13 @@ void Simplex::setModel(const Model &model) {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
 
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector") != 0){
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){
         m_simplexModel->perturbCostVector();
     }
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_rhs") != 0){
+    if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_rhs") != false){
         m_simplexModel->perturbRHS();
     }
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("shift_bounds") != 0){
+    if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.shift_bounds") != false){
         m_simplexModel->shiftBounds();
     }
 }
@@ -585,14 +585,26 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
 
 void Simplex::findStartingBasis()
 {
-    StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy =
-            (StartingBasisFinder::STARTING_BASIS_STRATEGY)
-            SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_basis_strategy");
-    StartingBasisFinder::STARTING_NONBASIC_STATES startingNonbasicStates =
-            (StartingBasisFinder::STARTING_NONBASIC_STATES)
-            SimplexParameterHandler::getInstance().getIntegerParameterValue("starting_nonbasic_states");
-    m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
+    StartingBasisFinder::STARTING_BASIS_STRATEGY startingBasisStratgy;
+    std::string startingBasisStr = SimplexParameterHandler::getInstance().getStringParameterValue("Starting.Basis.starting_basis_strategy");
+    if (startingBasisStr == "LOGICAL") {
+        startingBasisStratgy = StartingBasisFinder::LOGICAL;
+    }
+    if (startingBasisStr == "CRASH") {
+        startingBasisStratgy = StartingBasisFinder::SYMBOLIC_CRASH;
+    }
 
+    StartingBasisFinder::STARTING_NONBASIC_STATES startingNonbasicStates;
+    std::string startingNonbasisStatesStr = SimplexParameterHandler::getInstance().getStringParameterValue("Starting.Basis.starting_nonbasic_states");
+    if (startingNonbasisStatesStr == "NONBASIC_TO_LOWER") {
+        startingNonbasicStates = StartingBasisFinder::LOWER;
+    }
+    if (startingNonbasisStatesStr == "NONBASIC_TO_UPPER") {
+        startingNonbasicStates = StartingBasisFinder::UPPER;
+    }    m_startingBasisFinder->findStartingBasis(startingBasisStratgy, startingNonbasicStates);
+    if (startingNonbasisStatesStr == "NONBASIC_MIXED") {
+        startingNonbasicStates = StartingBasisFinder::MIXED;
+    }
     if (m_pricing) {
         m_pricing->init();
     } else {
@@ -602,10 +614,10 @@ void Simplex::findStartingBasis()
 
 void Simplex::initModules() {
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
-    int factorizationType = SimplexParameterHandler::getInstance().getIntegerParameterValue("factorization_type");
-    if (factorizationType == 0){
+    std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
+    if (factorizationType == "PFI"){
         m_basis = new PfiBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
-    } else if (factorizationType == 1){
+    } else if (factorizationType == "LU"){
         m_basis = new LuBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
     } else {
         LPERROR("Wrong parameter: factorization_type");
@@ -875,7 +887,7 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
     Numerical::Double lower = -Numerical::Infinity;
     Numerical::Double upper = Numerical::Infinity;
     Numerical::Double feasibilityTolerance =
-            SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility") * 1000;
+            SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility") * 1000;
 
     unsigned int columnIndex;
     unsigned int rowIndex;

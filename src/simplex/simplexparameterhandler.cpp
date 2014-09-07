@@ -3,6 +3,7 @@
  */
 
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/simplexparametercomments.h>
 
 #include <fstream>
 #include <iostream>
@@ -54,8 +55,270 @@ void SimplexParameterHandler::writeParameterFile(){
         out.open(m_filename, std::ios::out | std::ios::binary);
 
         if (!out.is_open()) throw -1;
+        // TODO: ezt majd le kell kodolni normalisan is
+        out << R"(# Simplex parameter file for the Pannon Optimizer
+       # If this file is present, the values of the given parameters can be changed.
 
-        out << "!!! Simplex parameter file for the Pannon Optimizer !!! \n";
+       # Tolerances #
+
+       Tolerances {
+           # Pivot tolerance for SSX iterations
+           e_pivot = 1e-06
+
+           # Feasibility tolerance
+           e_feasibility = 1e-08
+
+           # Optimality tolerance
+           e_optimality = 1e-08
+       }
+
+       # Starting procedures
+
+       Starting {
+           # Presolve
+           Presolve {
+               enable = false
+           }
+
+           # Scaling parameters
+           Scaling {
+               enable = false
+
+               # BENICHOU: Benichou scaling with powers of 2
+               type = BENICHOU
+           }
+
+           # Starting basis procedures
+           Basis {
+               # NONBASIC_TO_LOWER: Non-basic variables at lower bound
+               # NONBASIC_TO_UPPER: Non-basic variables at upper bound
+               # NONBASIC_MIXED: Mixed non-basic variable bounds
+               starting_nonbasic_states = NONBASIC_TO_LOWER
+
+               # Starting basis strategies
+               # LOGICAL: Logical basis
+               # CRASH: CRASH basis
+               starting_basis_strategy = LOGICAL
+           }
+       }
+
+       # Basis factorization
+
+       Factorization {
+           # Type of basis factorization
+           # PFI: Product form of the inverse
+           # LU: LU factorization
+           type = PFI
+
+           # Frequency of reinversions in number of iterations
+           reinversion_frequency = 30
+           # Constant value used for threshold pivoting
+           pivot_threshold = 0.1
+
+           # PFI specific parameters
+           PFI {
+               # The method used to process the non-triangular kernel
+               # SIMPLE_KERNEL: Simple search for potential pivot positions
+               # BLOCK_PIVOT: Create a block triangular form and pivot down the diagonal
+               # BLOCK_ORDER = Create a block triangular form and order the blocks by column counts before pivoting
+               nontriangular_method = BLOCK_ORDER
+
+               # Pivot rules for the non-triangular part
+               # SIMPLE_PIVOT = Simple pivot tolerance is used
+               # THRESHOLD_PIVOT = Threshold pivoting
+               nontriangular_pivot_rule = THRESHOLD_PIVOT
+           }
+       }
+
+       # Pricing
+
+       Pricing {
+           # Pricing type
+           # DANTZIG: Dantzig rule
+           # DEVEX: Devex rule
+           # STEEPEST_EDGE: Steepest edge rule
+           type = DANTZIG
+
+           # Parameters of the SIMPRI partial pricing framework
+           # The range of vectors are divided into clusters during the pricing, which are
+           # scanned as a round robin in order to find improving candidates.
+           # With partial pricing it can be specified that only a certain number
+           # of clusters are visited to find improving candidates. If no candidates
+           # found, more clusters are involved until necessary.
+           # It is also possible to stop the cluster visit if enough candidates are found.
+           # Parameter valus 0 for improving candidates means this stop condition is turned off.
+           # All the three parameters can be specified both for phase I and phase II.
+
+           Simpri {
+               phaseI_clusters = 1
+               phaseI_visit_clusters = 1
+               phaseI_improving_candidates = 0
+               phaseII_clusters = 1
+               phaseII_visit_clusters = 1
+               phaseII_improving_candidates = 0
+           }
+       }
+
+       # Ratiotest
+
+       Ratiotest {
+           # Use the piecewise linear concave function in primal phase I.
+           # TRADITIONAL: Traditional one step method
+           # PIECEWISE: Piecewise linear function
+           # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold
+           nonlinear_primal_phaseI_function = PIECEWISE
+
+           # Use the piecewise linear concave function in dual phase I.
+           # TRADITIONAL: Traditional one step method
+           # PIECEWISE: Piecewise linear function
+           # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold
+           nonlinear_dual_phaseI_function = PIECEWISE
+
+           # Use the piecewise linear concave function in dual phase II.
+           # TRADITIONAL: Traditional one step method
+           # PIECEWIESE: Piecewise linear function
+           # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold
+           nonlinear_dual_phaseII_function = PIECEWISE
+
+           # Enable fake feasibility handling in Dual Phase I and II
+           enable_fake_feasibility = false
+
+           Expand {
+
+               # EXPAND procedure
+               # INACTIVE: Inactive
+               # HARRIS: Harris ratiotest
+               # EXPANDING = Expanding tolerance
+               type = EXPANDING
+
+               # EXPAND multiplier initializing value
+               multiplier = 0.01
+
+               # EXPAND divider initializing value
+               divider = 10000
+
+           }
+
+       }
+
+
+       Perturbation {
+
+           # Cost vector perturbation
+           # INACTIVE: Inactive
+           # STRUCTURAL: Active for structural variables
+           # STRUCTURAL_AND_LOGICAL: Active for structural and logical variables
+           perturb_cost_vector = INACTIVE
+
+           # Measure of perturbation
+           e_cost_vector = 1e-06
+
+           # RHS perturbation
+           perturb_rhs = false
+
+           # Measure of perturbation
+           e_rhs = 1e-06
+
+           # Bound shifting in primal
+           shift_bounds = false
+
+           # Measure of shifting
+           e_bounds = 1e-06
+
+       }
+
+       # Global
+
+       Global {
+
+           # Starting algorithm of the simplex method
+           # PRIMAL: primal simplex
+           # DUAL: dual simplex
+            starting_algorithm = DUAL
+
+           # Algorithm switching switching during the iterations
+           # INACTIVE: inactive
+           # SWITCH_BEFORE_INV: switch algorithm before each inversion
+           # SWITCH_WHEN_ENTER_PH2: switch algorithm immediately when entering phase-2
+           # SWITCH_BEFORE_INV_PH2: switch algorithm before each inversion in phase-2
+           # SWITCH_WHEN_NO_IMPR: switch algorithm if the actual (phase-1 of phase-2) objective value is the same between two inversions
+           switch_algorithm = INACTIVE
+
+           # Level of iteration report
+           # 0 = brief problem report    & solution only                   & only solution time
+           # 1 = brief problem report    & one line per inversion          & only solution time
+           # 2 = detailed problem report & one line per iteration          & brief time report 	b
+           # 3 = detailed problem report & one detailed line per iteration & detailed time report
+           debug_level = 1
+
+           # Maximal number of iterations
+           iteration_limit = 200000
+
+           # Time limit for a problem (sec)
+           time_limit = 3600
+
+           # Previously specified states of the solution algorithm can be saved.
+           # After a filename is specified, there are four options.
+           # The file format can be BAS (standard format) or PBF (PanOpt Basis Format) .
+           # The last basis can be marked to be saved as `basis_filename`_last.`format` .
+           # A basis of a given iteration can be marked to be saved or basis can be saved periodically
+           # each output will follow the following syntax: `basis_filename`_`iteration_number`.`format` .
+           # Both parameters are integers, 0 means saving is turned off.
+
+           SaveBasis {
+               basis = false
+               filename = basis
+               format = PBF
+               last_basis = false
+               iteration = 0
+               periodically = 0
+           }
+
+           # The solver can start from a given basis.
+           # The file format can be BAS (standard format) or PBF (PanOpt Basis Format).
+
+           LoadBasis {
+               basis = false
+               filename = basis
+               format = PBF
+           }
+
+           # The solver can export specific data in CSV format for research purposes.
+           # The export type specifies the set of output to be written.
+           # The export should be clean, it is appended with one line for each problem solved
+           # The available export types are the following:
+           # PARAMETER_STUDY = Parameter study (reporting numerical problems, tolerances and the solution)
+           # RATIOTEST_STUDY = Ratiotest study (reporting measures of the ratio tests)
+
+           Export {
+               enable = false
+               filename = "exported_result.txt"
+               type = PARAMETER_STUDY
+           }
+       }
+
+       enableParallelization = true
+
+       Parallel {
+
+         Thread{
+           Pricing {
+               type = DANTZIG
+           }
+         }
+
+         Thread{
+
+           Pricing {
+               type = DEVEX
+           }
+
+         }
+
+       })";
+
+
+       /* out << "!!! Simplex parameter file for the Pannon Optimizer !!! \n";
         out << "! If this file is present, the values of the given parameters can be changed. \n";
 
         out << std::scientific << "\n";
@@ -264,7 +527,7 @@ void SimplexParameterHandler::writeParameterFile(){
                "! 1 = Ratiotest study (reporting measures of the ratio tests) \n"
                "\t" << "enable_export = " << writeParameter("enable_export") << "\n"
                "\t" << "export_filename = " << writeParameter("export_filename") << "\n"
-               "\t" << "export_type = " << writeParameter("export_type") << "\n";
+               "\t" << "export_type = " << writeParameter("export_type") << "\n";*/
 
 
         out.close();
@@ -277,119 +540,315 @@ void SimplexParameterHandler::writeParameterFile(){
 void SimplexParameterHandler::initParameters()
 {
     //Tolerances
-    createParameter("e_pivot", Entry::DOUBLE);
-    setParameterValue("e_pivot", DefaultParameters::E_PIVOT);
-    createParameter("e_feasibility", Entry::DOUBLE);
-    setParameterValue("e_feasibility", DefaultParameters::E_FEASIBILITY);
-    createParameter("e_optimality", Entry::DOUBLE);
-    setParameterValue("e_optimality", DefaultParameters::E_OPTIMALITY);
+    createParameter("Tolerances.e_pivot",
+                    Entry::DOUBLE,
+                    TOLERANCES_PIVOT_COMMENT);
+    setParameterValue("Tolerances.e_pivot",
+                      DefaultParameters::Tolerances::E_PIVOT);
+
+    createParameter("Tolerances.e_feasibility",
+                    Entry::DOUBLE,
+                    TOLERANCES_E_FEASIBILITY_COMMENT);
+    setParameterValue("Tolerances.e_feasibility",
+                      DefaultParameters::Tolerances::E_FEASIBILITY);
+
+    createParameter("Tolerances.e_optimality",
+                    Entry::DOUBLE,
+                    TOLERANCES_E_OPTIMALITY_COMMENT);
+    setParameterValue("Tolerances.e_optimality",
+                      DefaultParameters::Tolerances::E_OPTIMALITY);
 
     //Starting procedures
-    createParameter("presolve", Entry::BOOL);
-    setParameterValue("presolve", DefaultParameters::PRESOLVE);
-    createParameter("scaling", Entry::INTEGER);
-    setParameterValue("scaling", DefaultParameters::SCALING);
-    createParameter("starting_nonbasic_states", Entry::INTEGER);
-    setParameterValue("starting_nonbasic_states", DefaultParameters::STARTING_NONBASIC_STATES);
-    createParameter("starting_basis_strategy", Entry::INTEGER);
-    setParameterValue("starting_basis_strategy", DefaultParameters::STARTING_BASIS_STRATEGY);
+    createParameter("Starting.Presolve.enable",
+                    Entry::BOOL, STARTING_PRESOLVE_ENABLE_COMMENT);
+    setParameterValue("Starting.Presolve.enable",
+                      DefaultParameters::Starting::Presolve::ENABLE);
+
+    createParameter("Starting.Scaling.enable",
+                    Entry::BOOL,
+                    STARTING_SCALING_ENABLE_COMMENT);
+    setParameterValue("Starting.Scaling.enable",
+                      DefaultParameters::Starting::Scaling::ENABLE);
+
+    createParameter("Starting.Scaling.type",
+                    Entry::STRING,
+                    STARTING_SCALING_TYPE_COMMENT);
+    setParameterValue("Starting.Scaling.type",
+                      DefaultParameters::Starting::Scaling::TYPE);
+
+    createParameter("Starting.Basis.starting_nonbasic_states",
+                    Entry::STRING,
+                    STARTING_BASIS_STARTING_NONBASIC_STATES_COMMENT);
+    setParameterValue("Starting.Basis.starting_nonbasic_states", DefaultParameters::Starting::Basis::STARTING_NONBASIC_STATES);
+
+    createParameter("Starting.Basis.starting_basis_strategy",
+                    Entry::STRING,
+                    STARTING_BASIS_STARTING_BASIS_STRATEGY_COMMENT);
+    setParameterValue("Starting.Basis.starting_basis_strategy",
+                      DefaultParameters::Starting::Basis::STARTING_BASIS_STRATEGY);
 
     //Basis factorization
-    createParameter("factorization_type", Entry::INTEGER);
-    setParameterValue("factorization_type", DefaultParameters::FACTORIZATION_TYPE);
-    createParameter("nontriangular_method", Entry::INTEGER);
-    setParameterValue("nontriangular_method", DefaultParameters::NONTRIANGULAR_METHOD);
-    createParameter("nontriangular_pivot_rule", Entry::INTEGER);
-    setParameterValue("nontriangular_pivot_rule", DefaultParameters::NONTRIANGULAR_PIVOT_RULE);
-    createParameter("reinversion_frequency", Entry::INTEGER);
-    setParameterValue("reinversion_frequency", DefaultParameters::REINVERSION_FREQUENCY);
-    createParameter("pivot_threshold", Entry::DOUBLE);
-    setParameterValue("pivot_threshold", DefaultParameters::PIVOT_THRESHOLD);
+    createParameter("Factorization.type",
+                    Entry::STRING,
+                    FACTORIZATION_TYPE_COMMENT);
+    setParameterValue("Factorization.type",
+                      DefaultParameters::Factorization::TYPE);
+
+    createParameter("Factorization.reinversion_frequency",
+                    Entry::INTEGER,
+                    FACTORIZATION_REINVERSION_FREQUENCY_COMMENT);
+    setParameterValue("Factorization.reinversion_frequency",
+                      DefaultParameters::Factorization::REINVERSION_FREQUENCY);
+
+    createParameter("Factorization.pivot_threshold",
+                    Entry::DOUBLE,
+                    FACTORIZATION_PIVOT_THRESHOLD_COMMENT);
+    setParameterValue("Factorization.pivot_threshold",
+                      DefaultParameters::Factorization::PIVOT_THRESHOLD);
+
+    createParameter("Factorization.PFI.nontriangular_method",
+                    Entry::STRING,
+                    FACTORIZATION_PFI_NONTRIANGULAR_METHOD_COMMENT);
+    setParameterValue("Factorization.PFI.nontriangular_method",
+                      DefaultParameters::Factorization::PFI::NONTRIANGULAR_METHOD);
+
+    createParameter("Factorization.PFI.nontriangular_pivot_rule",
+                    Entry::STRING,
+                    FACTORIZATION_PFI_NONTRIANGULAR_PIVOT_RULE_COMMENT);
+    setParameterValue("Factorization.PFI.nontriangular_pivot_rule",
+                      DefaultParameters::Factorization::PFI::NONTRIANGULAR_PIVOT_RULE);
 
     //Pricing
-    createParameter("pricing_type", Entry::INTEGER);
-    setParameterValue("pricing_type", DefaultParameters::PRICING_TYPE);
-    createParameter("simpri_phaseI_clusters", Entry::INTEGER);
-    setParameterValue("simpri_phaseI_clusters", DefaultParameters::SIMPRI_PHASEI_CLUSTERS);
-    createParameter("simpri_phaseI_visit_clusters", Entry::INTEGER);
-    setParameterValue("simpri_phaseI_visit_clusters", DefaultParameters::SIMPRI_PHASEI_VISIT_CLUSTERS);
-    createParameter("simpri_phaseI_improving_candidates", Entry::INTEGER);
-    setParameterValue("simpri_phaseI_improving_candidates", DefaultParameters::SIMPRI_PHASEI_IMPROVING_CANDIDATES);
-    createParameter("simpri_phaseII_clusters", Entry::INTEGER);
-    setParameterValue("simpri_phaseII_clusters", DefaultParameters::SIMPRI_PHASEII_CLUSTERS);
-    createParameter("simpri_phaseII_visit_clusters", Entry::INTEGER);
-    setParameterValue("simpri_phaseII_visit_clusters", DefaultParameters::SIMPRI_PHASEII_VISIT_CLUSTERS);
-    createParameter("simpri_phaseII_improving_candidates", Entry::INTEGER);
-    setParameterValue("simpri_phaseII_improving_candidates", DefaultParameters::SIMPRI_PHASEII_IMPROVING_CANDIDATES);
+    createParameter("Pricing.type",
+                    Entry::STRING,
+                    PRICING_TYPE_COMMENT);
+    setParameterValue("Pricing.type",
+                      DefaultParameters::Pricing::TYPE);
+
+    createParameter("Pricing.Simpri.phaseI_clusters",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEI_CLUSTERS_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseI_clusters",
+                      DefaultParameters::Pricing::Simpri::PHASEI_CLUSTERS);
+
+    createParameter("Pricing.Simpri.phaseI_visit_clusters",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEI_VISIT_CLUSTERS_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseI_visit_clusters",
+                      DefaultParameters::Pricing::Simpri::PHASEI_VISIT_CLUSTERS);
+
+    createParameter("Pricing.Simpri.phaseI_improving_candidates",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEI_IMPROVING_CANDIDADES_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseI_improving_candidates",
+                      DefaultParameters::Pricing::Simpri::PHASEI_IMPROVING_CANDIDATES);
+
+    createParameter("Pricing.Simpri.phaseII_clusters",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEII_CLUSTERS_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseII_clusters",
+                      DefaultParameters::Pricing::Simpri::PHASEII_CLUSTERS);
+
+    createParameter("Pricing.Simpri.phaseII_visit_clusters",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEII_VISIT_CLUSTERS_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseII_visit_clusters",
+                      DefaultParameters::Pricing::Simpri::PHASEII_VISIT_CLUSTERS);
+
+    createParameter("Pricing.Simpri.phaseII_improving_candidates",
+                    Entry::INTEGER,
+                    PRICING_SIMPRI_PHASEII_IMPROVING_CANDIDADES_COMMENT);
+    setParameterValue("Pricing.Simpri.phaseII_improving_candidates",
+                      DefaultParameters::Pricing::Simpri::PHASEII_IMPROVING_CANDIDATES);
 
     //Ratiotest
-    createParameter("nonlinear_primal_phaseI_function", Entry::INTEGER);
-    setParameterValue("nonlinear_primal_phaseI_function", DefaultParameters::NONLINEAR_PRIMAL_PHASEI_FUNCTION);
-    createParameter("nonlinear_dual_phaseI_function", Entry::INTEGER);
-    setParameterValue("nonlinear_dual_phaseI_function", DefaultParameters::NONLINEAR_DUAL_PHASEI_FUNCTION);
-    createParameter("nonlinear_dual_phaseII_function", Entry::INTEGER);
-    setParameterValue("nonlinear_dual_phaseII_function", DefaultParameters::NONLINEAR_DUAL_PHASEII_FUNCTION);
-    createParameter("enable_fake_feasibility", Entry::INTEGER);
-    setParameterValue("enable_fake_feasibility", DefaultParameters::ENABLE_FAKE_FEASIBILITY);
+    createParameter("Ratiotest.nonlinear_primal_phaseI_function",
+                    Entry::STRING,
+                    RATIOTEST_NONLINEAR_PRIMAL_PHASEI_FUNCTION_COMMENT);
+    setParameterValue("Ratiotest.nonlinear_primal_phaseI_function",
+                      DefaultParameters::Ratiotest::NONLINEAR_PRIMAL_PHASEI_FUNCTION);
 
-    createParameter("expand_multiplier", Entry::DOUBLE);
-    setParameterValue("expand_multiplier", DefaultParameters::EXPAND_MULTIPLIER);
-    createParameter("expand_divider", Entry::INTEGER);
-    setParameterValue("expand_divider", DefaultParameters::EXPAND_DIVIDER);
-    createParameter("expand", Entry::INTEGER);
-    setParameterValue("expand", DefaultParameters::EXPAND);
+    createParameter("Ratiotest.nonlinear_dual_phaseI_function",
+                    Entry::STRING,
+                    RATIOTEST_NONLINEAR_DUAL_PHASEI_FUNCTION_COMMENT);
+    setParameterValue("Ratiotest.nonlinear_dual_phaseI_function",
+                      DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEI_FUNCTION);
+
+    createParameter("Ratiotest.nonlinear_dual_phaseII_function",
+                    Entry::STRING,
+                    RATIOTEST_NONLINEAR_DUAL_PHASEII_FUNCTION_COMMENT);
+    setParameterValue("Ratiotest.nonlinear_dual_phaseII_function",
+                      DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEII_FUNCTION);
+
+    createParameter("Ratiotest.enable_fake_feasibility",
+                    Entry::BOOL,
+                    RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT);
+    setParameterValue("Ratiotest.enable_fake_feasibility",
+                      DefaultParameters::Ratiotest::ENABLE_FAKE_FEASIBILITY);
+
+    createParameter("Ratiotest.Expand.multiplier",
+                    Entry::DOUBLE,
+                    RATIOTEST_EXPAND_MULTIPLIER_COMMENT);
+    setParameterValue("Ratiotest.Expand.multiplier",
+                      DefaultParameters::Ratiotest::Expand::MULTIPLIER);
+
+    createParameter("Ratiotest.Expand.divider",
+                    Entry::INTEGER,
+                    RATIOTEST_EXPAND_DIVIDER_COMMENT);
+    setParameterValue("Ratiotest.Expand.divider",
+                      DefaultParameters::Ratiotest::Expand::DIVIDER);
+
+    createParameter("Ratiotest.Expand.type",
+                    Entry::STRING,
+                    RATIOTEST_EXPAND_TYPE_COMMENT);
+    setParameterValue("Ratiotest.Expand.type",
+                      DefaultParameters::Ratiotest::Expand::TYPE);
 
     //Perturbation
-    createParameter("perturb_cost_vector",Entry::INTEGER);
-    setParameterValue("perturb_cost_vector",DefaultParameters::PERTURB_COST_VECTOR);
-    createParameter("epsilon_cost_vector",Entry::DOUBLE);
-    setParameterValue("epsilon_cost_vector",DefaultParameters::EPSILON_COST_VECTOR);
-    createParameter("perturb_rhs",Entry::INTEGER);
-    setParameterValue("perturb_rhs",DefaultParameters::PERTURB_RHS);
-    createParameter("epsilon_rhs",Entry::DOUBLE);
-    setParameterValue("epsilon_rhs",DefaultParameters::EPSILON_RHS);
-    createParameter("shift_bounds",Entry::INTEGER);
-    setParameterValue("shift_bounds",DefaultParameters::SHIFT_BOUNDS);
-    createParameter("epsilon_bounds",Entry::DOUBLE);
-    setParameterValue("epsilon_bounds",DefaultParameters::EPSILON_BOUNDS);
+    createParameter("Perturbation.perturb_cost_vector",
+                    Entry::STRING,
+                    PERTURBATION_PERTURB_COST_VECTOR_COMMENT);
+    setParameterValue("Perturbation.perturb_cost_vector",
+                      DefaultParameters::Perturbation::PERTURB_COST_VECTOR);
+
+    createParameter("Perturbation.e_cost_vector",
+                    Entry::DOUBLE,
+                    PERTURBATION_E_COST_VECTOR_COMMENT);
+    setParameterValue("Perturbation.e_cost_vector",
+                      DefaultParameters::Perturbation::E_COST_VECTOR);
+
+    createParameter("Perturbation.perturb_rhs",
+                    Entry::BOOL,
+                    PERTURBATION_PERTURB_RHS_COMMENT);
+    setParameterValue("Perturbation.perturb_rhs",
+                      DefaultParameters::Perturbation::PERTURB_RHS);
+
+    createParameter("Perturbation.e_rhs",
+                    Entry::DOUBLE,
+                    PERTURBATION_E_RHS_COMMENT);
+    setParameterValue("Perturbation.e_rhs",
+                      DefaultParameters::Perturbation::E_RHS);
+
+    createParameter("Perturbation.shift_bounds",
+                    Entry::BOOL,
+                    PERTURBATION_SHIFT_BOUNDS_COMMENT);
+    setParameterValue("Perturbation.shift_bounds",
+                      DefaultParameters::Perturbation::SHIFT_BOUNDS);
+
+    createParameter("Perturbation.e_bounds",
+                    Entry::DOUBLE,
+                    PERTURBATION_E_BOUNDS_COMMENT);
+    setParameterValue("Perturbation.e_bounds",
+                      DefaultParameters::Perturbation::E_BOUNDS);
 
     //Global
-    createParameter("starting_algorithm",Entry::INTEGER);
-    setParameterValue("starting_algorithm",DefaultParameters::STARTING_ALGORITHM);
-    createParameter("switch_algorithm",Entry::INTEGER);
-    setParameterValue("switch_algorithm",DefaultParameters::SWITCH_ALGORITHM);
+    createParameter("Global.starting_algorithm",
+                    Entry::STRING,
+                    GLOBAL_STARTING_ALGORITHM_COMMENT);
+    setParameterValue("Global.starting_algorithm",
+                      DefaultParameters::Global::STARTING_ALGORITHM);
 
-    createParameter("debug_level", Entry::INTEGER);
-    setParameterValue("debug_level", DefaultParameters::DEBUG_LEVEL);
-    createParameter("iteration_limit", Entry::INTEGER);
-    setParameterValue("iteration_limit", DefaultParameters::ITERATION_LIMIT);
-    createParameter("time_limit", Entry::DOUBLE);
-    setParameterValue("time_limit", DefaultParameters::TIME_LIMIT);
+    createParameter("Global.switch_algorithm",
+                    Entry::STRING,
+                    GLOBAL_SWITCH_ALGORITHM_COMMENT);
+    setParameterValue("Global.switch_algorithm",
+                      DefaultParameters::Global::SWITCH_ALGORITHM);
 
-    createParameter("save_basis", Entry::BOOL);
-    setParameterValue("save_basis", DefaultParameters::SAVE_BASIS);
-    createParameter("save_filename", Entry::STRING);
-    setParameterValue("save_filename", std::string(DefaultParameters::SAVE_FILENAME));
-    createParameter("save_format", Entry::STRING);
-    setParameterValue("save_format", std::string(DefaultParameters::SAVE_FORMAT));
-    createParameter("save_last_basis", Entry::BOOL);
-    setParameterValue("save_last_basis", DefaultParameters::SAVE_LAST_BASIS);
-    createParameter("save_iteration", Entry::INTEGER);
-    setParameterValue("save_iteration", DefaultParameters::SAVE_ITERATION);
-    createParameter("save_periodically", Entry::INTEGER);
-    setParameterValue("save_periodically", DefaultParameters::SAVE_PERIODICALLY);
+    createParameter("Global.debug_level",
+                    Entry::INTEGER,
+                    GLOBAL_DEBUG_LEVEL_COMMENT);
+    setParameterValue("Global.debug_level",
+                      DefaultParameters::Global::DEBUG_LEVEL);
 
-    createParameter("load_basis", Entry::BOOL);
-    setParameterValue("load_basis", DefaultParameters::LOAD_BASIS);
-    createParameter("load_filename", Entry::STRING);
-    setParameterValue("load_filename", std::string(DefaultParameters::LOAD_FILENAME));
-    createParameter("load_format", Entry::STRING);
-    setParameterValue("load_format", std::string(DefaultParameters::LOAD_FORMAT));
+    createParameter("Global.iteration_limit",
+                    Entry::INTEGER,
+                    GLOBAL_ITERATION_LIMIT_COMMENT);
+    setParameterValue("Global.iteration_limit",
+                      DefaultParameters::Global::ITERATION_LIMIT);
 
-    createParameter("enable_export", Entry::BOOL);
-    setParameterValue("enable_export", DefaultParameters::ENABLE_EXPORT);
-    createParameter("export_filename", Entry::STRING);
-    setParameterValue("export_filename", std::string(DefaultParameters::EXPORT_FILENAME));
-    createParameter("export_type", Entry::INTEGER);
-    setParameterValue("export_type", DefaultParameters::EXPORT_TYPE);
+    createParameter("Global.time_limit",
+                    Entry::DOUBLE,
+                    GLOBAL_TIME_LIMIT_COMMENT);
+    setParameterValue("Global.time_limit",
+                      DefaultParameters::Global::TIME_LIMIT);
+
+    createParameter("Global.SaveBasis.basis",
+                    Entry::BOOL,
+                    GLOBAL_SAVE_BASIS_BASIS_COMMENT);
+    setParameterValue("Global.SaveBasis.basis",
+                      DefaultParameters::Global::SaveBasis::BASIS);
+
+    createParameter("Global.SaveBasis.filename",
+                    Entry::STRING,
+                    GLOBAL_SAVE_BASIS_FILENAME_COMMENT);
+    setParameterValue("Global.SaveBasis.filename",
+                      std::string(DefaultParameters::Global::SaveBasis::FILENAME));
+
+    createParameter("Global.SaveBasis.format",
+                    Entry::STRING,
+                    GLOBAL_SAVE_BASIS_FORMAT_COMMENT);
+    setParameterValue("Global.SaveBasis.format",
+                      std::string(DefaultParameters::Global::SaveBasis::FORMAT));
+
+    createParameter("Global.SaveBasis.last_basis",
+                    Entry::BOOL,
+                    GLOBAL_SAVE_BASIS_LAST_BASIS_COMMENT);
+    setParameterValue("Global.SaveBasis.last_basis",
+                      DefaultParameters::Global::SaveBasis::LAST_BASIS);
+
+    createParameter("Global.SaveBasis.iteration",
+                    Entry::INTEGER,
+                    GLOBAL_SAVE_BASIS_ITERATION_COMMENT);
+    setParameterValue("Global.SaveBasis.iteration",
+                      DefaultParameters::Global::SaveBasis::ITERATION);
+
+    createParameter("Global.SaveBasis.periodically",
+                    Entry::INTEGER,
+                    GLOBAL_SAVE_BASIS_PERIODICALLY_COMMENT);
+    setParameterValue("Global.SaveBasis.periodically",
+                      DefaultParameters::Global::SaveBasis::PERIODICALLY);
+
+    createParameter("Global.LoadBasis.basis",
+                    Entry::BOOL,
+                    GLOBAL_LOAD_BASIS_BASIS_COMMENT);
+    setParameterValue("Global.LoadBasis.basis",
+                      DefaultParameters::Global::LoadBasis::BASIS);
+
+    createParameter("Global.LoadBasis.filename",
+                    Entry::STRING,
+                    GLOBAL_LOAD_BASIS_FILENAME_COMMENT);
+    setParameterValue("Global.LoadBasis.filename",
+                      std::string(DefaultParameters::Global::LoadBasis::FILENAME));
+
+    createParameter("Global.LoadBasis.format",
+                    Entry::STRING,
+                    GLOBAL_LOAD_BASIS_FORMAT_COMMENT);
+    setParameterValue("Global.LoadBasis.format",
+                      std::string(DefaultParameters::Global::LoadBasis::FORMAT));
+
+    createParameter("Global.Export.enable",
+                    Entry::BOOL,
+                    GLOBAL_EXPORT_ENABLE_COMMENT);
+    setParameterValue("Global.Export.enable",
+                      DefaultParameters::Global::Export::ENABLE);
+
+    createParameter("Global.Export.filename",
+                    Entry::STRING,
+                    GLOBAL_EXPORT_FILENAME_COMMENT);
+    setParameterValue("Global.Export.filename",
+                      std::string(DefaultParameters::Global::Export::FILENAME));
+
+    createParameter("Global.Export.type",
+                    Entry::STRING,
+                    GLOBAL_EXPORT_TYPE_COMMENT);
+    setParameterValue("Global.Export.type",
+                      DefaultParameters::Global::Export::TYPE);
+
+    createParameter("enableParallelization",
+                    Entry::BOOL,
+                    ENABLE_PARALLELIZATION_COMMENT);
+    setParameterValue("enableParallelization",
+                      DefaultParameters::ENABLE_PARALLELIZATION);
+
+
 }

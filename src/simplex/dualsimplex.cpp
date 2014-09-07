@@ -43,9 +43,9 @@ DualSimplex::DualSimplex(SimplexController &simplexController):
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
-    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
+    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
+    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
 }
 
 DualSimplex::~DualSimplex()
@@ -107,9 +107,9 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
     case IterationReportProvider::IRF_EXPORT:
     {
         // Ratio test research set
-        if (m_exportType == 0) {
+        if (m_exportType == "PARAMETER_STUDY") {
 
-        } else if (m_exportType == 1) {
+        } else if (m_exportType == "RATIOTEST_STUDY") {
             result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_ACTIVATION_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_STABLE_PIVOT_BACKWARD_STEPS_PHASE1,  20, 0, IterationReportField::IRF_RIGHT,
@@ -223,32 +223,32 @@ void DualSimplex::initModules() {
 
     m_pricing = 0;
     m_pricingController = 0;
-    switch ( SimplexParameterHandler::getInstance().getIntegerParameterValue("pricing_type") ) {
-    case 0:
+    std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
+    if (pricingType == "DANTZIG") {
         m_pricing = new DualDantzigPricing (m_basicVariableValues,
                                             &m_basicVariableFeasibilities,
                                             m_reducedCostFeasibilities,
                                             m_basisHead,
                                             *m_simplexModel,
                                             *m_basis);
-        break;
-    case 1:
+    }
+    if (pricingType == "DEVEX") {
         m_pricing = new DualDevexPricing (m_basicVariableValues,
                                           &m_basicVariableFeasibilities,
                                           m_reducedCostFeasibilities,
                                           m_basisHead,
                                           *m_simplexModel,
                                           *m_basis);
-        break;
-    case 2:
+    }
+    if (pricingType == "STEEPEST_EDGE") {
         m_pricing = new DualSteepestEdgePricing (m_basicVariableValues,
                                                  &m_basicVariableFeasibilities,
                                                  m_reducedCostFeasibilities,
                                                  m_basisHead,
                                                  *m_simplexModel,
                                                  *m_basis);
-        break;
-    case 10:
+    }
+    /*case 10:
         m_pricingController = new DualPricingController (m_basicVariableValues,
                                                          &m_basicVariableFeasibilities,
                                                          m_reducedCostFeasibilities,
@@ -256,7 +256,7 @@ void DualSimplex::initModules() {
                                                          *m_simplexModel,
                                                          *m_basis);
         break;
-    }
+    }*/
 
     Simplex::m_pricing = m_pricing;
 
@@ -295,7 +295,7 @@ void DualSimplex::releaseModules() {
 
 void DualSimplex::computeFeasibility() {
     m_lastFeasible = m_feasible;
-    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
+    if(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") == "INACTIVE"){
         m_feasible = m_feasibilityChecker->computeFeasibility(m_masterTolerance);
     }else{
         m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
@@ -304,7 +304,7 @@ void DualSimplex::computeFeasibility() {
     //In phase II check whether the bounded variables are correct or not
     //Do the feasibility correction if we entered phase two
     if(m_feasible){
-        if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
+        if(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") == "INACTIVE"){
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_masterTolerance);
         }else{
             m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
@@ -312,7 +312,7 @@ void DualSimplex::computeFeasibility() {
     }
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
+        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_WHEN_ENTER_PH2"){
             throw SwitchAlgorithmException("phase-2 entered!");
         }
         m_simplexController.logPhase1Iteration(m_solveTimer->getCPURunningTime());
@@ -621,7 +621,7 @@ void DualSimplex::checkReferenceObjective(bool secondPhase) {
 
 void DualSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") > 1 ) {
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") != "INACTIVE" ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {

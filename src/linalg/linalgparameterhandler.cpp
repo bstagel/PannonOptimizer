@@ -57,7 +57,22 @@ void LinalgParameterHandler::writeParameterFile()
 
         if (!out.is_open()) throw -1;
 
-        out << "!!! Linear Algebraic parameter file for the Pannon Optimizer !!! \n";
+        out << R"(# Linear Algebraic parameter file for the Pannon Optimizer
+       #	If this file is present, the values of the given parameters can be changed.
+
+       # Tolerances
+
+       # Absolute tolerance
+           e_absolute = 1e-14
+       # Relative tolerance for additive operations
+           e_relative = 1e-10
+
+       # Nonzero ratio used as a bound between sparse and dense vector forms
+           sparsity_ratio = 0.45
+       # The number of extra spaces reserved in vectors for new elements
+           elbowroom = 5)";
+
+        /*out << "!!! Linear Algebraic parameter file for the Pannon Optimizer !!! \n";
         out << "!\tIf this file is present, the values of the given parameters can be changed. \n";
 
         out << std::scientific << "\n";
@@ -73,7 +88,7 @@ void LinalgParameterHandler::writeParameterFile()
         out << "! Nonzero ratio used as a bound between sparse and dense vector forms \n"
                "\t" << "sparsity_ratio = " << writeParameter("sparsity_ratio") << "\n";
         out << "! The number of extra spaces reserved in vectors for new elements \n"
-               "\t" << "elbowroom = " << writeParameter("elbowroom") << "\n";
+               "\t" << "elbowroom = " << writeParameter("elbowroom") << "\n";*/
 
         out.close();
     }
@@ -85,15 +100,15 @@ void LinalgParameterHandler::writeParameterFile()
 void LinalgParameterHandler::initParameters()
 {
     //Tolerances
-    createParameter("e_absolute", Entry::DOUBLE);
+    createParameter("e_absolute", Entry::DOUBLE, "# Absolute tolerance");
     setParameterValue("e_absolute", DefaultParameters::E_ABSOLUTE);
-    createParameter("e_relative", Entry::DOUBLE);
+    createParameter("e_relative", Entry::DOUBLE, "# Relative tolerance for additive operations ");
     setParameterValue("e_relative", DefaultParameters::E_RELATIVE);
 
     //Global
-    createParameter("sparsity_ratio", Entry::DOUBLE);
+    createParameter("sparsity_ratio", Entry::DOUBLE, "# Nonzero ratio used as a bound between sparse and dense vector forms");
     setParameterValue("sparsity_ratio", DefaultParameters::SPARSITY_RATIO);
-    createParameter("elbowroom", Entry::INTEGER);
+    createParameter("elbowroom", Entry::INTEGER, "# The number of extra spaces reserved in vectors for new elements");
     setParameterValue("elbowroom", DefaultParameters::ELBOWROOM);
 
 }

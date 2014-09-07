@@ -4,7 +4,6 @@
 
 #include <utils/parameterhandler.h>
 #include <defaultparameters.h>
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -55,98 +54,85 @@ const std::string ParameterHandler::writeParameter(std::string name){
 }
 
 void ParameterHandler::loadValuesFromFile(std::ifstream &in){
+    NodeFile file;
+
     try {
-        std::string line;
-        std::vector<std::string> tokens;
-        in.seekg(0);
-        while (!in.eof()) {
-            line = ignoreEmptyRows(in);
-            if(in.eof()) {
+        file.loadFromStream(in);
+    } catch (const SyntaxErrorException & ex ) {
+        ex.show();
+        exit(1);
+    }
+    const NodeFile::Node & root = file.getDocumentNode();
+
+    processNode(root);
+
+    m_nodeFile = file;
+}
+
+void ParameterHandler::processNode(const NodeFile::Node & node,
+                                   const std::string & name)
+{
+    std::set<std::string> valueNames = node.getValueNames();
+    auto valueIter = valueNames.begin();
+    auto valueIterEnd = valueNames.end();
+    for (; valueIter != valueIterEnd; valueIter++) {
+        std::string parameterName = name;
+        if (parameterName.length() > 0) {
+            parameterName = parameterName + ".";
+        }
+        parameterName = parameterName + *valueIter;
+        //LPINFO(parameterName);
+        std::string value = node.getValue(*valueIter);
+        try {
+            Parameter& parameter = m_values.at( parameterName );
+            Entry::ENTRY_TYPE type = parameter.getEntryType();
+            switch (type) {
+            case Entry::BOOL:
+                //LPINFO("\tBOOL");
+                if (value == "true") {
+                    parameter.setBoolValue(true);
+                } else if (value == "false") {
+                    parameter.setBoolValue(false);
+                } else {
+                    throw ParameterException(std::string("Parameter error in parameter file: ").append(parameterName));
+                }
+                break;
+            case Entry::DOUBLE:
+                parameter.setDoubleValue( atof(value.c_str()) );
+                //LPINFO("\tDOUBLE");
+                break;
+            case Entry::INTEGER:
+                parameter.setIntegerValue( atoi(value.c_str()) );
+                //LPINFO("\tINTEGER");
+                break;
+            case Entry::STRING:
+                if (value[0] == '\"' && value[ value.length() - 1 ] == '\"') {
+                    value = value.substr(1, value.length() - 2);
+                }
+                parameter.setStringValue(value);
+                //LPINFO("\tSTRING");
                 break;
             }
+        } catch (const std::out_of_range & ex) {
 
-            tokens = tokenizer(line);
-            if (tokens.size()==0){
-                //Handling comment lines
-                continue;
-            }
+        }
+    }
 
-            if (tokens.size()<3 && tokens[1] != "=") {
-                throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
-            }
 
-            if (m_values.find(tokens[0])!=m_values.end()) {
-                Parameter& parameter = m_values.at(tokens[0]);
-                Entry::ENTRY_TYPE type = parameter.getEntryType();
-                if(type == Entry::DOUBLE){
-                    if(tokens.size() == 3){
-                        parameter.setDoubleValue(atof(tokens[2].c_str()));
-                    } else {
-                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
-                    }
-                } else if (type == Entry::INTEGER){
-                    if(tokens.size() == 3){
-                        parameter.setIntegerValue(atoi(tokens[2].c_str()));
-                    } else {
-                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
-                    }
-                } else if (type == Entry::STRING){
-                    std::string value;
-                    for(unsigned int i=2; i<tokens.size(); i++){
-                        value.append(tokens[i]);
-                        if(i != tokens.size()-1){
-                            value.append(" ");
-                        }
-                    }
-                    parameter.setStringValue(value);
-                } else if (type == Entry::BOOL){
-                    if(tokens.size() == 3){
-                        if(tokens[2].compare("true") == 0){
-                            parameter.setBoolValue(true);
-                        } else if(tokens[2].compare("false") == 0){
-                            parameter.setBoolValue(false);
-                        } else {
-                            throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
-                        }
-                    } else {
-                        throw ParameterException(std::string("Parameter error in parameter file: ").append(tokens[0]));
-                    }
-                }
-            }
-            else {
-                throw std::string("Unknown Parameter in the Parameter File: ").append(tokens[0]);
+    std::set<std::string> nodeNames = node.getNodeNames();
+    auto nodeIter = nodeNames.begin();
+    auto nodeIterEnd = nodeNames.end();
+
+    for (; nodeIter != nodeIterEnd; nodeIter++) {
+        std::vector<NodeFile::Node>::const_iterator childIter;
+        std::vector<NodeFile::Node>::const_iterator childIterEnd;
+        node.getNodes(*nodeIter, &childIter, &childIterEnd);
+        for (; childIter != childIterEnd; childIter++) {
+            if (name.length() > 0) {
+                processNode(*childIter, name + "." + *nodeIter);
+            } else {
+                processNode(*childIter, *nodeIter);
             }
         }
     }
-    catch(const std::string& str) {
-        std::cerr << str << std::endl;
-    }
-}
-
-std::vector<std::string> ParameterHandler::tokenizer(std::string& line) {
-    std::vector<std::string> tokens;
-    char *p_ch;
-    p_ch = strtok((char*) line.c_str()," \t");
-    while (p_ch!=0)
-    {
-        tokens.push_back(p_ch);
-        p_ch = strtok(NULL, " \t");
-    }
-
-    for(unsigned int i=0;i < tokens.size(); i++){
-        if(tokens[i].find("!") != std::string::npos){
-            tokens.erase(tokens.begin()+i,tokens.end());
-            break;
-        }
-    }
-    return tokens;
-}
-
-std::string ParameterHandler::ignoreEmptyRows(std::ifstream& in) {
-    std::string line;
-    getline(in, line);
-    while (!in.eof() && line.size()==0) {
-        getline(in, line);
-    }
-    return line;
 }

@@ -166,7 +166,8 @@ HEADERS += include/debug.h \
     include/linalg/indexeddensevector.h \
     include/linalg/densevector.h \
     include/utils/iterator.h \
-    include/linalg/sparsevector.h
+    include/linalg/sparsevector.h \
+    include/simplex/simplexparametercomments.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
