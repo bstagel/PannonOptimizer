@@ -126,6 +126,10 @@ public:
 
     static DenseToSparseDotProductStable getDenseToSparseDotProductStable();
 
+    static IndexedDenseToIndexedDenseDotProductUnstable getIndexedDenseToIndexedDenseDotProductUnstable();
+
+    static IndexedDenseToIndexedDenseDotProductStable getIndexedDenseToIndexedDenseDotProductStable();
+
     static size_t getLargestCacheSize();
 
 protected:
@@ -141,6 +145,10 @@ protected:
     static DenseToDenseDotProductStable sm_denseToDenseDotProductStablePtr;
 
     static DenseToSparseDotProductStable sm_denseToSparseDotProductStablePtr;
+
+    static IndexedDenseToIndexedDenseDotProductUnstable sm_indexedDenseToIndexedDenseDotProductUnstablePtr;
+
+    static IndexedDenseToIndexedDenseDotProductStable sm_indexedDenseToIndexedDenseDotProductStablePtr;
 
     static size_t sm_largestCacheSize;
 

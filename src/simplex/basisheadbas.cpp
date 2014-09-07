@@ -3,6 +3,7 @@
  */
 #include <simplex/basisheadbas.h>
 #include <utils/hashtable.h>
+#include <utils/exceptions.h>
 
 #define BUFF_SIZE 102400
 #define FIELD_2_START 14
@@ -18,6 +19,9 @@ void BasisHeadBAS::startWrting(const char * fileName,
         m_outputFile.close();
     }
     m_outputFile.open(fileName);
+    if (m_outputFile.is_open() == false) {
+        throw FileNotFoundException("Error when creating basis file!", fileName);
+    }
     m_basicVariables.clear();
     m_nonBasicVariables.clear();
     m_info.clear();
@@ -100,6 +104,9 @@ void BasisHeadBAS::startReading(const char * fileName,
         m_inputFile.close();
     }
     m_inputFile.open(fileName);
+    if (m_inputFile.is_open() == false) {
+        throw FileNotFoundException("Error when opening basis file!", fileName);
+    }
     m_hashTable.setSize(model.getVariables().size());
 }
 

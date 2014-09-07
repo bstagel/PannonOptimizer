@@ -213,6 +213,8 @@ private:
      * @param model is needed at the first switch to initialize the primal and dual modules.
      */
     void switchAlgorithm(const Model &model);
+
+    Numerical::Double parallelIterations(const Model & model, unsigned int iterationNumber);
 };
 
 #endif // SIMPLEXCONTROLLER_H

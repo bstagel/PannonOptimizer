@@ -64,11 +64,39 @@ protected:
 };
 
 /**
+ * This exception should be thrown when the specified file is not found.
+ *
+ * @class FileNotFoundException
+ */
+class FileNotFoundException: public PanOptException {
+public:
+        FileNotFoundException(const std::string & message,
+                              const std::string & fileName):
+            PanOptException(message),
+            m_fileName(fileName){}
+
+        /**
+         * Returns with the file name.
+         *
+         * @return File name.
+         */
+        const std::string & getFileName() const {
+            return m_fileName;
+        }
+protected:
+
+        /**
+         * This member contains the name of the file.
+         */
+        std::string m_fileName;
+};
+
+/**
  * This exception should be thrown when the program attempts to use memory pointed by a null pointer.
  *
  * @class NullPointerException
  */
-class NullPointerException: PanOptException {
+class NullPointerException: public PanOptException {
 public:
 
     /**
@@ -85,7 +113,7 @@ public:
  *
  * @class InvalidIndexException
  */
-class InvalidIndexException: PanOptException {
+class InvalidIndexException: public PanOptException {
 public:
 
     /**

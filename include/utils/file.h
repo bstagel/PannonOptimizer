@@ -8,6 +8,7 @@
 #define	FILE_H
 
 #include <globals.h>
+#include <utils/exceptions.h>
 
 #include <cstdio>
 
@@ -28,15 +29,6 @@ public:
      * @class EndOfFileException
      */
     class EndOfFileException
-    {
-    };
-
-    /**
-     * This exception should be thrown when the specified file is not found.
-     *
-     * @class FileNotFoundException
-     */
-    class FileNotFoundException
     {
     };
 

@@ -294,7 +294,7 @@ void DualSimplex::releaseModules() {
 
 
 void DualSimplex::computeFeasibility() {
-	m_lastFeasible = m_feasible;
+    m_lastFeasible = m_feasible;
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand") == 0){
         m_feasible = m_feasibilityChecker->computeFeasibility(m_masterTolerance);
     }else{
@@ -391,27 +391,27 @@ void DualSimplex::update() {
 
     setReferenceObjective();
 
-//    Checker::checkBasicVariableFeasibilityStates(*this);
+    //    Checker::checkBasicVariableFeasibilityStates(*this);
 
     //check whther the boundflips cause bad iterations
-//    int variableIndex = -1;
-//    for(; it < itend; it++){
-//        variableIndex = *it;
-//        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
-//                m_reducedCosts.at(variableIndex) > 0){
-//            LPERROR("Bad boundflip forseen. LB d: "<<m_reducedCosts.at(variableIndex));
-//            exit(-1);
-//        }
-//        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-//                m_reducedCosts.at(variableIndex) < 0){
-//            LPERROR("Bad boundflip forseen. UB d: "<<m_reducedCosts.at(variableIndex));
-//            exit(-1);
-//        }
-//    }
+    //    int variableIndex = -1;
+    //    for(; it < itend; it++){
+    //        variableIndex = *it;
+    //        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
+    //                m_reducedCosts.at(variableIndex) > 0){
+    //            LPERROR("Bad boundflip forseen. LB d: "<<m_reducedCosts.at(variableIndex));
+    //            exit(-1);
+    //        }
+    //        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
+    //                m_reducedCosts.at(variableIndex) < 0){
+    //            LPERROR("Bad boundflip forseen. UB d: "<<m_reducedCosts.at(variableIndex));
+    //            exit(-1);
+    //        }
+    //    }
 
     it = m_ratiotest->getBoundflips().begin();
     for(; it < itend; it++){
-//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -528,25 +528,24 @@ void DualSimplex::update() {
         }
         m_primalTheta = beta / m_incomingAlpha.at(m_outgoingIndex);
 
-//        LPINFO("Before going out("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<outgoingVariable.getLowerBound()<<" , UB: "<<outgoingVariable.getUpperBound());
+        //        LPINFO("Before going out("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<outgoingVariable.getLowerBound()<<" , UB: "<<outgoingVariable.getUpperBound());
 
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += beta * m_dualTheta;
-
         //Perform the basis change
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
-//        outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
-//        const Variable & incomingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
-//        LPINFO("After coming in ("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<incomingVariable.getLowerBound()<<" , UB: "<<incomingVariable.getUpperBound());
+        //        outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
+        //        const Variable & incomingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
+        //        LPINFO("After coming in ("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<incomingVariable.getLowerBound()<<" , UB: "<<incomingVariable.getUpperBound());
 
-//        Checker::checkNonbasicVariableStates(*this);
-//        Checker::checkBasicVariableStates(*this);
-//        Checker::checkVariableStateAttachedValues(*this);
+        //        Checker::checkNonbasicVariableStates(*this);
+        //        Checker::checkBasicVariableStates(*this);
+        //        Checker::checkVariableStateAttachedValues(*this);
 
         //Update the pricing
         if (m_pricing) {
@@ -768,7 +767,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
 
 void DualSimplex::updateReducedCosts() {
 
-//    Numerical::Double dualTheta = (m_reducedCosts.at( m_incomingIndex ) / m_incomingAlpha.at( m_outgoingIndex ) );
+    //    Numerical::Double dualTheta = (m_reducedCosts.at( m_incomingIndex ) / m_incomingAlpha.at( m_outgoingIndex ) );
     /*if (Numerical::fabs(m_dualTheta - dualTheta) > 1e-14) {
 
         LPERROR( m_dualTheta << " vs " << dualTheta << "  "  << (m_dualTheta - dualTheta));
@@ -780,6 +779,7 @@ void DualSimplex::updateReducedCosts() {
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
+
 }
 
 

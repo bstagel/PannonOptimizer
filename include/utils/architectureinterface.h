@@ -87,6 +87,16 @@ public:
                                                     size_t count,
                                                     double * negPtr);
 
+    typedef double (*IndexedDenseToIndexedDenseDotProductUnstable)(const double * dense1,
+                                                                   const double * dense2,
+                                                                   const unsigned int * indices,
+                                                                   size_t nonZeroCount);
+
+    typedef double (*IndexedDenseToIndexedDenseDotProductStable)(const double * dense1,
+                                                                 const double * dense2,
+                                                                 const unsigned int * indices,
+                                                                 size_t nonZeroCount,
+                                                                 double * negPtr);
 
     /******************************************
      * Add dense to dense:
@@ -226,13 +236,22 @@ public:
     virtual AddVecDenseToDense_NonzCount getAddVecDenseToDense_NonzCount() const = 0;
 
     /**
-     * Custom X86 architecture specific custom function for effective dense vector-dense vector addition.
+     * Custom architecture specific function for effective dense vector-dense vector addition.
      *
      * @return The result vector in a specific variable type.
      * For details, see Architecture::AddVecDenseToDense.
      */
     virtual AddVecDenseToDense getAddVecDenseToDense() const = 0;
 
+    /**
+     * Loads the architecture specific parameter file.
+     */
+    virtual void loadParameters() = 0;
+
+    /**
+     * Generates an architecture specific parameter file.
+     */
+    virtual void generateParameterFile() const = 0;
 };
 
 #endif // ARCHITECTUREINTERFACE_H

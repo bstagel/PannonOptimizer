@@ -1,5 +1,7 @@
 #include <linalg/sparsevector.h>
 #include <linalg/linalgparameterhandler.h>
+#include <linalg/densevector.h>
+#include <linalg/indexeddensevector.h>
 
 thread_local Numerical::Double * SparseVector::sm_fullLengthVector;
 thread_local unsigned int * SparseVector::sm_indexVector;
@@ -7,6 +9,117 @@ thread_local unsigned int ** SparseVector::sm_indexPointerVector;
 thread_local unsigned int SparseVector::sm_fullLengthVectorLength;
 thread_local unsigned int SparseVector::sm_fullLenghtReferenceCounter;
 thread_local unsigned int SparseVector::sm_elbowRoom;
+
+template<class ADD>
+void addSparseToSparseTemplate(Numerical::Double lambda,
+                               SparseVector * vector1,
+                               const SparseVector & vector2
+                               ) {
+    vector1->scatter();
+    unsigned int nonZeroIndex;
+    unsigned int nonZeros = vector1->m_nonZeros;
+    for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector2.m_indices[nonZeroIndex];
+        const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
+                                               vector2.m_data[nonZeroIndex] * lambda);
+        if (SparseVector::sm_fullLengthVector[index] == 0.0 && sum != 0.0) {
+            SparseVector::sm_indexVector[nonZeros] = index;
+            nonZeros++;
+        } else if (SparseVector::sm_fullLengthVector[index] != 0.0 && sum == 0.0) {
+            *(SparseVector::sm_indexPointerVector[index]) = SparseVector::sm_indexVector[nonZeros - 1];
+            *(SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]]) = index;
+            SparseVector::sm_indexPointerVector[index] = nullptr;
+            nonZeros--;
+        }
+        SparseVector::sm_fullLengthVector[index] = sum;
+    }
+    if (nonZeros > vector1->m_capacity) {
+        vector1->resize(nonZeros);
+    }
+    for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
+        const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
+        vector1->m_data[nonZeroIndex] = SparseVector::sm_fullLengthVector[index];
+        vector1->m_indices[nonZeroIndex] = index;
+        SparseVector::sm_fullLengthVector[index] = 0.0;
+        SparseVector::sm_indexPointerVector[index] = nullptr;
+    }
+    vector1->m_nonZeros = nonZeros;
+
+}
+
+template<class ADD>
+void addDenseToSparseTemplate(Numerical::Double lambda,
+                              SparseVector * vector1,
+                              const DenseVector & vector2
+                              ) {
+    vector1->scatter();
+    unsigned int index;
+    unsigned int nonZeros = vector1->m_nonZeros;
+    for (index = 0; index < vector2.m_length; index++) {
+        const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
+                                               vector2.m_data[index] * lambda);
+        if (SparseVector::sm_fullLengthVector[index] == 0.0 && sum != 0.0) {
+            SparseVector::sm_indexVector[nonZeros] = index;
+            nonZeros++;
+        } else if (SparseVector::sm_fullLengthVector[index] != 0.0 && sum == 0.0) {
+            *(SparseVector::sm_indexPointerVector[index]) = SparseVector::sm_indexVector[nonZeros - 1];
+            *(SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]]) = index;
+            SparseVector::sm_indexPointerVector[index] = nullptr;
+            nonZeros--;
+        }
+        SparseVector::sm_fullLengthVector[index] = sum;
+    }
+    if (nonZeros > vector1->m_capacity) {
+        vector1->resize(nonZeros);
+    }
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
+        const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
+        vector1->m_data[nonZeroIndex] = SparseVector::sm_fullLengthVector[index];
+        vector1->m_indices[nonZeroIndex] = index;
+        SparseVector::sm_fullLengthVector[index] = 0.0;
+        SparseVector::sm_indexPointerVector[index] = nullptr;
+    }
+    vector1->m_nonZeros = nonZeros;
+
+}
+
+template<class ADD>
+void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
+                                     SparseVector * vector1,
+                                     const IndexedDenseVector & vector2
+                                     ) {
+    vector1->scatter();
+    unsigned int nonZeroIndex;
+    unsigned int nonZeros = vector1->m_nonZeros;
+    for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector2.m_nonzeroIndices[nonZeroIndex];
+        const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
+                                               vector2.m_data[index] * lambda);
+        if (SparseVector::sm_fullLengthVector[index] == 0.0 && sum != 0.0) {
+            SparseVector::sm_indexVector[nonZeros] = index;
+            nonZeros++;
+        } else if (SparseVector::sm_fullLengthVector[index] != 0.0 && sum == 0.0) {
+            *(SparseVector::sm_indexPointerVector[index]) = SparseVector::sm_indexVector[nonZeros - 1];
+            *(SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]]) = index;
+            SparseVector::sm_indexPointerVector[index] = nullptr;
+            nonZeros--;
+        }
+        SparseVector::sm_fullLengthVector[index] = sum;
+    }
+    if (nonZeros > vector1->m_capacity) {
+        vector1->resize(nonZeros);
+    }
+    for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
+        const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
+        vector1->m_data[nonZeroIndex] = SparseVector::sm_fullLengthVector[index];
+        vector1->m_indices[nonZeroIndex] = index;
+        SparseVector::sm_fullLengthVector[index] = 0.0;
+        SparseVector::sm_indexPointerVector[index] = nullptr;
+    }
+    vector1->m_nonZeros = nonZeros;
+
+}
 
 SparseVector::SparseVector(unsigned int length)
 {
@@ -226,9 +339,24 @@ Numerical::Double SparseVector::l1Norm() const
     return sum;
 }
 
-SparseVector &SparseVector::addVector(Numerical::Double lambda, const SparseVector &vector)
+SparseVector &SparseVector::addSparseVector(Numerical::Double lambda,
+                                            const SparseVector &vector)
 {
     (this->*m_addSparseToSparse)(lambda, vector);
+    return *this;
+}
+
+SparseVector &SparseVector::addDenseVector(Numerical::Double lambda,
+                                           const DenseVector &vector)
+{
+    (this->*m_addDenseToSparse)(lambda, vector);
+    return *this;
+}
+
+SparseVector &SparseVector::addIndexedDenseVector(Numerical::Double lambda,
+                                                  const IndexedDenseVector &vector)
+{
+    (this->*m_addIndexedDenseToSparse)(lambda, vector);
     return *this;
 }
 
@@ -381,4 +509,52 @@ void SparseVector::addSparseToSparseAbsRel(Numerical::Double lambda,
                                            const SparseVector &vector)
 {
     addSparseToSparseTemplate<AddAbsRel>(lambda, this, vector);
+}
+
+void SparseVector::addDenseToSparseFast(Numerical::Double lambda,
+                                        const DenseVector &vector)
+{
+    addDenseToSparseTemplate<AddFast>(lambda, this, vector);
+}
+
+void SparseVector::addDenseToSparseAbs(Numerical::Double lambda,
+                                       const DenseVector &vector)
+{
+    addDenseToSparseTemplate<AddAbs>(lambda, this, vector);
+}
+
+void SparseVector::addDenseToSparseRel(Numerical::Double lambda,
+                                       const DenseVector &vector)
+{
+    addDenseToSparseTemplate<AddRel>(lambda, this, vector);
+}
+
+void SparseVector::addDenseToSparseAbsRel(Numerical::Double lambda,
+                                          const DenseVector &vector)
+{
+    addDenseToSparseTemplate<AddAbsRel>(lambda, this, vector);
+}
+
+void SparseVector::addIndexedDenseToSparseFast(Numerical::Double lambda,
+                                               const IndexedDenseVector &vector)
+{
+    addIndexedDenseToSparseTemplate<AddFast>(lambda, this, vector);
+}
+
+void SparseVector::addIndexedDenseToSparseAbs(Numerical::Double lambda,
+                                              const IndexedDenseVector &vector)
+{
+    addIndexedDenseToSparseTemplate<AddAbs>(lambda, this, vector);
+}
+
+void SparseVector::addIndexedDenseToSparseRel(Numerical::Double lambda,
+                                              const IndexedDenseVector &vector)
+{
+    addIndexedDenseToSparseTemplate<AddRel>(lambda, this, vector);
+}
+
+void SparseVector::addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
+                                                 const IndexedDenseVector &vector)
+{
+    addIndexedDenseToSparseTemplate<AddAbsRel>(lambda, this, vector);
 }

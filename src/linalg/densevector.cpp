@@ -1,8 +1,12 @@
 #include <linalg/densevector.h>
+#include <linalg/indexeddensevector.h>
+#include <linalg/sparsevector.h>
 
 DenseVector::DenseVector(unsigned int length)
 {
     m_addDenseToDense = &DenseVector::addDenseToDenseFast;
+    m_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseFast;
+    m_addSparseToDense = &DenseVector::addSparseToDenseFast;
     m_length = length;
     m_data = nullptr;
 
@@ -67,7 +71,21 @@ Numerical::Double DenseVector::l1Norm() const
     return sum;
 }
 
-DenseVector &DenseVector::addVector(Numerical::Double lambda, const DenseVector &vector)
+DenseVector &DenseVector::addIndexedDenseVector(Numerical::Double lambda,
+                                                const IndexedDenseVector &vector)
+{
+    (this->*m_addIndexedDenseToDense)(lambda, vector);
+    return *this;
+}
+
+DenseVector &DenseVector::addSparseVector(Numerical::Double lambda,
+                                           const SparseVector &vector)
+{
+    (this->*m_addSparseToDense)(lambda, vector);
+    return *this;
+}
+
+DenseVector &DenseVector::addDenseVector(Numerical::Double lambda, const DenseVector &vector)
 {
     (this->*m_addDenseToDense)(lambda, vector);
     return *this;
@@ -91,15 +109,23 @@ void DenseVector::setAddMode(Numerical::ADD_TYPE type)
     switch (type) {
     case Numerical::ADD_FAST:
         m_addDenseToDense = &DenseVector::addDenseToDenseFast;
+        m_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseFast;
+        m_addSparseToDense = &DenseVector::addSparseToDenseFast;
         break;
     case Numerical::ADD_ABS:
         m_addDenseToDense = &DenseVector::addDenseToDenseAbs;
+        m_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseAbs;
+        m_addSparseToDense = &DenseVector::addSparseToDenseAbs;
         break;
     case Numerical::ADD_ABS_REL:
         m_addDenseToDense = &DenseVector::addDenseToDenseAbsRel;
+        m_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseAbsRel;
+        m_addSparseToDense = &DenseVector::addSparseToDenseAbsRel;
         break;
     case Numerical::ADD_REL:
         m_addDenseToDense = &DenseVector::addDenseToDenseRel;
+        m_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseRel;
+        m_addSparseToDense = &DenseVector::addSparseToDenseRel;
         break;
     }
 }
@@ -138,6 +164,8 @@ DenseVector DenseVector::createVectorFromSparseArray(const Numerical::Double *da
 void DenseVector::copy(const DenseVector &orig)
 {
     m_addDenseToDense = orig.m_addDenseToDense;
+    m_addIndexedDenseToDense = orig.m_addIndexedDenseToDense;
+    m_addSparseToDense = orig.m_addSparseToDense;
     m_length = orig.m_length;
     m_data = nullptr;
     if (m_length > 0) {
@@ -149,6 +177,8 @@ void DenseVector::copy(const DenseVector &orig)
 void DenseVector::move(DenseVector &orig)
 {
     m_addDenseToDense = orig.m_addDenseToDense;
+    m_addIndexedDenseToDense = orig.m_addIndexedDenseToDense;
+    m_addSparseToDense = orig.m_addSparseToDense;
     m_length = orig.m_length;
     orig.m_length = 0;
     m_data = orig.m_data;
@@ -197,3 +227,89 @@ void DenseVector::addDenseToDenseAbsRel(Numerical::Double lambda,
     }
 
 }
+
+void DenseVector::addIndexedDenseToDenseFast(Numerical::Double lambda,
+                                             const IndexedDenseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_nonzeroIndices[nonZeroIndex];
+        m_data[index] += lambda * vector.m_data[index];
+    }
+}
+
+void DenseVector::addIndexedDenseToDenseAbs(Numerical::Double lambda,
+                                            const IndexedDenseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_nonzeroIndices[nonZeroIndex];
+        m_data[index] = Numerical::stableAddAbs(m_data[index], lambda * vector.m_data[index]);
+    }
+}
+
+void DenseVector::addIndexedDenseToDenseRel(Numerical::Double lambda,
+                                            const IndexedDenseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_nonzeroIndices[nonZeroIndex];
+        m_data[index] = Numerical::stableAddRel(m_data[index], lambda * vector.m_data[index]);
+    }
+}
+
+void DenseVector::addIndexedDenseToDenseAbsRel(Numerical::Double lambda,
+                                               const IndexedDenseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_nonzeroIndices[nonZeroIndex];
+        m_data[index] = Numerical::stableAdd(m_data[index], lambda * vector.m_data[index]);
+    }
+}
+
+void DenseVector::addSparseToDenseFast(Numerical::Double lambda,
+                                       const SparseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_indices[nonZeroIndex];
+        m_data[index] += lambda * vector.m_data[nonZeroIndex];
+    }
+}
+
+void DenseVector::addSparseToDenseAbs(Numerical::Double lambda,
+                                      const SparseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_indices[nonZeroIndex];
+        m_data[index] = Numerical::stableAddAbs(m_data[index], lambda * vector.m_data[nonZeroIndex]);
+    }
+}
+
+void DenseVector::addSparseToDenseRel(Numerical::Double lambda,
+                                      const SparseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_indices[nonZeroIndex];
+        m_data[index] = Numerical::stableAddRel(m_data[index], lambda * vector.m_data[nonZeroIndex]);
+    }
+}
+
+void DenseVector::addSparseToDenseAbsRel(Numerical::Double lambda,
+                                         const SparseVector &vector)
+{
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < vector.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = vector.m_indices[nonZeroIndex];
+        m_data[index] = Numerical::stableAdd(m_data[index], lambda * vector.m_data[nonZeroIndex]);
+    }
+}
+
+void DenseVector::_globalInit()
+{
+
+}
+

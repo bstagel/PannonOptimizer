@@ -31,7 +31,7 @@ void File::openForRead(const char * fileName, int bufferSize, int recordSize)
 {
     m_fd = fopen(fileName, "rb");
     if (m_fd == 0)
-        throw FileNotFoundException();
+        throw FileNotFoundException("Error when opening file!", fileName);
 
     m_recordSize = recordSize;
     m_bufferSize = bufferSize;

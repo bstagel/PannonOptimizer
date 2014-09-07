@@ -63,6 +63,17 @@ public:
         ADD_ABS_REL
     };
 
+    /**
+     * This type describes the dot product type.
+     */
+    enum DOT_PRODUCT_TYPE {
+        DOT_UNSTABLE,
+        DOT_FAST,
+        DOT_ABS,
+        DOT_REL,
+        DOT_ABS_REL
+    };
+
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
     typedef double Double;
 #endif
