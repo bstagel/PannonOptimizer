@@ -451,4 +451,170 @@ private:
 };
 
 
+/**
+ * A general purpose indexed iterator template.
+ */
+template<class T, class INDEX_TYPE>
+class ValueIndexPairIterator {
+public:
+
+    /**
+     * Constructor of the class ValueIndexPairIterator.
+     */
+    ALWAYS_INLINE ValueIndexPairIterator():
+        m_data(nullptr),
+        m_ptr(nullptr){
+
+    }
+
+    /**
+     * Constructor of the class ValueIndexPairIterator.
+     *
+     * @param ptr Starting index address.
+     * @param data Dense array address.
+     */
+    ALWAYS_INLINE ValueIndexPairIterator(const T * data,
+                                         INDEX_TYPE * ptr):
+        m_data(data),
+        m_ptr(ptr)
+    {
+
+    }
+
+    /**
+     * Returns with the referenced number.
+     *
+     * @return The current number.
+     */
+    ALWAYS_INLINE const T & operator*() {
+        return *m_data;
+    }
+
+    /**
+     * Returns with the current index.
+     *
+     * @return The current index.
+     */
+    ALWAYS_INLINE INDEX_TYPE getIndex() const {
+        return *m_ptr;
+    }
+
+    /**
+     * Steps the iterator to the following value.
+     */
+    ALWAYS_INLINE void next() {
+        m_data++;
+        m_ptr++;
+    }
+
+    /**
+     * Steps the iterator to the previous value.
+     */
+    ALWAYS_INLINE void previous() {
+        m_data--;
+        m_ptr--;
+    }
+
+    /**
+     * Steps the iterator to the following value.
+     */
+    ALWAYS_INLINE void operator++() {
+        m_data++;
+        m_ptr++;
+    }
+
+    /**
+     * Steps the iterator to the previous value.
+     */
+    ALWAYS_INLINE void operator--() {
+        m_data--;
+        m_ptr--;
+    }
+
+    /**
+     * Equality operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the iterators points to the
+     * same element.
+     */
+    ALWAYS_INLINE bool operator==(const ValueIndexPairIterator & iter) const {
+        return m_ptr == iter.m_ptr;
+    }
+
+    /**
+     * Inequality operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the iterators points to different
+     * elements.
+     */
+    ALWAYS_INLINE bool operator!=(const ValueIndexPairIterator & iter) const {
+        return m_ptr != iter.m_ptr;
+    }
+
+    /**
+     * Less operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the address of the first element
+     * is less then the address of the second element.
+     */
+    ALWAYS_INLINE bool operator<(const ValueIndexPairIterator & iter) const {
+        return m_ptr < iter.m_ptr;
+    }
+
+    /**
+     * Greater operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the address of the first element
+     * is greater then the address of the second element.
+     */
+    ALWAYS_INLINE bool operator>(const ValueIndexPairIterator & iter) const {
+        return m_ptr > iter.m_ptr;
+    }
+
+    /**
+     * Less or equal operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the address of the first element
+     * is less or equal then the address of the second element.
+     */
+    ALWAYS_INLINE bool operator<=(const ValueIndexPairIterator & iter) const {
+        return m_ptr <= iter.m_ptr;
+    }
+
+    /**
+     * Greater or equal operator.
+     *
+     * @param iter The operator compares the current iterator with this
+     * iterator.
+     * @return The result is true, if the address of the first element
+     * is greater or equal then the address of the second element.
+     */
+    ALWAYS_INLINE bool operator>=(const ValueIndexPairIterator & iter) const {
+        return m_ptr >= iter.m_ptr;
+    }
+
+private:
+    /**
+     * This pointer points to the data array.
+     */
+    const T * m_data;
+
+    /**
+     * This pointer points to an index element.
+     */
+    const INDEX_TYPE * m_ptr;
+
+};
+
+
 #endif // ITERATOR_H

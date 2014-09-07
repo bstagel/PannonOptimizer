@@ -89,7 +89,6 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
         LPWARNING("The eta vector pivot element is small: "<<atPivot << " ; "<<pivotPosition);
     }
 #endif
-
     if (Numerical::equals(atPivot, 0)) {
         throw NumericalException(std::string("NUMERICAL problem: Pivot element is ") +  std::to_string(atPivot)
                                  + std::string(" at row ") + std::to_string(pivotPosition) );

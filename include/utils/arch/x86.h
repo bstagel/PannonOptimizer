@@ -185,6 +185,16 @@ public:
      */
     AddVecDenseToDense getAddVecDenseToDense() const;
 
+    /**
+     * Loads an X86 specific parameter file.
+     */
+    void loadParameters();
+
+    /**
+     * Generates an X86 specific parameter file.
+     */
+    void generateParameterFile() const;
+
 protected:
 
 
@@ -264,6 +274,8 @@ protected:
      */
     void setFeatureList();
 
+    void setCPUTopologyData();
+
     /**
      * Queries the cache count and the cache data from each cache from the processor.
      */
@@ -287,6 +299,7 @@ protected:
     void setMemcpy();
 
     void setDotProduct();
+
 };
 
 #endif

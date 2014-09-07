@@ -244,6 +244,61 @@ void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
     m_phase1Time = phase1Time;
 }
 
+Numerical::Double SimplexController::parallelIterations(
+        const Model & model,
+        unsigned int iterationNumber)
+{
+    Numerical::Double lastObjective = 0.0;
+    unsigned int iterations;
+    for (iterations = 0; iterations < iterationNumber; iterations++) {
+        try{
+            //iterate
+            LPINFO("before iteration");
+            m_currentSimplex->iterate();
+            LPINFO("after iteration");
+            if(!m_currentSimplex->m_feasible){
+                lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
+            }else{
+                lastObjective = m_currentSimplex->getObjectiveValue();
+            }
+            //reinversionCounter++;
+
+            if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
+                m_iterationReport->createIterationReport();
+                m_iterationReport->writeIterationReport();
+            }
+            m_freshBasis = false;
+        } catch ( const FallbackException & exception ) {
+            LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+            m_currentSimplex->reinvert();
+            iterations--;
+        } catch ( const OptimizationResultException & exception ) {
+            //                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
+            m_currentSimplex->m_simplexModel->resetModel();
+            //Check the result with triggering reinversion
+            if(m_freshBasis){
+                throw;
+            } else {
+                //reinversionCounter = iterationNumber;
+                iterations--;
+            }
+        } catch ( const NumericalException & exception ) {
+            //Check the result with triggering reinversion
+            if(m_freshBasis){
+                throw;
+            } else {
+                LPINFO("Numerical error: "<<exception.getMessage());
+               // reinversionCounter = reinversionFrequency;
+                iterations--;
+            }
+        } catch(const SwitchAlgorithmException& exception){
+            LPINFO("Algorithm switched: "<< exception.getMessage());
+            switchAlgorithm(model);
+        }
+    }
+    return lastObjective;
+}
+
 void SimplexController::solve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -253,6 +308,8 @@ void SimplexController::solve(const Model &model)
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     const int & switching = simplexParameters.getIntegerParameterValue("switch_algorithm");
+
+    const int & threadCount = 1;
 
     m_currentAlgorithm = (Simplex::ALGORITHM)simplexParameters.getIntegerParameterValue("starting_algorithm");
 
@@ -283,8 +340,9 @@ void SimplexController::solve(const Model &model)
 
         Numerical::Double lastObjective = 0;
         //Simplex iterations
+
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex += reinversionFrequency) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
@@ -301,28 +359,29 @@ void SimplexController::solve(const Model &model)
                         switchAlgorithm(model);
                     }
                     break;
-//                //at entering phase-2
+                    //                //at entering phase-2
                 case 2:
                     break;
-//                first reinversion in phase-2
+                    //                first reinversion in phase-2
                 case 3:
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
                         switchAlgorithm(model);
                     }
                     break;
-                //at degeneracy
+                    //at degeneracy
                 case 4:
                     if(m_iterationIndex > 1){
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
                             switchAlgorithm(model);
-                    }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
+                        }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
                             switchAlgorithm(model);
                         }
                     }
                     break;
                 }
             }
-            try{
+            lastObjective = parallelIterations(model, reinversionFrequency);
+             /*           try{
             //iterate
                 m_currentSimplex->iterate();
                 if(!m_currentSimplex->m_feasible){
@@ -363,17 +422,17 @@ void SimplexController::solve(const Model &model)
             } catch(const SwitchAlgorithmException& exception){
                 LPINFO("Algorithm switched: "<< exception.getMessage());
                 switchAlgorithm(model);
-            }
+            }*/
         }
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
-            LPINFO("OPTIMAL SOLUTION found! ");
-            m_solveTimer.stop();
-            m_iterationReport->addProviderForSolution(*m_currentSimplex);
-            writeSolutionReport();
-            // TODO: postsovle, post scaling
-            // TODO: Save optimal basis if necessary
+        LPINFO("OPTIMAL SOLUTION found! ");
+        m_solveTimer.stop();
+        m_iterationReport->addProviderForSolution(*m_currentSimplex);
+        writeSolutionReport();
+        // TODO: postsovle, post scaling
+        // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
         LPINFO("The problem is PRIMAL INFEASIBLE.");
     } catch ( const DualInfeasibleException & exception ) {
@@ -451,7 +510,7 @@ void SimplexController::switchAlgorithm(const Model &model)
         m_iterationReport->addProviderForIteration(*m_currentSimplex);
         m_currentSimplex->setSimplexState(*m_primalSimplex);
         m_currentAlgorithm = Simplex::DUAL;
-    //Dual->Primal
+        //Dual->Primal
     }else{
         m_iterationReport->removeIterationProvider(*m_currentSimplex);
         m_currentSimplex = m_primalSimplex;
@@ -464,4 +523,3 @@ void SimplexController::switchAlgorithm(const Model &model)
     m_freshBasis = true;
     LPINFO("Algorithm switched!");
 }
-

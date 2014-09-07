@@ -9,11 +9,16 @@
 #include <utils/numerical.h>
 #include <utils/iterator.h>
 
+class DenseVector;
+class IndexedDenseVector;
+
 /**
  *
  */
 class SparseVector {
     friend class InitPanOpt;
+    friend class DenseVector;
+    friend class IndexedDenseVector;
 
     /**
      *
@@ -88,7 +93,18 @@ class SparseVector {
                                           SparseVector * vector1,
                                           const SparseVector & vector2);
 
+    template<class ADD>
+    friend void addDenseToSparseTemplate(Numerical::Double lambda,
+                                         SparseVector * vector1,
+                                         const DenseVector & vector2);
+
+    template<class ADD>
+    friend void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
+                                                SparseVector * vector1,
+                                                const IndexedDenseVector & vector2);
 public:
+
+    typedef ValueIndexPairIterator<Numerical::Double, unsigned int> NonzeroIterator;
 
     SparseVector(unsigned int length);
 
@@ -205,14 +221,37 @@ public:
     Numerical::Double l1Norm() const;
 
     /**
-     * Adds the vector spefified by the arguments to the current vector.
+     * Adds the SparseVector type vector spefified by the arguments to
+     * the current vector.
      *
      * @param lambda Multiplier of the argument.
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    SparseVector & addVector(Numerical::Double lambda,
-                             const SparseVector & vector);
+    SparseVector & addSparseVector(Numerical::Double lambda,
+                                   const SparseVector & vector);
+
+    /**
+     * Adds the DenseVector type vector spefified by the arguments to
+     * the current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    SparseVector & addDenseVector(Numerical::Double lambda,
+                                  const DenseVector & vector);
+
+    /**
+     * Adds the IndexedDenseVector type vector spefified by the arguments to
+     * the current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    SparseVector & addIndexedDenseVector(Numerical::Double lambda,
+                                         const IndexedDenseVector & vector);
 
     /**
      * Returns with the number of nonzeros in the vector.
@@ -248,6 +287,22 @@ public:
      */
     void setAddMode(Numerical::ADD_TYPE type);
 
+    /**
+     *
+     * @return
+     */
+    ALWAYS_INLINE NonzeroIterator beginNonzero() const {
+        return NonzeroIterator(m_data, m_indices);
+    }
+
+    /**
+     *
+     * @return
+     */
+    ALWAYS_INLINE NonzeroIterator endNonzero() const {
+        return NonzeroIterator(m_data + m_nonZeros, m_indices + m_nonZeros);
+    }
+
 protected:
 
     /**
@@ -257,8 +312,28 @@ protected:
                                                     const SparseVector &);
 
     /**
+     *
+     */
+    typedef void (SparseVector::*AddDenseToSparse)(Numerical::Double,
+                                                   const DenseVector &);
+
+    /**
+     *
+     */
+    typedef void (SparseVector::*AddIndexedDenseToSparse)(Numerical::Double,
+                                                          const IndexedDenseVector &);
+
+    /**
      */
     AddSparseToSparse m_addSparseToSparse;
+
+    /**
+     */
+    AddDenseToSparse m_addDenseToSparse;
+
+    /**
+     */
+    AddIndexedDenseToSparse m_addIndexedDenseToSparse;
 
     unsigned int m_length;
 
@@ -358,45 +433,62 @@ protected:
     void addSparseToSparseAbsRel(Numerical::Double lambda,
                                  const SparseVector & vector);
 
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToSparseFast(Numerical::Double lambda,
+                              const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToSparseAbs(Numerical::Double lambda,
+                             const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToSparseRel(Numerical::Double lambda,
+                             const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToSparseAbsRel(Numerical::Double lambda,
+                                const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToSparseFast(Numerical::Double lambda,
+                                     const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToSparseAbs(Numerical::Double lambda,
+                                    const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToSparseRel(Numerical::Double lambda,
+                                    const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
+                                       const IndexedDenseVector & vector);
 
 };
-
-template<class ADD>
-void addSparseToSparseTemplate(Numerical::Double lambda,
-                               SparseVector * vector1,
-                               const SparseVector & vector2
-                               ) {
-    vector1->scatter();
-    unsigned int nonZeroIndex;
-    unsigned int nonZeros = vector1->m_nonZeros;
-    for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
-        const unsigned int index = vector2.m_indices[nonZeroIndex];
-        const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
-                                               vector2.m_data[nonZeroIndex] * lambda);
-        if (SparseVector::sm_fullLengthVector[index] == 0.0 && sum != 0.0) {
-            SparseVector::sm_indexVector[nonZeros] = index;
-            nonZeros++;
-        } else if (SparseVector::sm_fullLengthVector[index] != 0.0 && sum == 0.0) {
-            *(SparseVector::sm_indexPointerVector[index]) = SparseVector::sm_indexVector[nonZeros - 1];
-            *(SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]]) = index;
-            SparseVector::sm_indexPointerVector[index] = nullptr;
-            nonZeros--;
-        }
-        SparseVector::sm_fullLengthVector[index] = sum;
-    }
-    if (nonZeros > vector1->m_capacity) {
-        vector1->resize(nonZeros);
-    }
-    for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
-        const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
-        vector1->m_data[nonZeroIndex] = SparseVector::sm_fullLengthVector[index];
-        vector1->m_indices[nonZeroIndex] = index;
-        SparseVector::sm_fullLengthVector[index] = 0.0;
-        SparseVector::sm_indexPointerVector[index] = nullptr;
-    }
-    vector1->m_nonZeros = nonZeros;
-
-}
-
 
 #endif // SPARSEVECTOR_H

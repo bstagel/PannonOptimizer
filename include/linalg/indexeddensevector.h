@@ -11,12 +11,23 @@
 #include <utils/iterator.h>
 #include <utils/exceptions.h>
 
+class DenseVector;
+class SparseVector;
+
 /**
  * Describes the IndexedDenseVector class. The class stores a vector in dense form,
  * and stores the indices of the nonnegative values also.
  *
  */
 class IndexedDenseVector {
+    friend class InitPanOpt;
+    friend class DenseVector;
+    friend class SparseVector;
+
+    template<class ADD>
+    friend void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
+                                                SparseVector * vector1,
+                                                const IndexedDenseVector & vector2);
 public:
 
     /**
@@ -131,14 +142,58 @@ public:
     Numerical::Double l1Norm() const;
 
     /**
-     * Adds the vector spefified by the arguments to the current vector.
+     * Adds the IndexedDenseVector type vector spefified by the arguments to
+     * the current vector.
      *
      * @param lambda Multiplier of the argument.
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    IndexedDenseVector & addVector(Numerical::Double lambda,
-                                   const IndexedDenseVector & vector);
+    IndexedDenseVector & addIndexedDenseVector(Numerical::Double lambda,
+                                               const IndexedDenseVector & vector);
+
+    /**
+     * Adds the DenseVector type vector spefified by the arguments to the
+     * current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    IndexedDenseVector & addDenseVector(Numerical::Double lambda,
+                                        const DenseVector & vector);
+
+    /**
+     * Adds the SparseVector type vector spefified by the arguments to the
+     * current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    IndexedDenseVector & addSparseVector(Numerical::Double lambda,
+                                         const SparseVector & vector);
+
+    /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductIndexedDenseVector(const IndexedDenseVector & vector) const;
+
+    /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductDenseVector(const DenseVector & vector) const;
+
+    /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductSparseVector(const SparseVector & vector) const;
 
     /**
      * Returns with the number of nonzeros in the vector.
@@ -172,7 +227,13 @@ public:
      *
      * @param type The add mode.
      */
-    void setAddMode(Numerical::ADD_TYPE type);
+    static void setAddMode(Numerical::ADD_TYPE type);
+
+    /**
+     *
+     * @param type The dot product mode.
+     */
+    static void setDotProductMode(Numerical::DOT_PRODUCT_TYPE type);
 
     /**
      * Creates a unit vector with the specified length.
@@ -252,8 +313,42 @@ protected:
                                                                       const IndexedDenseVector &);
 
     /**
+     *
      */
-    AddIndexedDenseToIndexedDense m_addIndexedDenseToIndexedDense;
+    typedef void (IndexedDenseVector::*AddDenseToIndexedDense)(Numerical::Double,
+                                                               const DenseVector &);
+
+    /**
+     *
+     */
+    typedef void (IndexedDenseVector::*AddSparseToIndexedDense)(Numerical::Double,
+                                                                const SparseVector &);
+
+    /**
+     *
+     */
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToIndexedDenseDotProduct)(
+            const IndexedDenseVector &,
+            const IndexedDenseVector &);
+
+    /**
+     */
+    static thread_local AddIndexedDenseToIndexedDense sm_addIndexedDenseToIndexedDense;
+
+    /**
+     *
+     */
+    static thread_local AddDenseToIndexedDense sm_addDenseToIndexedDense;
+
+    /**
+     *
+     */
+    static thread_local AddSparseToIndexedDense sm_addSparseToIndexedDense;
+
+    /**
+     *
+     */
+    static thread_local IndexedDenseToIndexedDenseDotProduct sm_indexedDenseToIndexedDenseDotProduct;
 
     /**
      */
@@ -317,6 +412,79 @@ protected:
     void addIndexedDenseToIndexedDenseAbsRel(Numerical::Double lambda,
                                              const IndexedDenseVector & vector);
 
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToIndexedDenseFast(Numerical::Double lambda,
+                                    const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToIndexedDenseAbs(Numerical::Double lambda,
+                                   const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToIndexedDenseRel(Numerical::Double lambda,
+                                   const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addDenseToIndexedDenseAbsRel(Numerical::Double lambda,
+                                      const DenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToIndexedDenseFast(Numerical::Double lambda,
+                                     const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToIndexedDenseAbs(Numerical::Double lambda,
+                                    const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToIndexedDenseRel(Numerical::Double lambda,
+                                    const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToIndexedDenseAbsRel(Numerical::Double lambda,
+                                       const SparseVector & vector);
+
+    Numerical::Double dotProductIndexedDenseWithIndexedDenseUnstable(const IndexedDenseVector & vector1,
+                                                                            const IndexedDenseVector & vector2);
+
+    static Numerical::Double dotProductIndexedDenseWithIndexedDenseFast(const IndexedDenseVector & vector1,
+                                                                        const IndexedDenseVector & vector2);
+
+    static Numerical::Double dotProductIndexedDenseWithIndexedDenseAbs(const IndexedDenseVector & vector1,
+                                                                            const IndexedDenseVector & vector2);
+
+    static Numerical::Double dotProductIndexedDenseWithIndexedDenseRel(const IndexedDenseVector & vector1,
+                                                                            const IndexedDenseVector & vector2);
+
+    static Numerical::Double dotProductIndexedDenseWithIndexedDenseAbsRel(const IndexedDenseVector & vector1,
+                                                                            const IndexedDenseVector & vector2);
+
+
+    static void _globalInit();
 };
 
 #endif // DENSEVECTOR_H

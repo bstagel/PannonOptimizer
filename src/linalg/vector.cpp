@@ -937,6 +937,26 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                  size,
                  &neg);
 
+   /* double refNeg = 0;
+    double ref = ::denseToSparseDotProductStable(denseVector,
+                                                 ptrSparse,
+                                                 ptrIndex,
+                                                 size,
+                                                 &refNeg);
+
+    Numerical::Double refResult = 0;
+    if(stableAddAbs && stableAddRel){
+        refResult = Numerical::stableAdd(refNeg, ref);
+    } else if(stableAddAbs){
+        refResult = Numerical::stableAddAbs(refNeg, ref);
+    } else if(stableAddRel){
+        refResult = Numerical::stableAddRel(refNeg, ref);
+    } else {
+        refResult = ref + refNeg;
+    }*/
+
+
+
     /*double ref = ::denseToSparseDotProductUnstable(
                 denseVector,
                 ptrSparse,
@@ -983,6 +1003,22 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
     } else {
         result = pos + neg;
     }
+
+
+   /* if ((refResult != 0 || result != 0) || refResult != result) {
+        if (Numerical::fabs(refResult - result) > 1e-10) {
+            LPINFO(refResult << " - " << result << " = " << refResult - result );
+            LPINFO("size = " << size);
+            // LPINFO(_counter);
+            std::cin.get();
+        }
+        //std::cin.get();
+    }*/
+
+//    result = refResult;
+
+
+
     /*Numerical::Double refResult = summarizer.getResult(stableAddAbs, stableAddRel);
     if ((refResult != 0 || result != 0) && refResult != result) {
         if (Numerical::fabs(refResult - result) > 1e-1) {

@@ -4,9 +4,14 @@
 #endif
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <cstring>
 #include <utils/primitives.h>
 #include <utils/platform.h>
+#include <utils/exceptions.h>
+#include <utils/nodefile.h>
+
+#include <thread>
 
 #ifdef PLATFORM_X86
 
@@ -17,18 +22,16 @@ ArchitectureX86::ArchitectureX86() {
 void ArchitectureX86::detect() {
     std::cout << "X86 detect" << std::endl;
     m_architectureName = "X86";
-    if (cpuidSupported() == true && false) {
+    if (cpuidSupported() == true) {
         setCPUData();
         setCacheData();
         setFeatureList();
+        setCPUTopologyData();
     } else {
         std::cout << "CPUID not supported" << std::endl;
     }
     setMemoryData();
     setPrimitives();
-    m_features.insert("AVX");
-    m_features.insert("SSE2");
-    //loadFeature(regs.m_ecx, 28, "AVX");
 }
 
 void ArchitectureX86::setPrimitives() {
@@ -365,6 +368,88 @@ void ArchitectureX86::setFeatureList() {
     std::cout << std::endl;
 }
 
+void ArchitectureX86::setCPUTopologyData()
+{
+    /*Registers regs;
+    regs.m_eax = 1;
+    regs.m_ebx = regs.m_ecx = regs.m_edx = 0;
+    regs = cpuid(regs);
+    unsigned int logicalCores = (regs.m_ebx >> 16) & 0xFF;
+    std::cout << "Logical cpus: " << logicalCores << std::endl;
+
+    regs.m_eax = 4;
+    regs.m_ebx = regs.m_ecx = regs.m_edx = 0;
+    unsigned int cores = ((regs.m_eax >> 26) & 0x3f) + 1;
+    std::cout << "cores: " << cores << std::endl;*/
+
+    Registers regs;
+    regs.m_eax = 0;
+    regs.m_ebx = regs.m_ecx = regs.m_edx = 0;
+    regs = cpuid(regs);
+
+    unsigned int maxCPUID = regs.m_eax;
+    //std::cout << "maxCPUID = " << maxCPUID << std::endl;
+    bool hasLeafB = false;
+
+    if (maxCPUID >= 0xB) {
+        Registers cpuInfoB;
+        cpuInfoB.m_eax = 0xB;
+        cpuInfoB.m_ebx = cpuInfoB.m_ecx = cpuInfoB.m_edx = 0;
+        cpuInfoB = cpuid(cpuInfoB);
+        hasLeafB = cpuInfoB.m_ebx != 0;
+        //std::cout << "has leaf B = " << hasLeafB << std::endl;
+    }
+
+    unsigned int n = std::thread::hardware_concurrency();
+
+    std::cout << n << " concurrent threads are supported.\n";
+
+    if ( featureExists("HTT") ) {
+        if (hasLeafB) {
+            unsigned int subLeaf = 0;
+            do {
+                Registers regs;
+                regs.m_eax = 0xB;
+                regs.m_ecx = subLeaf;
+                regs.m_ebx = regs.m_edx = 0;
+                regs = cpuid(regs);
+                if (regs.m_ebx == 0) {
+                    break;
+                }
+                //std::cout << subLeaf << std::endl;
+
+                unsigned int levelType = getBits(regs.m_ecx, 8, 15);
+                //unsigned int levelShift = getBits(regs.m_eax, 0, 4);
+
+                //std::cout << "level type: " << levelType << std::endl;
+                //std::cout << "logical proc: " << getBits(regs.m_ebx, 0, 15) << std::endl;
+                //std::cout << "shift: " << levelShift << std::endl;
+                switch (levelType) {
+                case 1:
+                    break;
+                case 2:
+                    break;
+                }
+
+                subLeaf++;
+            } while (1);
+        } else {
+            Registers info;
+            info.m_eax = 1;
+            info.m_ebx = info.m_ecx = info.m_edx = 0;
+            info = cpuid(info);
+            //unsigned int corePlusSMTIDMaxCnt = getBits(info.m_ebx, 16, 23);
+
+            info.m_eax = 4;
+            info.m_ebx = info.m_ecx = info.m_edx = 0;
+            info = cpuid(info);
+            //unsigned int coreIDMaxCnt = getBits(info.m_eax, 26, 31)+1;
+            //std::cout << corePlusSMTIDMaxCnt << " / " << coreIDMaxCnt << std::endl;
+        }
+    }
+
+}
+
 unsigned int ArchitectureX86::getCacheCountIntel() const {
     Registers regs;
     unsigned int count = 0;
@@ -621,6 +706,48 @@ ArchitectureX86::AddVecDenseToDense_NonzCount ArchitectureX86::getAddVecDenseToD
 ArchitectureX86::AddVecDenseToDense ArchitectureX86::getAddVecDenseToDense() const {
     //Return to avoid warning
     return 0;
+}
+
+void ArchitectureX86::loadParameters()
+{
+    NodeFile node;
+    try {
+        node.loadFromFile("archX86.PAR");
+    } catch (const FileNotFoundException & ex) {
+        generateParameterFile();
+        return;
+    }
+    NodeFile::Node root = node.getDocumentNode();
+    if (root.getValue("Architecture") != "X86") {
+        // TODO: invalid architecture exception
+    }
+    /*unsigned int l1CacheLimit = root.getValue("L1CacheLimit");
+    unsigned int l2CacheLimit = root.getValue("L2CacheLimit");
+    unsigned int l3CacheLimit = root.getValue("L3CacheLimit");
+    unsigned int threadLimit = root.getValue("ThreadLimit");
+*/
+}
+
+void ArchitectureX86::generateParameterFile() const
+{
+    std::ofstream outputFile;
+    outputFile.open("archX86.PAR", std::ios_base::out);
+    if (outputFile.is_open() == false) {
+        throw FileNotFoundException("Error when creating parameter file!",
+                                    "archX86.PAR");
+    }
+
+    outputFile << "Architecture = X86" << std::endl;
+    outputFile << "L1CacheLimit = 0" << std::endl;
+    outputFile << "L2CacheLimit = 0" << std::endl;
+    outputFile << "L3CacheLimit = 0" << std::endl;
+    outputFile << "ThreadLimit = 0" << std::endl;
+
+    //outputFile << "DisabledFeatures {" << std::endl << std::endl << "}" << std::endl;
+
+    outputFile << "DisabledFeatures[0] = AES" << std::endl;
+
+    outputFile.close();
 }
 
 #endif

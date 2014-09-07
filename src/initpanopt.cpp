@@ -2,6 +2,8 @@
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/vector.h>
+#include <linalg/indexeddensevector.h>
+#include <linalg/densevector.h>
 #include <linalg/sparsevector.h>
 #include <debug.h>
 #include <iostream>
@@ -56,6 +58,8 @@ void InitPanOpt::init() {
     SimplexParameterHandler::_globalInit();
     Numerical::_globalInit();
     Vector::_globalInit();
+    IndexedDenseVector::_globalInit();
+    DenseVector::_globalInit();
     SparseVector::_globalInit();
 
 #ifdef PLATFORM_X86
@@ -63,6 +67,7 @@ void InitPanOpt::init() {
 #else
     sm_architecture = new ArchitectureUnknown;
 #endif
+    sm_architecture->loadParameters();
     sm_architecture->detect();
 
 }

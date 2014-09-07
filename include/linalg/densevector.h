@@ -6,11 +6,23 @@
 #include <utils/iterator.h>
 #include <utils/exceptions.h>
 
+class IndexedDenseVector;
+class SparseVector;
+
 /**
  *
  */
 class DenseVector {
+    friend class InitPanOpt;
+    friend class IndexedDenseVector;
+    friend class SparseVector;
 private:
+
+    template<class ADD>
+    friend void addDenseToSparseTemplate(Numerical::Double lambda,
+                                         SparseVector * vector1,
+                                         const DenseVector & vector2);
+
     /**
      *
      */
@@ -166,15 +178,37 @@ public:
     Numerical::Double l1Norm() const;
 
     /**
-     * Adds the vector spefified by the arguments to the current vector.
+     * Adds the DenseVector type vector spefified by the arguments
+     * to the current vector.
      *
      * @param lambda Multiplier of the argument.
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    DenseVector & addVector(Numerical::Double lambda,
-                            const DenseVector & vector);
+    DenseVector & addDenseVector(Numerical::Double lambda,
+                                 const DenseVector & vector);
 
+    /**
+     * Adds the IndexedDenseVector type vector spefified by the arguments
+     * to the current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    DenseVector & addIndexedDenseVector(Numerical::Double lambda,
+                                        const IndexedDenseVector & vector);
+
+    /**
+     * Adds the SparseVector type vector spefified by the arguments
+     * to the current vector.
+     *
+     * @param lambda Multiplier of the argument.
+     * @param vector The vector to be added to the current vector.
+     * @return Reference of the current vector object.
+     */
+    DenseVector & addSparseVector(Numerical::Double lambda,
+                                  const SparseVector & vector);
 
     /**
      * Scales the elements of the vector by lambda.
@@ -276,8 +310,32 @@ protected:
                                                  const DenseVector &);
 
     /**
+     *
+     */
+    typedef void (DenseVector::*AddIndexedDenseToDense)(Numerical::Double,
+                                                        const IndexedDenseVector &);
+
+
+    /**
+     *
+     */
+    typedef void (DenseVector::*AddSparseToDense)(Numerical::Double,
+                                                  const SparseVector &);
+
+
+    /**
      */
     AddDenseToDense m_addDenseToDense;
+
+    /**
+     *
+     */
+    AddIndexedDenseToDense m_addIndexedDenseToDense;
+
+    /**
+     *
+     */
+    AddSparseToDense m_addSparseToDense;
 
     /**
      *
@@ -334,7 +392,63 @@ protected:
     void addDenseToDenseAbsRel(Numerical::Double lambda,
                                const DenseVector & vector);
 
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToDenseFast(Numerical::Double lambda,
+                                    const IndexedDenseVector & vector);
 
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToDenseAbs(Numerical::Double lambda,
+                                   const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToDenseRel(Numerical::Double lambda,
+                                   const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addIndexedDenseToDenseAbsRel(Numerical::Double lambda,
+                                      const IndexedDenseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToDenseFast(Numerical::Double lambda,
+                              const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToDenseAbs(Numerical::Double lambda,
+                             const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToDenseRel(Numerical::Double lambda,
+                             const SparseVector & vector);
+
+    /**
+     * @param lambda
+     * @param vector
+     */
+    void addSparseToDenseAbsRel(Numerical::Double lambda,
+                                const SparseVector & vector);
+
+    static void _globalInit();
 };
 
 #endif // DENSEVECTOR_H

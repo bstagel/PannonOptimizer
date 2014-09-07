@@ -44,6 +44,11 @@ BasisHeadPanOpt::BasisHeadPanOpt() {
 void BasisHeadPanOpt::startWrting(const char * fileName,
                                   const Model & model) {
     m_outputFile.open(fileName);
+    if (m_outputFile.is_open() == false) {
+        if (m_outputFile.is_open() == false) {
+            throw FileNotFoundException("Error when creating basis file!", fileName);
+        }
+    }
     m_modelPtr = &model;
 }
 
@@ -229,6 +234,10 @@ void BasisHeadPanOpt::addInfo(const char * info) {
 void BasisHeadPanOpt::startReading(const char * fileName,
                                    const Model & model) {
     m_inputFile.open(fileName);
+    if (m_inputFile.is_open() == false) {
+        throw FileNotFoundException("Error when opening basis file!", fileName);
+    }
+
     m_modelPtr = &model;
 }
 

@@ -9,6 +9,8 @@ Architecture::DenseToDenseDotProductUnstable Architecture::sm_denseToDenseDotPro
 Architecture::DenseToDenseDotProductStable Architecture::sm_denseToDenseDotProductStablePtr;
 Architecture::DenseToSparseDotProductUnstable Architecture::sm_denseToSparseDotProductUnstablePtr;
 Architecture::DenseToSparseDotProductStable Architecture::sm_denseToSparseDotProductStablePtr;
+Architecture::IndexedDenseToIndexedDenseDotProductUnstable Architecture::sm_indexedDenseToIndexedDenseDotProductUnstablePtr;
+Architecture::IndexedDenseToIndexedDenseDotProductStable Architecture::sm_indexedDenseToIndexedDenseDotProductStablePtr;
 
 size_t Architecture::sm_largestCacheSize;
 
@@ -24,6 +26,8 @@ Architecture::Architecture():
     sm_denseToSparseDotProductUnstablePtr = denseToSparseDotProductUnstable;
     sm_denseToDenseDotProductStablePtr = denseToDenseDotProductStable;
     sm_denseToSparseDotProductStablePtr = denseToSparseDotProductStable;
+    sm_indexedDenseToIndexedDenseDotProductUnstablePtr = indexedDenseToIndexedDenseDotProductUnstable;
+    sm_indexedDenseToIndexedDenseDotProductStablePtr = indexedDenseToIndexedDenseDotProductStable;
 }
 
 bool Architecture::featureExists(const char *feature) const {
@@ -84,6 +88,16 @@ ArchitectureInterface::DenseToDenseDotProductStable Architecture::getDenseToDens
 
 ArchitectureInterface::DenseToSparseDotProductStable Architecture::getDenseToSparseDotProductStable() {
     return sm_denseToSparseDotProductStablePtr;
+}
+
+Architecture::IndexedDenseToIndexedDenseDotProductUnstable Architecture::getIndexedDenseToIndexedDenseDotProductUnstable()
+{
+    return sm_indexedDenseToIndexedDenseDotProductUnstablePtr;
+}
+
+ArchitectureInterface::IndexedDenseToIndexedDenseDotProductStable Architecture::getIndexedDenseToIndexedDenseDotProductStable()
+{
+    return sm_indexedDenseToIndexedDenseDotProductStablePtr;
 }
 
 size_t Architecture::getLargestCacheSize() {

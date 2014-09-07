@@ -7,6 +7,9 @@ NodeFile::NodeFile() {
 
 void NodeFile::loadFromFile(const char * fileName) {
     std::ifstream inputFile(fileName);
+    if (inputFile.is_open() == false) {
+        throw FileNotFoundException("Error when opening node file!", fileName);
+    }
     loadFromStream(inputFile);
 }
 
