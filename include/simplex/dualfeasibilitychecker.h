@@ -57,9 +57,11 @@ public:
 
     /**
      * The aim of this function is to be able to update the reduced cost feasibilities in an efficient way.
-     * @param updateVector stores the changes in the feasibilities
+     * @param updateVector stores the changes in the feasibilities variableindex, direction pairs.
+     * @return True if everything is dual feasible
      */
-    void updateFeasibilities(const std::vector<int> & updateVector);
+    bool updateFeasibilities(const std::vector<std::pair<int, char> > &updateFeasibilitySets,
+                             const std::vector<int>& becomesFeasible);
 
     /**
      * Getter that returns the dual phase 1 objective value, the sum of dual infeasibilities.

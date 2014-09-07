@@ -47,9 +47,8 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
                         (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
                     m_reducedCostFeasibilities->insert(Simplex::PLUS,variableIndex);
                     m_phaseIObjectiveValue -= m_reducedCosts.at(variableIndex);
-                } else{
-
     //nonbasic variables with F type infeasibility
+                } else if(typeOfIthVariable != Variable::BOUNDED && typeOfIthVariable != Variable::FIXED){
                     m_reducedCostFeasibilities->insert(Simplex::FEASIBLE,variableIndex);
                 }
         }
@@ -113,33 +112,40 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, 
     basicVariableValues->addVector(1, transformVector);
 }
 
-void DualFeasibilityChecker::updateFeasibilities(const std::vector<int> & updateVector)
+bool DualFeasibilityChecker::updateFeasibilities(const std::vector<std::pair<int, char> > &updateFeasibilitySets,
+                                                 const std::vector<int>& becomesFeasible)
 {
-
-    for (unsigned int index = 0; index < updateVector.size(); index++) {
-        if (updateVector[index] == 1) {
-            if (m_reducedCostFeasibilities->where(index) == Simplex::MINUS) {
-                m_reducedCostFeasibilities->move(index,Simplex::FEASIBLE);
+    //TODO: reservek koknstruktorbol
+    for (unsigned int index = 0; index < updateFeasibilitySets.size(); index++) {
+        int variableIndex = updateFeasibilitySets[index].first;
+        if (updateFeasibilitySets[index].second == 1) {
+            if (m_reducedCostFeasibilities->where(variableIndex) == Simplex::MINUS) {
+                m_reducedCostFeasibilities->move(variableIndex,Simplex::FEASIBLE);
             } else
-            if (m_reducedCostFeasibilities->where(index) == Simplex::FEASIBLE) {
-                m_reducedCostFeasibilities->move(index,Simplex::PLUS);
+            if (m_reducedCostFeasibilities->where(variableIndex) == Simplex::FEASIBLE) {
+                m_reducedCostFeasibilities->move(variableIndex,Simplex::PLUS);
             }
         } else
-        if (updateVector[index] == -1) {
-            if (m_reducedCostFeasibilities->where(index) == Simplex::PLUS) {
-                m_reducedCostFeasibilities->move(index,Simplex::FEASIBLE);
+        if (updateFeasibilitySets[index].second == 0) {
+            if (m_reducedCostFeasibilities->where(variableIndex) == Simplex::PLUS) {
+                m_reducedCostFeasibilities->move(variableIndex,Simplex::FEASIBLE);
             } else
-            if (m_reducedCostFeasibilities->where(index) == Simplex::FEASIBLE) {
-                m_reducedCostFeasibilities->move(index,Simplex::MINUS);
+            if (m_reducedCostFeasibilities->where(variableIndex) == Simplex::FEASIBLE) {
+                m_reducedCostFeasibilities->move(variableIndex,Simplex::MINUS);
             }
-        } else
-        if (updateVector[index] == 2 &&
-             (m_reducedCostFeasibilities->where(index) == Simplex::MINUS)) {
-                m_reducedCostFeasibilities->move(index,Simplex::PLUS);
-        } else
-        if (updateVector[index] == -2 &&
-            (m_reducedCostFeasibilities->where(index) == Simplex::PLUS)) {
-                m_reducedCostFeasibilities->move(index,Simplex::MINUS);
-            }
+        }
     }
+    for(unsigned index = 0; index < becomesFeasible.size(); index++){
+        m_reducedCostFeasibilities->move(becomesFeasible[index],Simplex::FEASIBLE);
+    }
+    //TODO: Compute phase 1 objective function too!
+    IndexList<>::Iterator setMit;
+    IndexList<>::Iterator setMendit;
+    IndexList<>::Iterator setPit;
+    IndexList<>::Iterator setPendit;
+
+    m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
+    m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
+
+    return ((setMit == setMendit) && (setPit == setPendit));
 }

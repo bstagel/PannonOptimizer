@@ -416,6 +416,62 @@ bool Checker::checkOptimalityConditions(const Simplex& simplex, bool print, Nume
     return okay;
 }
 
+bool Checker::checkFeasibilitySets(const Simplex &simplex, bool print, Numerical::Double tolerance)
+{
+    bool okay = true;
+    Numerical::Double reducedCost = 0;
+    unsigned int variableState;
+
+    for(unsigned i = 0; i < simplex.m_reducedCosts.length(); i++){
+        reducedCost = simplex.m_reducedCosts.at(i);
+        variableState = simplex.m_variableStates.where(i);
+        //Bounded variables are left out from the feasibility sets because of the feasibilityCorrection
+        if(simplex.m_simplexModel->getVariable(i).getType() != Variable::BOUNDED &&
+                simplex.m_simplexModel->getVariable(i).getType() != Variable::FIXED){
+            if( (variableState == Simplex::NONBASIC_FREE || variableState == Simplex::NONBASIC_AT_LB) &&
+                    reducedCost < -tolerance && simplex.m_reducedCostFeasibilities.where(i) != Simplex::MINUS){
+                if(print){
+                    LPINFO("FEASIBILITY SET M VIOLATED: "
+                           << " variableIndex: " << i
+                           << " d_j: " << std::scientific<<reducedCost
+                           << " reducedCostFeasibility: " << simplex.m_reducedCostFeasibilities.where(i)
+                           << " variableState: " << variableState);
+                }
+                okay = false;
+            }else if( (variableState == Simplex::NONBASIC_FREE || variableState == Simplex::NONBASIC_AT_UB) &&
+                     reducedCost > tolerance && simplex.m_reducedCostFeasibilities.where(i) != Simplex::PLUS){
+                if(print){
+                    LPINFO("FEASIBILITY SET P VIOLATED: "
+                           << " variableIndex: " << i
+                           << " d_j: " << std::scientific<<reducedCost
+                           << " reducedCostFeasibility: " << simplex.m_reducedCostFeasibilities.where(i)
+                           << " variableState: " << variableState);
+                }
+                okay = false;
+            }else if ( ((variableState == Simplex::NONBASIC_FREE && Numerical::fabs(reducedCost) < tolerance) ||
+                        (variableState == Simplex::NONBASIC_AT_LB && reducedCost > -tolerance) ||
+                        (variableState == Simplex::NONBASIC_AT_UB && reducedCost < tolerance) ) &&
+                       simplex.m_reducedCostFeasibilities.where(i) != Simplex::FEASIBLE){
+                if(print){
+                    LPINFO("FEASIBILITY SET F VIOLATED: "
+                           << " variableIndex: " << i
+                           << " d_j: " << std::scientific<<reducedCost
+                           << " reducedCostFeasibility: " << simplex.m_reducedCostFeasibilities.where(i)
+                           << " variableState: " << variableState);
+                }
+                okay = false;
+            }
+        }
+    }
+
+    if(okay){
+//        LPINFO("checkFeasibilitySets PASSED");
+    }else{
+        LPERROR("checkFeasibilitySets FAILED");
+    }
+    return okay;
+}
+
 bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical::Double tolerance)
 {
     bool okay = true;

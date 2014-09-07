@@ -109,6 +109,15 @@ public:
     static bool checkOptimalityConditions(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
 
     /**
+     * Checks whether the dual feasibility sets (M,F,P) are correct.
+     * @param simplex provides the feasibility sets, reduced cost values
+     * @param print can be turned on to pring information on the screen
+     * @param tolerance the oprimality tolerance
+     * @return true if the feasibility sets are correct.
+     */
+    static bool checkFeasibilitySets(const Simplex& simplex, bool print=true, Numerical::Double tolerance = 0);
+
+    /**
      * Checks wther the constraints of the problem are satisfied or not.
      * @param simplex provied the constraints
      * @param print can be turned on to print information on screen

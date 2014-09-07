@@ -346,7 +346,7 @@ void DualSimplex::selectPivot() {
 
         if(!m_feasible){
             Numerical::Double reducedCost = m_pricing ? m_pricing->getReducedCost() : m_pricingController->getReducedCost();
-            m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue,m_workingTolerance);
+            m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_objectiveValue,m_workingTolerance);
         }
@@ -381,7 +381,6 @@ void DualSimplex::selectPivot() {
 }
 
 void DualSimplex::update() {
-
 
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
@@ -462,9 +461,16 @@ void DualSimplex::update() {
 
         m_basis->Ftran(m_incomingAlpha);
 
-        //Compute the outgoing state
+        //Log the outgoing variable information
         Simplex::VARIABLE_STATE outgoingState;
-        Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
+        const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
+        Variable::VARIABLE_TYPE outgoingType = outgoingVariable.getType();
+        Numerical::Double outgoingVariableIndex= m_basisHead[m_outgoingIndex];
+        Numerical::Double outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
+
+//        LPINFO("outgoin var index: "<<outgoingVariableIndex);
+
+        //Compute the outgoing state
         switch (outgoingType) {
         case Variable::FIXED:
             outgoingState = NONBASIC_FIXED;
@@ -472,7 +478,7 @@ void DualSimplex::update() {
         case Variable::BOUNDED:
             if(!m_feasible){
                 //In Phase-I to maintain feasibility of the outgoing variable
-                if(m_ratiotest->getDualSteplength() < 0){
+                if(m_dualTheta < 0){
                     //The outgoing variable will have a reduced cost equal to -theta,
                     //which implies its state to satisfy its optimality condition
                     outgoingState = NONBASIC_AT_LB;
@@ -496,6 +502,7 @@ void DualSimplex::update() {
             break;
         case Variable::FREE:
             outgoingState = NONBASIC_FREE;
+            LPWARNING("FREE variable selected to leave basis!");
             break;
         case Variable::MINUS:
             outgoingState = NONBASIC_AT_UB;
@@ -508,8 +515,6 @@ void DualSimplex::update() {
         //Compute the primal theta
         //Update the solution vector and the objective value
         Numerical::Double beta;
-        Numerical::Double outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
-        const Variable & outgoingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
         switch(outgoingState){
         case NONBASIC_FIXED:
             beta = outgoingVariableValue - outgoingVariable.getLowerBound();
@@ -557,6 +562,17 @@ void DualSimplex::update() {
                                         m_incomingAlpha, m_pivotRow,
                                         m_pivotRowOfBasisInverse);
         }
+
+        //Update feasibility of the basis change
+        if(!m_feasible){
+            m_reducedCostFeasibilities.remove(m_incomingIndex);
+
+            //Bounded and fixed variables are left out from dual phase1
+            //outgoing variable's reduced cost is always feasible
+            if(outgoingType != Variable::BOUNDED && outgoingType != Variable::FIXED){
+                m_reducedCostFeasibilities.insert(Simplex::FEASIBLE,outgoingVariableIndex);
+            }
+        }
     }
 
     checkReferenceObjective();
@@ -566,8 +582,10 @@ void DualSimplex::update() {
 
     //Update the feasibility sets in phase I
     if(!m_feasible){
-        //TODO: phase 1 expand, milyen toleranciat hasznaljon?
         computeFeasibility();
+//        m_feasibilityChecker->updateFeasibilities(m_ratiotest->getUpdateFeasibilitySets(),
+//                                                  m_ratiotest->getBecomesFeasible());
+        Checker::checkFeasibilitySets(*this,true,m_masterTolerance);
     }
 }
 
