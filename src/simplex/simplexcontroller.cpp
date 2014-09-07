@@ -288,7 +288,7 @@ Numerical::Double SimplexController::parallelIterations(
                 throw;
             } else {
                 LPINFO("Numerical error: "<<exception.getMessage());
-               // reinversionCounter = reinversionFrequency;
+                // reinversionCounter = reinversionFrequency;
                 iterations--;
             }
         } catch(const SwitchAlgorithmException& exception){
@@ -342,7 +342,7 @@ void SimplexController::solve(const Model &model)
         //Simplex iterations
 
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex += reinversionFrequency) {
+             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
@@ -380,9 +380,9 @@ void SimplexController::solve(const Model &model)
                     break;
                 }
             }
-            lastObjective = parallelIterations(model, reinversionFrequency);
-             /*           try{
-            //iterate
+            //  lastObjective = parallelIterations(model, reinversionFrequency);
+            try{
+                //iterate
                 m_currentSimplex->iterate();
                 if(!m_currentSimplex->m_feasible){
                     lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
@@ -401,7 +401,7 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->reinvert();
                 m_iterationIndex--;
             } catch ( const OptimizationResultException & exception ) {
-//                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
+                //                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
                 m_currentSimplex->m_simplexModel->resetModel();
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
@@ -422,7 +422,7 @@ void SimplexController::solve(const Model &model)
             } catch(const SwitchAlgorithmException& exception){
                 LPINFO("Algorithm switched: "<< exception.getMessage());
                 switchAlgorithm(model);
-            }*/
+            }
         }
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());

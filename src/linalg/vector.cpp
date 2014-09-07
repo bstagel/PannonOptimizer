@@ -35,6 +35,7 @@ thread_local unsigned int Vector::sm_countingSortBitVectorLength = 0;
 void Vector::_globalInit() {
     ELBOWROOM = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
     SPARSITY_RATIO = LinalgParameterHandler::getInstance().getDoubleParameterValue("sparsity_ratio");
+
 }
 
 Vector::Vector(unsigned int dimension, VECTOR_TYPE type)
