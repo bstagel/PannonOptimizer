@@ -388,7 +388,9 @@ void DualSimplex::update() {
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-    setReferenceObjective();
+    bool secondPhase = m_feasible;
+
+    setReferenceObjective(secondPhase);
 
     //    Checker::checkBasicVariableFeasibilityStates(*this);
 
@@ -575,7 +577,7 @@ void DualSimplex::update() {
         }
     }
 
-    checkReferenceObjective();
+
 
     //Update the reduced costs
     updateReducedCosts();
@@ -587,18 +589,20 @@ void DualSimplex::update() {
 //                                                  m_ratiotest->getBecomesFeasible());
         Checker::checkFeasibilitySets(*this,true,m_masterTolerance);
     }
+
+    checkReferenceObjective(secondPhase);
 }
 
-void DualSimplex::setReferenceObjective() {
-    if(!m_feasible){
+void DualSimplex::setReferenceObjective(bool secondPhase) {
+    if(!secondPhase){
         m_referenceObjective = m_phaseIObjectiveValue;
     } else {
         m_referenceObjective = m_objectiveValue;
     }
 }
 
-void DualSimplex::checkReferenceObjective() {
-    if(!m_feasible){
+void DualSimplex::checkReferenceObjective(bool secondPhase) {
+    if(!secondPhase){
         if(Numerical::less(m_phaseIObjectiveValue,m_referenceObjective)){
             LPWARNING("BAD ITERATION - PHASE I difference: "<<m_referenceObjective-m_phaseIObjectiveValue);
             m_badIterations++;

@@ -137,13 +137,17 @@ private:
     /**
      * Inherited from the parent Simplex class, sets the objective function value.
      * It considers the current phase.
+     *
+     * @param secondPhase Describes if the reference check is done in second phase or not.
      */
-    virtual void setReferenceObjective();
+    virtual void setReferenceObjective(bool secondPhase);
 
     /**
      * Inherited from the parent Simplex class, checks whether a bad iteration was done.
+     *
+     * @param secondPhase Describes if the reference check is done in second phase or not.
      */
-    virtual void checkReferenceObjective();
+    virtual void checkReferenceObjective(bool secondPhase);
 
     /**
      * Inherited from the parent Simplex class, initializes the expand working tolerance.

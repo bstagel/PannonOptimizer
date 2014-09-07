@@ -536,13 +536,13 @@ protected:
      * Pure virtual setter for the reference objective value,
      * implemented in child classes.
      */
-    virtual void setReferenceObjective() = 0;
+    virtual void setReferenceObjective(bool secondPhase) = 0;
 
     /**
      * Pure virtual function to check the reference objective value,
      * implemented in child classes.
      */
-    virtual void checkReferenceObjective() = 0;
+    virtual void checkReferenceObjective(bool secondPhase) = 0;
 
     /**
      * Pure virtual function for initializing the working tolerance.

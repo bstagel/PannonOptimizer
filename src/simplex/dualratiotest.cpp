@@ -199,6 +199,9 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
     std::vector<std::pair<int,Numerical::Double> > ratios;
 
+    int firstCandidate = -1;
+    int lastCandidate = -1;
+
     while (iterationCounter < numberOfBreakpoints) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
@@ -206,31 +209,62 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
 
         m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = m_phaseIObjectiveValue;
+        functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
 //        LPINFO("compute_index: "<<actualBreakpoint->variableIndex);
-        if(functionSlope < 0 && iterationCounter+1 < numberOfBreakpoints){
-            t_next = m_breakpointHandler.getBreakpoint(iterationCounter+1)->value;
-            if(t_next != t_actual){
-                break;
+//        LPINFO("slope_after: "<<std::scientific<<functionSlope);
+
+        if(functionSlope <= 0){
+//            LPINFO("m_reducedCostFeasibilities.where(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex): "<<
+//                   m_reducedCostFeasibilities.where(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex));
+            if(firstCandidate == -1){
+                firstCandidate = iterationCounter;
+            }
+            if(iterationCounter+1 < numberOfBreakpoints){
+                t_next = m_breakpointHandler.getBreakpoint(iterationCounter+1)->value;
+                if(t_next != t_actual && functionSlope < 0){
+                    lastCandidate = iterationCounter;
+                    break;
+                }
             }
         }
 
-        functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
 
         iterationCounter++;
         t_prev = t_actual;
     }
+    //TODO: A FirstCandidate-et elorefele is korrigalni kellene!
+    if(lastCandidate == -1){
+        lastCandidate = numberOfBreakpoints-1;
+    }
+//    LPINFO("firstCandidate "<<firstCandidate);
+//    LPINFO("lastCandidate "<<lastCandidate);
+    //Search the best incoming alternative
+    if(firstCandidate != -1){
+        for(int i=firstCandidate; i<=lastCandidate; i++){
+            actualBreakpoint = m_breakpointHandler.getBreakpoint(i);
+            if(m_reducedCostFeasibilities.where(actualBreakpoint->variableIndex) != 0){
+                m_incomingVariableIndex = actualBreakpoint->variableIndex;
+                m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
+            }
+        }
+    }
+//    LPINFO("m_incomingVariableIndex "<<m_incomingVariableIndex);
     if (actualBreakpoint != NULL){
-        m_incomingVariableIndex = actualBreakpoint->variableIndex;
-        m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
+        if(m_incomingVariableIndex == -1){
+            m_incomingVariableIndex = actualBreakpoint->variableIndex;
+            m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
+        }
         //adding variables to the update vector if their feasibility states are changed
-        ratios.pop_back();
+//        LPINFO("valasztotte: " << m_reducedCostFeasibilities.where(m_incomingVariableIndex));
         int variableIndex = -1;
         for(unsigned i = 0; i < ratios.size(); i++){
             variableIndex = ratios[i].first;
-            if(ratios[i].second < actualBreakpoint->value){
+            if(variableIndex < firstCandidate){
                 m_updateFeasibilitySets.push_back(std::pair<int,char>(variableIndex,m_ratioDirections[variableIndex]));
             }else{
-                m_becomesFeasible.push_back(variableIndex);
+                if(variableIndex != m_incomingVariableIndex){
+                    m_becomesFeasible.push_back(variableIndex);
+                }
             }
         }
     } else{
@@ -447,6 +481,7 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
     }
+//    m_breakpointHandler.printBreakpoints();
 //    LPINFO("phaseIReducedCost: "<<phaseIReducedCost<<" dual theta: "<<m_dualSteplength);
 }
 

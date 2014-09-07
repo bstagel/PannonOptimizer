@@ -407,16 +407,16 @@ void PrimalSimplex::update() {
 //    LPWARNING("teta: "<<m_primalTheta<< " sum: "<<valueOfOutgoingVariable+m_primalTheta);
 }
 
-void PrimalSimplex::setReferenceObjective() {
-    if(!m_feasible){
+void PrimalSimplex::setReferenceObjective(bool secondPhase) {
+    if(!secondPhase){
         m_referenceObjective = m_phaseIObjectiveValue;
     } else {
         m_referenceObjective = m_objectiveValue;
     }
 }
 
-void PrimalSimplex::checkReferenceObjective() {
-    if(!m_feasible){
+void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
+    if(!secondPhase){
         if( Numerical::fabs(m_referenceObjective - m_phaseIObjectiveValue) > 1e10 ){
             LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
