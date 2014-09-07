@@ -54,8 +54,8 @@ void InitPanOpt::init() {
 
     sm_instance = new InitPanOpt();
 
-    LinalgParameterHandler::_globalInit();
     SimplexParameterHandler::_globalInit();
+    LinalgParameterHandler::_globalInit();
     Numerical::_globalInit();
     Vector::_globalInit();
     IndexedDenseVector::_globalInit();

@@ -145,12 +145,12 @@ void SimplexModel::perturbCostVector()
     LPINFO("Cost vector perturbation");
     m_originalCostVector = m_costVector;
     //generate random epsilon values
-    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_cost_vector");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_cost_vector");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     Vector epsilonValues;
 
-    switch(SimplexParameterHandler::getInstance().getIntegerParameterValue("perturb_cost_vector")){
+    switch(SimplexParameterHandler::getInstance().getIntegerParameterValue("Perturbation.perturb_cost_vector")){
     //structural variables
     case 1:
     {
@@ -189,7 +189,7 @@ void SimplexModel::perturbRHS()
     LPINFO("RHS perturbation");
     m_originalRhs = m_rhs;
     //generate random epsilon values
-    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_rhs");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_rhs");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     Vector epsilonValues;
@@ -212,7 +212,7 @@ void SimplexModel::shiftBounds()
 {
     LPINFO("Bound shifting");
     //generate random epsilon values
-    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("epsilon_bounds");
+    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_bounds");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     //TODO: Ezt mashogy kell lefoglalni, feltolteni

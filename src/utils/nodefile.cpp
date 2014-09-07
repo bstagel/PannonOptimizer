@@ -59,6 +59,30 @@ void NodeFile::Node::getArray(const std::string & name,
     *endIterator = arrayIter->second.end();
 }
 
+std::set<std::string> NodeFile::Node::getNodeNames() const
+{
+    std::set<std::string> result;
+    auto iter = m_nodes.begin();
+    auto iterEnd = m_nodes.end();
+
+    for (; iter != iterEnd; iter++) {
+        result.insert( iter->first );
+    }
+    return result;
+}
+
+std::set<std::string> NodeFile::Node::getValueNames() const
+{
+    std::set<std::string> result;
+    auto iter = m_values.begin();
+    auto iterEnd = m_values.end();
+
+    for (; iter != iterEnd; iter++) {
+        result.insert( iter->first );
+    }
+    return result;
+}
+
 bool NodeFile::Node::checkInteger(const std::string & str) {
     unsigned int index;
     if (str.length() == 0) {

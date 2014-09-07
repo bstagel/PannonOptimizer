@@ -33,16 +33,20 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_stablePivotNotFoundPhase2(0),
     m_fakeFeasibilityActivationPhase2(0),
     m_fakeFeasibilityCounterPhase2(0),
-    m_nonlinearDualPhaseIFunction(static_cast<DUAL_RATIOTEST_METHOD>
-                                  (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseI_function"))),
-    m_nonlinearDualPhaseIIFunction(static_cast<DUAL_RATIOTEST_METHOD>
-                                   (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_dual_phaseII_function"))),
-    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_optimality")),
-    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot")),
-    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getIntegerParameterValue("enable_fake_feasibility")),
-    m_expand(SimplexParameterHandler::getInstance().getIntegerParameterValue("expand")),
-    m_toleranceStep(m_optimalityTolerance * (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier")) /
-                    SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider")),
+    //m_nonlinearDualPhaseIFunction(static_cast<DUAL_RATIOTEST_METHOD>
+    //                              (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseI_function"))),
+    m_nonlinearDualPhaseIFunction(getDualRatiotestMethod(
+                                      SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_dual_phaseI_function"))),
+    m_nonlinearDualPhaseIIFunction(getDualRatiotestMethod(
+                                       SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_dual_phaseII_function"))),
+    //m_nonlinearDualPhaseIIFunction(static_cast<DUAL_RATIOTEST_METHOD>
+    //                               (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseII_function"))),
+    m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality")),
+    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
+    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility")),
+    m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
+    m_toleranceStep(m_optimalityTolerance * (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier")) /
+                    SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
     m_degenerate(false)
 {
     m_ratioDirections.resize(m_model.getColumnCount() + m_model.getRowCount());
@@ -61,7 +65,7 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     Variable::VARIABLE_TYPE typeOfIthVariable;
     Numerical::Double epsilon = 0;
     if(m_nonlinearDualPhaseIFunction < 2){
-        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
+        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
     }
 
 //t>=0 case
@@ -500,7 +504,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     Numerical::Double valueOfVariable = 0;
     Numerical::Double epsilon = 0;
     if(m_nonlinearDualPhaseIIFunction < 2){
-        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_pivot");
+        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
     }
 
     //free variables always enter the basis
@@ -793,7 +797,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         m_tPositive = true;
     }
 
-    if(m_expand > 0){
+    if(m_expand != "INACTIVE"){
         generateExpandedBreakpointsPhase2(alpha,workingTolerance);
     }else{
         generateSignedBreakpointsPhase2(alpha);
@@ -811,7 +815,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
             m_breakpointHandler.initSorting();
             //Handle fake feasible breakpoints
-            if(m_expand == 0 && m_enableFakeFeasibility){
+            if(m_expand == "INACTIVE" && m_enableFakeFeasibility){
                 const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
                 int fakeFeasibilityCounter = 0;
 
@@ -873,7 +877,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
                 }
                 //Harris, expand
-                if(m_expand > 0){
+                if(m_expand != "INACTIVE"){
                     const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios = m_breakpointHandler.getExpandSecondPass();
 #ifndef NDEBUG
                     if(secondPassRatios.size() == 0){
@@ -897,7 +901,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
                     Numerical::Double theta;
                     //theta remains zero if the choosen breakpoint value is negative
-                    if(m_expand == 1){
+                    if(m_expand == "HARRIS"){
                         //HARRIS
                         if(secondPassRatios[maxBreakpointId]->value < 0){
                             LPINFO("Harris ratiotest theta is zero!");

@@ -11,7 +11,7 @@
 IterationReport::IterationReport():
     m_providerChanged(false),
     m_refreshHeader(true),
-    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("debug_level")),
+    m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
     m_lastDebugLevel(m_debugLevel)
 {
     m_lastOutputEvent = IR_NONE;

@@ -317,13 +317,13 @@ private:
      * Reference of the "enable_fake_feasibility" run-time parameter,
      * see SimplexParameterHandler for details.
      */
-    const int & m_enableFakeFeasibility;
+    const bool & m_enableFakeFeasibility;
 
     /**
      * Parameter reference of run-time parameter "expand",
      * see SimplexParameterHandler for details.
      */
-    const int & m_expand;
+    const std::string & m_expand;
 
     /**
      * This is the value of the tolerance increment in the expand procedure.
@@ -414,5 +414,19 @@ private:
      */
     void useNumericalThresholdPhase2(unsigned int iterationCounter,
                                      const Vector& alpha);
+
+    static DUAL_RATIOTEST_METHOD getDualRatiotestMethod(const std::string & method) {
+        if (method == "TRADITIONAL") {
+            return ONE_STEP;
+        }
+        if (method == "PIECEWISE") {
+            return PIECEWISE_LINEAR_FUNCTION;
+        }
+        if (method == "PIECEWISE_THRESHOLD") {
+            return STABLE_PIVOT;
+        }
+        // TODO: exception
+        return ONE_STEP;
+    }
 };
 #endif // DUALRATIOTEST_H

@@ -14,7 +14,7 @@ PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
     m_variableStates(variableStates),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_basisHead(basisHead),
-    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility"))
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility"))
 {
 
 }

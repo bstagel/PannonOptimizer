@@ -18,7 +18,7 @@ LuBasis::LuBasis(const SimplexModel& model,
                  IndexList<const Numerical::Double*>* variableStates,
                  const Vector& basicVariableValues) :
     Basis(model, basisHead, variableStates, basicVariableValues),
-    m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold"))
+    m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold"))
 {
     m_lower = new std::vector<DoubleETM>();
     m_upper = new std::vector<DoubleETM>();
@@ -442,7 +442,7 @@ void LuBasis::invertM()
         std::vector<int> columnMarkowitzRowIndices;
         columnMarkowitzs.resize(basisSize,basisSize*basisSize);
         columnMarkowitzRowIndices.resize(basisSize);
-        const double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("pivot_threshold");
+        const double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold");
         std::list<int>::iterator activeRowIt;
         std::list<int>::iterator activeRowItend;
         //Compute the row and column Markowitz numbers

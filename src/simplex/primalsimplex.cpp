@@ -26,9 +26,9 @@ PrimalSimplex::PrimalSimplex(SimplexController &simplexController):
     m_ratiotest(0),
     m_phaseName(PHASE_UNKNOWN_STRING)
 {
-    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("e_feasibility");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("expand_multiplier");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("expand_divider");
+    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
+    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
+    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
 }
 
 PrimalSimplex::~PrimalSimplex()
@@ -207,7 +207,7 @@ void PrimalSimplex::computeFeasibility() {
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
     if(lastFeasible == false && m_feasible == true){
-        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("switch_algorithm") == 2){
+        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_WHEN_ENTER_PH2"){
             throw SwitchAlgorithmException("phase-2 entered!");
         }
         m_referenceObjective = m_objectiveValue;
@@ -437,7 +437,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
 
 void PrimalSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("nonlinear_primal_phaseI_function") == 3) {
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_primal_phaseI_function") == 3) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {
