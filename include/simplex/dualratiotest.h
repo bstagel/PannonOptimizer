@@ -52,6 +52,18 @@ public:
     virtual ~DualRatiotest();
 
     /**
+     * Getter of the updateFeasibilitySets member.
+     * @return DualRatiotest::m_updateFeasibilitySets.
+     */
+    inline const std::vector<std::pair<int,char> >& getUpdateFeasibilitySets(){return m_updateFeasibilitySets;}
+
+    /**
+     * Getter of the m_becomesFeasible member.
+     * @return DualRatiotest::m_becomesFeasible.
+     */
+    inline const std::vector<int>& getBecomesFeasible(){return m_becomesFeasible;}
+
+    /**
      * Getter that returns the incoming variable's index.
      */
     inline int getIncomingVariableIndex()const{return m_incomingVariableIndex;}
@@ -81,12 +93,10 @@ public:
      * @param alpha needed to define ratios
      * @param phaseIReducedCost needed to define t > 0 and t < 0 cases
      * @param phaseIObjectiveValue will be computed to the ratios
-     * @param workingTolerance shows the currently used dual feasibility tolerance
      */
     void performRatiotestPhase1(const Vector& alpha,
                                 Numerical::Double phaseIReducedCost,
-                                Numerical::Double phaseIObjectiveValue,
-                                Numerical::Double workingTolerance);
+                                Numerical::Double phaseIObjectiveValue);
 
     /**
      * This function performs and controls the phase 2 dual ratiotest.
@@ -319,6 +329,24 @@ private:
      * This is the value of the tolerance increment in the expand procedure.
      */
     Numerical::Double m_toleranceStep;
+
+    /**
+     * This contains the directions of the phase 1 ratios.
+     * If the variable moves up from set M or F it stores 1,
+     * otherwise if it moves down from set P or F it stores 0.
+     */
+    std::vector<char> m_ratioDirections;
+
+    /**
+     * This vector stores the changes in the feasibilities.
+     * If the variable moves from set F to M it stores the variableindex and -1 as a pair.
+     */
+    std::vector<std::pair<int,char> > m_updateFeasibilitySets;
+
+    /**
+     * This vector contains the variable idices of explicit feasible variables.
+     */
+    std::vector<int> m_becomesFeasible;
 
     /**
      * Holds whether the last iteration was degenerate or not.

@@ -253,9 +253,9 @@ Numerical::Double SimplexController::parallelIterations(
     for (iterations = 0; iterations < iterationNumber; iterations++) {
         try{
             //iterate
-            LPINFO("before iteration");
+//            LPINFO("before iteration");
             m_currentSimplex->iterate();
-            LPINFO("after iteration");
+//            LPINFO("after iteration");
             if(!m_currentSimplex->m_feasible){
                 lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
             }else{
@@ -310,6 +310,7 @@ void SimplexController::solve(const Model &model)
     const int & switching = simplexParameters.getIntegerParameterValue("switch_algorithm");
 
     const int & threadCount = 1;
+    __UNUSED(threadCount);
 
     m_currentAlgorithm = (Simplex::ALGORITHM)simplexParameters.getIntegerParameterValue("starting_algorithm");
 

@@ -118,20 +118,18 @@ IndexedDenseVector &IndexedDenseVector::addSparseVector(Numerical::Double lambda
     return *this;
 }
 
-Numerical::Double IndexedDenseVector::dotProductIndexedDenseVector(const IndexedDenseVector &vector) const
-{
+//Numerical::Double IndexedDenseVector::dotProductIndexedDenseVector(const IndexedDenseVector &vector) const
+//{
     //(sm_indexedDenseToIndexedDenseDotProduct)(vector, vector);
-}
+//}
 
-Numerical::Double IndexedDenseVector::dotProductDenseVector(const DenseVector &vector) const
-{
+//Numerical::Double IndexedDenseVector::dotProductDenseVector(const DenseVector &vector) const
+//{
+//}
 
-}
-
-Numerical::Double IndexedDenseVector::dotProductSparseVector(const SparseVector &vector) const
-{
-
-}
+//Numerical::Double IndexedDenseVector::dotProductSparseVector(const SparseVector &vector) const
+//{
+//}
 
 void IndexedDenseVector::scale(Numerical::Double lambda)
 {
