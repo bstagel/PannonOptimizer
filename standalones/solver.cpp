@@ -33,7 +33,7 @@ void solve(std::string filename) {
 //    }
 //    presolver.printStatistics();
 
-    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("scaling") == 1){
+    if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Scaling.enable") == true){
         model.scale();
     }
 
