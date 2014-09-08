@@ -12,6 +12,7 @@
 #include <vector>
 #include <utils/parameter.h>
 #include <utils/entry.h>
+#include <utils/nodefile.h>
 
 /**
  * This class is able to handle the parameters of the program.
@@ -46,8 +47,10 @@ public:
      * @param name The name of the new parameter.
      * @param type The type of the new parameter.
      */
-    inline void createParameter(const std::string& name, Entry::ENTRY_TYPE type){
-        m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type)));
+    inline void createParameter(const std::string& name,
+                                Entry::ENTRY_TYPE type,
+                                const std::string & comment){
+        m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type,comment)));
     }
 
     /**
@@ -66,6 +69,12 @@ public:
      * @return The value of the parameter.
      */
     inline const std::string & getStringParameterValue(const std::string& name) const {
+        if (m_values.find(name) == m_values.end()) {
+            LPERROR(name);
+        }
+        if (m_values.at(name).getEntryType() != Entry::STRING) {
+            LPERROR("not string: " << name);
+        }
         return *(m_values.at(name).getEntry().m_string);}
 
     /**
@@ -75,6 +84,12 @@ public:
      * @return The value of the parameter.
      */
     inline const int & getIntegerParameterValue(const std::string& name) const {
+        if (m_values.find(name) == m_values.end()) {
+            LPERROR(name);
+        }
+        if (m_values.at(name).getEntryType() != Entry::INTEGER) {
+            LPERROR("not integer: " << name);
+        }
         return m_values.at(name).getEntry().m_integer;}
 
     /**
@@ -84,6 +99,12 @@ public:
      * @return The value of the parameter.
      */
     inline const double & getDoubleParameterValue(const std::string& name) const {
+        if (m_values.find(name) == m_values.end()) {
+            LPERROR(name);
+        }
+        if (m_values.at(name).getEntryType() != Entry::DOUBLE) {
+            LPERROR("not double: " << name);
+        }
         return m_values.at(name).getEntry().m_double;}
 
     /**
@@ -93,6 +114,12 @@ public:
      * @return The value of the parameter.
      */
     inline const bool & getBoolParameterValue(const std::string& name) const {
+        if (m_values.find(name) == m_values.end()) {
+            LPERROR(name);
+        }
+        if (m_values.at(name).getEntryType() != Entry::BOOL) {
+            LPERROR("not bool: " << name);
+        }
         return m_values.at(name).getEntry().m_bool;}
 
     /**
@@ -123,6 +150,16 @@ public:
      */
     inline void setParameterValue(const std::string name, const std::string value){
         m_values.at(name).setStringValue(value);
+    }
+
+    /**
+     * Sets the given parameter's value to a string.
+     *
+     * @param name The name of the parameter.
+     * @param value The new value of the parameter.
+     */
+    inline void setParameterValue(const std::string name, const char * value){
+        m_values.at(name).setStringValue(std::string(value));
     }
 
     /**
@@ -187,27 +224,18 @@ protected:
     std::map<std::string, Parameter> m_values;
 
     /**
+     * The original node file.
+     */
+    NodeFile m_nodeFile;
+
+    /**
      * Loads the parameters from an external file.
      *
      * @param in The input file stream of the file.
      */
     void loadValuesFromFile(std::ifstream& in);
 
-    /**
-     * Tokenizes a line of the parameter file to read the parameters and values.
-     *
-     * @param line The line to be tokenized.
-     * @return The tokens from the line.
-     */
-    std::vector<std::string> tokenizer(std::string& line);
-
-    /**
-     * Returns the content of the input file stream without the empty rows.
-     *
-     * @param in The input file stream.
-     * @return The content of the input file stream without the empty rows.
-     */
-    std::string ignoreEmptyRows(std::ifstream& in);
+    void processNode(const NodeFile::Node &node, const std::string &name = "");
 
 };
 
