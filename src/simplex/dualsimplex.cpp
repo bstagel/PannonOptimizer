@@ -587,7 +587,7 @@ void DualSimplex::update() {
         computeFeasibility();
 //        m_feasibilityChecker->updateFeasibilities(m_ratiotest->getUpdateFeasibilitySets(),
 //                                                  m_ratiotest->getBecomesFeasible());
-        Checker::checkFeasibilitySets(*this,true,m_masterTolerance);
+//        Checker::checkFeasibilitySets(*this,true,m_workingTolerance);
     }
 
     checkReferenceObjective(secondPhase);
