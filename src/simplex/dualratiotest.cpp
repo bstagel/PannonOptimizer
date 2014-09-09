@@ -33,14 +33,10 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_stablePivotNotFoundPhase2(0),
     m_fakeFeasibilityActivationPhase2(0),
     m_fakeFeasibilityCounterPhase2(0),
-    //m_nonlinearDualPhaseIFunction(static_cast<DUAL_RATIOTEST_METHOD>
-    //                              (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseI_function"))),
     m_nonlinearDualPhaseIFunction(getDualRatiotestMethod(
                                       SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_dual_phaseI_function"))),
     m_nonlinearDualPhaseIIFunction(getDualRatiotestMethod(
                                        SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_dual_phaseII_function"))),
-    //m_nonlinearDualPhaseIIFunction(static_cast<DUAL_RATIOTEST_METHOD>
-    //                               (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_dual_phaseII_function"))),
     m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality")),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
     m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility")),
@@ -196,87 +192,123 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
                                           unsigned int& iterationCounter,
                                           Numerical::Double& functionSlope)
 {
+//    unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
+//    Numerical::Double t_prev = 0;
+//    Numerical::Double t_actual = 0;
+//    Numerical::Double t_next = 0;
+//    const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
+//    std::vector<std::pair<int,Numerical::Double> > ratios;
+
+//    int firstCandidate = -1;
+//    int lastCandidate = -1;
+
+//    while (true) {
+//        actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+//        t_actual = actualBreakpoint->value;
+//        ratios.push_back(std::pair<int,Numerical::Double>(actualBreakpoint->variableIndex,t_actual));
+
+//        m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
+//        actualBreakpoint->functionValue = m_phaseIObjectiveValue;
+
+//        functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
+
+//        if(functionSlope <= 0){
+//            if(firstCandidate == -1){
+//                firstCandidate = iterationCounter;
+//                //First candidate values can occur before slope turns not positive
+//                Numerical::Double firstCandidateValue = t_actual;
+//                for(int i=iterationCounter-1; i>=0; i--){
+//                    if(m_breakpointHandler.getBreakpoint(i)->value == firstCandidateValue){
+//                        firstCandidate = i;
+//                    } else {
+//                        break;
+//                    }
+//                }
+//            }
+//            if(iterationCounter+1 < numberOfBreakpoints){
+//                t_next = m_breakpointHandler.getBreakpoint(iterationCounter+1)->value;
+//                if(t_next != t_actual && functionSlope < 0){
+//                    lastCandidate = iterationCounter;
+//                    break;
+//                }
+//            } else {
+//                lastCandidate = numberOfBreakpoints-1;
+//                break;
+//            }
+//        }
+
+//        iterationCounter++;
+//        t_prev = t_actual;
+//    }
+////    LPINFO("firstCandidate "<<firstCandidate);
+////    LPINFO("lastCandidate "<<lastCandidate);
+//    //Search the best incoming alternative
+//    if(firstCandidate != -1){
+//        for(int i=firstCandidate; i<=lastCandidate; i++){
+//            actualBreakpoint = m_breakpointHandler.getBreakpoint(i);
+//            if(m_reducedCostFeasibilities.where(actualBreakpoint->variableIndex) != Simplex::FEASIBLE){
+//                m_incomingVariableIndex = actualBreakpoint->variableIndex;
+//                m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
+//                break;
+//            }
+//        }
+//        actualBreakpoint = m_breakpointHandler.getBreakpoint(firstCandidate);
+//    }
+////    LPINFO("m_incomingVariableIndex "<<m_incomingVariableIndex);
+//    if (actualBreakpoint != NULL){
+//        if(m_incomingVariableIndex == -1){
+//            m_incomingVariableIndex = actualBreakpoint->variableIndex;
+//            m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
+//        }
+//        //adding variables to the update vector if their feasibility states are changed
+//        int variableIndex = -1;
+//        for(unsigned i = 0; i < ratios.size(); i++){
+//            variableIndex = ratios[i].first;
+//            if(variableIndex < firstCandidate){
+//                m_updateFeasibilitySets.push_back(std::pair<int,char>(variableIndex,m_ratioDirections[variableIndex]));
+//            }else{
+//                if(variableIndex != m_incomingVariableIndex){
+//                    m_becomesFeasible.push_back(variableIndex);
+//                }
+//            }
+//        }
+//    } else{
+//        LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
+//    }
+//    m_breakpointHandler.printBreakpoints();
+//    LPINFO(m_updateFeasibilitySets);
+//    LPINFO(m_becomesFeasible);
+
+
+    //Original version
+
     unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
-    Numerical::Double t_next = 0;
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
-    std::vector<std::pair<int,Numerical::Double> > ratios;
-
-    int firstCandidate = -1;
-    int lastCandidate = -1;
 
     while (iterationCounter < numberOfBreakpoints) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
-        ratios.push_back(std::pair<int,Numerical::Double>(actualBreakpoint->variableIndex,t_actual));
 
         m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = m_phaseIObjectiveValue;
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
-//        LPINFO("compute_index: "<<actualBreakpoint->variableIndex);
-//        LPINFO("slope_after: "<<std::scientific<<functionSlope);
 
         if(functionSlope <= 0){
-//            LPINFO("m_reducedCostFeasibilities.where(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex): "<<
-//                   m_reducedCostFeasibilities.where(m_breakpointHandler.getBreakpoint(iterationCounter)->variableIndex));
-            if(firstCandidate == -1){
-                firstCandidate = iterationCounter;
-            }
-            if(iterationCounter+1 < numberOfBreakpoints){
-                t_next = m_breakpointHandler.getBreakpoint(iterationCounter+1)->value;
-                if(t_next != t_actual && functionSlope < 0){
-                    lastCandidate = iterationCounter;
-                    break;
-                }
-            }
+            break;
         }
-
 
         iterationCounter++;
         t_prev = t_actual;
     }
-    //TODO: A FirstCandidate-et elorefele is korrigalni kellene!
-    if(lastCandidate == -1){
-        lastCandidate = numberOfBreakpoints-1;
-    }
-//    LPINFO("firstCandidate "<<firstCandidate);
-//    LPINFO("lastCandidate "<<lastCandidate);
-    //Search the best incoming alternative
-    if(firstCandidate != -1){
-        for(int i=firstCandidate; i<=lastCandidate; i++){
-            actualBreakpoint = m_breakpointHandler.getBreakpoint(i);
-            if(m_reducedCostFeasibilities.where(actualBreakpoint->variableIndex) != 0){
-                m_incomingVariableIndex = actualBreakpoint->variableIndex;
-                m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
-            }
-        }
-    }
-//    LPINFO("m_incomingVariableIndex "<<m_incomingVariableIndex);
+
     if (actualBreakpoint != NULL){
-        if(m_incomingVariableIndex == -1){
-            m_incomingVariableIndex = actualBreakpoint->variableIndex;
-            m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
-        }
-        //adding variables to the update vector if their feasibility states are changed
-//        LPINFO("valasztotte: " << m_reducedCostFeasibilities.where(m_incomingVariableIndex));
-        int variableIndex = -1;
-        for(unsigned i = 0; i < ratios.size(); i++){
-            variableIndex = ratios[i].first;
-            if(variableIndex < firstCandidate){
-                m_updateFeasibilitySets.push_back(std::pair<int,char>(variableIndex,m_ratioDirections[variableIndex]));
-            }else{
-                if(variableIndex != m_incomingVariableIndex){
-                    m_becomesFeasible.push_back(variableIndex);
-                }
-            }
-        }
+        m_incomingVariableIndex = actualBreakpoint->variableIndex;
+        m_dualSteplength = m_tPositive ? actualBreakpoint->value : - actualBreakpoint->value;
     } else{
         LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
     }
-//    m_breakpointHandler.printBreakpoints();
-//    LPINFO(m_updateFeasibilitySets);
-//    LPINFO(m_becomesFeasible);
 }
 
 void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,

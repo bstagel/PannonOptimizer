@@ -1345,6 +1345,10 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
     while (ptrActualVector < vector.m_dataEnd) {
         if (sm_fullLengthVector[ *ptrIndex ] != 0.0) {
             Numerical::Double value = lambda * *ptrActualVector;
+            if ((addType == Numerical::ADD_ABS || addType == Numerical::ADD_ABS_REL) &&
+                            Numerical::fabs(value) < Numerical::AbsoluteTolerance) {
+                value = 0.0;
+            }
             if (value != 0.0) {
                 if (m_capacity <= m_size) {
                     resizeSparse(m_size + 1 + ELBOWROOM);

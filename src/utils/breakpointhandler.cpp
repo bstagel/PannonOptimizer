@@ -26,7 +26,7 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(int index)
 
 #ifndef NDEBUG
     if (index >= size){
-        LPERROR("Invalid index in getBreakpoint()");
+        LPERROR("Invalid index in getBreakpoint() "<<index);
         exit(-1);
     }
 #endif
