@@ -177,9 +177,10 @@ private:
     BreakpointHandler m_breakpointHandler;
 
     /**
-     * Bool representing the t > 0 and the t < 0 cases.
+     * With this the t > 0, and t < 0 cases can easly handeled in the ratiotest.
+     * At defining the ratios we compute with sigma*alpha values.
      */
-    bool m_tPositive;
+    int m_sigma;
 
     //Ratiotest research measures
     /**

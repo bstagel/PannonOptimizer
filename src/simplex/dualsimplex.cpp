@@ -472,6 +472,10 @@ void DualSimplex::update() {
 
 //        LPINFO("outgoin var index: "<<outgoingVariableIndex);
 
+//        if(outgoingType == Variable::MINUS){
+//            LPINFO("Minus tyoe variable leaves the basis.");
+//        }
+
         //Compute the outgoing state
         switch (outgoingType) {
         case Variable::FIXED:
@@ -576,8 +580,6 @@ void DualSimplex::update() {
             }
         }
     }
-
-
 
     //Update the reduced costs
     updateReducedCosts();
