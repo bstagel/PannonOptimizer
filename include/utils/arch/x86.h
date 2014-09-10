@@ -215,11 +215,12 @@ protected:
     };
 
     /**
-     * @brief getBits
-     * @param pattern
-     * @param start
-     * @param end
-     * @return
+     * Returns the bits of the pattern between selected indices.
+     *
+     * @param pattern The pattern.
+     * @param start The start index of the returned bits.
+     * @param end The end index of the returned bits.
+     * @return The bits of pattern between start and end.
      */
     unsigned int getBits(unsigned int pattern,
                          unsigned int start,

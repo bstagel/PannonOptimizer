@@ -24,14 +24,16 @@ void solve(std::string filename) {
     builder.loadFromFile(filename.c_str());
     model.build(builder);
 
-//    Presolver presolver(&model);
-//    try {
-//        presolver.presolve();
-//    } catch(Presolver::PresolverException e) {
-//        LPERROR("[Presolver] " << e.getMessage());
-//        exit(-1);
-//    }
-//    presolver.printStatistics();
+    if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
+        Presolver presolver(&model);
+        try {
+            presolver.presolve();
+        } catch(Presolver::PresolverException e) {
+            LPERROR("[Presolver] " << e.getMessage());
+            exit(-1);
+        }
+        presolver.printStatistics();
+    }
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Scaling.enable") == true){
         model.scale();

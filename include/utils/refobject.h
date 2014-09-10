@@ -1,64 +1,163 @@
+/**
+ * @file refobject.h This file contains the API of the RefObject class.
+ * @author Jozsef Smidla
+ */
+
 #ifndef REFOBJECT_H
 #define REFOBJECT_H
 
 #include <utils/exceptions.h>
 
+/**
+ * This class implements counted pointer references to objects.
+ * When the counter drops to zero, the dynamically allocated object can be released.
+ *
+ * @class RefObject
+ */
 template <class T>
 class RefObject {
+    /**
+     * This class implements the processing of objects in the RefObject class.
+     *
+     * @class AuxRefObject
+     */
     class AuxRefObject {
+
+        /**
+         * Pointer to the represented object.
+         */
         mutable T * object;
+
+        /**
+         * The count of references to the object.
+         */
         mutable int counter;
 
     public:
+
+        /**
+         * Constructor of the AuxRefObject class.
+         * The pointed object can be specified.
+         *
+         * @constructor
+         * @param ptr The object to be represented.
+         */
         AuxRefObject(T * ptr = 0) {
             object = ptr;
             if (ptr)
                 counter = 1;
         }
 
+        /**
+         * Destructor of the AuxRefObject class.
+         *
+         * @destructor
+         */
         ~AuxRefObject(){
         }
 
+        /**
+         * Decreases the counter of the references to the object.
+         */
         inline void dec() const {
             counter--;
             if (counter == 0) {
                 delete object;
                 object = 0;
             }
-
         }
 
+        /**
+         * Increases the counter of the references to the object.
+         */
         inline void inc() const {
             counter++;
         }
 
+        /**
+         * Sets the object and counter to the given values.
+         *
+         * @param ptr The new pointer to the represented object.
+         * @param c The new counter of references to the object.
+         */
         inline void set(T * ptr, int c) {
             object = ptr;
             counter = c;
         }
 
+        /**
+         * Returns the counter of references to the object.
+         *
+         * @return The counter of references to the object.
+         */
         inline int getCounter() const {
             return counter;
         }
 
+        /**
+         * Returns a reference to the represented object.
+         *
+         * @return Reference to the represented object.
+         */
         inline T & getObject() const {
             return *object;
         }
     };
 
+    /**
+     * Pointer to the AuxRefObject representing the object.
+     */
     mutable AuxRefObject * object;
 public:
 
+    /**
+     * Constructor of the RefObject class.
+     * The pointed object can be specified.
+     *
+     * @constructor
+     * @param ptr Pointer to the represented object.
+     */
     RefObject(T * ptr = 0);
 
+    /**
+     * Constructor of the RefObject class.
+     * The pointed object can be specified.
+     *
+     * @constructor
+     * @param ptr Pointer to the represented object.
+     */
     RefObject(const void * & ptr);
 
+    /**
+     * Constructor of the RefObject class.
+     * The pointed object can be specified.
+     *
+     * @constructor
+     * @param ptr Pointer to the represented object.
+     */
     RefObject(const int ptr);
 
+    /**
+     * Copy constructor of the RefObject class.
+     *
+     * @constructor
+     * @param orig The original RefObject to be copied.
+     */
     RefObject(const RefObject& orig);
 
+    /**
+     * Cross-template copy constructor of the RefObject class.
+     *
+     * @constructor
+     * @param orig The original RefObject to be copied.
+     */
     template <class U> RefObject(const RefObject<U>& orig);
 
+    /**
+     * Destructor of the RefObject class.
+     *
+     * @destructor
+     */
     ~RefObject();
 
     void dec() const;
