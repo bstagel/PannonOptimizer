@@ -189,9 +189,10 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
 
     /**
-     * This separates the t > 0, and t < 0 cases corresponding to Maros's description of the ratiotest.
+     * With this the t > 0, and t < 0 cases can easly handeled in the ratiotest.
+     * At defining the ratios we compute with sigma*alpha values.
      */
-    bool m_tPositive;
+    int m_sigma;
 
     /**
       * Age vector to record transformation counts.
