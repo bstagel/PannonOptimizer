@@ -16,17 +16,17 @@ Presolver::Presolver(Model *model) {
     m_variables = m_model->getVariables();
     m_constraints = m_model->getConstraints();
 
-    m_impliedLower = new Vector(m_model->variableCount());
+    m_impliedLower = new Vector(columnCount);
     m_impliedLower->setSparsityRatio(0);
-    m_impliedUpper = new Vector(m_model->variableCount());
+    m_impliedUpper = new Vector(columnCount);
     m_impliedUpper->setSparsityRatio(0);
-    m_impliedDualLower = new Vector(m_model->constraintCount());
+    m_impliedDualLower = new Vector(rowCount);
     m_impliedDualLower->setSparsityRatio(0);
-    m_impliedDualUpper = new Vector(m_model->constraintCount());
+    m_impliedDualUpper = new Vector(rowCount);
     m_impliedDualUpper->setSparsityRatio(0);
-    m_extraDualLowerSum = new Vector(m_model->variableCount());
+    m_extraDualLowerSum = new Vector(columnCount);
     m_extraDualLowerSum->setSparsityRatio(0);
-    m_extraDualUpperSum = new Vector(m_model->variableCount());
+    m_extraDualUpperSum = new Vector(columnCount);
     m_extraDualUpperSum->setSparsityRatio(0);
     m_substituteVectors = new std::vector<Vector*>();
 
@@ -36,8 +36,8 @@ Presolver::Presolver(Model *model) {
         i < biggerCount;
         i++){
 
-        m_rowNonzeros->set(i, m_model->getConstraint(i).getVector()->nonZeros());
-        m_columnNonzeros->set(i, m_model->getVariable(i).getVector()->nonZeros());
+        m_rowNonzeros->set(i, (*m_constraints)[i].getVector()->nonZeros());
+        m_columnNonzeros->set(i, (*m_variables)[i].getVector()->nonZeros());
         m_impliedLower->set(i, (*m_variables)[i].getLowerBound());
         m_impliedUpper->set(i, (*m_variables)[i].getUpperBound());
         if((*m_variables)[i].getType() == Variable::BOUNDED) {
@@ -74,7 +74,7 @@ Presolver::Presolver(Model *model) {
     }
     if(rowCount >= columnCount) {
         for(unsigned int i = columnCount; i < rowCount; i++) {
-            m_rowNonzeros->set(i, m_model->getConstraint(i).getVector()->nonZeros());
+            m_rowNonzeros->set(i, (*m_constraints)[i].getVector()->nonZeros());
             //Set dual variable bounds
             if((*m_constraints)[i].getType() == Constraint::RANGE) {
                 //Range constraints are trated without their lower bound, which are handled with extra constraints
@@ -104,7 +104,7 @@ Presolver::Presolver(Model *model) {
         }
     } else {
         for(unsigned int i = rowCount; i < columnCount; i++) {
-            m_columnNonzeros->set(i, m_model->getVariable(i).getVector()->nonZeros());
+            m_columnNonzeros->set(i, (*m_variables)[i].getVector()->nonZeros());
             m_impliedLower->set(i, (*m_variables)[i].getLowerBound());
             m_impliedUpper->set(i, (*m_variables)[i].getUpperBound());
             if((*m_variables)[i].getType() == Variable::BOUNDED) {
@@ -167,6 +167,13 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
     m_extraDualLowerSum->removeElement(index);
     m_extraDualUpperSum->removeElement(index);
     m_columnNonzeros->removeElement(index);
+}
+
+void Presolver::removeConstraint(int index) {
+    getModel()->removeConstraint(index);
+    getImpliedDualLower()->removeElement(index);
+    getImpliedDualUpper()->removeElement(index);
+    getRowNonzeros()->removeElement(index);
 }
 
 void Presolver::presolve() {

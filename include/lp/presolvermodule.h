@@ -22,6 +22,8 @@ class Presolver;
 class PresolverModule {
 public:
 
+    PresolverModule();
+
     /**
      * Default constructor of the PresolverModule class.
      * A parent Presolver object is needed to construct an object from this class.
@@ -29,7 +31,7 @@ public:
      * @constructor
      * @param parent Pointer to the parent Presolver containing this module.
      */
-    explicit PresolverModule(Presolver * parent);
+    PresolverModule(Presolver * parent);
 
     /**
      * Destructor of the PresolverModule class.
@@ -69,7 +71,7 @@ public:
      * Prints the statistics of the module to the output.
      * This contains the number of the eliminated variales, constaints and nonzero elements of the model.
      */
-    void printStatistics();
+    virtual void printStatistics();
 
 protected:
 

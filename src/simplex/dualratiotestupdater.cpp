@@ -3,6 +3,7 @@
  */
 
 #include <simplex/simplex.h>
+#include <simplex/dualratiotestupdater.h>
 
 DualRatiotestUpdater::DualRatiotestUpdater(IndexList<>* reducedcostFeasiblities):
     m_reducedcostFeasibilities(reducedcostFeasiblities)

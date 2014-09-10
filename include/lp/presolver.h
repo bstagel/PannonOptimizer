@@ -214,6 +214,14 @@ public:
      */
     inline std::vector<Vector*> * getSubstituteVectors() { return m_substituteVectors; }
 
+    /**
+     * Returns the value of the cost vector at the specified index.
+     *
+     * @param index The index of the element to be returned.
+     * @return The value of the element.
+     */
+    inline Numerical::Double getCostCoefficient(int index) { return m_model->getCostVector().at(index); }
+
     //setter functions of the presolver
 
     //inline void setTimeLimit(unsigned int time) { m_timeLimit = time; }
@@ -258,6 +266,13 @@ public:
      * @param value The value of the variable.
      */
     void fixVariable(int index, Numerical::Double value);
+
+    /**
+     * Removes a specified constraint from the model.
+     *
+     * @param index The index of the constraint to be removed.
+     */
+    void removeConstraint(int index);
 
     /**
      * Executes the currently queued modules on the model.
