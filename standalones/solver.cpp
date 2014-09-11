@@ -15,6 +15,7 @@
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexcontroller.h>
+#include <simplex/simplexsolver.h>
 
 #include <utils/tokenizer.h>
 
@@ -40,8 +41,10 @@ void solve(std::string filename) {
     }
 
     //init simplexController
-    SimplexController simplexController;
-    simplexController.solve(model);
+    //SimplexController simplexController;
+    //simplexController.solve(model);
+    SimplexSolver solver;
+    solver.solve(model);
 }
 
 void printHelp() {
@@ -116,6 +119,7 @@ void generateParameterFiles() {
         SimplexParameterHandler::getInstance().writeParameterFile();
         LinalgParameterHandler::getInstance().initParameters();
         LinalgParameterHandler::getInstance().writeParameterFile();
+        InitPanOpt::getInstance().getArchitecture().generateParameterFile();
         std::cout << "Default paramterer files generated! \n";
     } else {
         std::cout << "Error opening the working directory.\n";

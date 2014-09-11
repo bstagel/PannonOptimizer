@@ -19,7 +19,7 @@ CONFIG(release, debug|release) {
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
@@ -167,7 +167,8 @@ HEADERS += include/debug.h \
     include/linalg/densevector.h \
     include/utils/iterator.h \
     include/linalg/sparsevector.h \
-    include/simplex/simplexparametercomments.h
+    include/simplex/simplexparametercomments.h \
+    include/simplex/simplexsolver.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -238,7 +239,10 @@ SOURCES += src/linalg/matrix.cpp \
     src/linalg/lpmatrix.cpp \
     src/linalg/indexeddensevector.cpp \
     src/linalg/densevector.cpp \
-    src/linalg/sparsevector.cpp
+    src/linalg/sparsevector.cpp \
+    src/utils/thread.cpp \
+    src/simplex/simplexsolver.cpp \
+    src/lp/abstractmodel.cpp
 
 #OBJECTS_DIR = .o
 

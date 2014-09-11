@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstdio>
 #include <utils/platform.h>
+#include <utils/thread.h>
 
 using namespace std;
 
@@ -54,6 +55,7 @@ void InitPanOpt::init() {
 
     sm_instance = new InitPanOpt();
 
+    ThreadSupervisor::_globalInit();
     SimplexParameterHandler::_globalInit();
     LinalgParameterHandler::_globalInit();
     Numerical::_globalInit();
@@ -90,6 +92,7 @@ __attribute__((destructor))
 static void releasePanOpt() {
     std::cout << "RELEASE PanOpt" << std::endl;
 
+    //ThreadSupervisor::_globalRelease();
 #ifndef CLASSIC_NEW_DELETE
     MemoryManager::release();
 #endif

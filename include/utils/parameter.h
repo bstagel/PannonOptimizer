@@ -91,14 +91,27 @@ public:
      *
      * @return The name of the parameter.
      */
-    const std::string& getName() const { return m_name; }
+    const std::string& getName() const {
+        return m_name;
+    }
+
+    /**
+     * Sets the name of the parameter.
+     *
+     * @param name The name of the parameter.
+     */
+    void setName(const std::string & name) {
+        m_name = name;
+    }
 
     /**
      * Returns the comment of the parameter.
      *
      * @return The comment of the parameter.
      */
-    const std::string & getComment() const { return m_comment; }
+    const std::string & getComment() const {
+        return m_comment;
+    }
 
     /**
      * Returns the entry data of the parameter.

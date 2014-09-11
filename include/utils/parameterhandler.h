@@ -68,14 +68,15 @@ public:
      * @param name The name of the parameter.
      * @return The value of the parameter.
      */
-    inline const std::string & getStringParameterValue(const std::string& name) const {
+    virtual inline const std::string & getStringParameterValue(const std::string& name) const {
         if (m_values.find(name) == m_values.end()) {
             LPERROR(name);
         }
         if (m_values.at(name).getEntryType() != Entry::STRING) {
             LPERROR("not string: " << name);
         }
-        return *(m_values.at(name).getEntry().m_string);}
+        return *(m_values.at(name).getEntry().m_string);
+    }
 
     /**
      * Returns the value of the given parameter as an integer.
@@ -83,14 +84,15 @@ public:
      * @param name The name of the parameter.
      * @return The value of the parameter.
      */
-    inline const int & getIntegerParameterValue(const std::string& name) const {
+    virtual inline const int & getIntegerParameterValue(const std::string& name) const {
         if (m_values.find(name) == m_values.end()) {
             LPERROR(name);
         }
         if (m_values.at(name).getEntryType() != Entry::INTEGER) {
             LPERROR("not integer: " << name);
         }
-        return m_values.at(name).getEntry().m_integer;}
+        return m_values.at(name).getEntry().m_integer;
+    }
 
     /**
      * Returns the value of the given parameter as a double.
@@ -98,14 +100,15 @@ public:
      * @param name The name of the parameter.
      * @return The value of the parameter.
      */
-    inline const double & getDoubleParameterValue(const std::string& name) const {
+    virtual inline const double & getDoubleParameterValue(const std::string& name) const {
         if (m_values.find(name) == m_values.end()) {
             LPERROR(name);
         }
         if (m_values.at(name).getEntryType() != Entry::DOUBLE) {
             LPERROR("not double: " << name);
         }
-        return m_values.at(name).getEntry().m_double;}
+        return m_values.at(name).getEntry().m_double;
+    }
 
     /**
      * Returns the value of the given parameter as a boolean.
@@ -113,14 +116,15 @@ public:
      * @param name The name of the parameter.
      * @return The value of the parameter.
      */
-    inline const bool & getBoolParameterValue(const std::string& name) const {
+    virtual inline const bool & getBoolParameterValue(const std::string& name) const {
         if (m_values.find(name) == m_values.end()) {
             LPERROR(name);
         }
         if (m_values.at(name).getEntryType() != Entry::BOOL) {
             LPERROR("not bool: " << name);
         }
-        return m_values.at(name).getEntry().m_bool;}
+        return m_values.at(name).getEntry().m_bool;
+    }
 
     /**
      * Sets the given parameter's value to a double.
@@ -128,7 +132,7 @@ public:
      * @param name The name of the parameter.
      * @param value The new value of the parameter.
      */
-    inline void setParameterValue(const std::string name, const double value){
+    virtual inline void setParameterValue(const std::string name, const double value){
         m_values.at(name).setDoubleValue(value);
     }
 
@@ -138,7 +142,7 @@ public:
      * @param name The name of the parameter.
      * @param value The new value of the parameter.
      */
-    inline void setParameterValue(const std::string name, const int value){
+    virtual inline void setParameterValue(const std::string name, const int value){
         m_values.at(name).setIntegerValue(value);
     }
 
@@ -148,7 +152,7 @@ public:
      * @param name The name of the parameter.
      * @param value The new value of the parameter.
      */
-    inline void setParameterValue(const std::string name, const std::string value){
+    virtual inline void setParameterValue(const std::string name, const std::string value){
         m_values.at(name).setStringValue(value);
     }
 
@@ -158,7 +162,7 @@ public:
      * @param name The name of the parameter.
      * @param value The new value of the parameter.
      */
-    inline void setParameterValue(const std::string name, const char * value){
+    virtual inline void setParameterValue(const std::string name, const char * value){
         m_values.at(name).setStringValue(std::string(value));
     }
 
@@ -168,7 +172,7 @@ public:
      * @param name The name of the parameter.
      * @param value The new value of the parameter.
      */
-    inline void setParameterValue(const std::string name, const bool value){
+    virtual inline void setParameterValue(const std::string name, const bool value){
         m_values.at(name).setBoolValue(value);
     }
 
@@ -233,7 +237,7 @@ protected:
      *
      * @param in The input file stream of the file.
      */
-    void loadValuesFromFile(std::ifstream& in);
+    virtual void loadValuesFromFile(std::ifstream& in);
 
     void processNode(const NodeFile::Node &node, const std::string &name = "");
 

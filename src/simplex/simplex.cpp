@@ -283,6 +283,7 @@ void Simplex::setModel(const Model &model) {
     if(m_simplexModel){
         delete m_simplexModel;
     }
+
     unregisterMethodWithModel(this, model);
     m_simplexModel = new SimplexModel(model);
     registerMethodWithModel(this, model);

@@ -15,8 +15,10 @@ class Method
 friend class AbstractModel;
 
 protected:
-    void registerMethodWithModel(Method* method, AbstractModel model){model.registerMethod(method);}
-    void unregisterMethodWithModel(Method* method, AbstractModel model){model.unregisterMethod(method);}
+    void registerMethodWithModel(Method* method, const AbstractModel & model){model.registerMethod(method);}
+    void unregisterMethodWithModel(Method* method, const AbstractModel & model){
+        model.unregisterMethod(method);
+    }
     virtual void constraintAdded() {}
     virtual void variableAdded() {}
 
