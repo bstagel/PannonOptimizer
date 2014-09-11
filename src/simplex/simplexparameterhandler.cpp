@@ -34,8 +34,7 @@ public:
 
         Parameter newParameter = param;
         std::string subName = name.substr(dotIndex + 1);
-        std::size_t nextDotIndex = subName.find_first_of(".");
-
+//        std::size_t nextDotIndex = subName.find_first_of(".");
 
         /*if (nextDotIndex == std::string::npos) {
             // next is a value

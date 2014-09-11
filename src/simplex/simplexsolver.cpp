@@ -10,7 +10,7 @@ void SimplexSolver::solve(const Model &model)
     bool parallel = SimplexParameterHandler::getInstance().getBoolParameterValue("enableParallelization");
     if (parallel) {
        // m_model = &model;
-        unsigned int threadIndex;
+//        unsigned int threadIndex;
         LPINFO("\t" << (&model));
         //Model m1 = model;
         //Model m2 = model;
