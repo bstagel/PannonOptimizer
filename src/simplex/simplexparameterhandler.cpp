@@ -433,7 +433,7 @@ void SimplexParameterHandler::writeParameterFile(){
     }
     }
 
-               enableParallelization = true
+               enableParallelization = false
 
                 Parallel {
 

@@ -392,27 +392,9 @@ void DualSimplex::update() {
 
     setReferenceObjective(secondPhase);
 
-    //    Checker::checkBasicVariableFeasibilityStates(*this);
-
-    //check whther the boundflips cause bad iterations
-    //    int variableIndex = -1;
-    //    for(; it < itend; it++){
-    //        variableIndex = *it;
-    //        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB &&
-    //                m_reducedCosts.at(variableIndex) > 0){
-    //            LPERROR("Bad boundflip forseen. LB d: "<<m_reducedCosts.at(variableIndex));
-    //            exit(-1);
-    //        }
-    //        if(m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB &&
-    //                m_reducedCosts.at(variableIndex) < 0){
-    //            LPERROR("Bad boundflip forseen. UB d: "<<m_reducedCosts.at(variableIndex));
-    //            exit(-1);
-    //        }
-    //    }
-
     it = m_ratiotest->getBoundflips().begin();
     for(; it < itend; it++){
-        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
+//                LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -427,21 +409,13 @@ void DualSimplex::update() {
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
-            Numerical::Double referenceObjective = m_objectiveValue;
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
-            if(referenceObjective > m_objectiveValue){
-                LPERROR("Bad boundflip done! diff: " <<m_objectiveValue - referenceObjective);
-            }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
-            Numerical::Double referenceObjective = m_objectiveValue;
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
-            if(referenceObjective > m_objectiveValue){
-                LPERROR("Bad boundflip done! diff: " <<m_objectiveValue - referenceObjective);
-            }
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
@@ -469,12 +443,6 @@ void DualSimplex::update() {
         Variable::VARIABLE_TYPE outgoingType = outgoingVariable.getType();
         Numerical::Double outgoingVariableIndex= m_basisHead[m_outgoingIndex];
         Numerical::Double outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
-
-//        LPINFO("outgoin var index: "<<outgoingVariableIndex);
-
-//        if(outgoingType == Variable::MINUS){
-//            LPINFO("Minus tyoe variable leaves the basis.");
-//        }
 
         //Compute the outgoing state
         switch (outgoingType) {
@@ -539,8 +507,6 @@ void DualSimplex::update() {
         }
         m_primalTheta = beta / m_incomingAlpha.at(m_outgoingIndex);
 
-        //        LPINFO("Before going out("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<outgoingVariable.getLowerBound()<<" , UB: "<<outgoingVariable.getUpperBound());
-
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += beta * m_dualTheta;
@@ -549,14 +515,6 @@ void DualSimplex::update() {
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
-
-        //        outgoingVariableValue = m_basicVariableValues.at(m_outgoingIndex);
-        //        const Variable & incomingVariable = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]);
-        //        LPINFO("After coming in ("<<m_basisHead[m_outgoingIndex] <<")| value: "<<outgoingVariableValue<<" , LB: "<<incomingVariable.getLowerBound()<<" , UB: "<<incomingVariable.getUpperBound());
-
-        //        Checker::checkNonbasicVariableStates(*this);
-        //        Checker::checkBasicVariableStates(*this);
-        //        Checker::checkVariableStateAttachedValues(*this);
 
         //Update the pricing
         if (m_pricing) {
@@ -665,7 +623,6 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     alpha->reInit(rowCount + columnCount);
     alpha->setSparsityRatio(DENSE);
 
-    //Vector rho(rowCount); //Row of the inverse of the basis
     m_pivotRowOfBasisInverse.reInit(rowCount);
     m_pivotRowOfBasisInverse.setSparsityRatio(DENSE);
     m_pivotRowOfBasisInverse.setNewNonzero(rowIndex, 1);
@@ -694,7 +651,6 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
             Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
             //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
             alpha->set(columnIndex, dotProd);
-            //std::cin.get();
         } else {
             alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
         }
@@ -753,53 +709,9 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
         }
     }
     alpha->set( m_basisHead[ rowIndex ], 1.0 );*/
-
-
-    /*{
-        Vector a = *alpha;
-    Vector ALFA = *alpha;
-    alpha->clear();
-    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-        for(; it != itEnd ; it++){
-            unsigned int columnIndex = it.getData();
-            if(columnIndex < columnCount){
-                alpha->set(columnIndex, m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex)));
-            } else {
-                alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
-            }
-        }
-        alpha->set( m_basisHead[ rowIndex ], 1.0 );
-
-        ALFA.addVector(-1, *alpha);
-        ALFA.setSparsityRatio(0.35);
-
-        if (ALFA.nonZeros()) {
-            Vector::NonzeroIterator iter = ALFA.beginNonzero();
-            Vector::NonzeroIterator iterEnd = ALFA.endNonzero();
-            for (; iter != iterEnd; iter++) {
-                if (Numerical::fabs(*iter) > 0) {
-                    LPERROR(ALFA);
-                    break;
-                }
-            }
-           // LPERROR(ALFA);
-           // std::cin.get();
-        }
-        *alpha = a;
-    }*/
 }
 
 void DualSimplex::updateReducedCosts() {
-
-    //    Numerical::Double dualTheta = (m_reducedCosts.at( m_incomingIndex ) / m_incomingAlpha.at( m_outgoingIndex ) );
-    /*if (Numerical::fabs(m_dualTheta - dualTheta) > 1e-14) {
-
-        LPERROR( m_dualTheta << " vs " << dualTheta << "  "  << (m_dualTheta - dualTheta));
-        std::cin.get();
-    }*/
-    //LPWARNING(dualTheta << " vs " << m_dualTheta << "  " << (m_dualTheta - dualTheta) << "   = " << (m_reducedCosts.at( m_incomingIndex )) <<
-    //          " / " << m_incomingAlpha.at( m_outgoingIndex ) << "   " << m_pivotRow.at( m_incomingIndex ));
-
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
