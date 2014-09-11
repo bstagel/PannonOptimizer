@@ -94,7 +94,6 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
     }
 
     if(theta_1 < 0){
-        LPINFO("negative theta_1 "<< std::scientific <<theta_1);
         throw FallbackException(std::string("Expanded value negative"));
     }
 

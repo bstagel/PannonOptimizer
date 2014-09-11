@@ -402,10 +402,12 @@ private:
      * @param alpha the reduced cost values are devided by the alpha values
      * @param iterationCounter shows how many breakpoints are computed
      * @param functionSlope is the value of the objective function's slope
+     * @param workingTolerance The actual expanding tolerance.
      */
     void computeFunctionPhase2(const Vector& alpha,
                                unsigned int& iterationCounter,
-                               Numerical::Double& functionSlope);
+                               Numerical::Double& functionSlope,
+                               Numerical::Double workingTolerance);
 
     /**
      * This is the phase 2 stable pivot procedure that provides the solver a numerically stable pivot candidate.
