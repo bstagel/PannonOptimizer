@@ -6,39 +6,65 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-//#include <utils/platform.h>
-//#include <thread>
+#include <globals.h>
+#include <set>
+#include <thread>
+#include <mutex>
 
-//Instead of this thread_local macro thread_local C++0x specifier is used
+/**
+ * This class manages the identifiers of the running threads.
+ */
+class ThreadSupervisor {
+    friend class InitPanOpt;
+public:
 
-//#ifdef GNU_COMPILER
-//#define thread_local __thread
-//#endif
+    /**
+     * Returns the id of the current thread.
+     *
+     * @return The current thread id.
+     */
+    ALWAYS_INLINE static unsigned int getThreadId() {
+        return sm_myThreadId;
+    }
 
-//#ifdef INTEL_COMPILER
+    /**
+     * Registers a new thread and creates an id.
+     *
+     * @return The id of the current thread.
+     */
+    static unsigned int registerMyThread();
 
-//#ifdef thread_local
-//#undef thread_local
-//#endif
+    /**
+     * Removes the id of the current thread.
+     */
+    static void unregisterMyThread();
 
-//#ifdef UNIX
+private:
 
-//#define thread_local __thread
+    /**
+     * Mutex for protecting the variable sm_threadIds.
+     */
+    static std::mutex sm_mutex;
 
-//#endif
-//#ifdef WIN32
+    /**
+     * Stores the id's of the running threads.
+     */
+    static std::set<unsigned int> * sm_threadIds;
 
-//#define thread_local __declspec(thread)
+    /**
+     * The id of the current thread.
+     */
+    static thread_local unsigned int sm_myThreadId;
 
-//#endif
+    /**
+     * Initializes the necessary data structures.
+     */
+    static void _globalInit();
 
-//#endif
-
-// Majd kesobb meg kiegeszitjuk a tobbi platformhoz es forditohoz
-// Segitseg: http://sourceforge.net/p/predef/wiki/Compilers/
-
-//#ifndef thread_local
-//    #error Cannot use thread local variables.
-//#endif
+    /**
+     * Releases the necessary data structures.
+     */
+    static void _globalRelease();
+};
 
 #endif // THREAD_H

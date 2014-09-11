@@ -319,6 +319,7 @@ void SimplexController::solve(const Model &model)
         m_currentAlgorithm = Simplex::DUAL;
     }
 
+
     if (m_currentAlgorithm == Simplex::PRIMAL){
         m_primalSimplex = new PrimalSimplex(*this);
         m_currentSimplex = m_primalSimplex;
@@ -328,10 +329,13 @@ void SimplexController::solve(const Model &model)
     }
 
     try{
+
         m_currentSimplex->setModel(model);
+
         m_currentSimplex->setSolveTimer(&m_solveTimer);
         m_currentSimplex->setIterationReport(m_iterationReport);
         m_currentSimplex->initModules();
+
         m_solveTimer.start();
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
