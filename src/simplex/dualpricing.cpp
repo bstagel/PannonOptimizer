@@ -62,6 +62,16 @@ DualPricing::~DualPricing() {
     m_phase1ReducedCostSummarizers = 0;
 }
 
+bool DualPricing::hasLockedVariable() const
+{
+    for(unsigned index = 0; index < m_used.size(); index++){
+        if(m_used[index] == true){
+            return true;
+        }
+    }
+    return false;
+}
+
 void DualPricing::clearPhase1ReducedCosts() {
     unsigned int index;
     for (index = 0; index < m_simplexModel.getRowCount(); index++) {

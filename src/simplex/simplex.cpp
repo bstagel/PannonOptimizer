@@ -762,9 +762,12 @@ void Simplex::reinvert() {
     m_computeBasicSolutionTimer.stop();
     m_computeReducedCostsTimer.start();
 
-//    if(!m_degenerate){
+    //if only degenerate iterations since last inversion, reduced cost values are not recomputed
+    if(!m_degenerate){
         computeReducedCosts();
-//    }
+    }else{
+        updateReducedCosts();
+    }
     m_computeReducedCostsTimer.stop();
     m_computeFeasibilityTimer.start();
     computeFeasibility();

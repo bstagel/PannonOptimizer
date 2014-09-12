@@ -62,7 +62,7 @@ int DualDantzigPricing::performPricingPhase1() {
 int DualDantzigPricing::performPricingPhase2() {
     initPhase2();
 
-    IndexList<>::Iterator iter, iterEnd;
+//    IndexList<>::Iterator iter, iterEnd;
     Numerical::Double max = -1.0;
     unsigned int rowIndex;
     m_outgoingIndex = -1;

@@ -333,7 +333,11 @@ void DualSimplex::price() {
         m_phaseName = PHASE_2_STRING;
         m_outgoingIndex = m_pricing ? m_pricing->performPricingPhase2() : m_pricingController->performPricingPhase2();
         if(m_outgoingIndex == -1){
-            throw OptimalException("OPTIMAL SOLUTION found!");
+            if(m_pricing->hasLockedVariable()){
+                throw DualUnboundedException("The problem is DUAL UNBOUNDED!");
+            }else{
+                throw OptimalException("OPTIMAL SOLUTION found!");
+            }
         }
     }
 }
@@ -370,7 +374,9 @@ void DualSimplex::selectPivot() {
         }
     }
     m_dualTheta = m_ratiotest->getDualSteplength();
-    m_degenerate = m_ratiotest->isDegenerate();
+    if(m_degenerate){
+        m_degenerate = m_ratiotest->isDegenerate();
+    }
 
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
