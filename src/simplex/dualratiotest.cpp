@@ -133,7 +133,7 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
     Numerical::Double t_actual = 0;
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
 
-    bool original = false;
+    bool original = true;
     if(!original){
         Numerical::Double t_next = 0;
 
@@ -585,6 +585,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             }
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * t_actual;
+            m_degenerate = false;
             break;
         }
 
@@ -598,6 +599,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
                 }
                 m_incomingVariableIndex = actualBreakpoint->variableIndex;
                 m_dualSteplength = m_sigma * t_actual;
+                m_degenerate = false;
                 break;
             }
         }
@@ -771,6 +773,11 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                         breakpoint->functionValue = m_phaseIIObjectiveValue;
                         m_incomingVariableIndex = breakpoint->variableIndex;
                         m_dualSteplength = m_sigma * breakpoint->value;
+                        if(m_dualSteplength != 0){
+                            m_degenerate = false;
+                        }else{
+                            m_degenerate = true;
+                        }
                         break;
                     }
 
@@ -816,8 +823,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                         //HARRIS
                         if(secondPassRatios[maxBreakpointId]->value < 0){
                             LPINFO("Harris ratiotest theta is zero!");
+                            m_degenerate = true;
                             theta = 0;
                         } else {
+                            m_degenerate = false;
                             theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
                         }
                     } else {
@@ -826,8 +835,12 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
                         //Expand procedure ensures a positive step
                         if(secondPassRatios[maxBreakpointId]->value < thetaMin){
+//                            LPINFO("Expand procedure ensures a positive step");
+                            m_degenerate = true;
                             theta = m_sigma * thetaMin;
                         } else {
+//                            LPINFO("nondegenerate step");
+                            m_degenerate = false;
                             theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
                         }
                     }
@@ -836,8 +849,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                 }
             }
         } else {
-            LPWARNING(" - Ratiotest i- No breakpoint found!");
-            throw DualUnboundedException("No breakpoint found!");
+            LPWARNING(" - Ratiotest - No breakpoint found!");
+            m_incomingVariableIndex = -1;
+//            throw DualUnboundedException("No breakpoint found!");
         }
     }
 }

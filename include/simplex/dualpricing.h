@@ -66,6 +66,12 @@ public:
     inline Numerical::Double getReducedCost() const {return m_reducedCost;}
 
     /**
+     * Function used at checking optimality, dual unboundedness.
+     * @return true if there is any locked variable index.
+     */
+    bool hasLockedVariable()const;
+
+    /**
      * Clears and reinitializes the m_used member.
      * Releases all locked variables if called. For more information see DualPricing::lockLastIndex().
      */
