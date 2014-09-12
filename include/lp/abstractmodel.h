@@ -41,7 +41,7 @@ protected:
 
     void unregisterMethod(Method * method) const {
         sm_mutex.lock();
-        LPINFO("vector: " << (&sm_registeredMethods));
+//        LPINFO("vector: " << (&sm_registeredMethods));
         //sm_mutex.unlock();
         //return;
         std::vector<Method*>::iterator it = sm_registeredMethods.begin();
