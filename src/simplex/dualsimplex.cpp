@@ -638,7 +638,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     LPINFO(diff.absMaxElement() << " " << otherRow.euclidNorm() << "  " << m_pivotRowOfBasisInverse.euclidNorm());
     cin.get();*/
 
-    IndexList<const Numerical::Double *>::Iterator it;
+    /*IndexList<const Numerical::Double *>::Iterator it;
     IndexList<const Numerical::Double *>::Iterator itEnd;
 
     // columnwise version
@@ -655,7 +655,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
             alpha->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
         }
     }
-    alpha->set( m_basisHead[ rowIndex ], 1.0 );
+    alpha->set( m_basisHead[ rowIndex ], 1.0 );*/
 
     /////////////////////////////////////////
     /*Vector otherAlpha(rowCount + columnCount);
@@ -677,7 +677,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     // --------------------------------
 
     // rowwise version
-    /*std::vector<Numerical::Summarizer> results( rowCount + columnCount );
+    std::vector<Numerical::Summarizer> results( rowCount + columnCount );
     Vector::NonzeroIterator pivotRowIter = m_pivotRowOfBasisInverse.beginNonzero();
     Vector::NonzeroIterator pivotRowIterEnd = m_pivotRowOfBasisInverse.endNonzero();
     for (; pivotRowIter != pivotRowIterEnd; pivotRowIter++) {
@@ -708,7 +708,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
             alpha->set(index, result);
         }
     }
-    alpha->set( m_basisHead[ rowIndex ], 1.0 );*/
+    alpha->set( m_basisHead[ rowIndex ], 1.0 );
 }
 
 void DualSimplex::updateReducedCosts() {
