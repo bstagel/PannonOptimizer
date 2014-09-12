@@ -159,6 +159,12 @@ protected:
      */
     Numerical::Double * m_phase1ReducedCosts;
 
+
+    /**
+     * Array of the phase 1 reduced cost summarizers.
+     */
+    Numerical::Summarizer * m_phase1ReducedCostSummarizers;
+
     //Parameter references
 
     /**
@@ -208,6 +214,11 @@ protected:
      * Clears the array of the phase 1 reduced costs.
      */
     void clearPhase1ReducedCosts();
+
+    /**
+     * Clears the array of the phase 1 reduced cost summarizers.
+     */
+    void clearPhase1ReducedCostSummarizers();
 
     /**
      * Initializer function for phase 1.

@@ -31,7 +31,8 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
 
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_simplexModel.getRowCount() ];
-    clearPhase1ReducedCosts();
+    m_phase1ReducedCostSummarizers = new Numerical::Summarizer[ m_simplexModel.getRowCount() ];
+//    clearPhase1ReducedCosts();
     m_phase2ReducedCost = 0;
     m_used.clear();
     m_used.resize( m_basisHead.size(), false );
@@ -56,7 +57,9 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
 
 DualPricing::~DualPricing() {
     delete [] m_phase1ReducedCosts;
+    delete [] m_phase1ReducedCostSummarizers;
     m_phase1ReducedCosts = 0;
+    m_phase1ReducedCostSummarizers = 0;
 }
 
 void DualPricing::clearPhase1ReducedCosts() {
@@ -67,23 +70,31 @@ void DualPricing::clearPhase1ReducedCosts() {
     // DO NOT USE MEMSET! Sometimes Numerical::Double can be a special object.
 }
 
+void DualPricing::clearPhase1ReducedCostSummarizers() {
+    unsigned int index;
+    for (index = 0; index < m_simplexModel.getRowCount(); index++) {
+        m_phase1ReducedCostSummarizers[index].clear();
+    }
+    // DO NOT USE MEMSET! Sometimes Numerical::Double can be a special object.
+}
+
 void DualPricing::initPhase1() {
     const Matrix & matrix = m_simplexModel.getMatrix();
     const unsigned int variableCount = matrix.columnCount();
-    clearPhase1ReducedCosts();
+    clearPhase1ReducedCostSummarizers();
     IndexList<>::Iterator iter, iterEnd;
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     unsigned int index;
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
         if (index >= variableCount) {
-            Numerical::stableAddTo( m_phase1ReducedCosts[ index - variableCount ], 1 );
+            m_phase1ReducedCostSummarizers[ index - variableCount ].add(1);
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; columnIter++) {
-                Numerical::stableAddTo( m_phase1ReducedCosts[columnIter.getIndex()], *columnIter );
+                m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(*columnIter);
             }
         }
     }
@@ -93,13 +104,13 @@ void DualPricing::initPhase1() {
     for (; iter != iterEnd; iter++) {
         index = iter.getData();
         if (index >= variableCount) {
-            Numerical::stableAddTo( m_phase1ReducedCosts[ index - variableCount ], - 1 );
+            m_phase1ReducedCostSummarizers[ index - variableCount ].add(-1);
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; columnIter++) {
-                Numerical::stableAddTo( m_phase1ReducedCosts[columnIter.getIndex()], - *columnIter );
+                m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(- *columnIter);
             }
         }
     }
@@ -107,13 +118,10 @@ void DualPricing::initPhase1() {
     for (index = 0; index < matrix.rowCount(); index++) {
         nonzeros += m_phase1ReducedCosts[index] != 0.0;
     }
-    //TODO: A temp mire kell kulon?
-    Vector temp;
-    temp.prepareForData( nonzeros, matrix.rowCount(), 0.0);
+
+    Vector temp(matrix.rowCount(), Vector::DENSE_VECTOR);
     for (index = 0; index < matrix.rowCount(); index++) {
-        if (m_phase1ReducedCosts[index] != 0.0) {
-            temp.newNonZero( m_phase1ReducedCosts[index], index );
-        }
+        temp.set(index, m_phase1ReducedCostSummarizers[index].getResult(true, false));
     }
     m_basis.Ftran(temp);
     clearPhase1ReducedCosts();
@@ -122,7 +130,6 @@ void DualPricing::initPhase1() {
     for (; vectorIter < vectorIterEnd; vectorIter++) {
         m_phase1ReducedCosts[ vectorIter.getIndex() ] = *vectorIter;
     }
-
 }
 
 void DualPricing::initPhase2() {
