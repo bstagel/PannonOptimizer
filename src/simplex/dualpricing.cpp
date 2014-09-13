@@ -156,12 +156,9 @@ void DualPricing::initPhase2() {
     Vector::Iterator iterEnd = m_basicVariableValues.end();
     for(; iter < iterEnd ; iter++){
         const Variable & variable = m_simplexModel.getVariable(m_basisHead[iter.getIndex()]);
-        if(Numerical::lessthan(*iter, variable.getLowerBound(), m_feasibilityTolerance)) {
-            if(variable.getLowerBound() == variable.getUpperBound()){
-//                LPINFO("FIX: lb: "<<variable.getLowerBound()<<" , val:"<<*iter);
-            }
+        if(*iter + m_feasibilityTolerance < variable.getLowerBound()) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
-        } else if(Numerical::lessthan(variable.getUpperBound(), *iter, m_feasibilityTolerance)) {
+        } else if(*iter - m_feasibilityTolerance > variable.getUpperBound() ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
         } else {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
