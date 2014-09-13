@@ -661,10 +661,11 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
                 }
             } else {
                 while (ptrIndex < ptrIndexEnd) {
-                    const Numerical::Double value = denseVector[*ptrIndex];
-                    if (value != 0.0) {
-                        summarizer.add(value * *ptrValue);
-                    }
+//                    const Numerical::Double value = denseVector[*ptrIndex];
+//                    if (value != 0.0) {
+//                        summarizer.add(value * *ptrValue);
+//                    }
+                    summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                     ptrIndex++;
                     ptrValue++;
                 }
@@ -672,6 +673,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
 
             dotProduct = summarizer.getResult();
         } else {
+            LPERROR("ETA IS NOT SPARSE!");
+            exit(-1);
             Numerical::Double * ptrValue2 = iter->eta->m_data;
             Numerical::Double * ptrValue1 = denseVector;
             const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
@@ -802,7 +805,7 @@ void PfiBasis::pivot(const Vector& column, int pivotRow) {
     newETM.eta = createEta(column, pivotRow);
     newETM.index = pivotRow;
     m_inverseNonzeros += newETM.eta->nonZeros();
-    m_basis->push_back(newETM);
+    m_basis->emplace_back(newETM);
 }
 
 void PfiBasis::invertR() {

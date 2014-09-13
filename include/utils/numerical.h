@@ -128,11 +128,6 @@ public:
         {
             m_number.m_num = v;
             *(m_negpos + (m_number.m_bits >> 63)) += v;
-            /*if (v < 0.0) {
-                m_negpos[0] += v;
-            } else {
-                m_negpos[1] += v;
-            }*/
         }
 
         /**

@@ -79,7 +79,7 @@ void Basis::setNewHead() {
 
 Vector* Basis::createEta(const Vector& vector, int pivotPosition)
 {
-    Vector* eta = new Vector();
+    Vector* eta = new Vector(vector.length(), Vector::SPARSE_VECTOR);
     eta->prepareForData(vector.nonZeros(), vector.length());
     //TODO Ezt vajon lehet gyorsabban?
     Numerical::Double atPivot = vector.at(pivotPosition);
