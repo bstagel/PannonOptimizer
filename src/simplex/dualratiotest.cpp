@@ -586,7 +586,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
         m_phaseIIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->functionValue = m_phaseIIObjectiveValue;
 
-        absPrimalSteplength = functionSlope / alpha.at(actualBreakpoint->variableIndex);
+        absPrimalSteplength = functionSlope / Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
 
         const Variable & variable = m_model.getVariable(actualBreakpoint->variableIndex);
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)) *
@@ -603,23 +603,18 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             break;
         }
 
-        if(variable.getType() == Variable::BOUNDED){
-            if((variable.getUpperBound() - variable.getLowerBound()) < absPrimalSteplength ) {
-                m_boundflips.push_back(actualBreakpoint->variableIndex);
-            } else{
-                if(t_actual < workingTolerance){
-                    m_boundflips.clear();
-                    actualBreakpoint = m_breakpointHandler.getBreakpoint(0);
-                }
-                m_incomingVariableIndex = actualBreakpoint->variableIndex;
-                m_dualSteplength = m_sigma * t_actual;
-                m_degenerate = false;
-                break;
+        //at this point only bounded type variables
+        if((variable.getUpperBound() - variable.getLowerBound()) < absPrimalSteplength ) {
+            m_boundflips.push_back(actualBreakpoint->variableIndex);
+        } else{
+            if(t_actual < workingTolerance){
+                m_boundflips.clear();
+                actualBreakpoint = m_breakpointHandler.getBreakpoint(0);
             }
-        }
-        else{
-            LPERROR("Ratiotest - in phase 2 not bounded type variables in the function!");
-            exit(-1);
+            m_incomingVariableIndex = actualBreakpoint->variableIndex;
+            m_dualSteplength = m_sigma * t_actual;
+            m_degenerate = false;
+            break;
         }
 
         t_prev = t_actual;
@@ -853,8 +848,12 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             m_degenerate = true;
                             theta = m_sigma * thetaMin;
                         } else {
-//                            LPINFO("nondegenerate step");
-                            m_degenerate = false;
+                            if(m_reducedCosts.at(maxAlphaId) > workingTolerance){
+                                m_degenerate = false;
+//                                LPINFO("nondegenerate step");
+                            }else{
+                                m_degenerate = true;
+                            }
                             theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
                         }
                     }
