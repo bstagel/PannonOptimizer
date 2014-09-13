@@ -516,11 +516,6 @@ void DualSimplex::update() {
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_incomingAlpha, Numerical::ADD_ABS);
         m_objectiveValue += beta * m_dualTheta;
-        //Perform the basis change
-        m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
-
-        m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
-        m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
         //Update the pricing
         if (m_pricing) {
@@ -532,6 +527,17 @@ void DualSimplex::update() {
                                         m_incomingAlpha, m_pivotRow,
                                         m_pivotRowOfBasisInverse);
         }
+
+        //Perform the basis change
+        m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
+
+        if (m_pricing) {
+            m_pricing->check();
+        }
+
+        m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+        m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
+
 
         //Update feasibility of the basis change
         if(!m_feasible){

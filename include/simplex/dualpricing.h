@@ -94,6 +94,11 @@ public:
                         const Vector & pivotRowOfBasisInverse) = 0;
 
     /**
+     * Checks the updated data.
+     */
+    virtual void check() const = 0;
+
+    /**
      * Initializing function.
      */
     void init() {}

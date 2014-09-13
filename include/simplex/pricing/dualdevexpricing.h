@@ -24,6 +24,8 @@ public:
                 const Vector & pivotRow,
                 const Vector & pivotRowOfBasisInverse);
 
+    void check() const;
+
 private:
     std::vector<char> m_referenceFramework;
 

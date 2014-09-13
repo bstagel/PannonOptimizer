@@ -75,8 +75,21 @@ public:
             // write comments
             std::string comment = valueIter->getComment();
             if (comment.length() > 0) {
+                unsigned int index = 0;
+                os << std::endl;
                 writeTabs(os, tabs);
-                os << comment << std::endl;
+                for (index = 0; index < comment.length(); index++) {
+                    if (comment[index] == '\\' and index < comment.length() - 1
+                            && comment[index + 1] == '\n') {
+                        os << ' ';
+                    } else if (comment[index] == '\n') {
+                        os << '\n';
+                        writeTabs(os, tabs);
+                    } else if (comment[index] >= ' ') {
+                        os << comment[index];
+                    }
+                }
+                os << std::endl << std::endl;
             }
 
             writeTabs(os, tabs);
@@ -111,6 +124,7 @@ public:
         auto nodeIterEnd = m_nodes.end();
         for (; nodeIter != nodeIterEnd; nodeIter++) {
 
+            os << std::endl;
             writeTabs(os, tabs);
             os << nodeIter->m_name << " { " << std::endl;
 
@@ -179,20 +193,23 @@ void SimplexParameterHandler::writeParameterFile(){
         out.open(m_filename, std::ios::out | std::ios::binary);
 
         if (!out.is_open()) throw -1;
-        // TODO: ezt majd le kell kodolni normalisan is
-
 
         Node root;
-        auto iter = m_values.begin();
-        auto iterEnd = m_values.end();
+        auto iter = m_valueNames.begin();
+        auto iterEnd = m_valueNames.end();
         unsigned int idx = 0;
         for (; iter != iterEnd; iter++, idx++) {
-            root.addNewParameter(iter->second);
-
+            root.addNewParameter(getParameter(*iter));
         }
-        root.writeToStream(std::cout);
+        // TODO:
+        // - node csomopontoknak komment
+        // - globalis komment a fajl elejere
+        // - atrakni az egeszet a parameterhandler-be
+        // - alul meg nem torlom a hatalmas kommentet, mert
+        //   par komment meg ott van, amit majd a fajlba kell irni
+        root.writeToStream(out);
 
-        out << R"(# Simplex parameter file for the Pannon Optimizer
+        /*out << R"alma(# Simplex parameter file for the Pannon Optimizer
        # If this file is present, the values of the given parameters can be changed.
 
        # Tolerances #
@@ -451,7 +468,7 @@ void SimplexParameterHandler::writeParameterFile(){
 
     }
 
-    })";
+    })alma";*/
 
 
                 /* out << "!!! Simplex parameter file for the Pannon Optimizer !!! \n";
@@ -1088,21 +1105,21 @@ void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
     m_enableParallelization = false;
     try {
         m_enableParallelization = root.getValue("enableParallelization") == "true";
+        std::vector<NodeFile::Node>::const_iterator nodeIter;
+        std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
+        root.getNodes("Parallel", &nodeIter, &nodeIterEnd);
+
+        std::vector<NodeFile::Node>::const_iterator threadIter;
+        std::vector<NodeFile::Node>::const_iterator threadIterEnd;
+
+        nodeIter->getNodes("Thread", &threadIter, &threadIterEnd);
+        for (; threadIter != threadIterEnd; threadIter++) {
+            //LPWARNING(threadIter->getName());
+            std::map<std::string, Parameter> threadParameters;
+            processParallelNode(*threadIter, "", &threadParameters);
+            m_threadParameters.push_back(threadParameters);
+        }
     } catch (...) {}
-    std::vector<NodeFile::Node>::const_iterator nodeIter;
-    std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
-    root.getNodes("Parallel", &nodeIter, &nodeIterEnd);
-
-    std::vector<NodeFile::Node>::const_iterator threadIter;
-    std::vector<NodeFile::Node>::const_iterator threadIterEnd;
-
-    nodeIter->getNodes("Thread", &threadIter, &threadIterEnd);
-    for (; threadIter != threadIterEnd; threadIter++) {
-        //LPWARNING(threadIter->getName());
-        std::map<std::string, Parameter> threadParameters;
-        processParallelNode(*threadIter, "", &threadParameters);
-        m_threadParameters.push_back(threadParameters);
-    }
 
 }
 
