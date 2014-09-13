@@ -50,6 +50,9 @@ public:
     inline void createParameter(const std::string& name,
                                 Entry::ENTRY_TYPE type,
                                 const std::string & comment){
+        if (m_values.find(name) == m_values.end()) {
+            m_valueNames.push_back(name);
+        }
         m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type,comment)));
     }
 
@@ -226,6 +229,11 @@ protected:
      * The parameters with name and values.
      */
     std::map<std::string, Parameter> m_values;
+
+    /**
+     * This vector stores the value names in the original ordering.
+     */
+    std::vector<std::string> m_valueNames;
 
     /**
      * The original node file.

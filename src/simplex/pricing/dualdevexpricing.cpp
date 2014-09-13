@@ -160,12 +160,17 @@ void DualDevexPricing::update(int incomingIndex,
         m_weights[outgoingIndex] = pivotWeight;
         if (pivotWeight > alphaPNorm * 3) {
             setReferenceFramework();
-            //LPINFO("SET REFERENCE FRAMEWORK");
+            LPINFO("SET REFERENCE FRAMEWORK");
         }
     }
 
     //LPINFO(alphaPNorm << ", " << m_weights[outgoingIndex]);
     //cin.get();
+}
+
+void DualDevexPricing::check() const
+{
+
 }
 
 void DualDevexPricing::setReferenceFramework() {
