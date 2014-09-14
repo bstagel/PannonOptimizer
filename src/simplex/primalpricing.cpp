@@ -22,6 +22,7 @@ PrimalPricing::PrimalPricing(const Vector & basicVariableValues,
     m_simplexModel(model),
     m_basis(basis),
     m_reducedCosts(reducedCosts),
+    m_dualInfeasibility(0),
     m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility")),
     m_optimalityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality")),
     m_phaseIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_clusters")),
@@ -71,7 +72,16 @@ void PrimalPricing::init() {
 }
 
 PrimalPricing::~PrimalPricing() {
+}
 
+bool PrimalPricing::hasLockedVariable() const
+{
+    for(unsigned index = 0; index < m_used.size(); index++){
+        if(m_used[index] == true){
+            return true;
+        }
+    }
+    return false;
 }
 
 void PrimalPricing::releaseUsed() {

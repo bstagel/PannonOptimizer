@@ -763,7 +763,7 @@ void Simplex::reinvert() {
     m_computeReducedCostsTimer.start();
 
     //if only degenerate iterations since last inversion, reduced cost values are not recomputed
-    if(!m_degenerate){
+    if(!m_degenerate || m_outgoingIndex == -1){
         computeReducedCosts();
         m_degenerate = true;
     }else{

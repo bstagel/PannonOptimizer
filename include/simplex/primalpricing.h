@@ -67,6 +67,18 @@ public:
     inline Numerical::Double getReducedCost() const {return m_reducedCost;}
 
     /**
+     * Function used at checking optimality, primal unboundedness.
+     * @return true if there is any locked variable index.
+     */
+    bool hasLockedVariable()const;
+
+    /**
+     * Getter of the measure of dual infeasibility.
+     * @return The DualPricing::m_dualInfeasibility member.
+     */
+    inline Numerical::Double getDualInfeasibility()const{return m_dualInfeasibility;}
+
+    /**
      * Clears and reinitializes the m_used member.
      * Releases all locked variables if called. For more information see PrimalPricing::lockLastIndex().
      */
@@ -185,6 +197,11 @@ protected:
      * Phase 2 simpri module.
      */
     Simpri m_phase2Simpri;
+
+    /**
+     * Measure of dual infeasibility. (d_j)
+     */
+    Numerical::Double m_dualInfeasibility;
 
     //Parameter references
 

@@ -21,6 +21,7 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
     m_simplexModel(simplexModel),
     m_basis(basis),
     m_reducedCost(0.0),
+    m_primalInfeasibility(0),
     m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility")),
     m_phaseIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_clusters")),
     m_phaseIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseI_visit_clusters")),
@@ -28,7 +29,6 @@ DualPricing::DualPricing(const Vector & basicVariableValues,
     m_phaseIIClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_clusters")),
     m_phaseIIVisitClusters(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_visit_clusters")),
     m_phaseIIImprovingCandidates(SimplexParameterHandler::getInstance().getIntegerParameterValue("Pricing.Simpri.phaseII_improving_candidates"))
-
 {
     m_phase1ReducedCosts = new Numerical::Double[ m_simplexModel.getRowCount() ];
     m_phase1ReducedCostSummarizers = new Numerical::Summarizer[ m_simplexModel.getRowCount() ];
@@ -143,11 +143,11 @@ void DualPricing::initPhase1() {
 }
 
 void DualPricing::initPhase2() {
-
     if (guard.try_lock() == false) {
         return;
     }
 
+    m_primalInfeasibility = 0;
     m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
@@ -158,11 +158,13 @@ void DualPricing::initPhase2() {
         const Variable & variable = m_simplexModel.getVariable(m_basisHead[iter.getIndex()]);
         if(*iter + m_feasibilityTolerance < variable.getLowerBound()) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
+            m_primalInfeasibility -= (variable.getLowerBound() - *iter);
         } else if(*iter - m_feasibilityTolerance > variable.getUpperBound() ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
-        } else {
+            m_primalInfeasibility -= (*iter - variable.getUpperBound());
+        } /*else {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
-        }
+        }*/
     }
 
     guard.unlock();

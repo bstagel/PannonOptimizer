@@ -72,6 +72,12 @@ public:
     bool hasLockedVariable()const;
 
     /**
+     * Getter of the measure of primal infeasibility.
+     * @return The DualPricing::m_primalInfeasibility member.
+     */
+    inline Numerical::Double getPrimalInfeasibility()const{return m_primalInfeasibility;}
+
+    /**
      * Clears and reinitializes the m_used member.
      * Releases all locked variables if called. For more information see DualPricing::lockLastIndex().
      */
@@ -175,6 +181,11 @@ protected:
      * Array of the phase 1 reduced cost summarizers.
      */
     Numerical::Summarizer * m_phase1ReducedCostSummarizers;
+
+    /**
+     * Measure of primal infeasibility. (X_B)
+     */
+    Numerical::Double m_primalInfeasibility;
 
     //Parameter references
 

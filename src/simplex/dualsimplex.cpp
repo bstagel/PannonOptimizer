@@ -21,7 +21,8 @@ const static char * PHASE_NAME = "Phase";
 const static char * PHASE_1_STRING = "ph-1";
 const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
-const static char * PHASE_1_OBJ_VAL_STRING = "Dual infeasibility";
+const static char * DUAL_INFEASIBILITY_STRING = "Dual infeasibility";
+const static char * PRIMAL_INFEASIBILITY_STRING = "Primal infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Primal theta";
@@ -82,7 +83,11 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED));
 
-        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (DUAL_INFEASIBILITY_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+                                               IterationReportField::IRF_FLOAT, *this,
+                                               10, IterationReportField::IRF_SCIENTIFIC));
+
+        result.push_back(IterationReportField (PRIMAL_INFEASIBILITY_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
@@ -153,8 +158,10 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
             reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {
             reply.m_integer = m_outgoingIndex;
-        } else if (name == PHASE_1_OBJ_VAL_STRING) {
+        } else if (name == DUAL_INFEASIBILITY_STRING) {
             reply.m_double = m_phaseIObjectiveValue;
+        } else if (name == PRIMAL_INFEASIBILITY_STRING) {
+            reply.m_double = m_pricing->getPrimalInfeasibility();
         } else if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
                 reply.m_double = m_objectiveValue;
@@ -727,7 +734,6 @@ void DualSimplex::updateReducedCosts() {
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
-
 }
 
 
