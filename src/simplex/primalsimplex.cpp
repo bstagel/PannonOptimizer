@@ -14,7 +14,7 @@ const static char * PHASE_NAME = "Phase";
 const static char * PHASE_1_STRING = "ph-1";
 const static char * PHASE_2_STRING = "ph-2";
 const static char * PHASE_UNKNOWN_STRING = "unknown";
-const static char * PHASE_1_OBJ_VAL_STRING = "Primal infeasibility";
+const static char * PRIMAL_INFEASIBILITY_STRING = "Primal infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Theta";
@@ -62,7 +62,7 @@ std::vector<IterationReportField> PrimalSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                -1, IterationReportField::IRF_FIXED));
 
-        result.push_back(IterationReportField (PHASE_1_OBJ_VAL_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PRIMAL_INFEASIBILITY_STRING, 20, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
@@ -105,7 +105,7 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
             reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {
             reply.m_integer = m_outgoingIndex;
-        } else if (name == PHASE_1_OBJ_VAL_STRING) {
+        } else if (name == PRIMAL_INFEASIBILITY_STRING) {
             reply.m_double = m_phaseIObjectiveValue;
         } else if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
