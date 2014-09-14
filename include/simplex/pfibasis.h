@@ -203,8 +203,16 @@ private:
      */
     std::vector<Vector>* m_mmColumns;
     std::vector<int>* m_mmColumnIndices;
+
     std::vector<std::vector<int> >* m_mmGraphOut;
-    std::vector<std::vector<int> >* m_mmGraphIn;
+
+    /**
+     * Represents the usage of a node during the tarjan algorithm.
+     * -1 means the node is already used
+     *  0 means the node is available
+     *  1 means the node is in the stack
+     */
+    std::vector<char>* m_mmGraphUsed;
     std::vector<PathNode>* m_stack;
     std::vector<char>* m_orderedIndex;
     std::vector<int>* m_mmBlocks;

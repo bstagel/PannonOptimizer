@@ -49,7 +49,7 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_mmColumns = new std::vector<Vector>();
     m_mmColumnIndices = new std::vector<int>();
     m_mmGraphOut = new std::vector<std::vector<int> >();
-    m_mmGraphIn = new std::vector<std::vector<int> >();
+    m_mmGraphUsed = new std::vector<char>();
     m_stack = new std::vector<PathNode>();
     m_orderedIndex = new std::vector<char>();
     m_mmBlocks = new std::vector<int>();
@@ -59,12 +59,13 @@ PfiBasis::PfiBasis(const SimplexModel& model,
 }
 
 PfiBasis::~PfiBasis() {
+    //TODO set nullptr to deleted pointers (also initialization)
     delete m_mmRows;
     delete m_mmRowIndices;
     delete m_mmColumns;
     delete m_mmColumnIndices;
     delete m_mmGraphOut;
-    delete m_mmGraphIn;
+    delete m_mmGraphUsed;
     delete m_stack;
     delete m_orderedIndex;
     delete m_mmBlocks;
@@ -1151,12 +1152,14 @@ void PfiBasis::buildMM() {
     m_columnSwapHash->clear();
     m_columnSwapLog->clear();
     m_mmGraphOut->clear();
-    m_mmGraphIn->clear();
+    m_mmGraphUsed->clear();
+//    m_mmGraphIn->clear();
     m_stack->clear();
     m_orderedIndex->clear();
     m_mmBlocks->clear();
 
     //Collect the indices of the MM part
+    //TODO: Ne foglaljuk ujra mindig ugyanakkora kell
     std::vector<int> rowMemory = std::vector<int>(m_rowCounts.size(), -1);
     for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
         if (*it >= 0) {
@@ -1360,15 +1363,20 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
 }
 
 void PfiBasis::createGraph() {
-    m_mmGraphOut->resize(m_mmRows->size(), std::vector<int>());
-    m_mmGraphIn->resize(m_mmRows->size(), std::vector<int>());
-    for (std::vector<Vector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); it++) {
+    int mmSize = m_mmRows->size();
+    m_mmGraphOut->resize(mmSize, std::vector<int>());
+    m_mmGraphUsed->resize(mmSize, 0);
+    for (int i=0; i < mmSize; i++) {
+        (*m_mmGraphOut)[i].reserve(16);
+    }
+    auto it = m_mmRows->begin();
+    auto itend = m_mmRows->end();
+    for (int i=0 ; it < itend; it++, i++) {
         Vector::NonzeroIterator vectorIt = it->beginNonzero();
         Vector::NonzeroIterator vectorItend = it->endNonzero();
         for (; vectorIt < vectorItend; vectorIt++) {
             if ((int) vectorIt.getIndex() != it - m_mmRows->begin()) {
                 (*m_mmGraphOut)[it - m_mmRows->begin()].push_back(vectorIt.getIndex());
-                (*m_mmGraphIn)[vectorIt.getIndex()].push_back(it - m_mmRows->begin());
             }
         }
     }
@@ -1384,6 +1392,7 @@ void PfiBasis::tarjan() {
             node.lowest = node.index;
             node.nextEdge = 0;
             m_stack->push_back(node);
+            (*m_mmGraphUsed)[node.index] = 1;
             searchNode();
         }
     }
@@ -1395,25 +1404,21 @@ int PfiBasis::searchNode() {
     int stackPosition = m_stack->size() - 1;
     int nextLowest = -1;
     DEVINFO(D::PFIMAKER, "Searching node " << currentNode.index);
-    std::vector<int> outGoing = (*m_mmGraphOut)[currentNode.index];
+    const std::vector<int> & outGoing = (*m_mmGraphOut)[currentNode.index];
+    //Go the outgoing edge
     while ((int) outGoing.size() > currentNode.nextEdge) {
-        if ((*m_mmGraphIn)[outGoing[currentNode.nextEdge]].size() > 0) {
+        //If the pointed node is still active (it has incoming edges)
+        if ((*m_mmGraphUsed)[outGoing[currentNode.nextEdge]] != -1) {
             int next = outGoing[currentNode.nextEdge];
             DEVINFO(D::PFIMAKER, "Searching edge " << next);
-            bool newNode = true;
-            for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); it++) {
-                if (it->index == next) {
-                    newNode = false;
-                    break;
-                }
-            }
-            if (newNode) {
-                DEVINFO(D::PFIMAKER, "Edge points to a new node, create it on the stack");
+            //If the node is available (new node), create it on the stack
+            if((*m_mmGraphUsed)[next] == 0) {
                 PathNode node;
                 node.index = next;
-                node.lowest = node.index;
+                node.lowest = next;
                 node.nextEdge = 0;
                 m_stack->push_back(node);
+                (*m_mmGraphUsed)[node.index] = 1;
                 nextLowest = searchNode();
                 if (nextLowest != -1) {
                     for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); it++) {
@@ -1428,17 +1433,15 @@ int PfiBasis::searchNode() {
                     }
                 }
             } else {
+                //The pointed node is in the stack
                 for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); it++) {
+                    if (it->index == currentNode.lowest) {
+                        break;
+                    }
                     if (it->index == next) {
                         DEVINFO(D::PFIMAKER, "Setting current lowest to next " << next);
                         currentNode.lowest = it->lowest;
                         (*m_stack)[stackPosition].lowest = it->lowest;
-#ifndef NDEBUG
-                        //                        printStack();
-#endif //!NDEBUG
-                        break;
-                    }
-                    if (it->index == currentNode.lowest) {
                         break;
                     }
                 }
@@ -1447,28 +1450,21 @@ int PfiBasis::searchNode() {
         currentNode.nextEdge++;
         (*m_stack)[stackPosition].nextEdge++;
     }
+
     if (currentNode.index == currentNode.lowest) {
         DEVINFO(D::PFIMAKER, "Creating block #" << m_mmBlocks->size());
         int allBlocks = 0;
         for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); it++) {
             allBlocks += *it;
         }
+#ifndef NDEBUG
+//                        printStack();
+#endif //!NDEBUG
         m_mmBlocks->push_back(0);
         int lastIndex;
         do {
             lastIndex = m_stack->back().index;
-            //TODO Ezt a torlest okosabban kene megoldani
-            for (std::vector<int>::iterator nodeIt = (*m_mmGraphIn)[lastIndex].begin(); nodeIt < (*m_mmGraphIn)[lastIndex].end(); nodeIt++) {
-                DEVINFO(D::PFIMAKER, "Searching node " << *nodeIt);
-                for (std::vector<int>::iterator searchIt = (*m_mmGraphOut)[*nodeIt].begin(); searchIt < (*m_mmGraphOut)[*nodeIt].end(); searchIt++) {
-                    DEVINFO(D::PFIMAKER, "Outgoing edge " << *searchIt);
-                    if (*searchIt == lastIndex) {
-                        (*m_mmGraphOut)[*nodeIt].erase(searchIt);
-                        break;
-                    }
-                }
-            }
-            (*m_mmGraphIn)[lastIndex].clear();
+            (*m_mmGraphUsed)[lastIndex] = -1;
             DEVINFO(D::PFIMAKER, "Last index in the stack is " << lastIndex);
             (*m_orderedIndex)[lastIndex] = true;
             swapRows((*m_columnSwapLog)[lastIndex], allBlocks);
@@ -1477,9 +1473,6 @@ int PfiBasis::searchNode() {
             allBlocks++;
             DEVINFO(D::PFIMAKER, "Block " << m_mmBlocks->size() - 1 << " now contains node " << lastIndex);
             m_stack->pop_back();
-#ifndef NDEBUG
-            //            printStack();
-#endif //!NDEBUG
         } while (lastIndex != currentNode.index);
     } else {
         DEVINFO(D::PFIMAKER, "Node #" << currentNode.index << " is returning with " << currentNode.lowest);
@@ -1684,21 +1677,21 @@ void PfiBasis::printSwapHashes() const {
 void PfiBasis::printGraph() const {
 #ifndef NDEBUG
     //Print the outgoing edges
-    DEVINFO(D::PFIMAKER, "Outgoing graph edges");
-    for (std::vector<std::vector<int> >::iterator it = m_mmGraphOut->begin(); it < m_mmGraphOut->end(); it++) {
-        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphOut->begin() << ":");
-        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
-            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
-        }
-    }
-    //Print the incoming edges
-    DEVINFO(D::PFIMAKER, "Incoming graph edges");
-    for (std::vector<std::vector<int> >::iterator it = m_mmGraphIn->begin(); it < m_mmGraphIn->end(); it++) {
-        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphIn->begin() << ":");
-        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
-            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
-        }
-    }
+//    DEVINFO(D::PFIMAKER, "Outgoing graph edges");
+//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphOut->begin(); it < m_mmGraphOut->end(); it++) {
+//        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphOut->begin() << ":");
+//        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
+//            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
+//        }
+//    }
+//    //Print the incoming edges
+//    DEVINFO(D::PFIMAKER, "Incoming graph edges");
+//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphIn->begin(); it < m_mmGraphIn->end(); it++) {
+//        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphIn->begin() << ":");
+//        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
+//            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
+//        }
+//    }
 #endif //!NDEBUG
 }
 
