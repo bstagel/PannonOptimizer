@@ -385,6 +385,9 @@ void Vector::resize(unsigned int length)
 void Vector::set(unsigned int index, Numerical::Double value)
 {
     if (m_vectorType == DENSE_VECTOR) {
+        if (index >= m_size) {
+            LPERROR("PARA: " << index << " " << m_size);
+        }
         Numerical::Double & original = m_data[index];
         if (original == 0.0 && value != 0.0) {
             m_nonZeros++;

@@ -22,7 +22,7 @@ ArchitectureX86::ArchitectureX86() {
 void ArchitectureX86::detect() {
     std::cout << "X86 detect" << std::endl;
     m_architectureName = "X86";
-    if (cpuidSupported() == true) {
+    if (cpuidSupported() == true && false) {
         setCPUData();
         setCacheData();
         setFeatureList();

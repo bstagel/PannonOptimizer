@@ -102,7 +102,7 @@ public:
     /**
      * Checks the updated data.
      */
-    virtual void check() const = 0;
+    virtual void checkAndFix() = 0;
 
     /**
      * Initializing function.

@@ -168,7 +168,7 @@ void DualDevexPricing::update(int incomingIndex,
     //cin.get();
 }
 
-void DualDevexPricing::check() const
+void DualDevexPricing::checkAndFix()
 {
 
 }

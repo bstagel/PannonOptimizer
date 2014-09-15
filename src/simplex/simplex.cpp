@@ -767,7 +767,11 @@ void Simplex::reinvert() {
         computeReducedCosts();
         m_degenerate = true;
     }else{
-        updateReducedCosts();
+        if(m_outgoingIndex != -1 && m_incomingIndex != -1){
+        //        updateReducedCosts();
+            }else{
+                LPERROR("Itt cimez ki!");
+            }
     }
     m_computeReducedCostsTimer.stop();
     m_computeFeasibilityTimer.start();
