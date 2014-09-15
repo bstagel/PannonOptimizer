@@ -24,10 +24,12 @@ public:
                 const Vector & pivotRow,
                 const Vector & pivotRowOfBasisInverse);
 
-    void check() const;
+    void checkAndFix();
 private:
 
     std::vector<Numerical::Double> m_weights;
+    std::vector<unsigned int> m_updateCounters;
+    std::vector<unsigned int> m_recomuteIndices;
 
     unsigned int m_previousPhase;
 

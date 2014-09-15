@@ -539,7 +539,13 @@ void DualSimplex::update() {
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         if (m_pricing) {
-            m_pricing->check();
+            static unsigned int _counter = 0;
+            _counter++;
+            //LPINFO("_counter = " << _counter);
+            // 4970
+            //if (_counter >= 2196) {
+                m_pricing->checkAndFix();
+            //}
         }
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
@@ -556,10 +562,9 @@ void DualSimplex::update() {
                 m_reducedCostFeasibilities.insert(Simplex::FEASIBLE,outgoingVariableIndex);
             }
         }
+        //Update the reduced costs
+        updateReducedCosts();
     }
-
-    //Update the reduced costs
-    updateReducedCosts();
 
     //Update the feasibility sets in phase I
     if(!m_feasible){
@@ -642,8 +647,12 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     alpha->reInit(rowCount + columnCount);
     alpha->setSparsityRatio(DENSE);
 
-    m_pivotRowOfBasisInverse.reInit(rowCount);
-    m_pivotRowOfBasisInverse.setSparsityRatio(DENSE);
+    if (m_pivotRowOfBasisInverse.length() != rowCount) {
+        m_pivotRowOfBasisInverse.reInit(rowCount);
+        m_pivotRowOfBasisInverse.setSparsityRatio(DENSE);
+    } else {
+        m_pivotRowOfBasisInverse.clear();
+    }
     m_pivotRowOfBasisInverse.setNewNonzero(rowIndex, 1);
     m_basis->Btran(m_pivotRowOfBasisInverse);
 
@@ -731,6 +740,15 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
 }
 
 void DualSimplex::updateReducedCosts() {
+#ifndef NDEBUG
+    if (m_outgoingIndex == -1 || m_incomingIndex == -1) {
+        LPERROR("Error in " << __FILE__ << ": " <<
+                __FUNCTION__ << " : " << __LINE__);
+        LPERROR("m_outgoingIndex: " << m_outgoingIndex);
+        LPERROR("m_incomingIndex: " << m_incomingIndex);
+        exit(1);
+    }
+#endif
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );

@@ -142,4 +142,58 @@
 #define GLOBAL_EXPORT_TYPE_COMMENT ""
 
 #define ENABLE_PARALLELIZATION_COMMENT ""
+
+/********************************************
+ * BLOCK COMMENTS
+ * *****************************************/
+
+const char * SIMPLEX_PARAMETERFILE_FIRST_COMMENT =
+    R"(# Simplex parameter file for the Pannon Optimizer
+# If this file is present, the values of the given parameters can be changed.)";
+
+const char * SIMPLEX_PARAMETERS_PRICING_SIMPRI_COMMENT =
+    R"(# Parameters of the SIMPRI partial pricing framework
+# The range of vectors are divided into clusters during the pricing, which are
+# scanned as a round robin in order to find improving candidates.
+# With partial pricing it can be specified that only a certain number
+# of clusters are visited to find improving candidates. If no candidates
+# found, more clusters are involved until necessary.
+# It is also possible to stop the cluster visit if enough candidates are found.
+# Parameter valus 0 for improving candidates means this stop condition is turned off.
+# All the three parameters can be specified both for phase I and phase II.)";
+
+const char * SIMPLEX_PARAMETERS_RATIOTEST_EXPAND_COMMENT =
+    "# Enable fake feasibility handling in Dual Phase I and II";
+
+const char * SIMPLEX_PARAMETERS_GLOBAL_SAVEBASIS_COMMENT =
+    R"(# Previously specified states of the solution algorithm can be saved.
+# After a filename is specified, there are four options.
+# The file format can be BAS (standard format) or PBF (PanOpt Basis Format) .
+# The last basis can be marked to be saved as `basis_filename`_last.`format` .
+# A basis of a given iteration can be marked to be saved or basis can be saved periodically
+# each output will follow the following syntax: `basis_filename`_`iteration_number`.`format` .
+# Both parameters are integers, 0 means saving is turned off.)";
+
+const char * SIMPLEX_PARAMETERS_GLOBAL_LOADBASIS_COMMENT =
+    R"(# The solver can start from a given basis.
+# The file format can be BAS (standard format) or PBF (PanOpt Basis Format).)";
+
+const char * SIMPLEX_PARAMETERS_GLOBAL_EXPORT_COMMENT =
+    R"(# The solver can export specific data in CSV format for research purposes.
+# The export type specifies the set of output to be written.
+# The export should be clean, it is appended with one line for each problem solved
+# The available export types are the following:
+# PARAMETER_STUDY = Parameter study (reporting numerical problems, tolerances and the solution)
+# RATIOTEST_STUDY = Ratiotest study (reporting measures of the ratio tests))";
+
+const char * SIMPLEX_PARAMETERS_TOLERANCES_COMMENT = "# Tolerances #";
+const char * SIMPLEX_PARAMETERS_STARTING_COMMENT = "# Starting procedures";
+const char * SIMPLEX_PARAMETERS_STARTING_PRESOLVE_COMMENT = "# Presolve";
+const char * SIMPLEX_PARAMETERS_STARTING_SCALING_COMMENT = "# Scaling parameters";
+const char * SIMPLEX_PARAMETERS_STARTING_BASIS_COMMENT = "# Starting basis procedures";
+const char * SIMPLEX_PARAMETERS_FACTORIZATION_COMMENT = "# Basis factorization";
+const char * SIMPLEX_PARAMETERS_FACTORIZATION_PFI_COMMENT = "# PFI specific parameters";
+const char * SIMPLEX_PARAMETERS_PRICING_COMMENT = "# Pricing";
+const char * SIMPLEX_PARAMETERS_RATIOTEST_COMMENT = "# Ratiotest";
+
 #endif // SIMPLEXPARAMETERCOMMENTS_H
