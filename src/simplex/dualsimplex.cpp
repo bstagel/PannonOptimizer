@@ -560,8 +560,6 @@ void DualSimplex::update() {
                 m_reducedCostFeasibilities.insert(Simplex::FEASIBLE,outgoingVariableIndex);
             }
         }
-        //Update the reduced costs
-        updateReducedCosts();
     }
 
 
@@ -739,15 +737,6 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
 }
 
 void DualSimplex::updateReducedCosts() {
-#ifndef NDEBUG
-    if (m_outgoingIndex == -1 || m_incomingIndex == -1) {
-        LPERROR("Error in " << __FILE__ << ": " <<
-                __FUNCTION__ << " : " << __LINE__);
-        LPERROR("m_outgoingIndex: " << m_outgoingIndex);
-        LPERROR("m_incomingIndex: " << m_incomingIndex);
-        exit(1);
-    }
-#endif
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
