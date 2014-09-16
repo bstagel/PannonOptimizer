@@ -21,9 +21,10 @@
 
 void solve(std::string filename) {
     Model model;
-    MpsModelBuilder builder;
-    builder.loadFromFile(filename.c_str());
-    model.build(builder);
+    MpsModelBuilder* builder = new MpsModelBuilder();
+    builder->loadFromFile(filename.c_str());
+    model.build(*builder);
+    delete builder;
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
         Presolver presolver(&model);

@@ -763,16 +763,12 @@ void Simplex::reinvert() {
     m_computeReducedCostsTimer.start();
 
     //if only degenerate iterations since last inversion, reduced cost values are not recomputed
+    //If an exception is thrown incoming or outgoing index is -1, and the reduced costs must be recomputed
     if(!m_degenerate || m_outgoingIndex == -1 || m_incomingIndex == -1){
         computeReducedCosts();
         m_degenerate = true;
-    }else{
-        if(m_outgoingIndex != -1 && m_incomingIndex != -1){
-        //        updateReducedCosts();
-            }else{
-                LPERROR("Itt cimez ki!");
-            }
     }
+    //No need to update in an else, since the update() function already did the update
     m_computeReducedCostsTimer.stop();
     m_computeFeasibilityTimer.start();
     computeFeasibility();

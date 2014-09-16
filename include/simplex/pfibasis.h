@@ -214,7 +214,6 @@ private:
      */
     std::vector<char>* m_mmGraphUsed;
     std::vector<PathNode>* m_stack;
-    std::vector<char>* m_orderedIndex;
     std::vector<int>* m_mmBlocks;
     std::vector<int>* m_rowSwapHash;
     std::vector<int>* m_columnSwapHash;
