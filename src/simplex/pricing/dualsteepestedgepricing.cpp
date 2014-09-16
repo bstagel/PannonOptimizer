@@ -133,7 +133,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
 //    }
 
 
-    unsigned int rowCount = m_simplexModel.getRowCount();
+//    unsigned int rowCount = m_simplexModel.getRowCount();
     unsigned int index;
     Vector tau = pivotRowOfBasisInverse;
     m_basis.Ftran(tau);
@@ -224,7 +224,7 @@ void DualSteepestEdgePricing::checkAndFix()
 {
     //return;
     unsigned int rowCount = m_simplexModel.getRowCount();
-    unsigned int index;
+//    unsigned int index;
     /*for (index = 0; index < rowCount; index++) {
         LPINFO(index << ".: " << m_weights[index]);
     }
@@ -269,7 +269,7 @@ void DualSteepestEdgePricing::checkAndFix()
     if (wrong) {
         cin.get();
     }
-    /*for (index = 0; index < rowCount; index++) {
+    for (index = 0; index < rowCount; index++) {
         LPINFO(index << ".: " << m_weights[index]);
     }*/
     //std::cin.get();*/
