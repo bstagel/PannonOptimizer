@@ -51,7 +51,6 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_mmGraphOut = new std::vector<std::vector<int> >();
     m_mmGraphUsed = new std::vector<char>();
     m_stack = new std::vector<PathNode>();
-    m_orderedIndex = new std::vector<char>();
     m_mmBlocks = new std::vector<int>();
     m_rowSwapHash = new std::vector<int>();
     m_columnSwapHash = new std::vector<int>();
@@ -61,23 +60,36 @@ PfiBasis::PfiBasis(const SimplexModel& model,
 PfiBasis::~PfiBasis() {
     //TODO set nullptr to deleted pointers (also initialization)
     delete m_mmRows;
+    m_mmRows = nullptr;
     delete m_mmRowIndices;
+    m_mmRowIndices = nullptr;
     delete m_mmColumns;
+    m_mmColumns = nullptr;
     delete m_mmColumnIndices;
+    m_mmColumnIndices = nullptr;
     delete m_mmGraphOut;
+    m_mmGraphOut = nullptr;
     delete m_mmGraphUsed;
+    m_mmGraphUsed = nullptr;
     delete m_stack;
-    delete m_orderedIndex;
+    m_stack = nullptr;
     delete m_mmBlocks;
+    m_mmBlocks = nullptr;
     delete m_rowSwapHash;
+    m_rowSwapHash = nullptr;
     delete m_columnSwapHash;
+    m_columnSwapHash = nullptr;
     delete m_columnSwapLog;
+    m_columnSwapLog = nullptr;
     delete m_cColumns;
+    m_cColumns = nullptr;
     delete m_cPivotIndexes;
+    m_cPivotIndexes = nullptr;
     for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); iter++) {
         delete iter->eta;
     }
     delete m_basis;
+    m_basis = nullptr;
 }
 
 void PfiBasis::copyBasis(bool buildIndexLists) {
@@ -121,12 +133,10 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     //Copy the active submatrix
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
         if (*it >= (int) columnCount) {
-            DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
             //Ignore logical columns from the inverse
             m_rowCounts[*it-columnCount] = -1;
             m_basisNewHead[*it-columnCount] = *it;
         } else {
-            DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
             //The submatrix is the active submatrix needed for inversion
             m_basicColumns.push_back(&(m_model.getMatrix().column(*it)));
             m_basicColumnIndices.push_back(*it);
@@ -177,10 +187,6 @@ void PfiBasis::buildRowCountIndexLists(int size, int maxRowCount) {
             }
         }
     }
-    DEVINFO(D::PFIMAKER, "Row links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_rowCountIndexList);
-#endif
 }
 
 void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
@@ -192,25 +198,9 @@ void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
             }
         }
     }
-    DEVINFO(D::PFIMAKER, "Column links built.");
-#ifndef NDEBUG
-    DEVINFO(D::PFIMAKER, m_columnCountIndexList);
-#endif
 }
 
 void PfiBasis::invert() {
-    expDiffSquareSum = 0;
-    expDiffSum = 0;
-    expCounter = 0;
-
-    aprExpDiffSquareSum = 0;
-    aprExpDiffSum = 0;
-    aprExpCounter = 0;
-
-    etaExpCount = 0;
-    etaExpSquareSum = 0;
-    etaExpSum = 0;
-
     m_transformationCount = 0;
     m_inversionCount++;
 
@@ -643,7 +633,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
 
-        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
+        //All eta vectors are sparse!
+//        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
             Numerical::Double * ptrValue = iter->eta->m_data;
             unsigned int * ptrIndex = iter->eta->m_index;
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
@@ -673,28 +664,7 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
             }
 
             dotProduct = summarizer.getResult();
-        } else {
-            LPERROR("ETA IS NOT SPARSE!");
-            exit(-1);
-            Numerical::Double * ptrValue2 = iter->eta->m_data;
-            Numerical::Double * ptrValue1 = denseVector;
-            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-
-            while (ptrValue1 < ptrValueEnd && nonZeros) {
-                // if the input vector has less nonzeros than the eta vector,
-                // this implementation can be faster
-                const Numerical::Double value = *ptrValue1;
-                if (value != 0.0) {
-                    nonZeros--;
-
-                    summarizer.add(value * *ptrValue2);
-                }
-                ptrValue1++;
-                ptrValue2++;
-            }
-            dotProduct = summarizer.getResult();
-
-        }
+//        }
 
         // store the dot product, and update the nonzero counter
         const int pivot = iter->index;
@@ -748,7 +718,8 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator it = m_rowNonzeroIndices[rowindex].begin();
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
-    static thread_local std::vector<int> helper;
+    //TODO This thread_local leads to memory error
+    static /*thread_local*/ std::vector<int> helper;
     helper.resize(m_model.getRowCount(), 0);
     for (; it != itend; it++) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
@@ -1153,9 +1124,7 @@ void PfiBasis::buildMM() {
     m_columnSwapLog->clear();
     m_mmGraphOut->clear();
     m_mmGraphUsed->clear();
-//    m_mmGraphIn->clear();
     m_stack->clear();
-    m_orderedIndex->clear();
     m_mmBlocks->clear();
 
     //Collect the indices of the MM part
@@ -1187,7 +1156,6 @@ void PfiBasis::buildMM() {
     m_rowSwapHash->resize(mmSize);
     m_columnSwapHash->resize(mmSize);
     m_columnSwapLog->resize(mmSize);
-    m_orderedIndex->resize(mmSize, false);
 
     for (int i = 0; i < mmSize; i++) {
         (*m_rowSwapHash)[i] = i;
@@ -1384,15 +1352,16 @@ void PfiBasis::createGraph() {
 
 void PfiBasis::tarjan() {
     DEVINFO(D::PFIMAKER, "Tarjan begin");
-    for (std::vector<char>::iterator it = m_orderedIndex->begin(); it < m_orderedIndex->end(); it++) {
-        DEVINFO(D::PFIMAKER, "Tarjan step" << it - m_orderedIndex->begin());
-        if (*it == false) {
+    for (std::vector<char>::iterator it = m_mmGraphUsed->begin(); it < m_mmGraphUsed->end(); it++) {
+        DEVINFO(D::PFIMAKER, "Tarjan step" << it - m_mmGraphUsed->begin());
+        if (*it == 0) {
+            DEVINFO(D::PFIMAKER, "Tarjan step active" << it - m_mmGraphUsed->begin());
             PathNode node;
-            node.index = it - m_orderedIndex->begin();
+            node.index = it - m_mmGraphUsed->begin();
             node.lowest = node.index;
             node.nextEdge = 0;
             m_stack->push_back(node);
-            (*m_mmGraphUsed)[node.index] = 1;
+            *it = 1;
             searchNode();
         }
     }
@@ -1466,7 +1435,6 @@ int PfiBasis::searchNode() {
             lastIndex = m_stack->back().index;
             (*m_mmGraphUsed)[lastIndex] = -1;
             DEVINFO(D::PFIMAKER, "Last index in the stack is " << lastIndex);
-            (*m_orderedIndex)[lastIndex] = true;
             swapRows((*m_columnSwapLog)[lastIndex], allBlocks);
             swapColumns((*m_columnSwapLog)[lastIndex], allBlocks);
             m_mmBlocks->back()++;

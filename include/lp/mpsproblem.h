@@ -32,7 +32,7 @@ class MpsModelBuilder: public ModelBuilder {
 public:
     MpsModelBuilder();
 
-    ~MpsModelBuilder();
+    virtual ~MpsModelBuilder();
 
     void loadFromFile(const std::string & fileName);
 

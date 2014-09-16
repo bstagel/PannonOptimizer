@@ -22,10 +22,10 @@
 
 int ELBOWROOM = 0;
 double SPARSITY_RATIO = 0;
-thread_local Numerical::Double * Vector::sm_fullLengthVector = 0;
+thread_local Numerical::Double * Vector::sm_fullLengthVector = nullptr;
 thread_local unsigned int Vector::sm_fullLengthVectorLength = 0;
 thread_local unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
-thread_local unsigned long * Vector::sm_countingSortBitVector = 0;
+thread_local unsigned long * Vector::sm_countingSortBitVector = nullptr;
 thread_local unsigned int Vector::sm_countingSortBitVectorLength = 0;
 
 #ifdef ANALYSE_DOT_PRODUCT
@@ -107,12 +107,12 @@ Vector::~Vector()
     if (sm_fullLenghtReferenceCounter == 0) {
         release(sm_fullLengthVector);
         //delete [] sm_fullLengthVector;
-        sm_fullLengthVector = 0;
+        sm_fullLengthVector = nullptr;
         sm_fullLengthVectorLength = 0;
 
         release(sm_countingSortBitVector);
         //delete [] sm_countingSortBitVector;
-        sm_countingSortBitVector = 0;
+        sm_countingSortBitVector = nullptr;
         sm_countingSortBitVectorLength = 0;
 
 
