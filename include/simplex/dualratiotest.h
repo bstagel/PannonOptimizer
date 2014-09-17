@@ -79,11 +79,6 @@ public:
     inline Numerical::Double getObjectiveFunctionPhase1()const{return m_phaseIObjectiveValue;}
 
     /**
-     * Getter that returns the phase 2 objective value.
-     */
-    inline Numerical::Double getObjectiveFunctionPhase2()const{return m_phaseIIObjectiveValue;}
-
-    /**
      * Getter that returns with a vector containing the variables on which a boundflip operation shall be performed.
      */
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
@@ -102,7 +97,6 @@ public:
      * This function performs and controls the phase 2 dual ratiotest.
      * @param outgoingVariableIndex shows the variable choosen by the pricing to leave the basis
      * @param alpha needed to define ratios
-     * @param phaseIIObjectiveValue will be computed to the ratios
      * @param workingTolerance shows the currently used optimality tolerance
      *
      * @throws FallbackException if there is any infeasible variable
@@ -110,7 +104,6 @@ public:
      */
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const Vector& alpha,
-                                Numerical::Double phaseIIObjectiveValue,
                                 Numerical::Double workingTolerance);
 
     //Ratiotest study
@@ -213,11 +206,6 @@ private:
      * The dual phase 1 objective value, needed in the piecewise linear method.
      */
     Numerical::Double m_phaseIObjectiveValue;
-
-    /**
-     * The dual phase 2 objective value, needed in the piecewise linear method.
-     */
-    Numerical::Double m_phaseIIObjectiveValue;
 
     /**
      * Vector storing the variables (variable indices) on which a boundflip operation

@@ -37,14 +37,13 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 
     IndexList<>::Iterator it;
     IndexList<>::Iterator endit;
-    unsigned int basisIndex = 0;
     Numerical::Double value = 0;
     Numerical::Double epsilon = 0;
 
     //computing ratios in M
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
     for (; it != endit; it++) {
-        basisIndex = it.getData();
+        unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
         if (m_sigma * alpha.at(basisIndex) < -epsilon) {
 //                    LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
@@ -62,7 +61,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
     //computing ratios in P
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
     for (; it != endit; it++) {
-        basisIndex = it.getData();
+        unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
         if (m_sigma * alpha.at(basisIndex) > epsilon) {
 //                    LPINFO("Ratio in P "<<basisIndex<<" type: "<<variable.getType());
@@ -80,7 +79,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
     //computing ratios in F
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
     for (; it != endit; it++) {
-        basisIndex = it.getData();
+        unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
       //F->P
         if (m_sigma * alpha.at(basisIndex) < -epsilon && (variable.getUpperBound() != Numerical::Infinity) ) {
@@ -101,6 +100,8 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 //            LPINFO("Bounded incoming variable defined ratio at "<<value);
         m_breakpointHandler.insertBreakpoint(-2,value);
     }
+
+    m_breakpointHandler.finalizeBreakpoints();
 }
 
 void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
@@ -116,7 +117,7 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
         t_actual = actualBreakpoint->value;
 
         m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
-        actualBreakpoint->functionValue = m_phaseIObjectiveValue;
+        actualBreakpoint->additionalValue = m_phaseIObjectiveValue;
         iterationCounter++;
         t_prev = t_actual;
 
@@ -161,7 +162,7 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     if (iterationCounter > 0) {
         prevBreakpointId--;
         prevIterationCounter++;
-        prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
+        prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->additionalValue;
     }
     if (iterationCounter < length-1) {
         nextBreakpointId++;
@@ -171,7 +172,7 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         const BreakpointHandler::BreakPoint * actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter);
         Numerical::Double t_actual = actualBreakpoint->value;
         nextObjValue += functionSlope * (t_actual - t_prev);
-        actualBreakpoint->functionValue = nextObjValue;
+        actualBreakpoint->additionalValue = nextObjValue;
         functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
         if(nextObjValue < m_initialPhaseIObjectiveValue){
             nextObjValue = -Numerical::Infinity;
@@ -190,7 +191,7 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
             if (iterationCounter - prevIterationCounter > 0) {
                 prevBreakpointId--;
                 prevIterationCounter++;
-                prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->functionValue;
+                prevObjValue = m_breakpointHandler.getBreakpoint(prevBreakpointId)->additionalValue;
                 step = true;
             } else if ( prevObjValue != -Numerical::Infinity) {
                 prevObjValue = -Numerical::Infinity;
@@ -206,7 +207,7 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                 const BreakpointHandler::BreakPoint * actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter+nextIterationCounter);
                 Numerical::Double t_actual = actualBreakpoint->value;
                 nextObjValue += functionSlope * (t_actual - t_prev);
-                actualBreakpoint->functionValue = nextObjValue;
+                actualBreakpoint->additionalValue = nextObjValue;
                 functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
                 if (nextObjValue < m_initialPhaseIObjectiveValue) {
                     nextObjValue = -Numerical::Infinity;
@@ -227,12 +228,12 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         m_phaseIObjectiveValue = m_initialPhaseIObjectiveValue;
     } else if (prevIsBetter) {
         const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(prevBreakpointId);
-        m_phaseIObjectiveValue = breakpoint->functionValue;
+        m_phaseIObjectiveValue = breakpoint->additionalValue;
         m_outgoingVariableIndex = breakpoint->variableIndex;
         m_primalSteplength = m_sigma>0 ? breakpoint->value : - breakpoint->value;
     } else {
         const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(nextBreakpointId);
-        m_phaseIObjectiveValue = breakpoint->functionValue;
+        m_phaseIObjectiveValue = breakpoint->additionalValue;
         m_outgoingVariableIndex = breakpoint->variableIndex;
         m_primalSteplength = m_sigma>0 ? breakpoint->value : - breakpoint->value;
     }
@@ -310,7 +311,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
                     const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(0);
 
                     m_phaseIObjectiveValue += functionSlope * breakpoint->value;
-                    breakpoint->functionValue = m_phaseIObjectiveValue;
+                    breakpoint->additionalValue = m_phaseIObjectiveValue;
                     m_outgoingVariableIndex = breakpoint->variableIndex;
                     m_primalSteplength = m_sigma>0 ? breakpoint->value : - breakpoint->value;
                     break;
@@ -377,6 +378,8 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha)
             m_breakpointHandler.insertBreakpoint(basisIndex,value);
         }
     }
+
+    m_breakpointHandler.finalizeBreakpoints();
 }
 
 void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,

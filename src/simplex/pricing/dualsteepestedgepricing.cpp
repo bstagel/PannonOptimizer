@@ -269,9 +269,9 @@ void DualSteepestEdgePricing::checkAndFix()
     if (wrong) {
         cin.get();
     }
-    for (index = 0; index < rowCount; index++) {
-        LPINFO(index << ".: " << m_weights[index]);
-    }*/
+    //for (index = 0; index < rowCount; index++) {
+    //    LPINFO(index << ".: " << m_weights[index]);
+    //}
     //std::cin.get();*/
 
 }

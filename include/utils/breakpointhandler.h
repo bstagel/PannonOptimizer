@@ -26,29 +26,13 @@ public:
          * This is an initializing constructor.
          * @param variableIndex shows the variable, which defined this breakpoint
          * @param value shows the actual value of the ratio
-         * @param expandedValue shows the expanded value of the ratio
-         * @param functionValue defines the corresponding objective function value to the ratio
+         * @param additionalValue shows the expanded value of the ratio or the function value
          * @constructor
          */
-        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue, Numerical::Double functionValue):
+        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double additionalValue):
             variableIndex(variableIndex),
             value(value),
-            expandedValue(expandedValue),
-            functionValue(functionValue){}
-
-        /**
-         * This is an initializing constructor.
-         * If the expandedValue parameter is not given it will be initialized with the value parameter.
-         * @param variableIndex shows the variable, which defined this breakpoint
-         * @param value shows the actual value of the ratio
-         * @param functionValue defines the corresponding objective function value to the ratio
-         * @constructor
-         */
-        BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double functionValue):
-            variableIndex(variableIndex),
-            value(value),
-            expandedValue(value),
-            functionValue(functionValue){}
+            additionalValue(additionalValue){}
 
         /**
          * Default desctructor of the Breakpoint structure.
@@ -67,14 +51,10 @@ public:
         Numerical::Double value;
 
         /**
-         * Shows the expanded value of the ratio.
+         * Shows the expanded value of the ratio or the function value.
          */
-        Numerical::Double expandedValue;
+        mutable Numerical::Double additionalValue;
 
-        /**
-         * Defines the corresponding objective function value to the ratio.
-         */
-        mutable Numerical::Double functionValue;
 
         /**
          * Operator to write the breakpoints onto an ostream.
@@ -84,8 +64,7 @@ public:
          */
         friend std::ostream & operator<<(std::ostream & os, const BreakPoint & breakpoint){
             os << "(" << breakpoint.variableIndex << "; " << breakpoint.value <<
-                  "; " << breakpoint.expandedValue <<
-                  "; " << breakpoint.functionValue << ")";
+                  "; " << breakpoint.additionalValue << ")";
             return os;
         }
 
@@ -97,8 +76,7 @@ public:
         const BreakPoint& operator=(const BreakPoint& other){
             variableIndex = other.variableIndex;
             value = other.value;
-            expandedValue = other.expandedValue;
-            functionValue = other.functionValue;
+            additionalValue = other.additionalValue;
             return *this;
         }
     };
@@ -116,10 +94,9 @@ public:
      * @param value is the actual value of the ratio
      * @param expandedValue is the expanded value of the ratio
      */
-    ALWAYS_INLINE void insertBreakpoint(int variableIndex, Numerical::Double value, Numerical::Double expandedValue = Numerical::Infinity){
-        m_breakpoints.emplace_back(variableIndex,value,expandedValue,-Numerical::Infinity);
+    ALWAYS_INLINE void insertBreakpoint(int variableIndex, Numerical::Double value, Numerical::Double additionalValue = -Numerical::Infinity){
+        m_breakpoints.emplace_back(variableIndex, value, additionalValue);
     }
-
     /**
      * This is the function which provides the breakpoints to the ratiotests.
      * If it's called, it performs the sorting of the ratios corresponding to the current sorting method.
@@ -127,7 +104,7 @@ public:
      * @param index is the indexth stored breakpoint
      * @return A const pointer to the selected breakpoint.
      */
-    const BreakPoint * getBreakpoint(int index);
+    const BreakPoint * getBreakpoint(unsigned index);
 
     /**
      * A getter that returns the number of the stored breakpoints.
@@ -147,6 +124,11 @@ public:
         HEAP,
         SORTING_METHOD_ENUM_LENGTH
     };
+
+    /**
+     * In this function we finalize the generation of breakpoints.
+     */
+    void finalizeBreakpoints();
 
     /**
      * In this function we can implement in what case what sorting algorithm we want to use.
@@ -183,7 +165,12 @@ private:
      * The vector is sorted backwards, the smallest breakpoint is the last element. The last sorted element
      * can be obtained if we substract this value from the size of the vector.
      */
-    int m_unsorted;
+    unsigned m_unsorted;
+
+    /**
+     * This member indicates how many breakpoints are in the array (without the dummy breakpoint).
+     */
+    unsigned m_size;
 
     /**
      * Vector containing the ratios of the expand second pass used in the Harris ratio test and the Expand procedure.
@@ -202,7 +189,7 @@ private:
      * The wide known heapify function, to maintain the heap property of the stored breakpoints.
      * @param actual points to the actual element of the vector
      */
-    void heapify(int actual);
+    void heapify(unsigned actual);
 
     /**
      * This function builds a heap from the vector storing the breakpoints.
@@ -220,7 +207,9 @@ private:
       * It performs an efficient swapping using the std::swap method, that takes advantage of the move constructor
       * of the Breakpoint struct.
       */
-    inline void swapBreakpoints(int first, int second){std::swap(m_breakpoints[first],m_breakpoints[second]);}
+    ALWAYS_INLINE void swapBreakpoints(int first, int second){
+        std::swap(m_breakpoints[first],m_breakpoints[second]);
+    }
 };
 
 #endif // BREAKPOINTHANDLER_H
