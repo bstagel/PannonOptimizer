@@ -359,7 +359,9 @@ void DualSimplex::selectPivot() {
             Numerical::Double reducedCost = m_pricing ? m_pricing->getReducedCost() : m_pricingController->getReducedCost();
             m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue);
         } else {
-            m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_objectiveValue,m_workingTolerance);
+//            for(int i=0; i<100; i++){
+                m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_workingTolerance);
+//            }
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
 
