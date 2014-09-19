@@ -57,7 +57,6 @@ void BreakpointHandler::finalizeBreakpoints()
 {
     m_size = m_breakpoints.size();
     m_unsorted = m_size;
-//    m_breakpoints.emplace_back(INT_MAX, Numerical::Infinity, Numerical::Infinity);
 }
 
 void BreakpointHandler::initSorting()
@@ -83,7 +82,7 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
 {
     //reserve the maximal possible number: total number of breakpoints
     m_secondPassRatios.clear();
-    m_secondPassRatios.reserve(m_size-1);
+    m_secondPassRatios.reserve(m_size);
     const BreakPoint * breakpoint = NULL;
 
     Numerical::Double theta_1 = Numerical::Infinity;
@@ -134,7 +133,7 @@ void BreakpointHandler::heapify(unsigned actual)
 {
     unsigned left = 2 * actual + 1;
     unsigned right = left+1;
-//    int smallest = right;
+    unsigned smallest = left;
 
 //    //choosing smallest element (actual value)
 //    if (left < m_unsorted){
@@ -154,12 +153,16 @@ void BreakpointHandler::heapify(unsigned actual)
     if (right < m_unsorted && (m_breakpoints[right].value < m_breakpoints[smallest].value) ) {
         smallest = right;
     }
-    if (left < m_unsorted && (m_breakpoints[left].value < m_breakpoints[smallest].value) ) {
-        smallest = left;
+    if (right < m_unsorted){
+        if (m_breakpoints[right].value < m_breakpoints[left].value) {
+            smallest = right;
+        }
+    } else if(left >= m_unsorted){
+        return;
     }
 
 //    put smallest to actual, recursive call
-    if (smallest != actual){
+    if (m_breakpoints[smallest].value < m_breakpoints[actual].value){
         swapBreakpoints(actual,smallest);
         heapify(smallest);
     }
