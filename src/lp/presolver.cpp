@@ -204,11 +204,11 @@ void Presolver::presolve() {
         }
         itc++;
     }
-//    for(int i = 0; i < m_variables->size(); i++) {
+//    for(int i = 1; i < m_variables->size(); i++) {
 //        if((m_variables->at(i).getType() != Variable::FREE) && ((m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getUpperBound() > m_impliedUpper->at(i)) ||
 //           (m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getType() == Variable::PLUS) ||
 //           (m_variables->at(i).getUpperBound() > m_impliedUpper->at(i) && m_variables->at(i).getType() == Variable::MINUS))) {
-////            LPWARNING("IMPLIED FREE " << i << " " << m_variables->at(i).getLowerBound() << "-" << m_variables->at(i).getUpperBound() << " TO " << m_impliedLower->at(i) << "-" << m_impliedUpper->at(i));
+//            LPWARNING("IMPLIED FREE " << i << " " << m_variables->at(i).getLowerBound() << "-" << m_variables->at(i).getUpperBound() << " TO " << m_impliedLower->at(i) << "-" << m_impliedUpper->at(i));
 //            m_variables->at(i).setLowerBound(-Numerical::Infinity);
 //            m_variables->at(i).setUpperBound(Numerical::Infinity);
 //            m_impliedFreeCount++;

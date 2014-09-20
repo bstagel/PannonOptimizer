@@ -776,16 +776,15 @@ void LinearAlgebraicModule::executeMethod() {
     int rowCount = m_parent->getModel()->constraintCount();
     int columnCount = m_parent->getModel()->variableCount();
 
-    //Index list to distinguish rows to be removed from the matrix.
-    IndexList<> validRows(rowCount, 2);
+    //Index list to distuinguish rows with the same hashes
+    //Partition rowCount + 1 is reserved for row indices to be removed
+    IndexList<> hashedRows(rowCount, rowCount + 1);
 
-    //Setting up the list of row vector hashes linked with indices to be sorted
-    vector<pair<int, long long int>> hashedRows(rowCount);
+    Vector usedPartitions(rowCount);
 
     for(int i = 0; i < rowCount; i++) {
         int vhash = 0;
         const Vector* curRowVector = (*m_parent->getConstraints())[i].getVector();
-        validRows.insert(0, i);
 
         //Calculating hash
         Vector::NonzeroIterator begin = curRowVector->beginNonzero();
@@ -794,102 +793,105 @@ void LinearAlgebraicModule::executeMethod() {
             vhash += begin.getIndex()+1;
             begin++;
         }
-        hashedRows[i] = pair<int, long long int>(i, vhash);
-    }
-
-    //Sorting the vector indices primarily by nonzero count, secondarily by hash
-    //!TODO use efficient sorting
-    for(int a = 0; a < rowCount - 1; a++) {
-        int smallest = a;
-        for(int b = a + 1; b < rowCount; b++) {
-            if(m_parent->getRowNonzeros()->at(hashedRows[b].first) < m_parent->getRowNonzeros()->at(hashedRows[smallest].first)
-              || (m_parent->getRowNonzeros()->at(hashedRows[b].first) == m_parent->getRowNonzeros()->at(hashedRows[smallest].first) && hashedRows[b].second < hashedRows[smallest].second))
-            {
-                smallest = b;
-            }
-        }
-        pair<int, long long int> temp;
-        temp = hashedRows[a];
-        hashedRows[a] = hashedRows[smallest];
-        hashedRows[smallest] = temp;
+        int partition = vhash % rowCount;
+        usedPartitions.set(partition, usedPartitions.at(partition) + 1);
+        hashedRows.insert(partition, i);
     }
 
     //Eliminating duplicate rows
+    Vector::NonzeroIterator begin = usedPartitions.beginNonzero();
+    Vector::NonzeroIterator end = usedPartitions.endNonzero();
 
-    for(int i = 0; i < rowCount - 1; i++) {
-        if(hashedRows[i].second == hashedRows[i+1].second) {
+    while(begin < end) {
 
-            int origIdx = hashedRows[i+1].first;
-            int duplIdx = hashedRows[i].first;
-            Constraint& original = (*m_parent->getConstraints())[origIdx];
-            const Constraint& duplicate = (*m_parent->getConstraints())[duplIdx];
+        if(*begin < 2) { begin++; continue; }
 
-            Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
-            Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
+        IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
+        hashedRows.getIterators(&itFirst, &itEnd, begin.getIndex());
 
-            Numerical::Double lambda = *origIterator / *duplIterator;
-            Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+        while(itFirst != itEnd) {
+            it = itFirst;
+            it++;
 
-            if(tryVector.nonZeros() == 0) {
+            while(it != itEnd) {
 
-                //With negative lambda, duplicate bounds are swapped
-                if(lambda > 0) {
-                    //Checking feasibility
-                    if(duplicate.getLowerBound() * lambda > original.getUpperBound()
-                       || duplicate.getUpperBound() * lambda < original.getLowerBound())
-                    {
-                        throw Presolver::PresolverException("The problem is primal infeasible.");
-                        return;
+                int origIdx = itFirst.getData();
+                int duplIdx = it.getData();
+                Constraint& original = (*m_parent->getConstraints())[origIdx];
+                const Constraint& duplicate = (*m_parent->getConstraints())[duplIdx];
+
+                Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
+                Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
+
+                Numerical::Double lambda = *origIterator / *duplIterator;
+                Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+
+                if(tryVector.nonZeros() == 0) {
+
+                    //With negative lambda, duplicate bounds are swapped
+                    if(lambda > 0) {
+                        //Checking feasibility
+                        if(duplicate.getLowerBound() * lambda > original.getUpperBound()
+                           || duplicate.getUpperBound() * lambda < original.getLowerBound())
+                        {
+                            throw Presolver::PresolverException("The problem is primal infeasible.");
+                            return;
+                        }
+
+                        //Applying the tighter bounds
+                        if(duplicate.getLowerBound() * lambda > original.getLowerBound()) {
+                            original.setLowerBound(duplicate.getLowerBound() * lambda);
+                        }
+
+                        if(duplicate.getUpperBound() * lambda < original.getUpperBound()) {
+                            original.setUpperBound(duplicate.getUpperBound() * lambda);
+                        }
+
+                    } else {
+
+                        //Checking feasibility
+                        if(duplicate.getUpperBound() * lambda > original.getUpperBound()
+                           || duplicate.getLowerBound() * lambda < original.getLowerBound())
+                        {
+                            throw Presolver::PresolverException("The problem is primal infeasible.");
+                            return;
+                        }
+
+                        //Applying the tighter bounds
+                        if(duplicate.getUpperBound() * lambda > original.getLowerBound()) {
+                            original.setLowerBound(duplicate.getUpperBound() * lambda);
+                        }
+
+                        if(duplicate.getLowerBound() * lambda < original.getUpperBound()) {
+                            original.setUpperBound(duplicate.getLowerBound() * lambda);
+                        }
                     }
-
-                    //Applying the tighter bounds
-                    if(duplicate.getLowerBound() * lambda > original.getLowerBound()) {
-                        original.setLowerBound(duplicate.getLowerBound() * lambda);
-                    }
-
-                    if(duplicate.getUpperBound() * lambda < original.getUpperBound()) {
-                        original.setUpperBound(duplicate.getUpperBound() * lambda);
-                    }
-
+                    it++;
+                    hashedRows.move(duplIdx, rowCount);
+                    hashedRows.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
-
-                    //Checking feasibility
-                    if(duplicate.getUpperBound() * lambda > original.getUpperBound()
-                       || duplicate.getLowerBound() * lambda < original.getLowerBound())
-                    {
-                        throw Presolver::PresolverException("The problem is primal infeasible.");
-                        return;
-                    }
-
-                    //Applying the tighter bounds
-                    if(duplicate.getUpperBound() * lambda > original.getLowerBound()) {
-                        original.setLowerBound(duplicate.getUpperBound() * lambda);
-                    }
-
-                    if(duplicate.getLowerBound() * lambda < original.getUpperBound()) {
-                        original.setUpperBound(duplicate.getLowerBound() * lambda);
-                    }
+                    it++;
                 }
-
-                validRows.move(i, 1);
             }
+            itFirst++;
         }
+        begin++;
     }
 
     //Setting up a vector with the indices of constraints to be removed
     //The elimination of constraints needs to start at the row with the highest index
 
-    IndexList<>::Iterator it, itEnd;
-    validRows.getIterators(&it, &itEnd, 1, 1);
+    IndexList<>::PartitionIterator it, itEnd;
+    hashedRows.getIterators(&it, &itEnd, rowCount);
     Vector cIndices(rowCount);
 
     while(it != itEnd) {
-        cIndices.set(hashedRows[it.getData()].first, 1);
+        cIndices.set(it.getData(), 1);
         it++;
     }
 
-    Vector::NonzeroIterator begin = cIndices.beginNonzero();
-    Vector::NonzeroIterator end = cIndices.endNonzero();
+    begin = cIndices.beginNonzero();
+    end = cIndices.endNonzero();
 
     while(begin < end) {
 
@@ -917,7 +919,7 @@ void LinearAlgebraicModule::executeMethod() {
 //        sortedRows.insert((*m_parent->getConstraints())[i].getVector()->nonZeros(), i);
 //    }
 
-//    sortedRows.getIterators(it, itEnd, 0, m_parent->getModel()->variableCount());
+//    sortedRows.getIterators(it, itEnd, 0, columnCount);
 
 //    while(it != itEnd) {
 //        unsigned int pivotIndex = it.getData();
@@ -950,7 +952,7 @@ void LinearAlgebraicModule::executeMethod() {
 //                                                                                     ((*m_parent->getConstraints()).at(begin.getIndex()).getUpperBound() - ((*m_parent->getConstraints()).at(pivotIndex).getUpperBound() * lambda)));
 //                        m_parent->getRowNonzeros()->set(begin.getIndex(), (*m_parent->getConstraints())[begin.getIndex()].getVector()->nonZeros());
 //                        if(orignum <= m_parent->getRowNonzeros()->at(begin.getIndex())) {
-//                            LPERROR("WTF");
+//                            LPERROR("ERROR DETECTING NONZERO SUPERSET");
 //                        }
 //                    }
 //                }
