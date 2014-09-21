@@ -452,196 +452,6 @@ public:
         }
     }
 
-    /**
-     * Iterator class for listing elements of a single partition of a linked list.
-     *
-     * @class _PartitionIterator
-     */
-    template <class TYPE>
-    class _PartitionIterator
-    {
-        /**
-         * Pointer to an element of a linked list.
-         */
-        Element<TYPE> * m_actual;
-
-    public:
-
-        /**
-         * Default constructor of class Iterator.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @constructor
-         */
-        inline _PartitionIterator()
-        {
-            m_actual = 0;
-        }
-
-        /**
-         * Constructor of class Iterator. Sets the pointer to an element
-         * of a linked list.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @constructor
-         * @param actual The value of pointer of actual element in linked list.
-         */
-        inline _PartitionIterator(Element<TYPE> * actual)
-        {
-            m_actual = actual;
-        }
-
-        /**
-         * Returns the index of the actual element.
-         * When the iterator refers to the header of linked list,
-         * this functions returns the index of linked list.
-         * <hr>
-         * Complecity: O(1)
-         *
-         * @return Index of linked list or actual element.
-         */
-        inline unsigned int getData() const
-        {
-            return m_actual->m_data;
-        }
-
-        /**
-         * Returns with the stored attached data of the current element.
-         *
-         * @return The stored attached data.
-         */
-        inline const TYPE & getAttached() const{
-            return m_actual->m_attached;
-        }
-
-        /**
-         * Sets the attached value of the actual element.
-         *
-         * @param attached The attached value
-         */
-        inline void setAttached(const TYPE & attached) {
-            m_actual->m_attached = attached;
-        }
-
-        /**
-         * Returns with the partition index of the current element.
-         *
-         * @return Partition index of the current element.
-         */
-        inline unsigned int getPartitionIndex() const {
-            return m_actual->m_partitionIndex;
-        }
-
-        /**
-         * Moves the iterator to the next element.
-         * When the iterator refers to the last element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         */
-        inline void next()
-        {
-            if (m_actual) {
-                m_actual = m_actual->m_next;
-            }
-        }
-
-        /**
-         * Moves the iterator to the previous element.
-         * When the iterator refers to the first element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         */
-        inline void previous()
-        {
-            if (m_actual) {
-                m_actual = m_actual->m_previous;
-            }
-        }
-
-        /**
-         * Moves the iterator to the next element.
-         * When the iterator refers to the last element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator++()
-        {
-            next();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the next element.
-         * When the iterator refers to the last element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator++(int)
-        {
-            next();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the previous element.
-         * When the iterator refers to the first element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator--()
-        {
-            previous();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the previous element.
-         * When the iterator refers to the first element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator--(int)
-        {
-            previous();
-            return *this;
-        }
-
-        /**
-         * Returns true when the iter and current Iterator refer to the same list element.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @param iter The other Iterator object.
-         * @return True, when the 2 iterators refer to the same list element.
-         */
-        inline bool operator==(const _PartitionIterator & iter)
-        {
-            return m_actual == iter.m_actual;
-        }
-
-        /**
-         * Returns true when the iter and current Iterator refer to different list elements.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @param iter The other Iterator object.
-         * @return True, when the 2 iterators refer to different list element.
-         */
-        inline bool operator!=(const _PartitionIterator & iter)
-        {
-            return m_actual != iter.m_actual;
-        }
-    };
 
     /**
      * Iterator class for listing elements of a linked list.
@@ -675,6 +485,17 @@ public:
         }
 
         /**
+         * Constructor of class Iterator. Sets the pointer to an element of a linked list.
+         *
+         * @constructor
+         * @param actual The value of the pointer of actual element in linked list.
+         */
+        inline _Iterator(Element<TYPE> * actual)
+        {
+            m_actual = actual;
+        }
+
+        /**
          * Constructor of class Iterator. Sets the pointer to an element
          * of a linked list.
          * <hr>
@@ -682,6 +503,7 @@ public:
          *
          * @constructor
          * @param actual The value of pointer of actual element in linked list.
+         * @param borders The set of headers of partitions in case of multiple-partition iteration.
          */
         inline _Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
         {
@@ -862,6 +684,201 @@ public:
             return m_actual != iter.m_actual;
         }
 
+    };
+
+    /**
+     * Iterator class for listing elements of a single partition of a linked list.
+     *
+     * @class _PartitionIterator
+     */
+    template <class TYPE>
+    class _PartitionIterator
+    {
+        /**
+         * Pointer to an element of a linked list.
+         */
+        Element<TYPE> * m_actual;
+
+    public:
+
+        /**
+         * Default constructor of class PartitionIterator.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @constructor
+         */
+        inline _PartitionIterator()
+        {
+            m_actual = 0;
+        }
+
+        /**
+         * Constructor of class PartitionIterator. Sets the pointer to an element
+         * of a linked list.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @constructor
+         * @param actual The value of pointer of actual element in linked list.
+         */
+        inline _PartitionIterator(Element<TYPE> * actual)
+        {
+            m_actual = actual;
+        }
+
+        /**
+         * Returns the index of the actual element.
+         * When the iterator refers to the header of linked list,
+         * this functions returns the index of linked list.
+         * <hr>
+         * Complecity: O(1)
+         *
+         * @return Index of linked list or actual element.
+         */
+        inline unsigned int getData() const
+        {
+            return m_actual->m_data;
+        }
+
+        /**
+         * Returns with the stored attached data of the current element.
+         *
+         * @return The stored attached data.
+         */
+        inline const TYPE & getAttached() const{
+            return m_actual->m_attached;
+        }
+
+        /**
+         * Sets the attached value of the actual element.
+         *
+         * @param attached The attached value
+         */
+        inline void setAttached(const TYPE & attached) {
+            m_actual->m_attached = attached;
+        }
+
+        /**
+         * Returns with the partition index of the current element.
+         *
+         * @return Partition index of the current element.
+         */
+        inline unsigned int getPartitionIndex() const {
+            return m_actual->m_partitionIndex;
+        }
+
+        /**
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         */
+        inline void next()
+        {
+            if (m_actual) {
+                m_actual = m_actual->m_next;
+            }
+        }
+
+        /**
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         */
+        inline void previous()
+        {
+            if (m_actual) {
+                m_actual = m_actual->m_previous;
+            }
+        }
+
+        /**
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @return Reference to the iterator object.
+         */
+        inline _PartitionIterator & operator++()
+        {
+            next();
+            return *this;
+        }
+
+        /**
+         * Moves the iterator to the next element.
+         * When the iterator refers to the last element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @return Reference to the iterator object.
+         */
+        inline _PartitionIterator & operator++(int)
+        {
+            next();
+            return *this;
+        }
+
+        /**
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @return Reference to the iterator object.
+         */
+        inline _PartitionIterator & operator--()
+        {
+            previous();
+            return *this;
+        }
+
+        /**
+         * Moves the iterator to the previous element.
+         * When the iterator refers to the first element, the iterator steps to the header.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @return Reference to the iterator object.
+         */
+        inline _PartitionIterator & operator--(int)
+        {
+            previous();
+            return *this;
+        }
+
+        /**
+         * Returns true when the iter and current Iterator refer to the same list element.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @param iter The other Iterator object.
+         * @return True, when the 2 iterators refer to the same list element.
+         */
+        inline bool operator==(const _PartitionIterator & iter)
+        {
+            return m_actual == iter.m_actual;
+        }
+
+        /**
+         * Returns true when the iter and current Iterator refer to different list elements.
+         * <hr>
+         * Complexity: O(1)
+         *
+         * @param iter The other Iterator object.
+         * @return True, when the 2 iterators refer to different list element.
+         */
+        inline bool operator!=(const _PartitionIterator & iter)
+        {
+            return m_actual != iter.m_actual;
+        }
+
+        operator _Iterator<ATTACHED_TYPE>() const {
+            return _Iterator<ATTACHED_TYPE>(m_actual);
+        }
     };
 
     typedef _Iterator<ATTACHED_TYPE> Iterator;
