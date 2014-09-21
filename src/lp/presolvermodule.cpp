@@ -777,10 +777,10 @@ void LinearAlgebraicModule::executeMethod() {
     int columnCount = m_parent->getModel()->variableCount();
 
     //Index list to distuinguish rows with the same hashes
-    //Partition rowCount + 1 is reserved for row indices to be removed
-    IndexList<> hashedRows(rowCount, rowCount + 1);
+    IndexList<> hashedRows(rowCount, rowCount);
 
     Vector usedPartitions(rowCount);
+    Vector indices(rowCount);
 
     for(int i = 0; i < rowCount; i++) {
         int vhash = 0;
@@ -867,7 +867,8 @@ void LinearAlgebraicModule::executeMethod() {
                         }
                     }
                     it++;
-                    hashedRows.move(duplIdx, rowCount);
+                    hashedRows.remove(duplIdx);
+                    indices.set(duplIdx, 1);
                     hashedRows.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
                     it++;
@@ -878,20 +879,10 @@ void LinearAlgebraicModule::executeMethod() {
         begin++;
     }
 
-    //Setting up a vector with the indices of constraints to be removed
     //The elimination of constraints needs to start at the row with the highest index
 
-    IndexList<>::PartitionIterator it, itEnd;
-    hashedRows.getIterators(&it, &itEnd, rowCount);
-    Vector cIndices(rowCount);
-
-    while(it != itEnd) {
-        cIndices.set(it.getData(), 1);
-        it++;
-    }
-
-    begin = cIndices.beginNonzero();
-    end = cIndices.endNonzero();
+    begin = indices.beginNonzero();
+    end = indices.endNonzero();
 
     while(begin < end) {
 
@@ -903,122 +894,65 @@ void LinearAlgebraicModule::executeMethod() {
         m_parent->getImpliedDualLower()->removeElement(removeIndex);
         m_parent->getImpliedDualUpper()->removeElement(removeIndex);
 
-        cIndices.removeElement(removeIndex);
-        end = cIndices.endNonzero();
+        indices.removeElement(removeIndex);
+        end = indices.endNonzero();
         if(*begin != 1) { begin++; }
     }
 
     rowCount = m_parent->getModel()->constraintCount();
 
-//    //Making the matrix sparser
 
-//    //Index list to effectively maintain the nonzero-sorted list of rows during the makesparser procedure.
-//    IndexList<> sortedRows(rowCount, m_parent->getModel()->variableCount());
+    //Index list to distuinguish rows with the same hashes
+    IndexList<> hashedColumns(columnCount, columnCount);
 
-//    for(int i = 0; i < rowCount; i++) {
-//        sortedRows.insert((*m_parent->getConstraints())[i].getVector()->nonZeros(), i);
-//    }
-
-//    sortedRows.getIterators(it, itEnd, 0, columnCount);
-
-//    while(it != itEnd) {
-//        unsigned int pivotIndex = it.getData();
-
-//        Vector::NonzeroIterator beginFirst = (*m_parent->getConstraints())[pivotIndex].getVector()->beginNonzero();
-//        begin = (*m_parent->getVariables())[beginFirst.getIndex()].getVector()->beginNonzero();
-//        end = (*m_parent->getVariables())[beginFirst.getIndex()].getVector()->endNonzero();
-//        while(begin < end) {
-//            if(begin.getIndex() != pivotIndex && m_parent->getRowNonzeros()->at(pivotIndex) < m_parent->getRowNonzeros()->at(begin.getIndex())) {
-//                Vector::NonzeroIterator beginSecond = (*m_parent->getConstraints())[begin.getIndex()].getVector()->beginNonzero();
-//                Numerical::Double lambda = *beginSecond / *beginFirst;
-//                int i;
-//                for(i = 1; i < 4; i++) {
-//                    if(i < m_parent->getRowNonzeros()->at(pivotIndex)) {
-//                        beginFirst++;
-//                        beginSecond++;
-//                    }
-//                    if(beginFirst.getIndex() != beginSecond.getIndex()) {
-//                        break;
-//                    }
-//                }
-//                if(i == 4) {
-//                    int orignum = m_parent->getRowNonzeros()->at(begin.getIndex());
-//                    if(lambda > 0) {
-//                        LPERROR("ADDING " << pivotIndex << " * " << lambda << " TO " << begin.getIndex());
-//                        LPERROR(*(*m_parent->getConstraints()).at(pivotIndex).getVector());
-//                        LPERROR(*(*m_parent->getConstraints()).at(begin.getIndex()).getVector());
-//                        m_parent->getModel()->addToConstraint(begin.getIndex(), pivotIndex, -lambda);
-//                        (*m_parent->getConstraints()).at(begin.getIndex()).setBounds(((*m_parent->getConstraints()).at(begin.getIndex()).getLowerBound() - ((*m_parent->getConstraints()).at(pivotIndex).getLowerBound() * lambda)),
-//                                                                                     ((*m_parent->getConstraints()).at(begin.getIndex()).getUpperBound() - ((*m_parent->getConstraints()).at(pivotIndex).getUpperBound() * lambda)));
-//                        m_parent->getRowNonzeros()->set(begin.getIndex(), (*m_parent->getConstraints())[begin.getIndex()].getVector()->nonZeros());
-//                        if(orignum <= m_parent->getRowNonzeros()->at(begin.getIndex())) {
-//                            LPERROR("ERROR DETECTING NONZERO SUPERSET");
-//                        }
-//                    }
-//                }
-//            }
-//            begin++;
-//        }
-//        it++;
-//    }
-
-    //Index list to follow which columns are to be removed without changing the indices in the ordered list
-    //For every element to be removed the lambda value is attached
-    IndexList<Numerical::Double> validColumns(columnCount, 2);
-
-    //Setting up the list of column vector hashes linked with indices to be sorted
-    vector<pair<int, long long int>> hashedColumns(columnCount);
+    usedPartitions.reInit(columnCount);
+    indices.reInit(columnCount);
 
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
-        validColumns.insert(0, i);
+        const Vector* curColumnVector = (*m_parent->getVariables())[i].getVector();
 
         //Calculating hash
-        Vector::NonzeroIterator begin = (*m_parent->getVariables())[i].getVector()->beginNonzero();
-        Vector::NonzeroIterator end = (*m_parent->getVariables())[i].getVector()->endNonzero();
+        Vector::NonzeroIterator begin = curColumnVector->beginNonzero();
+        Vector::NonzeroIterator end = curColumnVector->endNonzero();
         while(begin != end) {
             vhash += begin.getIndex()+1;
             begin++;
         }
-        hashedColumns[i] = pair<int, long long int>(i, vhash);
-    }
-
-    //Sorting the vector pointers primarily by nonzero count, secondarily by hash
-    //!TODO use efficient sorting
-    for(int a = 0; a < columnCount - 1; a++) {
-        int smallest = a;
-        for(int b = a + 1; b < columnCount; b++) {
-            if(m_parent->getColumnNonzeros()->at(hashedColumns[b].first) < m_parent->getColumnNonzeros()->at(hashedColumns[smallest].first)
-              || (m_parent->getColumnNonzeros()->at(hashedColumns[b].first) == m_parent->getColumnNonzeros()->at(hashedColumns[smallest].first) && hashedColumns[b].second < hashedColumns[smallest].second))
-            {
-                smallest = b;
-            }
-        }
-        pair<int, long long int> temp;
-        temp = hashedColumns[a];
-        hashedColumns[a] = hashedColumns[smallest];
-        hashedColumns[smallest] = temp;
+        int partition = vhash % columnCount;
+        usedPartitions.set(partition, usedPartitions.at(partition) + 1);
+        hashedColumns.insert(partition, i);
     }
 
     //Eliminating duplicate columns
+    begin = usedPartitions.beginNonzero();
+    end = usedPartitions.endNonzero();
 
-    for(int i = 0; i < columnCount - 1; i++) {
-        if(hashedColumns[i].second == hashedColumns[i+1].second) {
+    while(begin < end) {
 
-            int origIdx = hashedColumns[i+1].first;
-            int duplIdx = hashedColumns[i].first;
-            Variable& original = (*m_parent->getVariables())[origIdx];
-            const Variable& duplicate = (*m_parent->getVariables())[duplIdx];
+        if(*begin < 2) { begin++; continue; }
 
-            Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
-            Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
+        IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
+        hashedColumns.getIterators(&itFirst, &itEnd, begin.getIndex());
 
-            Numerical::Double lambda = *origIterator / *duplIterator;
-            Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+        while(itFirst != itEnd) {
+            it = itFirst;
+            it++;
 
-            if(tryVector.nonZeros() == 0) {
+            while(it != itEnd) {
 
-                if(m_parent->getModel()->getCostVector().at(duplIdx) * lambda == m_parent->getModel()->getCostVector().at(origIdx)) {
+                int origIdx = itFirst.getData();
+                int duplIdx = it.getData();
+                Variable& original = (*m_parent->getVariables())[origIdx];
+                const Variable& duplicate = (*m_parent->getVariables())[duplIdx];
+
+                Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
+                Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
+
+                Numerical::Double lambda = *origIterator / *duplIterator;
+                Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+
+                if(tryVector.nonZeros() == 0 && m_parent->getModel()->getCostVector().at(duplIdx) * lambda == m_parent->getModel()->getCostVector().at(origIdx)) {
 
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
@@ -1055,28 +989,24 @@ void LinearAlgebraicModule::executeMethod() {
 
                     }
 
-                    validColumns.move(i, 1);
-                    validColumns.setAttachedData(i, lambda);
+                    it++;
+                    hashedColumns.remove(duplIdx);
+                    indices.set(duplIdx, 1);
+                    hashedColumns.getIterators(&itZero, &itEnd, begin.getIndex());
+                } else {
+                    it++;
                 }
             }
+            itFirst++;
         }
+        begin++;
     }
 
-    //Setting up a vector with the indices of variables to be removed
     //The elimination of variables needs to start at the row with the highest index
     //A special type of substitute vector is created to be able to regain correct values for the original variables
 
-    IndexList<Numerical::Double>::Iterator itV, itEndV;
-    validColumns.getIterators(&itV, &itEndV, 1, 1);
-    Vector vIndices(m_parent->getModel()->variableCount());
-
-    while(itV != itEndV) {
-        vIndices.set(hashedColumns[itV.getData()].first, 1);
-        itV++;
-    }
-
-    begin = vIndices.beginNonzero();
-    end = vIndices.endNonzero();
+    begin = indices.beginNonzero();
+    end = indices.endNonzero();
 
     while(begin < end) {
 
@@ -1095,9 +1025,8 @@ void LinearAlgebraicModule::executeMethod() {
         m_parent->getExtraDualLowerSum()->removeElement(removeIndex);
         m_parent->getExtraDualUpperSum()->removeElement(removeIndex);
 
-        vIndices.removeElement(removeIndex);
-        end = vIndices.endNonzero();
+        indices.removeElement(removeIndex);
+        end = indices.endNonzero();
         if(*begin != 1) { begin++; }
     }
-
 }
