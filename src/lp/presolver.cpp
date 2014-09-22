@@ -131,6 +131,7 @@ void Presolver::printStatistics() {
         eC += m_modules[i]->getRemovedVariableCount();
         m_modules[i]->printStatistics();
     }
+    m_makeSparserModule->printStatistics();
     LPINFO("[Presolver] Total eliminated rows: " << eR);
     LPINFO("[Presolver] Total eliminated columns: " << eC << " (+" << m_impliedFreeCount << " implied free variables)");
     LPINFO("[Presolver] Presolve time: " << m_timer->getTotalElapsed() / 1000000);
@@ -204,6 +205,9 @@ void Presolver::presolve() {
         }
         itc++;
     }
+    m_makeSparserModule = new MakeSparserModule(this);
+    m_makeSparserModule->executeMethod();
+
 //    for(int i = 1; i < m_variables->size(); i++) {
 //        if((m_variables->at(i).getType() != Variable::FREE) && ((m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getUpperBound() > m_impliedUpper->at(i)) ||
 //           (m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getType() == Variable::PLUS) ||

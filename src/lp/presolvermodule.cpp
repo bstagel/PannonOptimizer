@@ -16,8 +16,8 @@ void PresolverModule::printStatistics() {
     LPINFO("[Presolver] Module " << getName() << " stats: eliminated rows - " << getRemovedConstraintCount() << ", eliminated columns - " << getRemovedVariableCount());
 }
 
-void LinearAlgebraicModule::printStatistics() {
-    LPINFO("[Presolver] Module " << getName() << " stats: eliminated rows - " << getRemovedConstraintCount() << ", eliminated columns - " << getRemovedVariableCount() << ", eliminated nonzeros - " << m_removedNzr);
+void MakeSparserModule::printStatistics() {
+    LPINFO("[Presolver] Module " << getName() << " stats: eliminated nonzeros - " << m_removedNzr);
 }
 
 PresolverModule::~PresolverModule() { }
@@ -766,7 +766,6 @@ LinearAlgebraicModule::LinearAlgebraicModule(Presolver *parent) :
     PresolverModule(parent)
 {
     m_name = "Linear algebraic module";
-    m_removedNzr = 0;
 }
 
 LinearAlgebraicModule::~LinearAlgebraicModule() { }
@@ -1028,5 +1027,80 @@ void LinearAlgebraicModule::executeMethod() {
         indices.removeElement(removeIndex);
         end = indices.endNonzero();
         if(*begin != 1) { begin++; }
+    }
+}
+
+MakeSparserModule::MakeSparserModule(Presolver *parent) :
+    PresolverModule(parent)
+{
+    m_name = "Make sparser module";
+    m_removedNzr = 0;
+}
+
+MakeSparserModule::~MakeSparserModule() { }
+
+void MakeSparserModule::executeMethod() {
+
+    int rowCount = m_parent->getModel()->constraintCount();
+
+    //Index list to sort the rows by nonzero count
+    IndexList<> sortedRows(rowCount, rowCount);
+    Vector usedPartitions(rowCount);
+
+    //Set up the sorted list
+    for(int i = 0; i < rowCount; i++) {
+        int nonzeros = m_parent->getRowNonzeros()->at(i);
+        if(m_parent->getConstraints()->at(i).getType() == Constraint::EQUALITY)
+        {
+            sortedRows.insert(nonzeros, i);
+            usedPartitions.set(nonzeros, usedPartitions.at(nonzeros) + 1);
+        }
+    }
+
+    IndexList<>::PartitionIterator it, itEnd;
+
+    Vector::NonzeroIterator begin = usedPartitions.beginNonzero();
+    Vector::NonzeroIterator end = usedPartitions.endNonzero();
+    while(begin.getIndex() < 1) begin++;
+    while(begin < end) {
+        sortedRows.getIterators(&it, &itEnd, begin.getIndex());
+        while(it != itEnd) {
+            int index = it.getData();
+            const Constraint& pivotRow = m_parent->getConstraints()->at(index);
+            Vector::NonzeroIterator pivotIt = pivotRow.getVector()->beginNonzero();
+            Vector::NonzeroIterator pivotItEnd = pivotRow.getVector()->endNonzero();
+            int columnIdx = pivotIt.getIndex();
+            int pivotNonzeros = pivotRow.getVector()->nonZeros();
+            Vector::NonzeroIterator beginColumn = m_parent->getVariables()->at(columnIdx).getVector()->beginNonzero();
+            Vector::NonzeroIterator endColumn = m_parent->getVariables()->at(columnIdx).getVector()->endNonzero();
+            while(beginColumn < endColumn) {
+                int secondIndex = beginColumn.getIndex();
+                Constraint& curRow = m_parent->getConstraints()->at(secondIndex);
+                int nonzeros = curRow.getVector()->nonZeros();
+                if(secondIndex != index &&
+                   nonzeros >= pivotNonzeros)
+                {
+                    while(pivotIt < pivotItEnd) {
+                        if(curRow.getVector()->at(pivotIt.getIndex()) == 0) {
+                            break;
+                        }
+                        pivotIt++;
+                    }
+                    if(pivotIt == pivotItEnd) {
+                        pivotIt = pivotRow.getVector()->beginNonzero();
+                        Numerical::Double lambda = *beginColumn / *pivotIt;
+                        m_parent->getModel()->addToConstraint(secondIndex, index, -lambda);
+                        curRow.setBounds(curRow.getLowerBound() - lambda * pivotRow.getLowerBound(), curRow.getUpperBound() - lambda * pivotRow.getUpperBound());
+                        if(nonzeros - (int)curRow.getVector()->nonZeros() < 0) LPERROR("Make sparser module error: vector substraction created extra " << -(nonzeros - (int)curRow.getVector()->nonZeros()) << " nonzeros");
+                        m_removedNzr += nonzeros - (int)curRow.getVector()->nonZeros();
+                    } else {
+                        pivotIt = pivotRow.getVector()->beginNonzero();
+                    }
+                }
+                beginColumn++;
+            }
+            it++;
+        }
+        begin++;
     }
 }

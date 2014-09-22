@@ -329,6 +329,8 @@ private:
      */
     std::vector<PresolverModule*> m_modules;
 
+    PresolverModule * m_makeSparserModule;
+
     /**
      * Pointer to the vector of substitution vectors of the model.
      * During the presolving for every removed variable and constraint a substitution vector
