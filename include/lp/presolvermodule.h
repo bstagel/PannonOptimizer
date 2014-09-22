@@ -96,11 +96,6 @@ protected:
     unsigned int m_removedVariables;
 };
 
-
-//this module checks the model for empty rows and singleton rows
-//if infeasibility is detected, it throws a PresolverException
-//if a column is eliminated, the rows are checked again for new singletons
-
 /**
  * Presolver module checking the model for empty and singleton rows.
  * If a column is eliminated, the rows are checked again for new singletons.
@@ -133,9 +128,6 @@ public:
      */
     void executeMethod();
 };
-
-//this module checks the model for fixed variables, empty columns and singleton columns
-//if infeasibility or unboundedness is detected, it throws a PresolverException
 
 /**
  * Presolver module checking the model for fixed variables, empty and singleton columns.
@@ -171,11 +163,6 @@ public:
      */
     void executeMethod();
 };
-
-//this module checks the model for forcing and redundant constraints
-//in case of not forcing nor redundant constraints, it tightens the specified variables' bounds
-//variables with tightened upper and lower bounds are set to implied free
-//if infeasibility or unboundedness is detected, it throws a PresolverException
 
 /**
  * Presolver module checking the implied bounds on the variables.
@@ -217,7 +204,6 @@ public:
     void executeMethod();
 
 private:
-    //int m_impliedFreeVariables;
 
     /**
      * The list of constraint indices to be checked in the actual iteration of the module.
@@ -318,9 +304,8 @@ private:
 };
 
 /**
- * Presolver module checking the model for duplicate rows and columns and making the coefficient matrix sparser.
- * Duplicate vectors are identified via the hashing of nonzero pattern. The improvement of sparsity in the
- * coefficient matrix is ensured by linear algebraic operation between its vectors. Linear dependency of multiple
+ * Presolver module checking the model for duplicate rows and columns.
+ * Duplicate vectors are identified via the hashing of nonzero pattern. Linear dependency of multiple
  * vectors is not checked nor used due to the heavy resource usage of such operations.
  *
  * @throws InfeasibilityException if infeasibility is detected.
@@ -348,8 +333,39 @@ public:
 
     /**
      * Executes the presolving techniques implemented by the LinearAlgebraicModule.
-     * These are found in the literature by the names "Duplicate Rows", "Duplicate Columns" and
-     * "Making A Sparser".
+     * These are found in the literature by the names "Duplicate Rows" and "Duplicate Columns".
+     */
+    void executeMethod();
+};
+
+/**
+ * Presolver module makeing the coefficient matrix of the model sparser.
+ * The improvement of sparsity in the coefficient matrix is ensured by linear algebraic operation between its vectors.
+ * Vectors are chosen via detecting supersets in their nonzero patterns.
+ *
+ * @class MakeSparserModule
+ */
+class MakeSparserModule : public PresolverModule {
+public:
+
+    /**
+     * Default constructor of the MakeSparserModule class.
+     *
+     * @constructor
+     * @param parent Pointer to the parent Presolver containing this module.
+     */
+    MakeSparserModule(Presolver * parent);
+
+    /**
+     * Destructor of the MakeSparserModule class.
+     *
+     * @destructor
+     */
+    ~MakeSparserModule();
+
+    /**
+     * Executes the presolving techniques implemented by the MakeSparserModule.
+     * These are found in the literature by the name "Making A Sparser".
      */
     void executeMethod();
 
@@ -362,9 +378,9 @@ public:
 private:
 
     /**
-     * The number of elimiinated nonzero elements.
+     * The number of eliminated nonzero elements.
      */
-    unsigned int m_removedNzr;
+    int m_removedNzr;
 };
 
 #endif // PRESOLVERMODULE_H
