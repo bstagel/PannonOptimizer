@@ -135,24 +135,6 @@ void BreakpointHandler::heapify(unsigned actual)
     unsigned right = left+1;
     unsigned smallest = left;
 
-//    //choosing smallest element (actual value)
-//    if (left < m_unsorted){
-//        if (m_breakpoints[left].value < m_breakpoints[right].value) {
-//            smallest = left;
-//        }
-//    } else {
-//        return;
-//    }
-
-//    if (m_breakpoints[smallest].value < m_breakpoints[actual].value){
-//        swapBreakpoints(actual,smallest);
-//        heapify(smallest);
-//    }
-
-    unsigned smallest = actual;
-    if (right < m_unsorted && (m_breakpoints[right].value < m_breakpoints[smallest].value) ) {
-        smallest = right;
-    }
     if (right < m_unsorted){
         if (m_breakpoints[right].value < m_breakpoints[left].value) {
             smallest = right;
