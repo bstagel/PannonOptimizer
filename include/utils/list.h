@@ -217,17 +217,6 @@ public:
         }
 
         /**
-         * Selects the next element in the list.
-         *
-         * @return Reference of the iterator pointing to the next element.
-         */
-        inline Iterator & operator++(int)
-        {
-            m_iterator++;
-            return *this;
-        }
-
-        /**
          * Returns if the two Iterators point to the same element.
          *
          * @param iterator The other Iterator object.

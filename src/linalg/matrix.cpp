@@ -97,7 +97,7 @@ void Matrix::build(const MatrixBuilder & builder)
         for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
             Vector::NonzeroIterator iter = m_columnWise[columnIndex]->beginNonzero();
             Vector::NonzeroIterator iterEnd = m_columnWise[columnIndex]->endNonzero();
-            for (; iter < iterEnd; iter++) {
+            for (; iter < iterEnd; ++iter) {
                 m_rowWise[ iter.getIndex() ]->newNonZero(*iter, columnIndex);
             }
         }
@@ -110,7 +110,7 @@ void Matrix::build(const MatrixBuilder & builder)
         for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
             Vector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
             Vector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
-            for (; iter < iterEnd; iter++) {
+            for (; iter < iterEnd; ++iter) {
                 m_columnWise[ iter.getIndex() ]->newNonZero(*iter, rowIndex);
             }
         }
@@ -296,16 +296,16 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     std::vector<char> inserted(vector.length(), 0);
-    Vector::NonzeroIterator iterator = vector.beginNonzero();
-    Vector::NonzeroIterator iteratorEnd = vector.endNonzero();
-    for (; iterator < iteratorEnd; iterator++) {
-        columnWise[ iterator.getIndex() ]->insertElement(index, *iterator);
-        inserted[ iterator.getIndex() ] = true;
+    Vector::NonzeroIterator it = vector.beginNonzero();
+    Vector::NonzeroIterator itEnd = vector.endNonzero();
+    for (; it < itEnd; ++it) {
+        columnWise[ it.getIndex() ]->insertElement(index, *it);
+        inserted[ it.getIndex() ] = true;
     }
     std::vector<char>::const_iterator insertIter = inserted.begin();
     const std::vector<char>::const_iterator insertIterEnd = inserted.end();
     unsigned int insertIndex = 0;
-    for (; insertIter < insertIterEnd; insertIter++, insertIndex++) {
+    for (; insertIter < insertIterEnd; ++insertIter, ++insertIndex) {
         if (*insertIter == false) {
             columnWise[ insertIndex ]->insertElement(index, 0.0);
         }
@@ -558,7 +558,7 @@ void Matrix::invert()
             m_rowWise[i]->prepareForData(copyMatrix.m_rowWise[i]->nonZeros() - 1, m_rowCount);
             Vector::NonzeroIterator iter = copyMatrix.m_rowWise[i]->beginNonzero();
             Vector::NonzeroIterator iterEnd = copyMatrix.m_rowWise[i]->endNonzero();
-            for (; iter != iterEnd; iter++) {
+            for (; iter != iterEnd; ++iter) {
                 if (iter.getIndex() >= m_rowCount) {
                     unsigned int columnIndex = iter.getIndex() - m_rowCount;
                     m_rowWise[i]->newNonZero(*iter, columnIndex);
@@ -672,7 +672,7 @@ Vector Matrix::operator *(const Vector& rightVector) const
 
     Vector::NonzeroIterator iter = rightVector.beginNonzero();
     Vector::NonzeroIterator iterEnd = rightVector.endNonzero();
-    for (; iter < iterEnd; iter++) {
+    for (; iter < iterEnd; ++iter) {
         result.addVector(*iter, *(m_columnWise[ iter.getIndex() ]));
     }
     result.setSparsityRatio(ratio);
@@ -783,7 +783,7 @@ Matrix Matrix::operator*(const Matrix& other) const
             //    d   | x4 |   | d*x4 |
             Vector::NonzeroIterator iter = other.column(columnIndex).beginNonzero();
             Vector::NonzeroIterator iterEnd = other.column(columnIndex).endNonzero();
-            for (; iter < iterEnd; iter++) {
+            for (; iter < iterEnd; ++iter) {
                 const unsigned int index = iter.getIndex();
                 if (m_rowWise[index]->nonZeros() > 0) {
                     result.set(index, columnIndex, *iter * m_rowWise[index]->at(index));
@@ -800,7 +800,7 @@ Matrix Matrix::operator*(const Matrix& other) const
         for (rowIndex = 0; rowIndex < m_rowCount; rowIndex++) {
             Vector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
             Vector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
-            for (; iter < iterEnd; iter++) {
+            for (; iter < iterEnd; ++iter) {
                 const unsigned int index = iter.getIndex();
                 if (other.m_rowWise[index]->nonZeros() > 0) {
                     result.set(rowIndex, index, *iter * other.m_rowWise[index]->at(index));

@@ -1543,7 +1543,7 @@ void Vector::appendVector(const Vector & vector) {
     resize( m_dimension + vector.m_dimension );
     Vector::NonzeroIterator iter = vector.beginNonzero();
     Vector::NonzeroIterator iterEnd = vector.endNonzero();
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         setNewNonzero( index + iter.getIndex(), *iter );
     }
 }
@@ -2087,7 +2087,7 @@ bool Vector::operator==(const Vector & vector) const
     Vector::NonzeroIterator iterator1 = vector.beginNonzero();
     Vector::NonzeroIterator iterator2 = beginNonzero();
     Vector::NonzeroIterator iteratorEnd1 = vector.endNonzero();
-    for (; iterator1 < iteratorEnd1; iterator1++, iterator2++) {
+    for (; iterator1 < iteratorEnd1; ++iterator1, ++iterator2) {
         if (iterator1.getIndex() != iterator2.getIndex()) {
             return false;
         }

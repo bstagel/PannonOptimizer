@@ -143,7 +143,7 @@ void DualDevexPricing::update(int incomingIndex,
     Numerical::Double alpha_p_q = pivotRow.at(incomingIndex);
     Vector::NonzeroIterator nonzIter = incomingAlpha.beginNonzero();
     Vector::NonzeroIterator nonzIterEnd = incomingAlpha.endNonzero();
-    for (; nonzIter != nonzIterEnd; nonzIter++) {
+    for (; nonzIter != nonzIterEnd; ++nonzIter) {
         index = nonzIter.getIndex();
         if (unlikely((int)index == outgoingIndex)) {
             continue;
@@ -185,7 +185,7 @@ void DualDevexPricing::setReferenceFramework() {
 
     std::vector<int>::const_iterator iter = m_basisHead.begin();
     std::vector<int>::const_iterator iterEnd = m_basisHead.end();
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         m_referenceFramework[index] = 1;
     }
 }

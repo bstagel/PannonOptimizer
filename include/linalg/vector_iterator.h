@@ -233,33 +233,11 @@ public:
     }
 
     /**
-     * Jumps to the next element of the vector.
-     *
-     * @return Reference to the Iterator.
-     */
-    inline Iterator & operator++(int)
-    {
-        next();
-        return *this;
-    }
-
-    /**
      * Jumps to the previous element of the vector.
      *
      * @return Reference to the Iterator.
      */
     inline Iterator & operator--()
-    {
-        prev();
-        return *this;
-    }
-
-    /**
-     * Jumps to the previous element of the vector.
-     *
-     * @return Reference to the Iterator.
-     */
-    inline Iterator & operator--(int)
     {
         prev();
         return *this;
@@ -305,33 +283,11 @@ public:
     }
 
     /**
-     * Jumps to the next nonzero element of the vector.
-     *
-     * @return Reference to the Iterator.
-     */
-    inline NonzeroIterator & operator++(int)
-    {
-        nextToNonzero();
-        return *this;
-    }
-
-    /**
      * Jumps to the previous nonzero element of the vector.
      *
      * @return Reference to the Iterator.
      */
     inline NonzeroIterator & operator--()
-    {
-        prevToNonzero();
-        return *this;
-    }
-
-    /**
-     * Jumps to the previous nonzero element of the vector.
-     *
-     * @return Reference to the Iterator.
-     */
-    inline NonzeroIterator & operator--(int)
     {
         prevToNonzero();
         return *this;

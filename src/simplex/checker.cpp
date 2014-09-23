@@ -14,7 +14,7 @@ bool Checker::checkBasisWithFtran(const Simplex &simplex) {
 
     bool success = true;
     std::vector<int>::const_iterator it;
-    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
+    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         Vector resultVector(basisSize);
         resultVector.setNewNonzero(it - simplex.m_basisHead.begin(), 1.0);
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
@@ -50,7 +50,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
     //Copy the basis columns
     std::vector<Vector> basisCopy;
     std::vector<int>::const_iterator it;
-    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
+    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         if (*it >= (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             Vector logical = Vector(simplex.m_simplexModel->getMatrix().rowCount());
             logical.set((*it) - simplex.m_simplexModel->getMatrix().columnCount(), 1);
@@ -67,7 +67,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
     }
     std::vector<Vector>::iterator basisIt;
     for (basisIt = basisCopy.begin(); basisIt < basisCopy.end(); basisIt++) {
-        for (Vector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); vectorIt++) {
+        for (Vector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); ++vectorIt) {
             rowbasis[vectorIt.getIndex()].setNewNonzero(basisIt - basisCopy.begin(), *vectorIt);
         }
     }
@@ -87,7 +87,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
             Vector::NonzeroIterator badIt = basisIt->beginNonzero();
             double max = 0;
             int maxIndex = 0;
-            for(;badIt != basisIt->endNonzero(); badIt++){
+            for(;badIt != basisIt->endNonzero(); ++badIt){
                 if(!Numerical::equals(*badIt, 1) && Numerical::fabs(*badIt)> max){
                     max = Numerical::fabs(*badIt);
                     maxIndex = badIt.getIndex();
@@ -109,7 +109,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
 bool Checker::checkBasisWithReducedCost(const Simplex& simplex) {
     Vector pi(simplex.m_simplexModel->getMatrix().rowCount());
     std::vector<int>::const_iterator it;
-    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
+    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             pi.set(it - simplex.m_basisHead.begin(), simplex.m_simplexModel->getCostVector().at(*it));
         }
@@ -118,7 +118,7 @@ bool Checker::checkBasisWithReducedCost(const Simplex& simplex) {
 
 
     int success = true;
-    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); it++) {
+    for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         //Structural basis vectors are interesting
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             Numerical::Double d = simplex.m_simplexModel->getCostVector().at(*it) -
@@ -272,7 +272,7 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
     IndexList<const Numerical::Double *>::Iterator itEnd;
 
     simplex.m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
-    for(; it != itEnd ; it++){
+    for(; it != itEnd ; ++it){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
             row.set(columnIndex, rho.dotProduct(simplex.m_simplexModel->getMatrix().column(columnIndex)));
@@ -480,7 +480,7 @@ bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical:
         Vector::NonzeroIterator rowIter = row.beginNonzero();
         Vector::NonzeroIterator rowIterEnd = row.endNonzero();
         Numerical::Double minus = 0, plus = 0;
-        for(; rowIter != rowIterEnd; rowIter++){
+        for(; rowIter != rowIterEnd; ++rowIter){
             Numerical::Double product = (*rowIter) * (*simplex.m_variableStates.getAttachedData(rowIter.getIndex()));
             if(product > 0){
                 plus += product;

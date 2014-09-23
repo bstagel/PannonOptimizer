@@ -86,7 +86,7 @@ bool Simpri::getCandidateIndex(unsigned int * index) {
         return false;
     }
     *index = m_clusterIterator.getData();
-    m_clusterIterator++;
+    ++m_clusterIterator;
     if (unlikely(m_clusterIterator == m_clusterIteratorEnd)) {
         m_investigatedClusters++;
         m_currentCluster = (m_currentCluster + 1) % m_clusterCount;

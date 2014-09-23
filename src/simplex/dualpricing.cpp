@@ -95,7 +95,7 @@ void DualPricing::initPhase1() {
     IndexList<>::Iterator iter, iterEnd;
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     unsigned int index;
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         index = iter.getData();
         if (index >= variableCount) {
             m_phase1ReducedCostSummarizers[ index - variableCount ].add(1);
@@ -103,7 +103,7 @@ void DualPricing::initPhase1() {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
-            for (; columnIter < columnIterEnd; columnIter++) {
+            for (; columnIter < columnIterEnd; ++columnIter) {
                 m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(*columnIter);
             }
         }
@@ -111,7 +111,7 @@ void DualPricing::initPhase1() {
 
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         index = iter.getData();
         if (index >= variableCount) {
             m_phase1ReducedCostSummarizers[ index - variableCount ].add(-1);
@@ -119,7 +119,7 @@ void DualPricing::initPhase1() {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
             Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
             Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
-            for (; columnIter < columnIterEnd; columnIter++) {
+            for (; columnIter < columnIterEnd; ++columnIter) {
                 m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(- *columnIter);
             }
         }
@@ -137,7 +137,7 @@ void DualPricing::initPhase1() {
     clearPhase1ReducedCosts();
     Vector::NonzeroIterator vectorIter = temp.beginNonzero();
     Vector::NonzeroIterator vectorIterEnd = temp.endNonzero();
-    for (; vectorIter < vectorIterEnd; vectorIter++) {
+    for (; vectorIter < vectorIterEnd; ++vectorIter) {
         m_phase1ReducedCosts[ vectorIter.getIndex() ] = *vectorIter;
     }
 }
@@ -154,7 +154,7 @@ void DualPricing::initPhase2() {
 
     Vector::Iterator iter = m_basicVariableValues.begin();
     Vector::Iterator iterEnd = m_basicVariableValues.end();
-    for(; iter < iterEnd ; iter++){
+    for(; iter < iterEnd ; ++iter){
         const Variable & variable = m_simplexModel.getVariable(m_basisHead[iter.getIndex()]);
         if(*iter + m_feasibilityTolerance < variable.getLowerBound()) {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());

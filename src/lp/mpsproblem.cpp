@@ -1637,7 +1637,7 @@ void MpsModelBuilder::buildCostVector(Vector * costVector) const {
     std::vector<std::pair<double, unsigned int> >::const_iterator iter = m_costVector.begin();
     std::vector<std::pair<double, unsigned int> >::const_iterator iterEnd = m_costVector.end();
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         costVector->setNewNonzero( iter->second, iter->first );
     }
 }

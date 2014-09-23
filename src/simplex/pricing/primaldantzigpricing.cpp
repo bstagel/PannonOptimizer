@@ -136,7 +136,7 @@ int PrimalDantzigPricing::performPricingPhase1()
     /*IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;
@@ -149,7 +149,7 @@ int PrimalDantzigPricing::performPricingPhase1()
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;
@@ -161,7 +161,7 @@ int PrimalDantzigPricing::performPricingPhase1()
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;
@@ -184,7 +184,7 @@ int PrimalDantzigPricing::performPricingPhase1()
     IndexList<const Numerical::Double*>::Iterator endit;
     m_variableStates.getIterators(&it,&endit,0,5);
 
-//    for(;it!=endit;it++){
+//    for(;it!=endit;++it){
 //        if(m_phase1ReducedCosts[it.getData()] < 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB){
 //            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
 //                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
@@ -229,7 +229,7 @@ int PrimalDantzigPricing::performPricingPhase2()
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;
@@ -243,7 +243,7 @@ int PrimalDantzigPricing::performPricingPhase2()
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;
@@ -256,7 +256,7 @@ int PrimalDantzigPricing::performPricingPhase2()
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         unsigned int variableIndex = iter.getData();
         if (m_used[variableIndex] == true) {
             continue;

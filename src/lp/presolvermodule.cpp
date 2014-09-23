@@ -149,7 +149,7 @@ void SingletonRowsModule::executeMethod() {
                     continue;
                 }
             }
-            currentRow++;
+            ++currentRow;
         }
     } while (eliminatedVariableCount);
 }
@@ -293,7 +293,7 @@ void SingletonColumnsModule::executeMethod() {
                     Vector * substituteVector = new Vector(varCount + 3);
                     Vector::NonzeroIterator constraintIt = curConstraint.getVector()->beginNonzero();
                     Vector::NonzeroIterator constraintItEnd = curConstraint.getVector()->endNonzero();
-                    for(; constraintIt < constraintItEnd; constraintIt++) {
+                    for(; constraintIt < constraintItEnd; ++constraintIt) {
                         int varIndex = constraintIt.getIndex();
                         substituteVector->set(varIndex, (-1) * (*constraintIt) / (*it));
                         m_parent->getColumnNonzeros()->set(varIndex, m_parent->getColumnNonzeros()->at(varIndex) - 1);
@@ -321,7 +321,7 @@ void SingletonColumnsModule::executeMethod() {
                     continue;
                 }
             }
-            currentColumn++;
+            ++currentColumn;
         }
     } while (eliminatedConstraintCount);
 }
@@ -387,7 +387,7 @@ void ImpliedBoundsModule::executeMethod() {
         Vector::NonzeroIterator itVEnd = itEnd;
 
         //Calculate implied constraint bounds
-        for(; it < itEnd; it++) {
+        for(; it < itEnd; ++it) {
             int curVar = it.getIndex();
             if(*it > 0) {
                 impliedLB = Numerical::stableAdd(impliedLB, *it * m_impliedLower->at(curVar));
@@ -415,7 +415,7 @@ void ImpliedBoundsModule::executeMethod() {
             m_constraintsToCheck->removeElement(index);
             m_constraintStack->removeElement(index);
             end = m_constraintsToCheck->endNonzero();
-            if(*begin != 1) { begin++; }
+            if(*begin != 1) { ++begin; }
             m_removedConstraints++;
             continue;
         }
@@ -425,18 +425,18 @@ void ImpliedBoundsModule::executeMethod() {
         //Fix all participating variables to their bounds if constaint is forcing.
         //Constraint can be removed after.
         if(impliedLB == rowUpperBound) {
-            for(; it < itEnd; it++) {
+            for(; it < itEnd; ++it) {
                 m_variablesToFix->set(it.getIndex(), 1);
             }
             itV = m_variablesToFix->beginNonzero();
             itVEnd = m_variablesToFix->endNonzero();
-            if(*itV != 1) { itV++; }
+            if(*itV != 1) { ++itV; }
             while(itV < itVEnd) {
                 int varIdx = itV.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 it = curVariable.getVector()->beginNonzero();
                 itEnd = curVariable.getVector()->endNonzero();
-                for(; it < itEnd; it++) {
+                for(; it < itEnd; ++it) {
                     m_constraintStack->set(it.getIndex(), 1);
                 }
 
@@ -448,29 +448,29 @@ void ImpliedBoundsModule::executeMethod() {
                 m_variablesToFix->removeElement(varIdx);
                 itVEnd = m_variablesToFix->endNonzero();
                 m_removedVariables++;
-                if(*itV != 1) { itV++; }
+                if(*itV != 1) { ++itV; }
             }
             m_parent->removeConstraint(index);
             m_constraintsToCheck->removeElement(index);
             m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
-            if(*begin != 1) { begin++; }
+            if(*begin != 1) { ++begin; }
             continue;
         }
         if(impliedUB == rowLowerBound) {
-            for(; it < itEnd; it++) {
+            for(; it < itEnd; ++it) {
                 m_variablesToFix->set(it.getIndex(), 1);
             }
             itV = m_variablesToFix->beginNonzero();
             itVEnd = m_variablesToFix->endNonzero();
-            if(*itV != 1) { itV++; }
+            if(*itV != 1) { ++itV; }
             while(itV < itVEnd) {
                 int varIdx = itV.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 it = curVariable.getVector()->beginNonzero();
                 itEnd = curVariable.getVector()->endNonzero();
-                for(; it < itEnd; it++) {
+                for(; it < itEnd; ++it) {
                     m_constraintStack->set(it.getIndex(), 1);
                 }
 
@@ -482,14 +482,14 @@ void ImpliedBoundsModule::executeMethod() {
                 m_variablesToFix->removeElement(varIdx);
                 itVEnd = m_variablesToFix->endNonzero();
                 m_removedVariables++;
-                if(*itV != 1) { itV++; }
+                if(*itV != 1) { ++itV; }
             }
             m_parent->removeConstraint(index);
             m_constraintsToCheck->removeElement(index);
             m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
-            if(*begin != 1) { begin++; }
+            if(*begin != 1) { ++begin; }
             continue;
         }
 
@@ -508,7 +508,7 @@ void ImpliedBoundsModule::executeMethod() {
         if(impliedLB != -Numerical::Infinity && rowUpperBound != Numerical::Infinity) {
             it = curConstraint.getVector()->beginNonzero();
             itEnd = curConstraint.getVector()->endNonzero();
-            for(; it < itEnd; it++) {
+            for(; it < itEnd; ++it) {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
@@ -516,7 +516,7 @@ void ImpliedBoundsModule::executeMethod() {
                         m_impliedUpper->set(varIdx, Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx)));
                         itV = curVariable.getVector()->beginNonzero();
                         itVEnd = curVariable.getVector()->endNonzero();
-                        for(; itV < itVEnd; itV++) {
+                        for(; itV < itVEnd; ++itV) {
                             m_constraintStack->set(itV.getIndex(), 1);
                         }
                     }
@@ -526,7 +526,7 @@ void ImpliedBoundsModule::executeMethod() {
                        m_impliedLower->set(varIdx, Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx)));
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
-                       for(; itV < itVEnd; itV++) {
+                       for(; itV < itVEnd; ++itV) {
                            m_constraintStack->set(itV.getIndex(), 1);
                        }
                     }
@@ -537,7 +537,7 @@ void ImpliedBoundsModule::executeMethod() {
         if(impliedUB != -Numerical::Infinity && rowLowerBound != Numerical::Infinity) {
             it = curConstraint.getVector()->beginNonzero();
             itEnd = curConstraint.getVector()->endNonzero();
-            for(; it < itEnd; it++) {
+            for(; it < itEnd; ++it) {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
@@ -545,7 +545,7 @@ void ImpliedBoundsModule::executeMethod() {
                        m_impliedLower->set(varIdx, Numerical::stableAdd((curConstraint.getLowerBound() - impliedUB) / *it, m_impliedUpper->at(varIdx)));
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
-                       for(; itV < itVEnd; itV++) {
+                       for(; itV < itVEnd; ++itV) {
                            m_constraintStack->set(itV.getIndex(), 1);
                        }
                     }
@@ -555,7 +555,7 @@ void ImpliedBoundsModule::executeMethod() {
                        m_impliedUpper->set(varIdx, Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx)));
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
-                       for(; itV < itVEnd; itV++) {
+                       for(; itV < itVEnd; ++itV) {
                            m_constraintStack->set(itV.getIndex(), 1);
                        }
                     }
@@ -565,7 +565,7 @@ void ImpliedBoundsModule::executeMethod() {
 
 
         m_constraintsToCheck->set(index, 0);
-        begin++;
+        ++begin;
     }
 }
 
@@ -626,7 +626,7 @@ void DualBoundsModule::executeMethod() {
         Vector::NonzeroIterator itCEnd = itEnd;
 
         //Calculating the implied dual constraint bounds
-        for(; it < itEnd; it++) {
+        for(; it < itEnd; ++it) {
             int curRow = it.getIndex();
             if(*it > 0) {
                 impliedLB = Numerical::stableAdd(impliedLB, *it * m_impliedDualLower->at(curRow));
@@ -664,7 +664,7 @@ void DualBoundsModule::executeMethod() {
                     m_variablesToCheck->removeElement(index);
                     m_variableStack->removeElement(index);
                     end = m_variablesToCheck->endNonzero();
-                    if(*begin != 1) { begin++; }
+                    if(*begin != 1) { ++begin; }
                     m_removedVariables++;
                     continue;
                 }
@@ -675,7 +675,7 @@ void DualBoundsModule::executeMethod() {
             if(impliedLB < costVector.at(index) && impliedUB > costVector.at(index) && impliedLB != -Numerical::Infinity) {
                 it = curVariable.getVector()->beginNonzero();
                 itEnd = curVariable.getVector()->endNonzero();
-                for(; it < itEnd; it++) {
+                for(; it < itEnd; ++it) {
                     int conIdx = it.getIndex();
                     const Constraint& curConstraint = (*m_parent->getConstraints())[conIdx];
                     if(*it > 0) {
@@ -683,7 +683,7 @@ void DualBoundsModule::executeMethod() {
                             m_impliedDualUpper->set(conIdx, Numerical::stableAdd((costVector.at(index) - impliedLB) / *it, m_impliedDualLower->at(conIdx)));
                                itC = curConstraint.getVector()->beginNonzero();
                                itCEnd = curConstraint.getVector()->endNonzero();
-                               for(; itC < itCEnd; itC++) {
+                               for(; itC < itCEnd; ++itC) {
                                    m_variableStack->set(itC.getIndex(), 1);
                                }
                         }
@@ -692,7 +692,7 @@ void DualBoundsModule::executeMethod() {
                            m_impliedDualLower->set(conIdx, Numerical::stableAdd((costVector.at(index) - impliedLB) / *it,  m_impliedDualUpper->at(conIdx)));
                            itC = curConstraint.getVector()->beginNonzero();
                            itCEnd = curConstraint.getVector()->endNonzero();
-                           for(; itC < itCEnd; itC++) {
+                           for(; itC < itCEnd; ++itC) {
                                m_variableStack->set(itC.getIndex(), 1);
                            }
                         }
@@ -720,7 +720,7 @@ void DualBoundsModule::executeMethod() {
                     m_variablesToCheck->removeElement(index);
                     m_variableStack->removeElement(index);
                     end = m_variablesToCheck->endNonzero();
-                    if(*begin != 1) { begin++; }
+                    if(*begin != 1) { ++begin; }
                     m_removedVariables++;
                     continue;
                 }
@@ -731,7 +731,7 @@ void DualBoundsModule::executeMethod() {
             if(impliedLB < costVector.at(index) && impliedUB > costVector.at(index) && impliedUB != -Numerical::Infinity) {
                 it = curVariable.getVector()->beginNonzero();
                 itEnd = curVariable.getVector()->endNonzero();
-                for(; it < itEnd; it++) {
+                for(; it < itEnd; ++it) {
                     int conIdx = it.getIndex();
                     const Constraint& curConstraint = (*m_parent->getConstraints())[conIdx];
                     if(*it > 0) {
@@ -739,7 +739,7 @@ void DualBoundsModule::executeMethod() {
                             m_impliedDualLower->set(conIdx, Numerical::stableAdd((costVector.at(index) - impliedUB) / *it, m_impliedDualUpper->at(conIdx)));
                                itC = curConstraint.getVector()->beginNonzero();
                                itCEnd = curConstraint.getVector()->endNonzero();
-                               for(; itC < itCEnd; itC++) {
+                               for(; itC < itCEnd; ++itC) {
                                    m_variableStack->set(itC.getIndex(), 1);
                                }
                         }
@@ -748,7 +748,7 @@ void DualBoundsModule::executeMethod() {
                            m_impliedDualUpper->set(conIdx, Numerical::stableAdd((costVector.at(index) - impliedUB) / *it,  m_impliedDualLower->at(conIdx)));
                            itC = curConstraint.getVector()->beginNonzero();
                            itCEnd = curConstraint.getVector()->endNonzero();
-                           for(; itC < itCEnd; itC++) {
+                           for(; itC < itCEnd; ++itC) {
                                m_variableStack->set(itC.getIndex(), 1);
                            }
                         }
@@ -758,7 +758,7 @@ void DualBoundsModule::executeMethod() {
         }
 
         m_variablesToCheck->set(begin.getIndex(), 0);
-        begin++;
+        ++begin;
     }
 }
 
@@ -790,7 +790,7 @@ void LinearAlgebraicModule::executeMethod() {
         Vector::NonzeroIterator end = curRowVector->endNonzero();
         while(begin != end) {
             vhash += begin.getIndex()+1;
-            begin++;
+            ++begin;
         }
         int partition = vhash % rowCount;
         usedPartitions.set(partition, usedPartitions.at(partition) + 1);
@@ -803,14 +803,14 @@ void LinearAlgebraicModule::executeMethod() {
 
     while(begin < end) {
 
-        if(*begin < 2) { begin++; continue; }
+        if(*begin < 2) { ++begin; continue; }
 
         IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
         hashedRows.getIterators(&itFirst, &itEnd, begin.getIndex());
 
         while(itFirst != itEnd) {
             it = itFirst;
-            it++;
+            ++it;
 
             while(it != itEnd) {
 
@@ -865,17 +865,17 @@ void LinearAlgebraicModule::executeMethod() {
                             original.setUpperBound(duplicate.getLowerBound() * lambda);
                         }
                     }
-                    it++;
+                    ++it;
                     hashedRows.remove(duplIdx);
                     indices.set(duplIdx, 1);
                     hashedRows.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
-                    it++;
+                    ++it;
                 }
             }
-            itFirst++;
+            ++itFirst;
         }
-        begin++;
+        ++begin;
     }
 
     //The elimination of constraints needs to start at the row with the highest index
@@ -895,7 +895,7 @@ void LinearAlgebraicModule::executeMethod() {
 
         indices.removeElement(removeIndex);
         end = indices.endNonzero();
-        if(*begin != 1) { begin++; }
+        if(*begin != 1) { ++begin; }
     }
 
     rowCount = m_parent->getModel()->constraintCount();
@@ -916,7 +916,7 @@ void LinearAlgebraicModule::executeMethod() {
         Vector::NonzeroIterator end = curColumnVector->endNonzero();
         while(begin != end) {
             vhash += begin.getIndex()+1;
-            begin++;
+            ++begin;
         }
         int partition = vhash % columnCount;
         usedPartitions.set(partition, usedPartitions.at(partition) + 1);
@@ -929,14 +929,14 @@ void LinearAlgebraicModule::executeMethod() {
 
     while(begin < end) {
 
-        if(*begin < 2) { begin++; continue; }
+        if(*begin < 2) { ++begin; continue; }
 
         IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
         hashedColumns.getIterators(&itFirst, &itEnd, begin.getIndex());
 
         while(itFirst != itEnd) {
             it = itFirst;
-            it++;
+            ++it;
 
             while(it != itEnd) {
 
@@ -988,17 +988,17 @@ void LinearAlgebraicModule::executeMethod() {
 
                     }
 
-                    it++;
+                    ++it;
                     hashedColumns.remove(duplIdx);
                     indices.set(duplIdx, 1);
                     hashedColumns.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
-                    it++;
+                    ++it;
                 }
             }
-            itFirst++;
+            ++itFirst;
         }
-        begin++;
+        ++begin;
     }
 
     //The elimination of variables needs to start at the row with the highest index
@@ -1026,7 +1026,7 @@ void LinearAlgebraicModule::executeMethod() {
 
         indices.removeElement(removeIndex);
         end = indices.endNonzero();
-        if(*begin != 1) { begin++; }
+        if(*begin != 1) { ++begin; }
     }
 }
 
@@ -1061,7 +1061,7 @@ void MakeSparserModule::executeMethod() {
 
     Vector::NonzeroIterator begin = usedPartitions.beginNonzero();
     Vector::NonzeroIterator end = usedPartitions.endNonzero();
-    while(begin.getIndex() < 1) begin++;
+    while(begin.getIndex() < 1) ++begin;
     while(begin < end) {
         sortedRows.getIterators(&it, &itEnd, begin.getIndex());
         while(it != itEnd) {
@@ -1084,7 +1084,7 @@ void MakeSparserModule::executeMethod() {
                         if(curRow.getVector()->at(pivotIt.getIndex()) == 0) {
                             break;
                         }
-                        pivotIt++;
+                        ++pivotIt;
                     }
                     if(pivotIt == pivotItEnd) {
                         pivotIt = pivotRow.getVector()->beginNonzero();
@@ -1097,10 +1097,10 @@ void MakeSparserModule::executeMethod() {
                         pivotIt = pivotRow.getVector()->beginNonzero();
                     }
                 }
-                beginColumn++;
+                ++beginColumn;
             }
-            it++;
+            ++it;
         }
-        begin++;
+        ++begin;
     }
 }

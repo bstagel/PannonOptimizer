@@ -408,7 +408,7 @@ void DualSimplex::update() {
     setReferenceObjective(secondPhase);
 
     it = m_ratiotest->getBoundflips().begin();
-    for(; it < itend; it++){
+    for(; it < itend; ++it){
 //                LPWARNING("BOUNDFLIPPING at: "<<*it);
         Vector alpha(rowCount);
         if(*it < columnCount){
@@ -670,7 +670,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
 
     // columnwise version
     m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-    for(; it != itEnd ; it++){
+    for(; it != itEnd ; ++it){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
             //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
@@ -688,7 +688,7 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     /*Vector otherAlpha(rowCount + columnCount);
     // columnwise version
     m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-    for(; it != itEnd ; it++){
+    for(; it != itEnd ; ++it){
         unsigned int columnIndex = it.getData();
         if(columnIndex < columnCount){
             //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
@@ -707,13 +707,13 @@ void DualSimplex::computeTransformedRow(Vector* alpha, int rowIndex) {
     std::vector<Numerical::Summarizer> results( rowCount + columnCount );
     Vector::NonzeroIterator pivotRowIter = m_pivotRowOfBasisInverse.beginNonzero();
     Vector::NonzeroIterator pivotRowIterEnd = m_pivotRowOfBasisInverse.endNonzero();
-    for (; pivotRowIter != pivotRowIterEnd; pivotRowIter++) {
+    for (; pivotRowIter != pivotRowIterEnd; ++pivotRowIter) {
         const Numerical::Double lambda = *pivotRowIter;
         const Vector & row = m_simplexModel->getMatrix().row( pivotRowIter.getIndex() );
         // structural variables
         Vector::NonzeroIterator rowIter = row.beginNonzero();
         Vector::NonzeroIterator rowIterEnd = row.endNonzero();
-        for (; rowIter != rowIterEnd; rowIter++) {
+        for (; rowIter != rowIterEnd; ++rowIter) {
             const unsigned int index = rowIter.getIndex();
             if ( m_variableStates.where(index) == Simplex::BASIC ) {
                 continue;

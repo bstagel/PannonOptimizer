@@ -158,20 +158,6 @@ public:
         }
 
         /**
-         * Steps to the next element in the list.
-         * When the function reaches the end of the current group, it steps
-         * to the beginning of the next group. If the next group does not exists,
-         * the m_actualElement will be zero.
-         * @return Value of the current iterator.
-         */
-        inline Iterator operator++(int)
-        {
-            Iterator result = *this;
-            next();
-            return result;
-        }
-
-        /**
          * Returns with true, if the two iterators point to same element.
          *
          * @param iterator Reference to the other iterator.

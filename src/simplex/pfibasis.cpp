@@ -85,7 +85,7 @@ PfiBasis::~PfiBasis() {
     m_cColumns = nullptr;
     delete m_cPivotIndexes;
     m_cPivotIndexes = nullptr;
-    for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); iter++) {
+    for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); ++iter) {
         delete iter->eta;
     }
     delete m_basis;
@@ -120,7 +120,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
 
 #ifndef NDEBUG
     std::vector<char> headChecker(rowCount + columnCount, 0);
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         if (headChecker[*it] == 0) {
             headChecker[*it] = 1;
         } else {
@@ -131,7 +131,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
 #endif
 
     //Copy the active submatrix
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         if (*it >= (int) columnCount) {
             //Ignore logical columns from the inverse
             m_rowCounts[*it-columnCount] = -1;
@@ -148,11 +148,11 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
     int maxRowCount = 0;
     int maxColumnCount = 0;
-    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); it++) {
+    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
         int columnIndex = it - m_basicColumns.begin();
         Vector::NonzeroIterator vectorIt = (*it)->beginNonzero();
         Vector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
-        for (; vectorIt < vectorItEnd; vectorIt++) {
+        for (; vectorIt < vectorItEnd; ++vectorIt) {
             int rowIndex = vectorIt.getIndex();
             if(m_rowCounts[rowIndex] != -1){
                 m_rowCounts[rowIndex]++;
@@ -167,7 +167,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     }
 
     if(buildIndexLists){
-        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); ++it) {
             if (maxRowCount < (int) *it) {
                 maxRowCount = *it;
             }
@@ -181,7 +181,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
 void PfiBasis::buildRowCountIndexLists(int size, int maxRowCount) {
     m_rowCountIndexList.init(size, maxRowCount+1);
     if(maxRowCount>0){
-        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+        for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); ++it) {
             if (*it >= 0) {
                 m_rowCountIndexList.insert(*it, it - m_rowCounts.begin());
             }
@@ -192,7 +192,7 @@ void PfiBasis::buildRowCountIndexLists(int size, int maxRowCount) {
 void PfiBasis::buildColumnCountIndexLists(int size, int maxColumnCount) {
     m_columnCountIndexList.init(size, maxColumnCount+1);
     if(maxColumnCount>0){
-        for (std::vector<int>::iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); it++) {
+        for (std::vector<int>::iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); ++it) {
             if (*it >= 0) {
                 m_columnCountIndexList.insert(*it, it - m_columnCounts.begin());
             }
@@ -208,7 +208,7 @@ void PfiBasis::invert() {
     m_cColumns->clear();
     m_cPivotIndexes->clear();
 
-    for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); iter++) {
+    for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); ++iter) {
         delete iter->eta;
     }
     m_basis->clear();
@@ -320,7 +320,7 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
     std::vector<ETM>::const_iterator iter = m_basis->begin();
     const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         const Numerical::Double pivotValue = denseVector[ iter->index ];
         if (pivotValue == 0.0) {
             continue;
@@ -455,7 +455,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
 
     Numerical::Double plusMinus = -1.0;
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         plusMinus *= -1.0;
         const Numerical::Double pivotValue = denseVector[ iter->index ];
         const Numerical::Double checkPivotValue = checkDenseVector[ iter->index ];
@@ -721,7 +721,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     //TODO This thread_local leads to memory error
     static /*thread_local*/ std::vector<int> helper;
     helper.resize(m_model.getRowCount(), 0);
-    for (; it != itend; it++) {
+    for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
             if(m_basicColumnCopies[*it]==NULL){
                 m_basicColumnCopies[*it] = new Vector(*(m_basicColumns[*it]));
@@ -731,7 +731,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             //Remove everything
             Vector::NonzeroIterator columnIt = m_basicColumnCopies[*it]->beginNonzero();
             Vector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
-            for (; columnIt < columnItend; columnIt++) {
+            for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
                     helper[columnIt.getIndex()]--;
                 }
@@ -744,7 +744,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             int newColumnCount = 0;
             columnIt = m_basicColumnCopies[*it]->beginNonzero();
             columnItend = m_basicColumnCopies[*it]->endNonzero();
-            for (; columnIt < columnItend; columnIt++) {
+            for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
                     helper[columnIt.getIndex()]++;
                     newColumnCount++;
@@ -802,7 +802,7 @@ void PfiBasis::invertR() {
             //Update the row lists and row counts
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 int index = it.getIndex();
                 //If the row of the iterated element is still active
                 if (m_rowCounts[index] > -1) {
@@ -836,7 +836,7 @@ void PfiBasis::findC() {
             int rowindex = -1 ;
             Vector::NonzeroIterator it = m_basicColumns[columnindex]->beginNonzero();
             Vector::NonzeroIterator itend = m_basicColumns[columnindex]->endNonzero();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > 0) {
                     rowindex = it.getIndex();
                     break;
@@ -885,7 +885,7 @@ void PfiBasis::invertM() {
         containsOne = true;
         while (containsOne) {
             containsOne = false;
-            for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+            for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); ++it) {
                 if (*it > 0) {
                     DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
                     int rowindex = it - m_rowCounts.begin();
@@ -902,7 +902,7 @@ void PfiBasis::invertM() {
                         //Update the row lists and row counts
                         Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
                         Vector::NonzeroIterator vectorItend = currentColumn->endNonzero();
-                        for (; vectorIt < vectorItend; vectorIt++) {
+                        for (; vectorIt < vectorItend; ++vectorIt) {
                             if (m_rowCounts[vectorIt.getIndex()] >= 0) {
                                 m_rowCounts[vectorIt.getIndex()]--;
 //                                m_rowNonzeroIndices[vectorIt.getIndex()].remove(columnindex);
@@ -911,7 +911,7 @@ void PfiBasis::invertM() {
                         //Update the column counts too
                         std::list<int>::iterator listIt = m_rowNonzeroIndices[rowindex].begin();
                         std::list<int>::iterator listItend = m_rowNonzeroIndices[rowindex].end();
-                        for (; listIt != listItend; listIt++) {
+                        for (; listIt != listItend; ++listIt) {
                             int index = *listIt;
                             if (m_columnCounts[index] > -1) {
                                 m_columnCounts[index]--;
@@ -925,7 +925,7 @@ void PfiBasis::invertM() {
                         //Update the row lists and row counts
                         Vector::NonzeroIterator it = currentColumn->beginNonzero();
                         Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                        for (; it < itend; it++) {
+                        for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
                             if (m_rowCounts[index] > -1) {
@@ -973,7 +973,7 @@ void PfiBasis::invertM() {
                     //Update the row lists and row counts
                     Vector::NonzeroIterator it = currentColumn->beginNonzero();
                     Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                    for (; it < itend; it++) {
+                    for (; it < itend; ++it) {
                         int index = it.getIndex();
                         //If the row of the iterated element is still active
                         if (m_rowCounts[index] > -1) {
@@ -1001,7 +1001,7 @@ void PfiBasis::invertM() {
                     //Update the row lists and row counts
                     Vector::NonzeroIterator it = currentColumn->beginNonzero();
                     Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                    for (; it < itend; it++) {
+                    for (; it < itend; ++it) {
                         int index = it.getIndex();
                         //If the row of the iterated element is still active
                         if (m_rowCounts[index] > -1) {
@@ -1049,7 +1049,7 @@ void PfiBasis::invertM() {
                         //Update the row lists and row counts
                         Vector::NonzeroIterator it = currentColumn->beginNonzero();
                         Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                        for (; it < itend; it++) {
+                        for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
                             if (m_rowCounts[index] > -1) {
@@ -1075,7 +1075,7 @@ void PfiBasis::invertM() {
                         //Update the row lists and row counts
                         Vector::NonzeroIterator it = currentColumn->beginNonzero();
                         Vector::NonzeroIterator itend = currentColumn->endNonzero();
-                        for (; it < itend; it++) {
+                        for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
                             if (m_rowCounts[index] > -1) {
@@ -1104,7 +1104,7 @@ void PfiBasis::invertM() {
 void PfiBasis::invertC() {
     //The lower triangular part is called C part
     DEVINFO(D::PFIMAKER, "Invert the C part");
-    for (std::vector<const Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); it++) {
+    for (std::vector<const Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); ++it) {
         DEVINFO(D::PFIMAKER, "Inverting C column " << m_cColumns->rend() - 1 - it <<
                 " with pivot row " << (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
         pivot(*(*it), (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
@@ -1130,14 +1130,14 @@ void PfiBasis::buildMM() {
     //Collect the indices of the MM part
     //TODO: Ne foglaljuk ujra mindig ugyanakkora kell
     std::vector<int> rowMemory = std::vector<int>(m_rowCounts.size(), -1);
-    for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+    for (std::vector<int>::iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); ++it) {
         if (*it >= 0) {
             m_mmRowIndices->push_back(it - m_rowCounts.begin());
             rowMemory[it - m_rowCounts.begin()] = m_mmRowIndices->size() - 1;
         }
     }
 
-    for (std::vector<int>::iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); it++) {
+    for (std::vector<int>::iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); ++it) {
         if (*it >= 0) {
             m_mmColumnIndices->push_back(it - m_columnCounts.begin());
         }
@@ -1164,10 +1164,10 @@ void PfiBasis::buildMM() {
         //     m_mmRows->at(i).setSparsityRatio(0.0);
         //   m_mmColumns->at(i).setSparsityRatio(0.0);
     }
-    for (std::vector<int>::iterator it = m_mmColumnIndices->begin(); it < m_mmColumnIndices->end(); it++) {
+    for (std::vector<int>::iterator it = m_mmColumnIndices->begin(); it < m_mmColumnIndices->end(); ++it) {
         Vector::NonzeroIterator vectorIt = m_basicColumns[*it]->beginNonzero();
         Vector::NonzeroIterator vectorItend = m_basicColumns[*it]->endNonzero();
-        for (; vectorIt < vectorItend; vectorIt++) {
+        for (; vectorIt < vectorItend; ++vectorIt) {
             if (rowMemory[vectorIt.getIndex()] != -1) {
                 int rowIndex = rowMemory[vectorIt.getIndex()];
                 int columnIndex = it - m_mmColumnIndices->begin();
@@ -1189,7 +1189,7 @@ void PfiBasis::findTransversal() {
             DEVINFO(D::PFIMAKER, "Searching for diagonal nonzero at row " << i);
             Vector::NonzeroIterator vectorIt = (*m_mmColumns)[i].beginNonzero();
             Vector::NonzeroIterator vectorItend = (*m_mmColumns)[i].endNonzero();
-            for (; vectorIt < vectorItend; vectorIt++) {
+            for (; vectorIt < vectorItend; ++vectorIt) {
                 if ((int) vectorIt.getIndex() > i) {
                     nextRow = true;
                     DEVINFO(D::PFIMAKER, "Nonzero found below index " << i);
@@ -1207,7 +1207,7 @@ void PfiBasis::findTransversal() {
                 std::vector<int> searchedRows;
                 vectorIt = (*m_mmColumns)[i].beginNonzero();
                 vectorItend = (*m_mmColumns)[i].endNonzero();
-                for (; vectorIt < vectorItend; vectorIt++) {
+                for (; vectorIt < vectorItend; ++vectorIt) {
                     int searchResult;
                     searchedRows.push_back(vectorIt.getIndex());
                     searchResult = searchColumn(vectorIt.getIndex(), i, searchedRows);
@@ -1238,16 +1238,16 @@ void PfiBasis::swapRows(int rowIndex1, int rowIndex2) {
     Vector row1 = (*m_mmRows)[rowIndex1];
     Vector row2 = (*m_mmRows)[rowIndex2];
 
-    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex1, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex2, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex2, *vectorIt);
     }
-    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex1, *vectorIt);
     }
     //TODO: JOCO Swap fuggveny a vektorba
@@ -1267,16 +1267,16 @@ void PfiBasis::swapColumns(int columnIndex1, int columnIndex2) {
     Vector column1 = (*m_mmColumns)[columnIndex1];
     Vector column2 = (*m_mmColumns)[columnIndex2];
 
-    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex1, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex2, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex2, *vectorIt);
     }
-    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); vectorIt++) {
+    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex1, *vectorIt);
     }
     (*m_mmColumns)[columnIndex1] = column2;
@@ -1294,7 +1294,7 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
     DEVINFO(D::PFIMAKER, "Searching column " << columnIndex << " for nonzero with searchindex " << searchIndex);
     Vector::NonzeroIterator it = (*m_mmColumns)[columnIndex].beginNonzero();
     Vector::NonzeroIterator itend = (*m_mmColumns)[columnIndex].endNonzero();
-    for (; it < itend; it++) {
+    for (; it < itend; ++it) {
         if ((int) it.getIndex() >= searchIndex) {
             DEVINFO(D::PFIMAKER, "Nonzero found below index " << searchIndex);
             int searchResult = it.getIndex();
@@ -1309,9 +1309,9 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
     }
     Vector::NonzeroIterator vectorIt = (*m_mmColumns)[columnIndex].beginNonzero();
     Vector::NonzeroIterator vectorItend = (*m_mmColumns)[columnIndex].endNonzero();
-    for (; vectorIt < vectorItend; vectorIt++) {
+    for (; vectorIt < vectorItend; ++vectorIt) {
         bool contains = false;
-        for (std::vector<int>::iterator it = searchedRows.begin(); it < searchedRows.end(); it++) {
+        for (std::vector<int>::iterator it = searchedRows.begin(); it < searchedRows.end(); ++it) {
             if (*it == (int) vectorIt.getIndex()) {
                 contains = true;
             }
@@ -1339,10 +1339,10 @@ void PfiBasis::createGraph() {
     }
     auto it = m_mmRows->begin();
     auto itend = m_mmRows->end();
-    for (int i=0 ; it < itend; it++, i++) {
+    for (int i=0 ; it < itend; ++it, i++) {
         Vector::NonzeroIterator vectorIt = it->beginNonzero();
         Vector::NonzeroIterator vectorItend = it->endNonzero();
-        for (; vectorIt < vectorItend; vectorIt++) {
+        for (; vectorIt < vectorItend; ++vectorIt) {
             if ((int) vectorIt.getIndex() != it - m_mmRows->begin()) {
                 (*m_mmGraphOut)[it - m_mmRows->begin()].push_back(vectorIt.getIndex());
             }
@@ -1352,7 +1352,7 @@ void PfiBasis::createGraph() {
 
 void PfiBasis::tarjan() {
     DEVINFO(D::PFIMAKER, "Tarjan begin");
-    for (std::vector<char>::iterator it = m_mmGraphUsed->begin(); it < m_mmGraphUsed->end(); it++) {
+    for (std::vector<char>::iterator it = m_mmGraphUsed->begin(); it < m_mmGraphUsed->end(); ++it) {
         DEVINFO(D::PFIMAKER, "Tarjan step" << it - m_mmGraphUsed->begin());
         if (*it == 0) {
             DEVINFO(D::PFIMAKER, "Tarjan step active" << it - m_mmGraphUsed->begin());
@@ -1390,7 +1390,7 @@ int PfiBasis::searchNode() {
                 (*m_mmGraphUsed)[node.index] = 1;
                 nextLowest = searchNode();
                 if (nextLowest != -1) {
-                    for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); it++) {
+                    for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); ++it) {
                         if (it->index == currentNode.lowest) {
                             break;
                         }
@@ -1403,7 +1403,7 @@ int PfiBasis::searchNode() {
                 }
             } else {
                 //The pointed node is in the stack
-                for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); it++) {
+                for (std::vector<PathNode>::iterator it = m_stack->begin(); it < m_stack->end(); ++it) {
                     if (it->index == currentNode.lowest) {
                         break;
                     }
@@ -1423,7 +1423,7 @@ int PfiBasis::searchNode() {
     if (currentNode.index == currentNode.lowest) {
         DEVINFO(D::PFIMAKER, "Creating block #" << m_mmBlocks->size());
         int allBlocks = 0;
-        for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); it++) {
+        for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); ++it) {
             allBlocks += *it;
         }
 #ifndef NDEBUG
@@ -1486,7 +1486,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
             //Activerows-ba kigyujtjuk a blokkhoz tartozo nemnullakat
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > -1) {
                     //Ha MM-beli nemnullat talaltunk
                     for (int i = previousBlocks; i < previousBlocks + (*m_mmBlocks)[blockNum]; i++) {
@@ -1504,7 +1504,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         else {
             Vector::NonzeroIterator it = currentColumn->beginNonzero();
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > -1) {
                     activeRows.push_back(it.getIndex());
                 }
@@ -1512,7 +1512,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         }
         //Megnezzuk mi a legnagyobb elem
         //TODO Ezt az elozo lepes is ki tudja szamolni
-        for (std::vector<int>::iterator it = activeRows.begin(); it < activeRows.end(); it++) {
+        for (std::vector<int>::iterator it = activeRows.begin(); it < activeRows.end(); ++it) {
             if (currentColumn->at(*it) > 0) {
                 if (currentColumn->at(*it) > nontriangularMax) {
                     nontriangularMax = currentColumn->at(*it);
@@ -1525,7 +1525,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         }
 
         //Levalogatjuk a thresholdnak megfeleloket
-        for (std::vector<int>::iterator it = activeRows.begin(); it < activeRows.end(); it++) {
+        for (std::vector<int>::iterator it = activeRows.begin(); it < activeRows.end(); ++it) {
             if (currentColumn->at(*it) > 0) {
                 if (currentColumn->at(*it) > m_threshold * nontriangularMax) {
                     goodRows.push_back(*it);
@@ -1539,7 +1539,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         //Choose the sparsest row among the candidates
         if (goodRows.size() > 0) {
             rowindex = goodRows[0];
-            for (std::vector<int>::iterator it = goodRows.begin(); it < goodRows.end(); it++) {
+            for (std::vector<int>::iterator it = goodRows.begin(); it < goodRows.end(); ++it) {
                 if (m_rowCounts[*it] < m_rowCounts[rowindex]) {
                     rowindex = *it;
                 }
@@ -1560,7 +1560,7 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
 void PfiBasis::checkSingularity() {
     DEVINFO(D::PFIMAKER, "Checking singularity");
     int singularity = 0;
-    for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); it++) {
+    for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); ++it) {
         if (*it == -1) {
             DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
             *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
@@ -1576,11 +1576,11 @@ void PfiBasis::checkSingularity() {
 void PfiBasis::printCounts() const {
 #ifndef NDEBUG
     DEVINFO(D::PFIMAKER, "Row counts: ");
-    for (std::vector<int>::const_iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); it++) {
+    for (std::vector<int>::const_iterator it = m_rowCounts.begin(); it < m_rowCounts.end(); ++it) {
         DEVINFO(D::PFIMAKER, "Row " << it - m_rowCounts.begin() << " has " << *it << " nonzeros");
     }
     DEVINFO(D::PFIMAKER, "Column counts: ");
-    for (std::vector<int>::const_iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); it++) {
+    for (std::vector<int>::const_iterator it = m_columnCounts.begin(); it < m_columnCounts.end(); ++it) {
         DEVINFO(D::PFIMAKER, "Column " << it - m_columnCounts.begin() << " has " << *it << " nonzeros");
     }
 #endif //!NDEBUG
@@ -1590,7 +1590,7 @@ void PfiBasis::printCounts() const {
 void PfiBasis::printMM() const {
 #ifndef NDEBUG
     LPWARNING( "MM pattern by rows");
-    for (std::vector<Vector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); it++) {
+    for (std::vector<Vector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); ++it) {
         std::string s;
         for (int i = 0; i < (int) it->length(); i++) {
             s += Numerical::equals(it->at(i), 0) ? "-" : "X";
@@ -1600,7 +1600,7 @@ void PfiBasis::printMM() const {
     //    LPWARNING( "MM pattern by columns");
     //    for (int i = 0; i < (int) m_mmColumns->size(); i++) {
     //        std::string s;
-    //        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); it++) {
+    //        for (std::vector<Vector>::iterator it = m_mmColumns->begin(); it < m_mmColumns->end(); ++it) {
     //            s += Numerical::equals(it->at(i), 0) ? "-" : "X";
     //        }
     //        LPWARNING( s);
@@ -1632,11 +1632,11 @@ void PfiBasis::printMM() const {
 void PfiBasis::printSwapHashes() const {
 #ifndef NDEBUG
     DEVINFO(D::PFIMAKER, "Row swap hash:");
-    for (std::vector<int>::iterator it = m_rowSwapHash->begin(); it < m_rowSwapHash->end(); it++) {
+    for (std::vector<int>::iterator it = m_rowSwapHash->begin(); it < m_rowSwapHash->end(); ++it) {
         DEVINFO(D::PFIMAKER, "    " << *it);
     }
     DEVINFO(D::PFIMAKER, "Column swap hash:");
-    for (std::vector<int>::iterator it = m_columnSwapHash->begin(); it < m_columnSwapHash->end(); it++) {
+    for (std::vector<int>::iterator it = m_columnSwapHash->begin(); it < m_columnSwapHash->end(); ++it) {
         DEVINFO(D::PFIMAKER, "    " << *it);
     }
 #endif //!NDEBUG
@@ -1646,7 +1646,7 @@ void PfiBasis::printGraph() const {
 #ifndef NDEBUG
     //Print the outgoing edges
 //    DEVINFO(D::PFIMAKER, "Outgoing graph edges");
-//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphOut->begin(); it < m_mmGraphOut->end(); it++) {
+//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphOut->begin(); it < m_mmGraphOut->end(); ++it) {
 //        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphOut->begin() << ":");
 //        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
 //            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
@@ -1654,7 +1654,7 @@ void PfiBasis::printGraph() const {
 //    }
 //    //Print the incoming edges
 //    DEVINFO(D::PFIMAKER, "Incoming graph edges");
-//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphIn->begin(); it < m_mmGraphIn->end(); it++) {
+//    for (std::vector<std::vector<int> >::iterator it = m_mmGraphIn->begin(); it < m_mmGraphIn->end(); ++it) {
 //        DEVINFO(D::PFIMAKER, "Node " << it - m_mmGraphIn->begin() << ":");
 //        for (std::vector<int>::iterator nodeIt = it->begin(); nodeIt < it->end(); nodeIt++) {
 //            DEVINFO(D::PFIMAKER, "    " << *nodeIt);
@@ -1668,7 +1668,7 @@ void PfiBasis::printStack() const {
     //Print the stack
     DEVINFO(D::PFIMAKER, "Tarjan algorithm stack (Top --> Bottom):");
     DEVINFO(D::PFIMAKER, "index \tlowest\t nextEdge");
-    for (std::vector<PathNode>::reverse_iterator it = m_stack->rbegin(); it < m_stack->rend(); it++) {
+    for (std::vector<PathNode>::reverse_iterator it = m_stack->rbegin(); it < m_stack->rend(); ++it) {
         DEVINFO(D::PFIMAKER, it->index << " \t " << it->lowest << " \t " << it->nextEdge);
     }
 #endif //!NDEBUG
@@ -1678,7 +1678,7 @@ void PfiBasis::printBlocks() const {
 #ifndef NDEBUG
     //Print the outgoing edges
     LPWARNING( "Block sizes:");
-    for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); it++) {
+    for (std::vector<int>::iterator it = m_mmBlocks->begin(); it < m_mmBlocks->end(); ++it) {
         LPWARNING( "Block #" << it - m_mmBlocks->begin() << ": " << *it);
     }
     //printMM();

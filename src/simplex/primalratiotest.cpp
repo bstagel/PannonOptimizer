@@ -42,7 +42,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 
     //computing ratios in M
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
-    for (; it != endit; it++) {
+    for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
         if (m_sigma * alpha.at(basisIndex) < -epsilon) {
@@ -60,7 +60,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 
     //computing ratios in P
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::PLUS);
-    for (; it != endit; it++) {
+    for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
         if (m_sigma * alpha.at(basisIndex) > epsilon) {
@@ -78,7 +78,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 
     //computing ratios in F
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::FEASIBLE);
-    for (; it != endit; it++) {
+    for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
       //F->P

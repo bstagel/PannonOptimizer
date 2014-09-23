@@ -131,7 +131,7 @@ void BasisHeadPanOpt::writeBasisHeadInfo() {
 
         do {
             rowStream << iter->m_variableIndex << " ";
-            iter++;
+            ++iter;
             repeat = iter != iterEnd && (int)rowStream.str().length() < sm_maxRowLength;
             if (repeat == true) {
                 index++;
@@ -145,7 +145,7 @@ void BasisHeadPanOpt::writeBasisHeadInfo() {
     }
 
     iter = m_basicVariables.begin();
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         m_outputFile << "\t" VARIABLE_STR " {" << std::endl;
         m_outputFile << "\t\t" NAME_STR " = ";
         writeString(iter->m_variablePtr->getName());
@@ -180,7 +180,7 @@ void BasisHeadPanOpt::writeNonBasisInfo() {
 
     std::vector<NonBasicVariableInfo>::const_iterator iterEnd =
             m_nonBasicVariables.end();
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         m_outputFile << "\t" VARIABLE_STR " {" << std::endl;
         m_outputFile << "\t\t" NAME_STR " = ";
         writeString(iter->m_variablePtr->getName());

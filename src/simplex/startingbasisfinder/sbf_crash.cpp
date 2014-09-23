@@ -95,11 +95,11 @@ void SbfCrash::run()
             Vector::NonzeroIterator iterEnd = matrix.row(rowIndex).endNonzero();
 
             while (iter != iterEnd && columnCounter[iter.getIndex()] == 0) {
-                iter++;
+                ++iter;
             }
             columnIndex = iter.getIndex();
-            iter++;
-            for (; iter != iterEnd; iter++) {
+            ++iter;
+            for (; iter != iterEnd; ++iter) {
                 if (columnCounter[ iter.getIndex() ] < columnCounter[columnIndex] &&
                         columnCounter[ iter.getIndex() ] > 0) {
                     columnIndex = iter.getIndex();
@@ -114,11 +114,11 @@ void SbfCrash::run()
 
             iter = matrix.row(rowIndex).beginNonzero();
             iterEnd = matrix.row(rowIndex).endNonzero();
-            for (; iter != iterEnd; iter++) {
+            for (; iter != iterEnd; ++iter) {
                 columnCounter[ iter.getIndex() ] = 0;
                 Vector::NonzeroIterator nonzIter = matrix.column( iter.getIndex() ).beginNonzero();
                 Vector::NonzeroIterator nonzIterEnd = matrix.column( iter.getIndex() ).endNonzero();
-                for (; nonzIter != nonzIterEnd; nonzIter++) {
+                for (; nonzIter != nonzIterEnd; ++nonzIter) {
                     unsigned int currentCount = rowCounter.where( nonzIter.getIndex() );
                     if (currentCount > 0 && nonzIter.getIndex() != rowIndex) {
                         currentCount--;

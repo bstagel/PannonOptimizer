@@ -34,7 +34,7 @@ LuBasis::LuBasis(const SimplexModel& model,
 
 LuBasis::~LuBasis()
 {
-    for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); it++) {
+    for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); ++it) {
         if(it->row != NULL){
             delete it->row;
         }
@@ -45,7 +45,7 @@ LuBasis::~LuBasis()
     }
     delete m_lower;
 
-    for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); it++) {
+    for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); ++it) {
         if(it->row != NULL){
             delete it->row;
         }
@@ -56,7 +56,7 @@ LuBasis::~LuBasis()
     }
     delete m_upper;
 
-    for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); it++) {
+    for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); ++it) {
         delete it->eta;
     }
     delete m_updateETMs;
@@ -71,14 +71,14 @@ void LuBasis::invert()
         m_lower->resize(m_basisHead->size(),DoubleETM());
         m_upper->resize(m_basisHead->size(),DoubleETM());
     } else {
-        for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); it++) {
+        for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); ++it) {
             delete it->row;
             it->row = NULL;
             delete it->column;
             it->column = NULL;
         }
 
-        for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); it++) {
+        for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); ++it) {
             delete it->row;
             it->row = NULL;
             delete it->column;
@@ -86,7 +86,7 @@ void LuBasis::invert()
         }
     }
 
-    for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); it++) {
+    for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); ++it) {
         delete it->eta;
     }
 
@@ -142,7 +142,7 @@ void LuBasis::invert()
     for(int i=0; i<basisSize; i++){
         Vector::NonzeroIterator it = (*m_lower)[i].column->beginNonzero();
         Vector::NonzeroIterator itend = (*m_lower)[i].column->endNonzero();
-        for(; it != itend; it++){
+        for(; it != itend; ++it){
             (*m_lower)[it.getIndex()].row->setNewNonzero(i, *it);
         }
     }
@@ -150,7 +150,7 @@ void LuBasis::invert()
     for(int i=0; i<basisSize; i++){
         Vector::NonzeroIterator it = (*m_upper)[i].row->beginNonzero();
         Vector::NonzeroIterator itend = (*m_upper)[i].row->endNonzero();
-        for(; it != itend; it++){
+        for(; it != itend; ++it){
             (*m_upper)[it.getIndex()].column->setNewNonzero(i, *it);
         }
     }
@@ -182,7 +182,7 @@ void LuBasis::copyBasis()
 
 #ifndef NDEBUG
     std::vector<char> headChecker(rowCount + columnCount, 0);
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         if (headChecker[*it] == 0) {
             headChecker[*it] = 1;
         } else {
@@ -194,7 +194,7 @@ void LuBasis::copyBasis()
 
     //Copy the active submatrix
     unsigned int maxColumnCount = 0;
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         if (*it >= (int) columnCount) {
             DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
             //Ignore logical columns from the inverse
@@ -218,11 +218,11 @@ void LuBasis::copyBasis()
         m_basicRows[it - m_basisHead->begin()] = new Vector(rowCount);
     }
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
-    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); it++) {
+    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
         int columnIndex = it - m_basicColumns.begin();
         Vector::NonzeroIterator vectorIt = (*it)->beginNonzero();
         Vector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
-        for (; vectorIt < vectorItEnd; vectorIt++) {
+        for (; vectorIt < vectorItEnd; ++vectorIt) {
             int rowIndex = vectorIt.getIndex();
             m_basicRows[rowIndex]->setNewNonzero(columnIndex, *vectorIt);
         }
@@ -268,7 +268,7 @@ void LuBasis::invertC()
             Vector::NonzeroIterator itend = currentColumn->endNonzero();
             unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
             int count = 0;
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 if(m_rowCountIndexList.where(it.getIndex()) < rowPartitionCount){
                     rowindex = it.getIndex();
                     count++;
@@ -295,7 +295,7 @@ void LuBasis::invertC()
             it = currentRow->beginNonzero();
             itend = currentRow->endNonzero();
             unsigned int columnPartitionCount = m_columnCountIndexList.getPartitionCount();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 int index = it.getIndex();
                 //If the column of the iterated element is still active (Probably the if is unnecessary)
                 if (m_columnCountIndexList.where(index) < columnPartitionCount) {
@@ -330,7 +330,7 @@ void LuBasis::invertR()
             Vector::NonzeroIterator it = currentRow->beginNonzero();
             Vector::NonzeroIterator itend = currentRow->endNonzero();
             unsigned int columnPartitionCount = m_columnCountIndexList.getPartitionCount();
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 if(m_columnCountIndexList.where(it.getIndex()) < columnPartitionCount){
                     columnindex = it.getIndex();
                 }
@@ -343,7 +343,7 @@ void LuBasis::invertR()
             it = currentColumn->beginNonzero();
             itend = currentColumn->endNonzero();
             unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
-            for(;it != itend; it++){
+            for(;it != itend; ++it){
                 if(m_rowCountIndexList.where(it.getIndex()) < rowPartitionCount){
                     transformVector.setNewNonzero(it.getIndex(),*it);
                 }
@@ -363,7 +363,7 @@ void LuBasis::invertR()
             //Update the row lists and row counts
             it = transformVector.beginNonzero();
             itend = transformVector.endNonzero();
-            for (; it < itend; it++) {
+            for (; it < itend; ++it) {
                 int index = it.getIndex();
                 //If the row of the iterated element is still active (Probably the if is unnecessary)
                 if (m_rowCountIndexList.where(index) < rowPartitionCount) {
@@ -407,7 +407,7 @@ void LuBasis::invertM()
             Vector* kernelRow = new Vector(basisSize);
             Vector::NonzeroIterator it = m_basicRows[rowIndex]->beginNonzero();
             Vector::NonzeroIterator itend = m_basicRows[rowIndex]->endNonzero();
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 if(m_columnCountIndexList.where(it.getIndex()) < columnPartitionCount){
                     kernelRow->setNewNonzero(it.getIndex(),*it);
                     if(rowAbsMaxs[rowIndex] < Numerical::fabs(*it)){
@@ -453,7 +453,7 @@ void LuBasis::invertM()
             int currentMarkowitz;
             Vector::NonzeroIterator it = m_basicRows[rowindex]->beginNonzero();
             Vector::NonzeroIterator itend = m_basicRows[rowindex]->endNonzero();
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 int columnindex = it.getIndex();
                 //If the column is singleton, set the only possible choice
                 if(m_columnCountIndexList.where(columnindex) == 1){
@@ -501,7 +501,7 @@ void LuBasis::invertM()
                 //Reduce the kernel here
                 Vector::NonzeroIterator rowIt = pivotRow->beginNonzero();
                 Vector::NonzeroIterator rowItend = pivotRow->endNonzero();
-                for(; rowIt != rowItend; rowIt++){
+                for(; rowIt != rowItend; ++rowIt){
                     m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())-1);
                 }
                 activeRows.erase(activeRowIt++);
@@ -514,7 +514,7 @@ void LuBasis::invertM()
                     //Remove the column counts on the active row
                     Vector::NonzeroIterator rowIt = currentRow->beginNonzero();
                     Vector::NonzeroIterator rowItend = currentRow->endNonzero();
-                    for(; rowIt != rowItend; rowIt++){
+                    for(; rowIt != rowItend; ++rowIt){
                         m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())-1);
                     }
                     //Compute the eta multiplier, store it in the eta column and update the row
@@ -526,7 +526,7 @@ void LuBasis::invertM()
                     rowAbsMaxs[*activeRowIt] = 0.0;
                     rowIt = currentRow->beginNonzero();
                     rowItend = currentRow->endNonzero();
-                    for(; rowIt != rowItend; rowIt++){
+                    for(; rowIt != rowItend; ++rowIt){
                         m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())+1);
                         if(rowAbsMaxs[*activeRowIt] < *rowIt){
                             rowAbsMaxs[*activeRowIt] = *rowIt;
@@ -565,12 +565,12 @@ void LuBasis::checkIndexListValidities(){
         IndexList<>::Iterator it;
         IndexList<>::Iterator itend;
         m_rowCountIndexList.getIterators(&it, &itend, i);
-        for(; it != itend; it++){
+        for(; it != itend; ++it){
             int rowindex = it.getData();
             int activeCounter = 0;
             Vector::NonzeroIterator rowit = m_basicRows[rowindex]->beginNonzero();
             Vector::NonzeroIterator rowitend = m_basicRows[rowindex]->endNonzero();
-            for(; rowit != rowitend; rowit++){
+            for(; rowit != rowitend; ++rowit){
                 if(m_columnCountIndexList.where(rowit.getIndex()) < columnPartitionCount){
                     activeCounter++;
                 }
@@ -584,7 +584,7 @@ void LuBasis::checkIndexListValidities(){
         IndexList<>::Iterator it;
         IndexList<>::Iterator itend;
         m_columnCountIndexList.getIterators(&it, &itend, i);
-        for(; it != itend; it++){
+        for(; it != itend; ++it){
             int columnindex = it.getData();
             int activeCounter = 0;
             for(int j = 0; j < (int)m_basisHead->size(); j++){
@@ -641,7 +641,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
             IndexList<>::Iterator it;
             IndexList<>::Iterator itend;
             m_columnCountIndexList.getIterators(&it, &itend, k);
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 if(columnMarkowitzs[it.getData()] < (int)bestMarkowitz){
                     bestMarkowitz = columnMarkowitzs[it.getData()];
                     columnindex = it.getData();
@@ -661,7 +661,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
             IndexList<>::Iterator it;
             IndexList<>::Iterator itend;
             m_rowCountIndexList.getIterators(&it, &itend, k);
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 if(rowMarkowitzs[it.getData()] < (int)bestMarkowitz){
                     bestMarkowitz = rowMarkowitzs[it.getData()];
                     rowindex = it.getData();
@@ -775,17 +775,17 @@ void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
         alpha.setNewNonzero(columnindex, newPivotValue);
     }
     vector.clear();
-    Vector::NonzeroIterator alphait = alpha.beginNonzero();
-    Vector::NonzeroIterator alphaitend = alpha.endNonzero();
-    for(; alphait != alphaitend; alphait++){
-        vector.setNewNonzero(alphait.getIndex(), *alphait);
+    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    for(; alphaIt != alphaItend; ++alphaIt){
+        vector.setNewNonzero(alphaIt.getIndex(), *alphaIt);
     }
 
     //PFI UPDATE
     std::vector<ETM>::const_iterator it = m_updateETMs->begin();
     std::vector<ETM>::const_iterator itend = m_updateETMs->end();
 
-    for (; it != itend; it++){
+    for (; it != itend; ++it){
         int rowindex = it->index;
         const Numerical::Double pivotValue = vector.at(rowindex);
         if(pivotValue == 0){
@@ -816,13 +816,13 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     std::vector<ETM>::const_reverse_iterator itend = m_updateETMs->rend();
 
     Numerical::Summarizer summarizer;
-    for (; it != itend; it++){
+    for (; it != itend; ++it){
         int rowindex = it->index;
-        Vector::NonzeroIterator etait = it->eta->beginNonzero();
-        Vector::NonzeroIterator etaitend = it->eta->endNonzero();
+        Vector::NonzeroIterator etaIt = it->eta->beginNonzero();
+        Vector::NonzeroIterator etaItend = it->eta->endNonzero();
         summarizer.clear();
-        for(; etait != etaitend; etait++){
-            summarizer.add(*etait * vector.at(etait.getIndex()));
+        for(; etaIt != etaItend; ++etaIt){
+            summarizer.add(*etaIt * vector.at(etaIt.getIndex()));
         }
         vector.set(rowindex, summarizer.getResult());
     }
@@ -848,10 +848,10 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     }
 
     vector.clear();
-    Vector::NonzeroIterator alphait = alpha.beginNonzero();
-    Vector::NonzeroIterator alphaitend = alpha.endNonzero();
-    for(; alphait != alphaitend; alphait++){
-        vector.setNewNonzero(alphait.getIndex(), *alphait);
+    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    for(; alphaIt != alphaItend; ++alphaIt){
+        vector.setNewNonzero(alphaIt.getIndex(), *alphaIt);
     }
 
     //BTRANL
@@ -868,7 +868,7 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
         if(newPivotValue != 0.0){
             Vector::NonzeroIterator it = (*m_lower)[rowindex].row->beginNonzero();
             Vector::NonzeroIterator itend = (*m_lower)[rowindex].row->endNonzero();
-            for(; it != itend; it++){
+            for(; it != itend; ++it){
                 summarizerVector[it.getIndex()].add(newPivotValue * *it);
             }
         }
@@ -883,7 +883,7 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
 //        Numerical::Summarizer summarizer;
 //        Vector::NonzeroIterator it = m_lower->at(columnindex).column->beginNonzero();
 //        Vector::NonzeroIterator itend = m_lower->at(columnindex).column->endNonzero();
-//        for(; it != itend; it++){
+//        for(; it != itend; ++it){
 //            summarizer.add(*it * vector.at(it.getIndex()));
 //        }
 //        vector.set(rowindex, summarizer.getResult());
@@ -897,7 +897,7 @@ void LuBasis::checkSingularity() {
         DEVINFO(D::PFIMAKER, "Checking singularity");
         //TODO: Handle singularity, manage the lower and upper parts
         int singularity = 0;
-        for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); it++) {
+        for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); ++it) {
             if (*it == -1) {
                 DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
                 *it = it - m_basisNewHead.begin() + m_model.getColumnCount();

@@ -46,7 +46,7 @@ protected:
         //return;
         std::vector<Method*>::iterator it = sm_registeredMethods.begin();
         std::vector<Method*>::iterator end = sm_registeredMethods.end();
-        for(;it < end; it++){
+        for(;it < end; ++it){
             if(*it == method){
                 sm_registeredMethods.erase(it);
                 break;

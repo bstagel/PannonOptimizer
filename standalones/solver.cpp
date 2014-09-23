@@ -30,11 +30,12 @@ void solve(std::string filename) {
         Presolver presolver(&model);
         try {
             presolver.presolve();
+            presolver.printStatistics();
+            exit(-1);
         } catch(Presolver::PresolverException e) {
             LPERROR("[Presolver] " << e.getMessage());
             exit(-1);
         }
-        presolver.printStatistics();
     }
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Scaling.enable") == true){

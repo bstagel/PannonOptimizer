@@ -70,7 +70,7 @@ public:
 
     bool operator<=(const Set& other) const {
         for(std::set<std::string>::const_iterator it = m_valueSet.begin();
-            it != m_valueSet.end();it++){
+            it != m_valueSet.end();++it){
             if(other.m_valueSet.find(*it) == other.m_valueSet.end()){
                 return false;
             }
@@ -84,7 +84,7 @@ private:
     friend std::ostream& operator<<(std::ostream & os, const Set& set){
         os << "{";
         for(std::set<std::string>::const_iterator it = set.m_valueSet.begin();
-                it != set.m_valueSet.end(); it++){
+                it != set.m_valueSet.end(); ++it){
             if(it != set.m_valueSet.begin()){
                 os << " ";
             }
@@ -189,17 +189,17 @@ struct ApplicationConfiguration{
         os << "Output syntax: " << application.outputSyntax << std::endl;
         os << "Options: " << std::endl;
         for(std::map<std::string, Option>::const_iterator it = application.options.begin();
-                it != application.options.end(); it++){
+                it != application.options.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << "Sets: " << std::endl;
         for(std::map<std::string, Set>::const_iterator it = application.sets.begin();
-                it != application.sets.end(); it++){
+                it != application.sets.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << "Ranges: " << std::endl;
         for(std::map<std::string, Range>::const_iterator it = application.ranges.begin();
-                it != application.ranges.end(); it++){
+                it != application.ranges.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << std::endl;
@@ -225,22 +225,22 @@ struct SweepConfiguration{
         os << "Remote dir: " << sweep.remoteDir << std::endl;
         os << "Options: " << std::endl;
         for(std::map<std::string, Option>::const_iterator it = sweep.options.begin();
-                it != sweep.options.end(); it++){
+                it != sweep.options.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << "Sets: " << std::endl;
         for(std::map<std::string, Set>::const_iterator it = sweep.sets.begin();
-                it != sweep.sets.end(); it++){
+                it != sweep.sets.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << "Ranges: " << std::endl;
         for(std::map<std::string, Range>::const_iterator it = sweep.ranges.begin();
-                it != sweep.ranges.end(); it++){
+                it != sweep.ranges.end(); ++it){
             os << "\t" << it->first << ": " << it->second << std::endl;
         }
         os << "Problems: " << std::endl;
         for(std::vector<std::string>::const_iterator it = sweep.problems.begin();
-                it != sweep.problems.end(); it++){
+                it != sweep.problems.end(); ++it){
             os << "\t" << *it << std::endl;
         }
         os << std::endl;
@@ -711,14 +711,14 @@ void checkConsistency(const ApplicationConfiguration& application, SweepConfigur
     }
 
     for(std::map<std::string, Option>::const_iterator it = sweep.options.begin();
-            it != sweep.options.end(); it++){
+            it != sweep.options.end(); ++it){
         if(application.options.find(it->first) == application.options.end()){
             std::cout << "Invalid option specified in the sweep descriptor!";
             throw ConsistencyException();
         }
     }
 
-    for(std::map<std::string, Set>::const_iterator it = sweep.sets.begin(); it != sweep.sets.end(); it++){
+    for(std::map<std::string, Set>::const_iterator it = sweep.sets.begin(); it != sweep.sets.end(); ++it){
         std::map<std::string, Set>::const_iterator setElement = application.sets.find(it->first);
         if(setElement == application.sets.end()){
             std::cout << "Invalid set specified in the sweep descriptor: " << it->first << "\n";
@@ -731,7 +731,7 @@ void checkConsistency(const ApplicationConfiguration& application, SweepConfigur
         }
     }
 
-    for(std::map<std::string, Range>::iterator it = sweep.ranges.begin(); it != sweep.ranges.end(); it++){
+    for(std::map<std::string, Range>::iterator it = sweep.ranges.begin(); it != sweep.ranges.end(); ++it){
         std::map<std::string, Range>::const_iterator rangeElement = application.ranges.find(it->first);
         if(rangeElement == application.ranges.end()){
             std::cout << "Invalid range specified in the sweep descriptor: " << it->first << "\n";
@@ -759,7 +759,7 @@ void computeParameter(std::vector<std::map<std::string, std::string> >* values,
         auto actualSet = sweep.sets.cbegin();
         for(unsigned int i=0; i<setIndex; i++, actualSet++);
         const std::set<std::string>& valueSet = actualSet->second.getValues();
-        for(auto it=valueSet.cbegin(); it != valueSet.cend(); it++){
+        for(auto it=valueSet.cbegin(); it != valueSet.cend(); ++it){
             (*actualMap)[actualSet->first] = *it;
             if(actualIndex == parameterCount-1){
                 values->push_back(*actualMap);
@@ -804,7 +804,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
         //Print parameters
         std::string nameid("$PARAMETER_NAME");
         std::string valueid("$PARAMETER_VALUE");
-        for(auto it = values[arglistCount].cbegin(); it != values[arglistCount].cend(); it++){
+        for(auto it = values[arglistCount].cbegin(); it != values[arglistCount].cend(); ++it){
             std::string parameter(application.parameterSyntax);
             unsigned int namepos = parameter.find(nameid);
             if(namepos == std::string::npos){
@@ -833,7 +833,7 @@ unsigned int generateArglists(const ApplicationConfiguration& application, const
         std::ofstream arglist;
         arglist.open("arglists/"+sweep.sweepName+"/arglist_"+std::to_string(arglistCount)+".txt");
         std::cout << "arglists/"+sweep.sweepName+"/arglist_"+std::to_string(arglistCount)+".txt" << " : \n";
-        for(auto it = sweep.problems.cbegin(); it != sweep.problems.cend(); it++){
+        for(auto it = sweep.problems.cbegin(); it != sweep.problems.cend(); ++it){
             std::string outline;
             //Print problem syntax
             std::string problem(application.problemSyntax);
