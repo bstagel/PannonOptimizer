@@ -315,7 +315,7 @@ void PrimalSimplex::update() {
     std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-    for(; it < itend; it++){
+    for(; it < itend; ++it){
 //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
@@ -473,13 +473,13 @@ void PrimalSimplex::updateReducedCosts() {
     m_basis->Btran(ro);
     Vector::NonzeroIterator roIter = ro.beginNonzero();
     Vector::NonzeroIterator roIterEnd = ro.endNonzero();
-    for (; roIter != roIterEnd; roIter++) {
+    for (; roIter != roIterEnd; ++roIter) {
         const Numerical::Double lambda = *roIter * lastReducedCost;
         const Vector & row = m_simplexModel->getMatrix().row( roIter.getIndex() );
         // structural variables
         Vector::NonzeroIterator rowIter = row.beginNonzero();
         Vector::NonzeroIterator rowIterEnd = row.endNonzero();
-        for (; rowIter != rowIterEnd; rowIter++) {
+        for (; rowIter != rowIterEnd; ++rowIter) {
             const unsigned int index = rowIter.getIndex();
             m_reducedCosts.set(index, Numerical::stableAdd( m_reducedCosts.at( index ), - lambda * *rowIter));
         }

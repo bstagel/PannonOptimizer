@@ -73,7 +73,7 @@ void Model::print(std::ostream& out) const
     Vector::Iterator end = m_costVector.end();
     // For maximization problems the cost vector is multiplied by -1
     if(m_objectiveType == MINIMIZE){
-        for (unsigned int i = 0; it < end; i++, it++) {
+        for (unsigned int i = 0; it < end; i++, ++it) {
             out << (i == 0 ? " " : "+ ") << *it << "*x" << i;
         }
         if(m_costConstant != 0){
@@ -81,7 +81,7 @@ void Model::print(std::ostream& out) const
         }
         out << "\n";
     } else {
-        for (unsigned int i = 0; it < end; i++, it++) {
+        for (unsigned int i = 0; it < end; i++, ++it) {
             out << (i == 0 ? " " : "+ ") << -(*it) << "*x" << i;
         }
         if(m_costConstant != 0){
@@ -95,7 +95,7 @@ void Model::print(std::ostream& out) const
         const Vector & row = m_matrix.row(i);
         Vector::Iterator it = row.begin();
         Vector::Iterator end = row.end();
-        for (unsigned int j = 0; it < end; j++, it++) {
+        for (unsigned int j = 0; it < end; j++, ++it) {
             out << (j == 0 ? " " : "+ ") << *it << "*x" << j << " ";
         }
         out << "<= " << m_constraints[i].getUpperBound() << "\n";
@@ -112,7 +112,7 @@ void Model::print(std::ostream& out) const
 //    out << (m_objectiveType == MINIMIZE ? "min" : "max");
 //    Vector::Iterator it = m_costVector.begin();
 //    Vector::Iterator end = m_costVector.end();
-//    for (unsigned int i = 0; it < end; i++, it++) {
+//    for (unsigned int i = 0; it < end; i++, ++it) {
 //        out << (i == 0 ? " " : "+ ") << *it << "*x" << i << " \n";
 //    }
 //    out << "\n s.t.: \n";
@@ -121,7 +121,7 @@ void Model::print(std::ostream& out) const
 //        const Vector & row = m_matrix.row(i);
 //        Vector::Iterator it = row.begin();
 //        Vector::Iterator end = row.end();
-//        for (unsigned int j = 0; it < end; j++, it++) {
+//        for (unsigned int j = 0; it < end; j++, ++it) {
 //            out << (j == 0 ? " " : "+ ") << *it << "*x" << j << " ";
 //        }
 //        out << "<= " << m_constraints[i].getUpperBound() << "\n";
@@ -228,7 +228,7 @@ std::string Model::getHash() const {
     generator.addBuffer(&intTemp, sizeof(intTemp));
     Vector::NonzeroIterator nonzIter = m_costVector.beginNonzero();
     Vector::NonzeroIterator nonzIterEnd = m_costVector.endNonzero();
-    for (; nonzIter != nonzIterEnd; nonzIter++) {
+    for (; nonzIter != nonzIterEnd; ++nonzIter) {
         intTemp = nonzIter.getIndex();
         generator.addBuffer(&intTemp, sizeof(intTemp));
         doubleTemp = *nonzIter;
@@ -238,7 +238,7 @@ std::string Model::getHash() const {
     // variables
     std::vector<Variable>::const_iterator varIter = m_variables.begin();
     std::vector<Variable>::const_iterator varIterEnd = m_variables.end();
-    for (; varIter != varIterEnd; varIter++) {
+    for (; varIter != varIterEnd; ++varIter) {
         generator.addString( varIter->getName() );
         intTemp = varIter->getType();
         generator.addBuffer(&intTemp, sizeof(intTemp));
@@ -267,7 +267,7 @@ std::string Model::getHash() const {
         generator.addBuffer(&intTemp, sizeof(intTemp));
         nonzIter = row.beginNonzero();
         nonzIterEnd = row.endNonzero();
-        for (; nonzIter != nonzIterEnd; nonzIter++) {
+        for (; nonzIter != nonzIterEnd; ++nonzIter) {
             intTemp = nonzIter.getIndex();
             generator.addBuffer(&intTemp, sizeof(intTemp));
             doubleTemp = *nonzIter;

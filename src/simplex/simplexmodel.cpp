@@ -36,7 +36,7 @@ void SimplexModel::makeComputationalForm()
 
     m_costVector.resize(variablesSize);
     m_costVector.setSparsityRatio(DENSE);
-    for(;it != itEnd; it++){
+    for(;it != itEnd; ++it){
         m_costVector.setNewNonzero(it.getIndex(),*it);
     }
 
@@ -115,7 +115,7 @@ void SimplexModel::print(std::ostream& out) const
     out << (getObjectiveType()==MINIMIZE?"min":"max");
     Vector::Iterator it = getCostVector().begin();
     Vector::Iterator end = getCostVector().end();
-    for(unsigned int i=0; it<end; i++, it++){
+    for(unsigned int i=0; it<end; i++, ++it){
         out << (i==0?" ":"+ ") << *it << "*x" << i << " \n";
     }
     out << "\n s.t.: \n";
@@ -123,7 +123,7 @@ void SimplexModel::print(std::ostream& out) const
         const Vector & row=getMatrix().row(i);
         Vector::Iterator it = row.begin();
         Vector::Iterator end = row.end();
-        for(unsigned int j=0; it<end; j++, it++){
+        for(unsigned int j=0; it<end; j++, ++it){
             out << (j==0?" ":"+ ") << *it << "*x" << j << " ";
         }
         out << " + y" << i << " = " << m_rhs.at(i) <<"\n";

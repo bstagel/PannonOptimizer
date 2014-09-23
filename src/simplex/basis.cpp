@@ -38,13 +38,13 @@ void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
     std::vector<char> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
     //First mark the positions of the given basis head
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         nonbasic[*it] = true;
     }
     //Update the basis head with the recomputed one
     m_basisHead->assign(m_basisNewHead.begin(), m_basisNewHead.end());
     //Set the basic variables state and remove their traces from the pattern vector
-    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); it++) {
+    for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         nonbasic[*it] = false;
         if(m_variableStates->where(*it) != Simplex::BASIC) {
             m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
@@ -54,7 +54,7 @@ void Basis::setNewHead() {
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
     //are out of the basis, these must be marked as nonbasic and their states must be updated too.
-    for (std::vector<char>::iterator it = nonbasic.begin(); it < nonbasic.end(); it++) {
+    for (std::vector<char>::iterator it = nonbasic.begin(); it < nonbasic.end(); ++it) {
         if (*it == true) {
             const Variable& variable = m_model.getVariable(*it);
             if (variable.getType() == Variable::FREE) {
@@ -95,7 +95,7 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
     } else {
         Vector::NonzeroIterator it = vector.beginNonzero();
         Vector::NonzeroIterator endit = vector.endNonzero();
-        for (; it < endit; it++) {
+        for (; it < endit; ++it) {
             if (it.getIndex() == (unsigned int) pivotPosition) {
                 eta->newNonZero(1 / atPivot, pivotPosition);
             } else {
@@ -118,7 +118,7 @@ void Basis::printActiveSubmatrix() const
     DEVINFO(D::PFIMAKER, "Active submatrix pattern by columns");
     for (int i = 0; i < (int) m_basicColumns.size(); i++) {
         std::string s;
-        for (std::vector<const Vector*>::const_iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); it++) {
+        for (std::vector<const Vector*>::const_iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
             s += Numerical::equals((*it)->at(i), 0) ? "-" : "X";
         }
         DEVINFO(D::PFIMAKER, s);

@@ -150,7 +150,7 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
 //        /* Clear the first part of the map from the unnecessary sets */
 //        while (mapit != rowNzIndeces.end() && (*mapit).second.size() == 0) {
 //            mapjt = mapit;
-//            mapit++;
+//            map++it;
 //            rowNzIndeces.erase(mapjt);
 //        }
 
@@ -202,7 +202,7 @@ void SbfSuper::adjustVariableByType(unsigned int variableIndex, Simplex::VARIABL
 //			if (sb_basisHead.at(minCIdx) < orig_structVarCount) {
 
 //				const Vector & selectedColumn = orig_matrix.column(sb_basisHead.at(minCIdx));
-//				for (Vector::NonzeroIterator it = selectedColumn.beginNonzero(); it != selectedColumn.endNonzero(); it++ ) {
+//				for (Vector::NonzeroIterator it = selectedColumn.beginNonzero(); it != selectedColumn.endNonzero(); ++it ) {
 //					j = it.getIndex();
 //					k = rowNzCount.at(j);
 //					if (k > 0) {

@@ -65,7 +65,7 @@ std::set<std::string> NodeFile::Node::getNodeNames() const
     auto iter = m_nodes.begin();
     auto iterEnd = m_nodes.end();
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         result.insert( iter->first );
     }
     return result;
@@ -77,7 +77,7 @@ std::set<std::string> NodeFile::Node::getValueNames() const
     auto iter = m_values.begin();
     auto iterEnd = m_values.end();
 
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         result.insert( iter->first );
     }
     return result;

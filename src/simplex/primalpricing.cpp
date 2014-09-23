@@ -115,7 +115,7 @@ void PrimalPricing::initPhase1() {
     const IndexList<> & basicVariableFeasibilities = m_basicVariableFeasibilities;
     IndexList<>::Iterator iter, iterEnd;
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         /*if (m_basicVariableValues.at(iter.getData()) >= this->m_simplexModel.getVariable(  m_basisHead[ iter.getData() ]   ).getLowerBound()) {
             LPERROR("ERROR");
             std::cin.get();
@@ -124,7 +124,7 @@ void PrimalPricing::initPhase1() {
     }
 
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         /*if (m_basicVariableValues.at(iter.getData()) <= this->m_simplexModel.getVariable(  m_basisHead[ iter.getData() ]   ).getUpperBound()) {
             LPERROR("ERROR");
             std::cin.get();
@@ -148,12 +148,12 @@ void PrimalPricing::initPhase1() {
     const Matrix & matrix = m_simplexModel.getMatrix();
     Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
     Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
-    for (; auxIter != auxIterEnd; auxIter++) {
+    for (; auxIter != auxIterEnd; ++auxIter) {
         const unsigned int rowIndex = auxIter.getIndex();
         const Numerical::Double lambda = *auxIter;
         Vector::NonzeroIterator nonzIter = matrix.row(rowIndex).beginNonzero();
         Vector::NonzeroIterator nonzIterEnd = matrix.row(rowIndex).endNonzero();
-        for (; nonzIter != nonzIterEnd; nonzIter++) {
+        for (; nonzIter != nonzIterEnd; ++nonzIter) {
             Numerical::Double product = lambda * *nonzIter;
             if (product > 0.0) {
                 m_positiveSums[nonzIter.getIndex()] += product;

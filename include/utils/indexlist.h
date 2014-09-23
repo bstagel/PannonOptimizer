@@ -441,7 +441,7 @@ public:
         getIterators(&iter, &iterEnd, partitionIndex);
         std::vector<unsigned int> elements;
         std::vector<ATTACHED_TYPE> attached;
-        for (; iter != iterEnd; iter++) {
+        for (; iter != iterEnd; ++iter) {
             elements.push_back(iter.getData());
             attached.push_back(iter.getAttached());
         }
@@ -479,7 +479,7 @@ public:
          *
          * @constructor
          */
-        inline _Iterator()
+        _Iterator()
         {
             m_actual = 0;
         }
@@ -490,7 +490,7 @@ public:
          * @constructor
          * @param actual The value of the pointer of actual element in linked list.
          */
-        inline _Iterator(Element<TYPE> * actual)
+        _Iterator(Element<TYPE> * actual)
         {
             m_actual = actual;
         }
@@ -505,7 +505,7 @@ public:
          * @param actual The value of pointer of actual element in linked list.
          * @param borders The set of headers of partitions in case of multiple-partition iteration.
          */
-        inline _Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
+        _Iterator(Element<TYPE> * actual, const std::set<Element<TYPE>*> & borders)
         {
             m_actual = actual;
             m_borders = borders;
@@ -520,7 +520,7 @@ public:
          *
          * @return Index of linked list or actual element.
          */
-        inline unsigned int getData() const
+        ALWAYS_INLINE unsigned int getData() const
         {
             return m_actual->m_data;
         }
@@ -530,7 +530,7 @@ public:
          *
          * @return The stored attached data.
          */
-        inline const TYPE & getAttached() const{
+        ALWAYS_INLINE const TYPE & getAttached() const{
             return m_actual->m_attached;
         }
 
@@ -539,7 +539,7 @@ public:
          *
          * @param attached The attached value
          */
-        inline void setAttached(const TYPE & attached) {
+        ALWAYS_INLINE void setAttached(const TYPE & attached) {
             m_actual->m_attached = attached;
         }
 
@@ -548,7 +548,7 @@ public:
          *
          * @return Partition index of the current element.
          */
-        inline unsigned int getPartitionIndex() const {
+        ALWAYS_INLINE unsigned int getPartitionIndex() const {
             return m_actual->m_partitionIndex;
         }
 
@@ -558,30 +558,28 @@ public:
          * <hr>
          * Complexity: O(1)
          */
-        inline void next()
+        void next()
         {
-            if (m_actual) {
-                m_actual = m_actual->m_next;
-                if (m_actual->m_isHeader == true) {
-                    typename std::set<Element<TYPE>*>::iterator iter = m_borders.find(m_actual);
+            m_actual = m_actual->m_next;
+            if (m_actual->m_isHeader == true) {
+                typename std::set<Element<TYPE>*>::iterator iter = m_borders.find(m_actual);
+                if (iter != m_borders.end()) {
+                    ++iter; // next border
                     if (iter != m_borders.end()) {
-                        iter++; // next border
-                        if (iter != m_borders.end()) {
-                            m_actual = (*iter)->m_next;
-                            bool end = !m_actual->m_isHeader;
-                            while (end == false) {
-                                iter = m_borders.find(m_actual);
+                        m_actual = (*iter)->m_next;
+                        bool end = !m_actual->m_isHeader;
+                        while (end == false) {
+                            iter = m_borders.find(m_actual);
+                            if (iter != m_borders.end()) {
+                                ++iter;
                                 if (iter != m_borders.end()) {
-                                    iter++;
-                                    if (iter != m_borders.end()) {
-                                        m_actual = (*iter)->m_next;
-                                        end = !m_actual->m_isHeader;
-                                    } else {
-                                        end = true;
-                                    }
+                                    m_actual = (*iter)->m_next;
+                                    end = !m_actual->m_isHeader;
                                 } else {
                                     end = true;
                                 }
+                            } else {
+                                end = true;
                             }
                         }
                     }
@@ -595,11 +593,9 @@ public:
          * <hr>
          * Complexity: O(1)
          */
-        inline void previous()
+        void previous()
         {
-            if (m_actual) {
-                m_actual = m_actual->m_previous;
-            }
+            m_actual = m_actual->m_previous;
         }
 
         /**
@@ -610,21 +606,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline _Iterator & operator++()
-        {
-            next();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the next element.
-         * When the iterator refers to the last element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _Iterator & operator++(int)
+        ALWAYS_INLINE _Iterator & operator++()
         {
             next();
             return *this;
@@ -638,21 +620,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline _Iterator & operator--()
-        {
-            previous();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the previous element.
-         * When the iterator refers to the first element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _Iterator & operator--(int)
+        ALWAYS_INLINE _Iterator & operator--()
         {
             previous();
             return *this;
@@ -666,7 +634,7 @@ public:
          * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to the same list element.
          */
-        inline bool operator==(const _Iterator & iter)
+        ALWAYS_INLINE bool operator==(const _Iterator & iter)
         {
             return m_actual == iter.m_actual;
         }
@@ -679,7 +647,7 @@ public:
          * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to different list element.
          */
-        inline bool operator!=(const _Iterator & iter)
+        ALWAYS_INLINE bool operator!=(const _Iterator & iter)
         {
             return m_actual != iter.m_actual;
         }
@@ -708,7 +676,7 @@ public:
          *
          * @constructor
          */
-        inline _PartitionIterator()
+        _PartitionIterator()
         {
             m_actual = 0;
         }
@@ -722,7 +690,7 @@ public:
          * @constructor
          * @param actual The value of pointer of actual element in linked list.
          */
-        inline _PartitionIterator(Element<TYPE> * actual)
+        _PartitionIterator(Element<TYPE> * actual)
         {
             m_actual = actual;
         }
@@ -736,7 +704,7 @@ public:
          *
          * @return Index of linked list or actual element.
          */
-        inline unsigned int getData() const
+        ALWAYS_INLINE unsigned int getData() const
         {
             return m_actual->m_data;
         }
@@ -746,7 +714,7 @@ public:
          *
          * @return The stored attached data.
          */
-        inline const TYPE & getAttached() const{
+        ALWAYS_INLINE const TYPE & getAttached() const{
             return m_actual->m_attached;
         }
 
@@ -755,7 +723,7 @@ public:
          *
          * @param attached The attached value
          */
-        inline void setAttached(const TYPE & attached) {
+        ALWAYS_INLINE void setAttached(const TYPE & attached) {
             m_actual->m_attached = attached;
         }
 
@@ -764,7 +732,7 @@ public:
          *
          * @return Partition index of the current element.
          */
-        inline unsigned int getPartitionIndex() const {
+        ALWAYS_INLINE unsigned int getPartitionIndex() const {
             return m_actual->m_partitionIndex;
         }
 
@@ -774,11 +742,9 @@ public:
          * <hr>
          * Complexity: O(1)
          */
-        inline void next()
+        ALWAYS_INLINE void next()
         {
-            if (m_actual) {
-                m_actual = m_actual->m_next;
-            }
+            m_actual = m_actual->m_next;
         }
 
         /**
@@ -787,11 +753,9 @@ public:
          * <hr>
          * Complexity: O(1)
          */
-        inline void previous()
+        ALWAYS_INLINE void previous()
         {
-            if (m_actual) {
-                m_actual = m_actual->m_previous;
-            }
+            m_actual = m_actual->m_previous;
         }
 
         /**
@@ -802,21 +766,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline _PartitionIterator & operator++()
-        {
-            next();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the next element.
-         * When the iterator refers to the last element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator++(int)
+        ALWAYS_INLINE _PartitionIterator & operator++()
         {
             next();
             return *this;
@@ -830,21 +780,7 @@ public:
          *
          * @return Reference to the iterator object.
          */
-        inline _PartitionIterator & operator--()
-        {
-            previous();
-            return *this;
-        }
-
-        /**
-         * Moves the iterator to the previous element.
-         * When the iterator refers to the first element, the iterator steps to the header.
-         * <hr>
-         * Complexity: O(1)
-         *
-         * @return Reference to the iterator object.
-         */
-        inline _PartitionIterator & operator--(int)
+        ALWAYS_INLINE _PartitionIterator & operator--()
         {
             previous();
             return *this;
@@ -858,7 +794,7 @@ public:
          * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to the same list element.
          */
-        inline bool operator==(const _PartitionIterator & iter)
+        ALWAYS_INLINE bool operator==(const _PartitionIterator & iter)
         {
             return m_actual == iter.m_actual;
         }
@@ -871,7 +807,7 @@ public:
          * @param iter The other Iterator object.
          * @return True, when the 2 iterators refer to different list element.
          */
-        inline bool operator!=(const _PartitionIterator & iter)
+        ALWAYS_INLINE bool operator!=(const _PartitionIterator & iter)
         {
             return m_actual != iter.m_actual;
         }
@@ -946,7 +882,7 @@ public:
     {
         Iterator iter, endIter;
         getIterators(&iter, &endIter, index, 1);
-        for (; iter != endIter; iter++) {
+        for (; iter != endIter; ++iter) {
             remove( iter.getData() );
         }
 
@@ -1108,7 +1044,7 @@ std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & 
 
         typename IndexList<ATTACHED_TYPE>::Iterator iter, iterEnd;
         list.getIterators(&iter, &iterEnd, index);
-        for (; iter != iterEnd; iter++) {
+        for (; iter != iterEnd; ++iter) {
             os << "     " << iter.getData();
 //            if(typeid(ATTACHED_TYPE) == typeid(Numerical::Double*)){
                 os << "  ; val = " << *(iter.getAttached());

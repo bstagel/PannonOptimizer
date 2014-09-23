@@ -51,7 +51,7 @@ Presolver::Presolver(Model *model) {
             m_impliedDualLower->set(i, -Numerical::Infinity);
             Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
             Vector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
-            for(int i = 0; it < itEnd; i++, it++) {
+            for(int i = 0; it < itEnd; i++, ++it) {
                 if(*it > 0) {
                     m_extraDualUpperSum->set(it.getIndex(), m_extraDualUpperSum->at(it.getIndex()) + 1);
                 } else {
@@ -81,7 +81,7 @@ Presolver::Presolver(Model *model) {
                 m_impliedDualLower->set(i, -Numerical::Infinity);
                 Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
                 Vector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
-                for(int i = 0; it < itEnd; i++, it++) {
+                for(int i = 0; it < itEnd; i++, ++it) {
                     if(*it > 0) {
                         m_extraDualUpperSum->set(it.getIndex(), m_extraDualUpperSum->at(it.getIndex()) + 1);
                     } else {
@@ -147,7 +147,7 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
 
     Vector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
     Vector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
-    for(;it != itEnd; it++) {
+    for(;it != itEnd; ++it) {
         (*m_constraints)[it.getIndex()].setBounds(Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getLowerBound(), -1 * (*it) * value),
                                                    Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getUpperBound(), -1 * (*it) * value));
         m_rowNonzeros->set(it.getIndex(), m_rowNonzeros->at(it.getIndex()) - 1);

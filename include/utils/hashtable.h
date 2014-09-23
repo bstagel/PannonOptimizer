@@ -99,7 +99,7 @@ public:
         typename std::vector<TYPE>::const_iterator iter = m_table[hash].begin();
         typename std::vector<TYPE>::const_iterator iterEnd = m_table[hash].end();
         while (iter < iterEnd && *iter != value) {
-            iter++;
+            ++iter;
         }
         if (iter >= iterEnd) {
             m_table[hash].push_back(value);
@@ -120,7 +120,7 @@ public:
         typename std::vector<TYPE>::const_iterator iter = m_table[hash].begin();
         typename std::vector<TYPE>::const_iterator iterEnd = m_table[hash].end();
         while (iter < iterEnd && *iter != value) {
-            iter++;
+            ++iter;
         }
         if (iter < iterEnd) {
             return &(*iter);
@@ -144,7 +144,7 @@ public:
         typename std::vector< std::vector<TYPE> >::const_iterator iter = m_table.begin();
         typename std::vector< std::vector<TYPE> >::const_iterator iterEnd = m_table.end();
         unsigned int max = 0;
-        for (; iter != iterEnd; iter++) {
+        for (; iter != iterEnd; ++iter) {
             if (iter->size() > max) {
                 max = iter->size();
             }

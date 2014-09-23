@@ -323,31 +323,31 @@ void Simplex::setSimplexState(const Simplex & simplex)
     //NONBASIC_AT_LB
     int partition = 1;
     simplex.m_variableStates.getIterators(&it,&endit,partition,1);
-    for(;it != endit; it++){
+    for(;it != endit; ++it){
         m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
     }
     partition++;
     //NONBASIC_AT_UB
     simplex.m_variableStates.getIterators(&it,&endit,partition,1);
-    for(;it != endit; it++){
+    for(;it != endit; ++it){
         m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getUpperBound());
     }
     partition++;
     //NONBASIC_AT_FIXED
     simplex.m_variableStates.getIterators(&it,&endit,partition,1);
-    for(;it != endit; it++){
+    for(;it != endit; ++it){
         m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
     }
     partition++;
     //NONBASIC_AT_FREE
     simplex.m_variableStates.getIterators(&it,&endit,partition,1);
-    for(;it != endit; it++){
+    for(;it != endit; ++it){
         m_variableStates.insert(partition,it.getData(), &ZERO);
     }
     partition++;
     //BASIC
     simplex.m_variableStates.getIterators(&it,&endit,0,1);
-    for(;it != endit; it++){
+    for(;it != endit; ++it){
         m_variableStates.insert(0,it.getData(),&ZERO);
     }
 
@@ -399,7 +399,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FIXED, 1);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
@@ -407,7 +407,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
@@ -415,7 +415,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
         // TODO: itt az erteket nem kell majd atadni
@@ -427,57 +427,6 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     if (releaseWriter == true) {
         delete basisWriter;
     }
-
-
-    // dump
-    /*std::ofstream log("log_save.txt");
-
-    log << "BASIS HEAD: ";
-    unsigned int index;
-    for (index = 0; index < m_basisHead.size(); index++) {
-        log << m_basisHead[index] << " ";
-    }
-    log << endl;
-
-    log << "VARIABLE STATES: " << endl;
-    {
-        IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
-        m_variableStates.getIterators(&iter, &iterEnd, BASIC);
-        log << "BASIC: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
-        log << "NONBASIC_AT_LB: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
-        log << "NONBASIC_AT_UB: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
-        log << "NONBASIC_FIXED: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
-        log << "NONBASIC_FREE: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-    }
-    log.close();*/
 }
 
 void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader) {
@@ -503,85 +452,28 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
 
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_variableStates.getIterators(&iter, &iterEnd, BASIC);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
     }
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getUpperBound() );
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
     }
 
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         iter.setAttached( &ZERO );
     }
-
-
-    //    LPINFO("basis head: ");
-    //    std::cout << std::dec;
-    //    for (unsigned int i = 0; i < m_basisHead.size(); i++) {
-    //        std::cout << m_basisHead[i] << " ";
-    //    }
-    //    std::cout << std::endl;
-
-    // dump
-    /* std::ofstream log("log_load.txt");
-
-    log << "BASIS HEAD: ";
-
-    for (index = 0; index < m_basisHead.size(); index++) {
-        log << m_basisHead[index] << " ";
-    }
-    log << endl;
-    log << "VARIABLE STATES: " << endl;
-    {
-        IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
-        m_variableStates.getIterators(&iter, &iterEnd, BASIC);
-        log << "BASIC: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
-        log << "NONBASIC_AT_LB: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_UB);
-        log << "NONBASIC_AT_UB: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FIXED);
-        log << "NONBASIC_FIXED: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-
-        m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
-        log << "NONBASIC_FREE: ";
-        for (; iter != iterEnd; iter++) {
-            log << "(" << iter.getData() << "; " << *iter.getAttached() << ") ";
-        }
-        log << endl;
-    }
-    log.close();*/
 }
 
 void Simplex::findStartingBasis()
@@ -786,7 +678,7 @@ void Simplex::computeBasicSolution() {
     //This iterates through Simplex::NONBASIC_AT_LB, Simplex::NONBASIC_AT_UB and Simplex::NONBASIC_FIXED
     m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
-    for(; it != itend; it++) {
+    for(; it != itend; ++it) {
         if(*(it.getAttached()) != 0){
             if(it.getData() < columnCount){
                 m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS_REL);
@@ -802,47 +694,10 @@ void Simplex::computeBasicSolution() {
     //    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
     //    Vector checkVector;
 
-        m_basis->Ftran(m_basicVariableValues);
+    m_basis->Ftran(m_basicVariableValues);
 
-        /*m_basis->FtranCheck(m_basicVariableValues, checkVector);
-        //LPINFO(m_basicVariableValues << checkVector);
-        Numerical::Double norm1 = m_basicVariableValues.euclidNorm();
-
-        double sum = 0.0;
-        for (int i = 0; i < checkVector.length(); i++) {
-            double a = m_basicVariableValues.at(i);
-            double b = checkVector.at(i);
-            if (a != 0 && b != 0) {
-                double ratio = fabs(a) > fabs(b) ? a / b : b / a;
-                sum += ratio * ratio;
-            }
-        }
-        LPINFO("ratio norm: " << sqrt(sum));
-
-        checkVector.addVector(-1, m_basicVariableValues);
-
-        Numerical::Double norm2 = checkVector.euclidNorm();
-        //LPINFO(checkVector);
-        Numerical::Double normRatio = norm1 > norm2 ? norm1 / norm2 : norm2 / norm1;
-        LPINFO("------ CHECK EUCLID NORM " << checkVector.euclidNorm() << "  " << norm1 << " " << norm2);
-        LPINFO("ratio: " << normRatio << "   " << (normRatio - 1.0) << "  " << (normRatio - 1.0 >= 1e-5));
-
-
-
-        if (normRatio - 1.0 >= 1e-4) {
-            static int _counter = 0;
-            _counter++;
-            cout << "nagyobb " << _counter << endl;
-            Timer timer;
-            timer.start();
-            sensitivityAnalysisRhs();
-            timer.stop();
-            cout << "time: " << timer.getTotalElapsed() << endl;
-            cin.get();
-            cin.get();
-        }*/
     m_variableStates.getIterators(&it, &itend, Simplex::BASIC);
-    for(; it != itend; it++) {
+    for(; it != itend; ++it) {
         if(it.getData() < columnCount){
             m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
         }
@@ -932,7 +787,7 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
 
         Vector::NonzeroIterator betaIter = beta.beginNonzero();
         Vector::NonzeroIterator betaIterEnd = beta.endNonzero();
-        for (; betaIter != betaIterEnd; betaIter++) {
+        for (; betaIter != betaIterEnd; ++betaIter) {
             const unsigned int rowIndex = betaIter.getIndex();
             Numerical::Double ratio = -lowerBoundDiffs.at(rowIndex) / *betaIter;
             if (ratio > lower && *betaIter > 0.0) {

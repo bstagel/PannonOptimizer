@@ -146,7 +146,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
 
     Vector::NonzeroIterator iter = incomingAlpha.beginNonzero();
     Vector::NonzeroIterator iterEnd = incomingAlpha.endNonzero();
-    for (; iter != iterEnd; iter++) {
+    for (; iter != iterEnd; ++iter) {
         index = iter.getIndex();
         if (unlikely((int)index == outgoingIndex)) {
             continue;
@@ -181,7 +181,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
 
              auto iter = row.beginNonzero();
              auto iterEnd = row.endNonzero();
-             for (; iter != iterEnd; iter++) {
+             for (; iter != iterEnd; ++iter) {
                  LPINFO("\t"<<iter.getIndex() << " " <<*iter);
              }
 
@@ -191,7 +191,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
              m_basis.Btran(row);
              iter = row.beginNonzero();
              iterEnd = row.endNonzero();
-             for (; iter != iterEnd; iter++) {
+             for (; iter != iterEnd; ++iter) {
                  LPINFO("\t"<<iter.getIndex() << " " <<*iter);
              }
 
