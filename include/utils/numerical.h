@@ -83,6 +83,15 @@ public:
 #endif
 
     /**
+     * Helper enum to provide the sign bit of a double.
+     */
+    union Number
+    {
+        double m_num;
+        unsigned long long int m_bits;
+    };
+
+    /**
      * This class implements a summarizer able to add elements with the same sign first.
      * With this technique there are less numerical errors when summing floating point numbers.
      *
@@ -95,15 +104,10 @@ public:
          */
         Double m_negpos[2];
 
-        /**
-         * Helper type to separate positive and negative doubles quickly with bit operators.
-         */
-        union Number
-        {
-            double m_num;
-            unsigned long long int m_bits;
-        } m_number;
-
+       /**
+        * Helper type to separate positive and negative doubles quickly with bit operators.
+        */
+        Number m_number;
     public:
 
         /**
