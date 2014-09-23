@@ -31,7 +31,7 @@ void solve(std::string filename) {
         try {
             presolver.presolve();
             presolver.printStatistics();
-            exit(-1);
+//            exit(-1);
         } catch(Presolver::PresolverException e) {
             LPERROR("[Presolver] " << e.getMessage());
             exit(-1);

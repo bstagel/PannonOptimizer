@@ -222,6 +222,8 @@ public:
      */
     inline Numerical::Double getCostCoefficient(int index) { return m_model->getCostVector().at(index); }
 
+    inline const Numerical::Double & getFeasibilityTolerance() {return m_feasibilityTolerance;}
+
     //setter functions of the presolver
 
     //inline void setTimeLimit(unsigned int time) { m_timeLimit = time; }
@@ -400,6 +402,11 @@ private:
      * The timer counting the elapsed time from the start of the presolving.
      */
     Timer * m_timer;
+
+    /**
+     * Parameter reference to the feasibility tolerance.
+     */
+    const Numerical::Double & m_feasibilityTolerance;
 };
 
 #endif // PRESOLVER_H
