@@ -27,11 +27,15 @@ public:
     void checkAndFix();
 private:
 
-    std::vector<Numerical::Double> m_weights;
+    std::vector<double> m_weights;
     std::vector<unsigned int> m_updateCounters;
     std::vector<unsigned int> m_recomuteIndices;
 
+    std::vector<int> m_shadowBasisHead;
+    std::vector<unsigned int> m_basisPositions;
     unsigned int m_previousPhase;
+
+    bool m_weightsReady;
 
     void initWeights();
 };

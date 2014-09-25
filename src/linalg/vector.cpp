@@ -725,6 +725,17 @@ Numerical::Double Vector::euclidNorm() const
     return Numerical::sqrt(result);
 }
 
+Numerical::Double Vector::euclidNorm2() const
+{
+    Numerical::Double result = 0.0;
+    Numerical::Double * dataPtr = m_data;
+    for (; dataPtr < m_dataEnd; dataPtr++) {
+        const Numerical::Double value = *dataPtr;
+        result += value * value;
+    }
+    return result;
+}
+
 Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, bool stableAddRel) const
 {
     if (m_size == 0 || vector.m_size == 0) {

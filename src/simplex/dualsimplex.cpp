@@ -544,10 +544,10 @@ void DualSimplex::update() {
         //Perform the basis change
         m_basis->append(m_incomingAlpha, m_outgoingIndex, m_incomingIndex, outgoingState);
 
-        //Pricing debug, do not delete yet
-//        if (m_pricing) {
-//            m_pricing->check();
-//        }
+        if (m_pricing) {
+            m_pricing->checkAndFix();
+        }
+
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));

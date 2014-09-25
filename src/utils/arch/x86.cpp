@@ -22,7 +22,7 @@ ArchitectureX86::ArchitectureX86() {
 void ArchitectureX86::detect() {
     std::cout << "X86 detect" << std::endl;
     m_architectureName = "X86";
-    if (cpuidSupported() == true && false) {
+    if (cpuidSupported() == true) {
         setCPUData();
         setCacheData();
         setFeatureList();
@@ -80,11 +80,14 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 
 bool ArchitectureX86::cpuidSupported()
 {
+#ifdef NDEBUG
 #ifdef ENVIRONMENT_32
     return cpuinfo_supported_32();
 #else
     return true;
 #endif
+#endif
+    return false;
 }
 
 ArchitectureX86::Registers ArchitectureX86::cpuid(Registers args) const {

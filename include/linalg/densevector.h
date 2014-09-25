@@ -34,7 +34,7 @@ private:
          * @param end
          */
         static void init(const Numerical::Double * & ptr,
-                    const Numerical::Double * end) {
+                         const Numerical::Double * end) {
             while (ptr < end && *ptr == 0.0) {
                 ptr++;
             }
@@ -46,7 +46,7 @@ private:
          * @param end
          */
         static void next(const Numerical::Double * & ptr,
-                    const Numerical::Double * end) {
+                         const Numerical::Double * end) {
             do {
                 ptr++;
             } while (ptr < end && *ptr == 0.0);
@@ -211,6 +211,27 @@ public:
                                   const SparseVector & vector);
 
     /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductIndexedDenseVector(const IndexedDenseVector & vector) const;
+
+    /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductDenseVector(const DenseVector & vector) const;
+
+    /**
+     *
+     * @param vector
+     * @return
+     */
+    Numerical::Double dotProductSparseVector(const SparseVector & vector) const;
+
+    /**
      * Scales the elements of the vector by lambda.
      *
      * @param lambda The scale factor.
@@ -228,7 +249,13 @@ public:
      *
      * @param type The add mode.
      */
-    void setAddMode(Numerical::ADD_TYPE type);
+    static void setAddMode(Numerical::ADD_TYPE type);
+
+    /**
+     *
+     * @param type The dot product mode.
+     */
+    static void setDotProductMode(Numerical::DOT_PRODUCT_TYPE type);
 
     /**
      * Creates a unit vector with the specified length.
@@ -323,19 +350,37 @@ protected:
                                                   const SparseVector &);
 
 
+    typedef Numerical::Double (DenseVector::*DenseToIndexedDenseDotProduct)(
+            const DenseVector &,
+            const IndexedDenseVector &) const;
+
+    typedef Numerical::Double (DenseVector::*DenseToDenseDotProduct)(
+            const DenseVector &,
+            const DenseVector &) const;
+
+    typedef Numerical::Double (DenseVector::*DenseToSparseDotProduct)(
+            const DenseVector &,
+            const SparseVector &) const;
+
     /**
      */
-    AddDenseToDense m_addDenseToDense;
+    static thread_local AddDenseToDense sm_addDenseToDense;
 
     /**
      *
      */
-    AddIndexedDenseToDense m_addIndexedDenseToDense;
+    static thread_local AddIndexedDenseToDense sm_addIndexedDenseToDense;
 
     /**
      *
      */
-    AddSparseToDense m_addSparseToDense;
+    static thread_local AddSparseToDense sm_addSparseToDense;
+
+    static thread_local DenseToIndexedDenseDotProduct sm_denseToIndexedDenseDotProduct;
+
+    static thread_local DenseToDenseDotProduct sm_denseToDenseDotProduct;
+
+    static thread_local DenseToSparseDotProduct sm_denseToSparseDotProduct;
 
     /**
      *
@@ -447,6 +492,51 @@ protected:
      */
     void addSparseToDenseAbsRel(Numerical::Double lambda,
                                 const SparseVector & vector);
+
+    Numerical::Double dotProductDenseToIndexedDenseUnstable(const DenseVector & vector1,
+                                                            const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToIndexedDenseFast(const DenseVector & vector1,
+                                                        const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToIndexedDenseAbs(const DenseVector & vector1,
+                                                       const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToIndexedDenseRel(const DenseVector & vector1,
+                                                       const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToIndexedDenseAbsRel(const DenseVector & vector1,
+                                                          const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToDenseUnstable(const DenseVector & vector1,
+                                                     const DenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToDenseFast(const DenseVector & vector1,
+                                                 const DenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToDenseAbs(const DenseVector & vector1,
+                                                const DenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToDenseRel(const DenseVector & vector1,
+                                                const DenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToDenseAbsRel(const DenseVector & vector1,
+                                                   const DenseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToSparseUnstable(const DenseVector & vector1,
+                                                      const SparseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToSparseFast(const DenseVector & vector1,
+                                                  const SparseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToSparseAbs(const DenseVector & vector1,
+                                                 const SparseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToSparseRel(const DenseVector & vector1,
+                                                 const SparseVector & vector2) const;
+
+    Numerical::Double dotProductDenseToSparseAbsRel(const DenseVector & vector1,
+                                                    const SparseVector & vector2) const;
 
     static void _globalInit();
 };
