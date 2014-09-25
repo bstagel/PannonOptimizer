@@ -733,7 +733,8 @@ void Simplex::computeReducedCosts() {
         if(i < columnCount){
             reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
         } else {
-            reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+            //reducedCost = -1 * simplexMultiplier.at(i - columnCount);
+            reducedCost = Numerical::stableAdd(costVector.at(i), -simplexMultiplier.at(i - columnCount));
         }
         if(reducedCost != 0.0){
             m_reducedCosts.setNewNonzero(i, reducedCost);

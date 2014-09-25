@@ -18,8 +18,8 @@ DualSteepestEdgePricing::DualSteepestEdgePricing(const Vector & basicVariableVal
                 simplexModel,
                 basis)
 {
-    initWeights();
     m_previousPhase = 0;
+    m_weightsReady = false;
 }
 
 DualSteepestEdgePricing::~DualSteepestEdgePricing()
@@ -29,6 +29,9 @@ DualSteepestEdgePricing::~DualSteepestEdgePricing()
 
 int DualSteepestEdgePricing::performPricingPhase1() {
     initPhase1();
+    if (unlikely(m_weightsReady == false)) {
+        initWeights();
+    }
 
     if (m_previousPhase != 1) {
         //setReferenceFramework();
@@ -44,6 +47,17 @@ int DualSteepestEdgePricing::performPricingPhase1() {
     unsigned int index;
     m_phase1Simpri.start();
 
+    /*Numerical::Double sum = 0.0;
+    Numerical::Double squareSum = 0.0;
+
+    Numerical::Double sum2 = 0.0;
+    Numerical::Double squareSum2 = 0.0;
+    for (auto weight: m_weights) {
+        sum += weight;
+        squareSum += weight * weight;
+    }*/
+
+
     while (m_phase1Simpri.getCandidateIndex(&index) ) {
         if ( m_used[index] == true ) {
             continue;
@@ -51,11 +65,19 @@ int DualSteepestEdgePricing::performPricingPhase1() {
         //LPINFO("SIMPRI: " << index);
         unsigned int variableIndex = m_basisHead[index];
         Variable::VARIABLE_TYPE variableType = m_simplexModel.getVariable(variableIndex).getType();
-        Numerical::Double weightedReducedCost = m_phase1ReducedCosts[index] / Numerical::sqrt(m_weights[variableIndex]);
+        Numerical::Double weightedReducedCost = m_phase1ReducedCosts[index] / Numerical::sqrt(m_weights[index]);
+
+
         if ( variableType == Variable::FIXED ||
              variableType == Variable::BOUNDED ||
              (variableType == Variable::PLUS && weightedReducedCost > 0) ||
              (variableType == Variable::MINUS && weightedReducedCost < 0)) {
+
+            /*sum += Numerical::fabs(weightedReducedCost);
+            squareSum += weightedReducedCost * weightedReducedCost;
+            sum2 += Numerical::fabs(m_phase1ReducedCosts[index]);
+            squareSum2 += m_phase1ReducedCosts[index] * m_phase1ReducedCosts[index];*/
+
             if ( Numerical::fabs(weightedReducedCost) > max ) {
                 max = Numerical::fabs(weightedReducedCost);
                 m_outgoingIndex = index;
@@ -63,6 +85,11 @@ int DualSteepestEdgePricing::performPricingPhase1() {
             }
         }
     }
+
+    /*unsigned int size = m_weights.size();
+    LPINFO("VARIANCE: " << squareSum / size - ((sum / size) * (sum / size)) );
+    LPINFO("VARIANCE 2: " << squareSum2 / size - ((sum2 / size) * (sum2 / size)) );
+    LPINFO("------------------");*/
 
     if (m_outgoingIndex != -1) {
         m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
@@ -72,6 +99,9 @@ int DualSteepestEdgePricing::performPricingPhase1() {
 
 int DualSteepestEdgePricing::performPricingPhase2() {
     initPhase2();
+    if (unlikely(m_weightsReady == false)) {
+        initWeights();
+    }
 
     if (m_previousPhase != 2) {
         //    setReferenceFramework();
@@ -93,7 +123,7 @@ int DualSteepestEdgePricing::performPricingPhase2() {
         switch ( m_basicVariableFeasibilities->where( rowIndex ) ) {
         case Simplex::MINUS:
             difference =  (m_simplexModel.getVariable(variableIndex).getLowerBound() -
-                           m_basicVariableValues.at(rowIndex)) / Numerical::sqrt(m_weights[variableIndex]);
+                           m_basicVariableValues.at(rowIndex)) / Numerical::sqrt(m_weights[rowIndex]);
             if (difference > max) {
                 max = difference;
                 m_reducedCost = difference * Numerical::sqrt(m_weights[rowIndex]);
@@ -103,10 +133,10 @@ int DualSteepestEdgePricing::performPricingPhase2() {
             break;
         case Simplex::PLUS:
             difference = (m_basicVariableValues.at(rowIndex) -
-                          m_simplexModel.getVariable(variableIndex).getUpperBound()) / Numerical::sqrt(m_weights[variableIndex]);
+                          m_simplexModel.getVariable(variableIndex).getUpperBound()) / Numerical::sqrt(m_weights[rowIndex]);
             if (difference > max) {
                 max = difference;
-                m_reducedCost = difference * Numerical::sqrt(m_weights[variableIndex]);
+                m_reducedCost = difference * Numerical::sqrt(m_weights[rowIndex]);
                 m_outgoingIndex = rowIndex;
                 m_phase2Simpri.improvingIndexFound();
             }
@@ -124,25 +154,33 @@ void DualSteepestEdgePricing::update(int incomingIndex,
                                      const Vector & pivotRow,
                                      const Vector & pivotRowOfBasisInverse)
 {
-   // __UNUSED(pivotRowOfBasisInverse);
-   // __UNUSED(incomingIndex);
     __UNUSED(pivotRow);
 
+    unsigned int rowCount = m_simplexModel.getRowCount();
 
-//    if (unlikely(m_basis.isFresh() )) {
-//    }
+    if (unlikely(m_basis.isFresh() )) {
+        std::vector<double> newWeights = m_weights;
+        unsigned int index;
+        for (index = 0; index < rowCount; index++) {
+            if (m_shadowBasisHead[index] != m_basisHead[index]) {
+                unsigned int variableIndex = m_basisHead[index];
+                newWeights[index] = m_weights[ m_basisPositions[variableIndex] ];
+                m_basisPositions[variableIndex] = index;
+            }
+        }
+        m_weights = newWeights;
+        m_shadowBasisHead = m_basisHead;
 
+    }
 
-//    unsigned int rowCount = m_simplexModel.getRowCount();
     unsigned int index;
     Vector tau = pivotRowOfBasisInverse;
     m_basis.Ftran(tau);
-    //initWeights();
 
 
     Numerical::Double alpha_p_q = incomingAlpha.at(outgoingIndex);
-   //LPINFO("alpha_p_q = " << alpha_p_q);
-    Numerical::Double pivotWeight = m_weights[m_basisHead[outgoingIndex]];
+
+    Numerical::Double pivotWeight = pivotRowOfBasisInverse.euclidNorm2();
 
     Vector::NonzeroIterator iter = incomingAlpha.beginNonzero();
     Vector::NonzeroIterator iterEnd = incomingAlpha.endNonzero();
@@ -152,127 +190,43 @@ void DualSteepestEdgePricing::update(int incomingIndex,
             continue;
         }
 
-        unsigned int variableIndex = m_basisHead[index];
 
         Numerical::Double ratio = *iter / alpha_p_q;
 
-        Numerical::Double newWeight = m_weights[variableIndex];
-        newWeight -= Numerical::stableAdd(2 * ratio * tau.at(index), -(ratio * ratio * pivotWeight));
-//        std::cout << m_weights[variableIndex] << " -> " << newWeight << std::endl;
-        /*if (newWeight <= 0) {
-            LPERROR("hiba: " << newWeight);
-            Vector row(m_simplexModel.getRowCount(), Vector::DENSE_VECTOR);
-            row.setNewNonzero(index, 1.0);
-            Vector eta = incomingAlpha;
-            Numerical::Double atPivot = eta.at(outgoingIndex);
-            eta.scaleBy(-1.0 / atPivot);
-            eta.set(outgoingIndex, 1.0 / atPivot);
-            row.elementaryBtran(eta, outgoingIndex);
-            m_basis.Btran(row);
-            LPINFO(row.euclidNorm() * row.euclidNorm());
-            LPINFO("current index: " << index);
-            LPINFO("current variable: " << variableIndex);
-            LPINFO("incoming index: " << incomingIndex);
-            LPINFO("outgoing index:" << outgoingIndex);
-            LPINFO("outgoing variable: " << m_basisHead[outgoingIndex]);
+        Numerical::Double newWeight = m_weights[index] - 2 * ratio * tau.at(index) + ratio * ratio * pivotWeight;
 
-              LPINFO(m_weights[variableIndex] << " - 2 * (" << *iter << " / " << alpha_p_q << ") * " << tau.at(index) <<
-                     " + (" << *iter << " / " << alpha_p_q << ")^2 * " << pivotWeight);
-
-             auto iter = row.beginNonzero();
-             auto iterEnd = row.endNonzero();
-             for (; iter != iterEnd; ++iter) {
-                 LPINFO("\t"<<iter.getIndex() << " " <<*iter);
-             }
-
-             LPINFO("-------------------\nBEFORE: \n");
-             row.clear();
-             row.setNewNonzero(index, 1.0);
-             m_basis.Btran(row);
-             iter = row.beginNonzero();
-             iterEnd = row.endNonzero();
-             for (; iter != iterEnd; ++iter) {
-                 LPINFO("\t"<<iter.getIndex() << " " <<*iter);
-             }
-
-
-            std::cin.get();
-            //exit(1);
-        }*/
-        m_weights[variableIndex] = newWeight;
-        m_updateCounters[variableIndex]++;
-        if (m_updateCounters[variableIndex] >= 25) {
+        m_weights[index] = newWeight;
+        m_updateCounters[index]++;
+        if (newWeight <= 0) {
             m_recomuteIndices.push_back(index);
+            LPWARNING("Recompute the weight of row " << index << ", because the weight = " << newWeight);
+
         }
-        //std::cout << "beallitjuk ezt: " << index << " " << variableIndex << " erre: " << newWeight << std::endl;
     }
-    //m_weights[m_basisHead[outgoingIndex]] /= (alpha_p_q * alpha_p_q);
 
 
-    m_weights[incomingIndex] = pivotWeight / (alpha_p_q * alpha_p_q);
-    m_updateCounters[incomingIndex]++;
-    //m_weights[incomingIndex] *= m_weights[incomingIndex];
-    //std::cout << "vegul ezt erre: " << incomingIndex << "  " << m_weights[incomingIndex] << std::endl;
+    m_weights[outgoingIndex] = pivotWeight / (alpha_p_q * alpha_p_q);
 
-    //LPERROR(m_basisHead[outgoingIndex]);
-    //m_weights[incomingIndex] = pivotRowOfBasisInverse.euclidNorm();
-    //m_weights[incomingIndex] *= m_weights[incomingIndex];
-    //m_weights[incomingIndex] = m_weights[ m_basisHead[outgoingIndex] ];
+    m_basisPositions[incomingIndex] = outgoingIndex;
+    m_shadowBasisHead[outgoingIndex] = incomingIndex;
+
 }
 
 void DualSteepestEdgePricing::checkAndFix()
 {
-    //return;
     unsigned int rowCount = m_simplexModel.getRowCount();
-//    unsigned int index;
-    /*for (index = 0; index < rowCount; index++) {
-        LPINFO(index << ".: " << m_weights[index]);
-    }
-    LPINFO("-----------------");*/
 
     for (auto index: m_recomuteIndices) {
         Vector row(rowCount, Vector::DENSE_VECTOR);
         row.clear();
         row.set(index, 1.0);
         m_basis.Btran(row);
-        Numerical::Double norm = row.euclidNorm();
-        norm *= norm;
-        m_weights[ m_basisHead[index] ] = norm;
-        m_updateCounters[ m_basisHead[index] ] = 0;
+        Numerical::Double norm = row.euclidNorm2();
+        m_weights[ index ] = norm;
+        m_updateCounters[ index ] = 0;
     }
+
     m_recomuteIndices.clear();
-
-    /*bool wrong = false;
-
-    for (index = 0; index < rowCount; index++) {
-        Vector row(rowCount, Vector::DENSE_VECTOR);
-
-        row.clear();
-        row.set(index, 1.0);
-        m_basis.Btran(row);
-        Numerical::Double norm = row.euclidNorm();
-        norm *= norm;
-        //LPINFO(index << ".: " << norm << " " << m_weights[index]);
-        unsigned int variableIndex = m_basisHead[index];
-
-        if (norm != m_weights[variableIndex] && Numerical::fabs(norm - m_weights[variableIndex]) > 1e-03 ) {
-            wrong = true;
-            LPERROR(norm - m_weights[variableIndex]);
-            LPERROR(norm << " " << m_weights[variableIndex]);
-            LPERROR("index: " << index << "   " << variableIndex);
-            LPERROR("update counter: " << m_updateCounters[variableIndex]);
-            //LPERROR("incoming: " << incomingIndex);
-            //LPERROR("outgoing: " << outgoingIndex);
-        }
-        //m_weights[index] = norm;
-    }
-    if (wrong) {
-        cin.get();
-    }
-    //for (index = 0; index < rowCount; index++) {
-    //    LPINFO(index << ".: " << m_weights[index]);
-    //}
-    //std::cin.get();*/
 
 }
 
@@ -280,7 +234,9 @@ void DualSteepestEdgePricing::initWeights() {
     // LPINFO("init weights");
     unsigned int rowCount = m_simplexModel.getRowCount();
     unsigned int columnCount = m_simplexModel.getColumnCount();
-    m_weights.resize(rowCount + columnCount, 1);
+    m_weights.resize(rowCount, 1);
+    m_shadowBasisHead = m_basisHead;
+    m_basisPositions.resize(rowCount + columnCount);
     m_updateCounters.resize(rowCount + columnCount, 0);
     unsigned int index;
     Vector row(rowCount, Vector::DENSE_VECTOR);
@@ -288,9 +244,14 @@ void DualSteepestEdgePricing::initWeights() {
         row.clear();
         row.set(index, 1.0);
         m_basis.Btran(row);
-        m_weights[index] = row.euclidNorm();
-        m_weights[index] *= m_weights[index];
+
+        m_weights[index] = row.euclidNorm2();
+
+        unsigned int variableIndex = m_basisHead[index];
+        m_basisPositions[variableIndex] = index;
+
     }
+    m_weightsReady = true;
     // LPINFO("weights initialized");
 }
 

@@ -32,7 +32,6 @@ public:
 protected:
     static std::mutex sm_mutex;
 
-    // TODO: ezt a ketto muveletet lehet mutex-el vedette kellene tenni
     void registerMethod(Method * method) const {
         sm_mutex.lock();
         sm_registeredMethods.push_back(method);

@@ -541,6 +541,14 @@ public:
      */
     Numerical::Double euclidNorm() const;
 
+    /**
+     * Calculates the square of Euclidean norm of the vector.
+     *
+     * @return The square of Euclidean norm of the vector.
+     */
+    Numerical::Double euclidNorm2() const;
+
+
     //TODO: Implement l1Norm function
     /**
      * Calculates the one norm of the vector.

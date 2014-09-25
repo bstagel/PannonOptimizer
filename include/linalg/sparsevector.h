@@ -285,7 +285,9 @@ public:
      *
      * @param type The add mode.
      */
-    void setAddMode(Numerical::ADD_TYPE type);
+    static void setAddMode(Numerical::ADD_TYPE type);
+
+    static void setDotProductMode(Numerical::DOT_PRODUCT_TYPE type);
 
     /**
      *
@@ -323,17 +325,35 @@ protected:
     typedef void (SparseVector::*AddIndexedDenseToSparse)(Numerical::Double,
                                                           const IndexedDenseVector &);
 
-    /**
-     */
-    AddSparseToSparse m_addSparseToSparse;
+    typedef Numerical::Double (SparseVector::*SparseToIndexedDenseDotProduct)(
+            const SparseVector &,
+            const IndexedDenseVector &) const;
+
+    typedef Numerical::Double (SparseVector::*SparseToDenseDotProduct)(
+            const SparseVector &,
+            const DenseVector &) const;
+
+    typedef Numerical::Double (SparseVector::*SparseToSparseDotProduct)(
+            const SparseVector &,
+            const SparseVector &) const;
 
     /**
      */
-    AddDenseToSparse m_addDenseToSparse;
+    static thread_local AddSparseToSparse sm_addSparseToSparse;
 
     /**
      */
-    AddIndexedDenseToSparse m_addIndexedDenseToSparse;
+    static thread_local AddDenseToSparse sm_addDenseToSparse;
+
+    /**
+     */
+    static thread_local AddIndexedDenseToSparse sm_addIndexedDenseToSparse;
+
+    static thread_local SparseToIndexedDenseDotProduct sm_sparseToIndexedDenseDotProduct;
+
+    static thread_local SparseToDenseDotProduct sm_sparseToDenseDotProduct;
+
+    static thread_local SparseToSparseDotProduct sm_sparseToSparseDotProduct;
 
     unsigned int m_length;
 
@@ -488,6 +508,51 @@ protected:
      */
     void addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
                                        const IndexedDenseVector & vector);
+
+    Numerical::Double dotProductSparseToIndexedDenseUnstable(const SparseVector & vector1,
+                                                             const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToIndexedDenseFast(const SparseVector & vector1,
+                                                         const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToIndexedDenseAbs(const SparseVector & vector1,
+                                                        const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToIndexedDenseRel(const SparseVector & vector1,
+                                                        const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToIndexedDenseAbsRel(const SparseVector & vector1,
+                                                           const IndexedDenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToDenseUnstable(const SparseVector & vector1,
+                                                      const DenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToDenseFast(const SparseVector & vector1,
+                                                  const DenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToDenseAbs(const SparseVector & vector1,
+                                                 const DenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToDenseRel(const SparseVector & vector1,
+                                                 const DenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToDenseAbsRel(const SparseVector & vector1,
+                                                    const DenseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToSparseUnstable(const SparseVector & vector1,
+                                                       const SparseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToSparseFast(const SparseVector & vector1,
+                                                   const SparseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToSparseAbs(const SparseVector & vector1,
+                                                  const SparseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToSparseRel(const SparseVector & vector1,
+                                                  const SparseVector & vector2) const;
+
+    Numerical::Double dotProductSparseToSparseAbsRel(const SparseVector & vector1,
+                                                     const SparseVector & vector2) const;
 
 };
 

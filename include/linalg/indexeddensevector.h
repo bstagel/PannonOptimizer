@@ -329,8 +329,21 @@ protected:
      */
     typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToIndexedDenseDotProduct)(
             const IndexedDenseVector &,
-            const IndexedDenseVector &);
+            const IndexedDenseVector &) const;
 
+    /**
+     *
+     */
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToDenseDotProduct)(
+            const IndexedDenseVector &,
+            const DenseVector &) const;
+
+    /**
+     *
+     */
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToSparseDotProduct)(
+            const IndexedDenseVector &,
+            const SparseVector &) const;
     /**
      */
     static thread_local AddIndexedDenseToIndexedDense sm_addIndexedDenseToIndexedDense;
@@ -349,6 +362,16 @@ protected:
      *
      */
     static thread_local IndexedDenseToIndexedDenseDotProduct sm_indexedDenseToIndexedDenseDotProduct;
+
+    /**
+     *
+     */
+    static thread_local IndexedDenseToDenseDotProduct sm_indexedDenseToDenseDotProduct;
+
+    /**
+     *
+     */
+    static thread_local IndexedDenseToSparseDotProduct sm_indexedDenseToSparseDotProduct;
 
     /**
      */
@@ -468,22 +491,52 @@ protected:
     void addSparseToIndexedDenseAbsRel(Numerical::Double lambda,
                                        const SparseVector & vector);
 
-    Numerical::Double dotProductIndexedDenseWithIndexedDenseUnstable(const IndexedDenseVector & vector1,
-                                                                            const IndexedDenseVector & vector2);
+    Numerical::Double dotProductIndexedDenseToIndexedDenseUnstable(const IndexedDenseVector & vector1,
+                                                                   const IndexedDenseVector & vector2) const;
 
-    static Numerical::Double dotProductIndexedDenseWithIndexedDenseFast(const IndexedDenseVector & vector1,
-                                                                        const IndexedDenseVector & vector2);
+    Numerical::Double dotProductIndexedDenseToIndexedDenseFast(const IndexedDenseVector & vector1,
+                                                               const IndexedDenseVector & vector2) const;
 
-    static Numerical::Double dotProductIndexedDenseWithIndexedDenseAbs(const IndexedDenseVector & vector1,
-                                                                            const IndexedDenseVector & vector2);
+    Numerical::Double dotProductIndexedDenseToIndexedDenseAbs(const IndexedDenseVector & vector1,
+                                                              const IndexedDenseVector & vector2) const;
 
-    static Numerical::Double dotProductIndexedDenseWithIndexedDenseRel(const IndexedDenseVector & vector1,
-                                                                            const IndexedDenseVector & vector2);
+    Numerical::Double dotProductIndexedDenseToIndexedDenseRel(const IndexedDenseVector & vector1,
+                                                              const IndexedDenseVector & vector2) const;
 
-    static Numerical::Double dotProductIndexedDenseWithIndexedDenseAbsRel(const IndexedDenseVector & vector1,
-                                                                            const IndexedDenseVector & vector2);
+    Numerical::Double dotProductIndexedDenseToIndexedDenseAbsRel(const IndexedDenseVector & vector1,
+                                                                 const IndexedDenseVector & vector2) const;
 
 
+    Numerical::Double dotProductIndexedDenseToDenseUnstable(const IndexedDenseVector & vector1,
+                                                            const DenseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToDenseFast(const IndexedDenseVector & vector1,
+                                                        const DenseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToDenseAbs(const IndexedDenseVector & vector1,
+                                                       const DenseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToDenseRel(const IndexedDenseVector & vector1,
+                                                       const DenseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToDenseAbsRel(const IndexedDenseVector & vector1,
+                                                          const DenseVector & vector2) const;
+
+
+    Numerical::Double dotProductIndexedDenseToSparseUnstable(const IndexedDenseVector & vector1,
+                                                             const SparseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToSparseFast(const IndexedDenseVector & vector1,
+                                                         const SparseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToSparseAbs(const IndexedDenseVector & vector1,
+                                                        const SparseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToSparseRel(const IndexedDenseVector & vector1,
+                                                        const SparseVector & vector2) const;
+
+    Numerical::Double dotProductIndexedDenseToSparseAbsRel(const IndexedDenseVector & vector1,
+                                                           const SparseVector & vector2) const;
     static void _globalInit();
 };
 

@@ -10,6 +10,14 @@ thread_local unsigned int SparseVector::sm_fullLengthVectorLength;
 thread_local unsigned int SparseVector::sm_fullLenghtReferenceCounter;
 thread_local unsigned int SparseVector::sm_elbowRoom;
 
+thread_local SparseVector::AddDenseToSparse SparseVector::sm_addDenseToSparse;
+thread_local SparseVector::AddIndexedDenseToSparse SparseVector::sm_addIndexedDenseToSparse;
+thread_local SparseVector::AddSparseToSparse SparseVector::sm_addSparseToSparse;
+thread_local SparseVector::SparseToDenseDotProduct SparseVector::sm_sparseToDenseDotProduct;
+thread_local SparseVector::SparseToIndexedDenseDotProduct SparseVector::sm_sparseToIndexedDenseDotProduct;
+thread_local SparseVector::SparseToSparseDotProduct SparseVector::sm_sparseToSparseDotProduct;
+
+
 template<class ADD>
 void addSparseToSparseTemplate(Numerical::Double lambda,
                                SparseVector * vector1,
@@ -123,7 +131,6 @@ void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
 
 SparseVector::SparseVector(unsigned int length)
 {
-    m_addSparseToSparse = &SparseVector::addSparseToSparseFast;
     m_length = length;
     m_nonZeros = 0;
     m_data = nullptr;
@@ -342,21 +349,21 @@ Numerical::Double SparseVector::l1Norm() const
 SparseVector &SparseVector::addSparseVector(Numerical::Double lambda,
                                             const SparseVector &vector)
 {
-    (this->*m_addSparseToSparse)(lambda, vector);
+    (this->*sm_addSparseToSparse)(lambda, vector);
     return *this;
 }
 
 SparseVector &SparseVector::addDenseVector(Numerical::Double lambda,
                                            const DenseVector &vector)
 {
-    (this->*m_addDenseToSparse)(lambda, vector);
+    (this->*sm_addDenseToSparse)(lambda, vector);
     return *this;
 }
 
 SparseVector &SparseVector::addIndexedDenseVector(Numerical::Double lambda,
                                                   const IndexedDenseVector &vector)
 {
-    (this->*m_addIndexedDenseToSparse)(lambda, vector);
+    (this->*sm_addIndexedDenseToSparse)(lambda, vector);
     return *this;
 }
 
@@ -386,16 +393,55 @@ void SparseVector::setAddMode(Numerical::ADD_TYPE type)
 {
     switch (type) {
     case Numerical::ADD_FAST:
-        m_addSparseToSparse = &SparseVector::addSparseToSparseFast;
+        sm_addSparseToSparse = &SparseVector::addSparseToSparseFast;
+        sm_addDenseToSparse = &SparseVector::addDenseToSparseFast;
+        sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseFast;
         break;
     case Numerical::ADD_ABS:
-        m_addSparseToSparse = &SparseVector::addSparseToSparseAbs;
+        sm_addSparseToSparse = &SparseVector::addSparseToSparseAbs;
+        sm_addDenseToSparse = &SparseVector::addDenseToSparseAbs;
+        sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseAbs;
         break;
     case Numerical::ADD_ABS_REL:
-        m_addSparseToSparse = &SparseVector::addSparseToSparseAbsRel;
+        sm_addSparseToSparse = &SparseVector::addSparseToSparseAbsRel;
+        sm_addDenseToSparse = &SparseVector::addDenseToSparseAbsRel;
+        sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseAbsRel;
         break;
     case Numerical::ADD_REL:
-        m_addSparseToSparse = &SparseVector::addSparseToSparseRel;
+        sm_addSparseToSparse = &SparseVector::addSparseToSparseRel;
+        sm_addDenseToSparse = &SparseVector::addDenseToSparseRel;
+        sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseRel;
+        break;
+    }
+}
+
+void SparseVector::setDotProductMode(Numerical::DOT_PRODUCT_TYPE type)
+{
+    switch (type) {
+    case Numerical::DOT_UNSTABLE:
+        sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseUnstable;
+        sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseUnstable;
+        sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseUnstable;
+        break;
+    case Numerical::DOT_FAST:
+        sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseFast;
+        sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseFast;
+        sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseFast;
+        break;
+    case Numerical::DOT_ABS:
+        sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseAbs;
+        sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseAbs;
+        sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseAbs;
+        break;
+    case Numerical::DOT_ABS_REL:
+        sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseAbsRel;
+        sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseAbsRel;
+        sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseAbsRel;
+        break;
+    case Numerical::DOT_REL:
+        sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseRel;
+        sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseRel;
+        sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseRel;
         break;
     }
 }
@@ -420,11 +466,18 @@ void SparseVector::_globalInit()
     sm_fullLengthVectorLength = 0;
     sm_fullLenghtReferenceCounter = 0;
     sm_elbowRoom = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
+
+    sm_addSparseToSparse = &SparseVector::addSparseToSparseFast;
+    sm_addDenseToSparse = &SparseVector::addDenseToSparseFast;
+    sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseFast;
+    sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseUnstable;
+    sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseUnstable;
+    sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseUnstable;
+
 }
 
 void SparseVector::copy(const SparseVector &orig)
 {
-    m_addSparseToSparse = orig.m_addSparseToSparse;
     m_length = orig.m_length;
     m_nonZeros = orig.m_nonZeros;
     m_capacity = orig.m_capacity;
@@ -447,7 +500,6 @@ void SparseVector::release()
 
 void SparseVector::move(SparseVector &orig)
 {
-    m_addSparseToSparse = orig.m_addSparseToSparse;
     m_length = orig.m_length;
     orig.m_length = 0;
     m_nonZeros = orig.m_nonZeros;
@@ -557,4 +609,94 @@ void SparseVector::addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
                                                  const IndexedDenseVector &vector)
 {
     addIndexedDenseToSparseTemplate<AddAbsRel>(lambda, this, vector);
+}
+
+Numerical::Double SparseVector::dotProductSparseToIndexedDenseUnstable(const SparseVector &vector1,
+                                                                       const IndexedDenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToIndexedDenseFast(const SparseVector &vector1,
+                                                                   const IndexedDenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbs(const SparseVector &vector1,
+                                                                  const IndexedDenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToIndexedDenseRel(const SparseVector &vector1,
+                                                                  const IndexedDenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbsRel(const SparseVector &vector1,
+                                                                     const IndexedDenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToDenseUnstable(const SparseVector &vector1,
+                                                                const DenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToDenseFast(const SparseVector &vector1,
+                                                            const DenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToDenseAbs(const SparseVector &vector1,
+                                                           const DenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToDenseRel(const SparseVector &vector1,
+                                                           const DenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToDenseAbsRel(const SparseVector &vector1,
+                                                              const DenseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToSparseUnstable(const SparseVector &vector1,
+                                                                 const SparseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToSparseFast(const SparseVector &vector1,
+                                                             const SparseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToSparseAbs(const SparseVector &vector1,
+                                                            const SparseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToSparseRel(const SparseVector &vector1,
+                                                            const SparseVector &vector2) const
+{
+
+}
+
+Numerical::Double SparseVector::dotProductSparseToSparseAbsRel(const SparseVector &vector1,
+                                                               const SparseVector &vector2) const
+{
+
 }
