@@ -54,10 +54,10 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
         }
     }
 
-    IndexList<>::Iterator setMit;
-    IndexList<>::Iterator setMendit;
-    IndexList<>::Iterator setPit;
-    IndexList<>::Iterator setPendit;
+    IndexList<>::PartitionIterator setMit;
+    IndexList<>::PartitionIterator setMendit;
+    IndexList<>::PartitionIterator setPit;
+    IndexList<>::PartitionIterator setPendit;
 
     m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
@@ -139,10 +139,10 @@ bool DualFeasibilityChecker::updateFeasibilities(const std::vector<std::pair<int
         m_reducedCostFeasibilities->move(becomesFeasible[index],Simplex::FEASIBLE);
     }
     //TODO: Compute phase 1 objective function too!
-    IndexList<>::Iterator setMit;
-    IndexList<>::Iterator setMendit;
-    IndexList<>::Iterator setPit;
-    IndexList<>::Iterator setPendit;
+    IndexList<>::PartitionIterator setMit;
+    IndexList<>::PartitionIterator setMendit;
+    IndexList<>::PartitionIterator setPit;
+    IndexList<>::PartitionIterator setPendit;
 
     m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);

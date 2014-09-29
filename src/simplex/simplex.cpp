@@ -317,38 +317,33 @@ void Simplex::setSimplexState(const Simplex & simplex)
     m_basisHead = simplex.m_basisHead;
 
     m_variableStates.clearAllPartitions();
-    IndexList<const Numerical::Double*>::Iterator it;
-    IndexList<const Numerical::Double*>::Iterator endit;
+    IndexList<const Numerical::Double*>::PartitionIterator it;
+    IndexList<const Numerical::Double*>::PartitionIterator endit;
 
     //NONBASIC_AT_LB
-    int partition = 1;
-    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_LB);
     for(;it != endit; ++it){
-        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+        m_variableStates.insert(NONBASIC_AT_LB,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
     }
-    partition++;
     //NONBASIC_AT_UB
-    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_UB);
     for(;it != endit; ++it){
-        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getUpperBound());
+        m_variableStates.insert(NONBASIC_AT_UB,it.getData(), &m_simplexModel->getVariable(it.getData()).getUpperBound());
     }
-    partition++;
     //NONBASIC_AT_FIXED
-    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_FIXED);
     for(;it != endit; ++it){
-        m_variableStates.insert(partition,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+        m_variableStates.insert(NONBASIC_FIXED,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
     }
-    partition++;
     //NONBASIC_AT_FREE
-    simplex.m_variableStates.getIterators(&it,&endit,partition,1);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_FREE);
     for(;it != endit; ++it){
-        m_variableStates.insert(partition,it.getData(), &ZERO);
+        m_variableStates.insert(NONBASIC_FREE,it.getData(), &ZERO);
     }
-    partition++;
     //BASIC
-    simplex.m_variableStates.getIterators(&it,&endit,0,1);
+    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
     for(;it != endit; ++it){
-        m_variableStates.insert(0,it.getData(),&ZERO);
+        m_variableStates.insert(BASIC,it.getData(),&ZERO);
     }
 
     m_basicVariableValues = simplex.m_basicVariableValues;
@@ -396,9 +391,9 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     }
     //    std::cout << std::endl;
 
-    IndexList<const Numerical::Double *>::Iterator iter, iterEnd;
+    IndexList<const Numerical::Double *>::PartitionIterator iter, iterEnd;
 
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FIXED, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FIXED);
     for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
@@ -406,7 +401,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
         basisWriter->addNonbasicVariable(variable, variableIndex, Simplex::NONBASIC_FIXED, variable->getLowerBound());
     }
 
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB);
     for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);
@@ -414,7 +409,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
         basisWriter->addNonbasicVariable(variable, variableIndex, Simplex::NONBASIC_AT_LB, variable->getLowerBound());
     }
 
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
+    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB);
     for (; iter != iterEnd; ++iter) {
         variableIndex = iter.getData();
         const Variable * variable = &m_simplexModel->getVariable(variableIndex);

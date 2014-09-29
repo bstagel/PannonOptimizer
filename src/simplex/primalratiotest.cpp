@@ -35,8 +35,8 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 {
     m_boundflips.clear();
 
-    IndexList<>::Iterator it;
-    IndexList<>::Iterator endit;
+    IndexList<>::PartitionIterator it;
+    IndexList<>::PartitionIterator endit;
     Numerical::Double value = 0;
     Numerical::Double epsilon = 0;
 

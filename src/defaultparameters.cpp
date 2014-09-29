@@ -46,6 +46,8 @@ const int DefaultParameters::Ratiotest::Expand::DIVIDER = 10000;
 const char * DefaultParameters::Ratiotest::Expand::TYPE = "EXPANDING";
 //Perturbation
 const char * DefaultParameters::Perturbation::PERTURB_COST_VECTOR = "INACTIVE";
+const char * DefaultParameters::Perturbation::PERTURB_TARGET = "ALL";
+const bool DefaultParameters::Perturbation::PERTURB_LOGICAL = false;
 const double DefaultParameters::Perturbation::E_COST_VECTOR = 1.e-6;
 const bool DefaultParameters::Perturbation::PERTURB_RHS = false;
 const double DefaultParameters::Perturbation::E_RHS = 1.e-6;

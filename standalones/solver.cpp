@@ -134,7 +134,9 @@ void solveDir(std::string dirPath) {
     if ((dir = opendir (dirPath.c_str())) != NULL) {
         while ((ent = readdir (dir)) != NULL) {
             std::string entry(ent->d_name);
-            std::cout << "ENTRY: "<<entry << "\n";
+            if(entry.size()>=4){
+                LPINFO("ENTRY: "<<entry);
+            }
             if(entry.size()>=4 && entry.substr(entry.size()-4 , 4).compare(".MPS") == 0){
                 std::string filePath = dirPath;
                 filePath.append({PATH_SEPARATOR}).append(entry);

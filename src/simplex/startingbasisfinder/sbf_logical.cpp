@@ -58,9 +58,9 @@ void SbfLogical::run()
         //Always minimize
         for (i=0; i<columnCount; i++) {
             if (costs.at(i) < 0) {
-                adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
-            } else {
                 adjustVariableByType(i, Simplex::NONBASIC_AT_UB);
+            } else {
+                adjustVariableByType(i, Simplex::NONBASIC_AT_LB);
             }
         }
         break;

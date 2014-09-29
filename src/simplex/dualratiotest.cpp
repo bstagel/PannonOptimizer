@@ -53,8 +53,8 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     #endif
 
 //computing ratios
-    IndexList<>::Iterator it;
-    IndexList<>::Iterator endit;
+    IndexList<>::PartitionIterator it;
+    IndexList<>::PartitionIterator endit;
     Variable::VARIABLE_TYPE typeOfIthVariable;
     Numerical::Double epsilon = 0;
     if(m_nonlinearDualPhaseIFunction < 2){
@@ -459,15 +459,15 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     m_breakpointHandler.init(alpha.nonZeros());
 
 //computing ratios
-    IndexList<const Numerical::Double*>::Iterator it;
-    IndexList<const Numerical::Double*>::Iterator endit;
+    IndexList<const Numerical::Double*>::PartitionIterator it;
+    IndexList<const Numerical::Double*>::PartitionIterator endit;
     Numerical::Double epsilon = 0;
     if(m_nonlinearDualPhaseIIFunction < 2){
         epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
     }
 
     //free variables always enter the basis
-    m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_FREE,1);
+    m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_FREE);
     while (it != endit) {
         unsigned variableIndex = it.getData();
         if (Numerical::fabs(alpha.at(variableIndex)) > epsilon) {
@@ -484,7 +484,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
 
     if(m_incomingVariableIndex == -1){
         //NONBASIC_FIXED variables are ignored
-        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB,1);
+        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB);
         while (it != endit) {
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
@@ -495,7 +495,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
             ++it;
         }
 
-        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_UB,1);
+        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_UB);
         while (it != endit) {
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
@@ -520,11 +520,11 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
     m_breakpointHandler.init(alpha.nonZeros());
 
     //computing ratios
-    IndexList<const Numerical::Double*>::Iterator it;
-    IndexList<const Numerical::Double*>::Iterator endit;
+    IndexList<const Numerical::Double*>::PartitionIterator it;
+    IndexList<const Numerical::Double*>::PartitionIterator endit;
 
     //free variables always enter the basis
-    m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_FREE,1);
+    m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_FREE);
     while (it != endit) {
         int variableIndex = it.getData();
         if (Numerical::fabs(alpha.at(variableIndex)) > m_pivotTolerance) {
@@ -541,7 +541,7 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
 
     if(m_incomingVariableIndex == -1){
         //NONBASIC_FIXED variables are ignored
-        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB,1);
+        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB);
         while (it != endit) {
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
@@ -561,7 +561,7 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
             ++it;
         }
 
-        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_UB,1);
+        m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_UB);
         while (it != endit) {
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
@@ -830,7 +830,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     if(m_expand == "HARRIS"){
                         //HARRIS
                         if(secondPassRatios[maxBreakpointId]->value < 0){
-                            LPINFO("Harris ratiotest theta is zero!");
+//                            LPINFO("Harris ratiotest theta is zero!");
                             m_degenerate = true;
                             theta = 0;
                         } else {

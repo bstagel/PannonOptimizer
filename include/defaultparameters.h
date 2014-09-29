@@ -95,6 +95,8 @@ public:
     class Perturbation {
     public:
         static const char* PERTURB_COST_VECTOR;
+        static const char* PERTURB_TARGET;
+        static const bool PERTURB_LOGICAL;
         static const double E_COST_VECTOR;
         static const bool PERTURB_RHS;
         static const double E_RHS;

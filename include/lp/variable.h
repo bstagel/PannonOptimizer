@@ -25,16 +25,10 @@ class Variable
 public:
 
     /**
-     * 
+     * Describes the different variable types corresponding to CF-1.
      */
     enum VARIABLE_TYPE
     {
-//        PLUS = 0, /* Finite lower bound, infinity upper bound */
-//        MINUS, /* -Infinity lower bound, finite upper bound */
-//        BOUNDED, /* Finite lower and upper bounds */
-//        FIXED, /* The finite lower and upper bounds are the same */
-//        FREE, /* The variable has no finite bounds */
-        //CF-1 order
         FIXED = 0, /* The finite lower and upper bounds are the same */
         BOUNDED, /* Finite lower and upper bounds */
         PLUS, /* Finite lower bound, infinity upper bound */
@@ -391,8 +385,8 @@ private:
         const char * name);
 
     /**
-     * This function adjustes the m_type variable considering the m_lowerBound
-     * and m_upperBound. It supposes that the bounds are correct.
+     * This function adjusts the m_type variable considering the m_lowerBound and m_upperBound.
+     * It supposes that the bounds are correct.
      */
     inline void adjustType();
 

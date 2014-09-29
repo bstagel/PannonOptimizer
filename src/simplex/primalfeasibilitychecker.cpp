@@ -57,13 +57,13 @@ bool PrimalFeasibilityChecker::computeFeasibilities(Numerical::Double tolerance)
         }
     }
 
-    IndexList<>::Iterator setMit;
-    IndexList<>::Iterator setMendit;
-    IndexList<>::Iterator setPit;
-    IndexList<>::Iterator setPendit;
+    IndexList<>::PartitionIterator setMit;
+    IndexList<>::PartitionIterator setMendit;
+    IndexList<>::PartitionIterator setPit;
+    IndexList<>::PartitionIterator setPendit;
 
-    m_basicVariableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS,1);
-    m_basicVariableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS,1);
+    m_basicVariableFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
+    m_basicVariableFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
 
     return ( (setMit == setMendit) && (setPit == setPendit) );
 }
