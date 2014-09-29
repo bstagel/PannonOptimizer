@@ -48,6 +48,8 @@ private:
 
     static void _globalInit();
 
+    static void _globalRelease();
+
     /**
      * Constructor of the LinalgParameterHandler class.
      *

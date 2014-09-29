@@ -9,6 +9,8 @@ public:
 
     static void init();
 
+    static void release();
+
     const ArchitectureInterface & getArchitecture() const;
 private:
     static ArchitectureInterface * sm_architecture;

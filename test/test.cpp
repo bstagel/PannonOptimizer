@@ -23,6 +23,7 @@
 #include <dualratiotesttest.h>
 #include <presolvertest.h>
 #include <coretest.h>
+#include <sparsevectortest.h>
 
 using namespace std;
 
@@ -32,7 +33,8 @@ using namespace std;
 int main(int, char** )
 {
     setbuf(stdout, 0);
-    Tester::addUnitTest(new CoreTestSuite("Core Test"));
+    Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
+//    Tester::addUnitTest(new CoreTestSuite("Core Test"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));

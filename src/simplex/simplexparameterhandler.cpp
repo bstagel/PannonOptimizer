@@ -41,6 +41,12 @@ void SimplexParameterHandler::_globalInit() {
     sm_instance->readParameterFile(sm_defaultFilename);
 }
 
+void SimplexParameterHandler::_globalRelease()
+{
+    delete sm_instance;
+    sm_instance = nullptr;
+}
+
 void SimplexParameterHandler::writeParameterFile(){
     try {
         std::ofstream out;

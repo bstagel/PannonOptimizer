@@ -6,6 +6,9 @@
 class ArchitectureInterface {
 public:
 
+    ArchitectureInterface() {}
+
+    virtual ~ArchitectureInterface() {}
 
     typedef void (*MemSetNoCache)(const void * dest,
                                   unsigned char value,

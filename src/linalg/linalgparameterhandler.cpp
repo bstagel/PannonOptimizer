@@ -40,6 +40,12 @@ void LinalgParameterHandler::_globalInit() {
     sm_instance->readParameterFile(sm_defaultFilename);
 }
 
+void LinalgParameterHandler::_globalRelease()
+{
+    delete sm_instance;
+    sm_instance = nullptr;
+}
+
 
 void LinalgParameterHandler::writeParameterFile()
 {

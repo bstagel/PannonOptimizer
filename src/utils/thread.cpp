@@ -30,6 +30,6 @@ void ThreadSupervisor::_globalInit()
 
 void ThreadSupervisor::_globalRelease()
 {
-    delete [] sm_threadIds;
+    delete sm_threadIds;
     sm_threadIds = nullptr;
 }

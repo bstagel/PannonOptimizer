@@ -51,7 +51,8 @@ HEADERS += test/framework/tester.h \
            test/linalgparameterhandlertest.h \
            test/simplexparameterhandlertest.h \
     test/outputhandlertest.h \ #\
-    test/coretest.h
+    test/coretest.h \
+    test/sparsevectortest.h
    # test/dualratiotesttest.h
 
 #Sources
@@ -69,7 +70,8 @@ SOURCES += test/framework/tester.cpp \
            test/linalgparameterhandlertest.cpp \
            test/simplexparameterhandlertest.cpp \
     test/outputhandlertest.cpp \
-    test/coretest.cpp
+    test/coretest.cpp \
+    test/sparsevectortest.cpp
   #  test/dualratiotesttest.cpp
 
 OBJECTS_DIR = .o

@@ -26,6 +26,8 @@ public:
      */
     Architecture();
 
+    virtual ~Architecture();
+
     /**
      * Detects the properties of specific architectures.
      * Gathers information about the CPU, cache and computing features of the system.

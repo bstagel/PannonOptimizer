@@ -30,6 +30,11 @@ Architecture::Architecture():
     sm_indexedDenseToIndexedDenseDotProductStablePtr = indexedDenseToIndexedDenseDotProductStable;
 }
 
+Architecture::~Architecture()
+{
+
+}
+
 bool Architecture::featureExists(const char *feature) const {
     return m_features.find(std::string(feature)) != m_features.end();
 }

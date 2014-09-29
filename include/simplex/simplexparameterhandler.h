@@ -122,6 +122,8 @@ private:
 
     static void _globalInit();
 
+    static void _globalRelease();
+
     SimplexParameterHandler();
     SimplexParameterHandler(const SimplexParameterHandler &){}
 
