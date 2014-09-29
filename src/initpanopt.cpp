@@ -74,6 +74,28 @@ void InitPanOpt::init() {
 
 }
 
+void InitPanOpt::release()
+{
+    ThreadSupervisor::_globalRelease();
+
+    SparseVector::_globalRelease();
+
+    D::release();
+
+    LinalgParameterHandler::_globalRelease();
+    SimplexParameterHandler::_globalRelease();
+
+    delete sm_instance;
+    sm_instance = nullptr;
+
+    delete sm_architecture;
+    sm_architecture = nullptr;
+
+#ifndef CLASSIC_NEW_DELETE
+    MemoryManager::release();
+#endif
+}
+
 const ArchitectureInterface & InitPanOpt::getArchitecture() const {
     return *sm_architecture;
 }
@@ -92,8 +114,5 @@ __attribute__((destructor))
 static void releasePanOpt() {
     std::cout << "RELEASE PanOpt" << std::endl;
 
-    //ThreadSupervisor::_globalRelease();
-#ifndef CLASSIC_NEW_DELETE
-    MemoryManager::release();
-#endif
+    InitPanOpt::release();
 }

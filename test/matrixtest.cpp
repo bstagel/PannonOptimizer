@@ -4408,31 +4408,31 @@ void MatrixTestSuite::sortElements()
     Vector::NonzeroIterator iter = m.column(0).beginNonzero();
     // 1, 2, 4, 5, 7, 9
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(2, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(4, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(5, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(7, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(9, iter.getIndex());
 
     iter = m.column(1).beginNonzero();
     // 1, 3, 6
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(3, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.column(2).beginNonzero();
     // 3, 6, 8
     ASSERT_EQ(3, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(8, iter.getIndex());
 
     iter = m.column(3).beginNonzero();
@@ -4441,9 +4441,9 @@ void MatrixTestSuite::sortElements()
     iter = m.column(4).beginNonzero();
     // 1, 5, 6
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(5, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.column(5).beginNonzero();
@@ -4452,15 +4452,15 @@ void MatrixTestSuite::sortElements()
     iter = m.column(6).beginNonzero();
     // 3, 4, 8
     ASSERT_EQ(3, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(4, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(8, iter.getIndex());
 
     iter = m.column(7).beginNonzero();
     // 2, 6
     ASSERT_EQ(2, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.row(0).beginNonzero();
@@ -4469,45 +4469,45 @@ void MatrixTestSuite::sortElements()
     iter = m.row(1).beginNonzero();
     // 0, 1, 4
     ASSERT_EQ(0, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(4, iter.getIndex());
 
     iter = m.row(2).beginNonzero();
     // 0, 7
     ASSERT_EQ(0, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(7, iter.getIndex());
 
     iter = m.row(3).beginNonzero();
     // 1, 2, 6
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(2, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.row(4).beginNonzero();
     // 0, 6
     ASSERT_EQ(0, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.row(5).beginNonzero();
     // 0, 4
     ASSERT_EQ(0, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(4, iter.getIndex());
 
     iter = m.row(6).beginNonzero();
     // 1, 2, 4, 7
     ASSERT_EQ(1, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(2, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(4, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(7, iter.getIndex());
 
     iter = m.row(7).beginNonzero();
@@ -4517,7 +4517,7 @@ void MatrixTestSuite::sortElements()
     iter = m.row(8).beginNonzero();
     // 2, 6
     ASSERT_EQ(2, iter.getIndex());
-    iter++;
+    ++iter;
     ASSERT_EQ(6, iter.getIndex());
 
     iter = m.row(9).beginNonzero();

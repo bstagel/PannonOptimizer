@@ -4043,7 +4043,7 @@ void VectorTestSuite::iterators()
         TEST_ASSERT(iter1 >= iter1End);
         TEST_ASSERT(!(iter1 > iter1End));
     } else {
-        for (index = 0; index < myVect.m_dimension; index++, iter1++) {
+        for (index = 0; index < myVect.m_dimension; index++, ++iter1) {
             TEST_ASSERT(!(iter1 == iter1End));
             TEST_ASSERT(iter1 != iter1End);
             TEST_ASSERT(iter1 <= iter1End);
@@ -4077,7 +4077,7 @@ void VectorTestSuite::iterators()
     Vector::Iterator iter2End = myVect.end();
     if (myVect.m_vectorType == Vector::SPARSE_VECTOR) {
         unsigned int count = 0;
-        for (; iter2 < iter2End; iter2++, count++) {
+        for (; iter2 < iter2End; ++iter2, count++) {
             TEST_ASSERT(!(iter2 == iter2End));
             TEST_ASSERT(iter2 != iter2End);
             TEST_ASSERT(iter2 <= iter2End);
@@ -4103,7 +4103,7 @@ void VectorTestSuite::iterators()
         TEST_ASSERT(!(iter2 > iter2End));
         TEST_ASSERT(count == 3);
     } else {
-        for (index = 0; index < myVect.m_dimension; index++, iter2++) {
+        for (index = 0; index < myVect.m_dimension; index++, ++iter2) {
             TEST_ASSERT(!(iter2 == iter2End));
             TEST_ASSERT(iter2 != iter2End);
             TEST_ASSERT(iter2 <= iter2End);
@@ -4138,7 +4138,7 @@ void VectorTestSuite::iterators()
     Vector::NonzeroIterator itern2End = myVect.endNonzero();
     if (myVect.m_vectorType == Vector::SPARSE_VECTOR) {
         unsigned int count = 0;
-        for (; itern2 < itern2End; itern2++, count++) {
+        for (; itern2 < itern2End; ++itern2, count++) {
             TEST_ASSERT(!(itern2 == itern2End));
             TEST_ASSERT(itern2 != itern2End);
             TEST_ASSERT(itern2 <= itern2End);
@@ -4163,7 +4163,7 @@ void VectorTestSuite::iterators()
         TEST_ASSERT(!(itern2 > itern2End));
         TEST_ASSERT(count == 3);
     } else {
-        for (index = 0; index < myVect.m_nonZeros; index++, itern2++) {
+        for (index = 0; index < myVect.m_nonZeros; index++, ++itern2) {
             TEST_ASSERT(!(itern2 == itern2End));
             TEST_ASSERT(itern2 != itern2End);
             TEST_ASSERT(itern2 <= itern2End);

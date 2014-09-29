@@ -19,6 +19,7 @@ class SparseVector {
     friend class InitPanOpt;
     friend class DenseVector;
     friend class IndexedDenseVector;
+    friend class SparseVectorTestSuite;
 
     /**
      *
@@ -104,18 +105,46 @@ class SparseVector {
                                                 const IndexedDenseVector & vector2);
 public:
 
+    /**
+     *
+     */
     typedef ValueIndexPairIterator<Numerical::Double, unsigned int> NonzeroIterator;
 
+    /**
+     *
+     * @param length
+     */
     SparseVector(unsigned int length);
 
+    /**
+     *
+     * @param orig
+     */
     SparseVector(const SparseVector & orig);
 
+    /**
+     *
+     * @param orig
+     */
     SparseVector(SparseVector && orig);
 
+    /**
+     *
+     * @param orig
+     * @return
+     */
     SparseVector &operator=(const SparseVector & orig);
 
+    /**
+     *
+     * @param orig
+     * @return
+     */
     SparseVector & operator=(SparseVector && orig);
 
+    /**
+     *
+     */
     ~SparseVector();
 
     /**
@@ -287,6 +316,10 @@ public:
      */
     static void setAddMode(Numerical::ADD_TYPE type);
 
+    /**
+     *
+     * @param type
+     */
     static void setDotProductMode(Numerical::DOT_PRODUCT_TYPE type);
 
     /**
@@ -306,6 +339,16 @@ public:
     }
 
 protected:
+
+    unsigned int m_length;
+
+    unsigned int m_nonZeros;
+
+    Numerical::Double * m_data;
+
+    unsigned int * m_indices;
+
+    unsigned int m_capacity;
 
     /**
      *
@@ -355,16 +398,6 @@ protected:
 
     static thread_local SparseToSparseDotProduct sm_sparseToSparseDotProduct;
 
-    unsigned int m_length;
-
-    unsigned int m_nonZeros;
-
-    Numerical::Double * m_data;
-
-    unsigned int * m_indices;
-
-    unsigned int m_capacity;
-
     /**
      * Temporary vector for linear time dot product and add operations.
      */
@@ -391,15 +424,6 @@ protected:
     static thread_local unsigned int sm_fullLengthVectorLength;
 
     /**
-     * Describes how many Vector type objects exists.
-     * It is important for releasing sm_fullLengthVector. When this variable is zero, the program
-     * releases sm_fullLengthVector automatically.
-     *
-     * @see sm_fullLengthVector
-     */
-    static thread_local unsigned int sm_fullLenghtReferenceCounter;
-
-    /**
      *
      */
     static thread_local unsigned int sm_elbowRoom;
@@ -415,6 +439,8 @@ protected:
      */
     static void _globalInit();
 
+    static void _globalRelease();
+
     void copy(const SparseVector & orig);
 
     void release();
@@ -423,7 +449,7 @@ protected:
 
     void resize(unsigned int capacity);
 
-    void scatter();
+    void scatter() const;
 
     /**
      * @param lambda

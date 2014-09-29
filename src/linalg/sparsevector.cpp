@@ -2,12 +2,12 @@
 #include <linalg/linalgparameterhandler.h>
 #include <linalg/densevector.h>
 #include <linalg/indexeddensevector.h>
+#include <utils/architecture.h>
 
 thread_local Numerical::Double * SparseVector::sm_fullLengthVector;
 thread_local unsigned int * SparseVector::sm_indexVector;
 thread_local unsigned int ** SparseVector::sm_indexPointerVector;
 thread_local unsigned int SparseVector::sm_fullLengthVectorLength;
-thread_local unsigned int SparseVector::sm_fullLenghtReferenceCounter;
 thread_local unsigned int SparseVector::sm_elbowRoom;
 
 thread_local SparseVector::AddDenseToSparse SparseVector::sm_addDenseToSparse;
@@ -136,19 +136,20 @@ SparseVector::SparseVector(unsigned int length)
     m_data = nullptr;
     m_indices = nullptr;
     m_capacity = 0;
-    sm_fullLenghtReferenceCounter++;
+
+    if (unlikely(sm_fullLengthVectorLength < m_length)) {
+        resizeFullLengthVector(m_length);
+    }
 }
 
 SparseVector::SparseVector(const SparseVector &orig)
 {
     copy(orig);
-    sm_fullLenghtReferenceCounter++;
 }
 
 SparseVector::SparseVector(SparseVector &&orig)
 {
     move(orig);
-    sm_fullLenghtReferenceCounter++;
 }
 
 SparseVector &SparseVector::operator=(const SparseVector &orig)
@@ -174,16 +175,6 @@ SparseVector &SparseVector::operator=(SparseVector &&orig)
 SparseVector::~SparseVector()
 {
     release();
-    sm_fullLenghtReferenceCounter--;
-    if (unlikely(sm_fullLenghtReferenceCounter == 0)) {
-        ::release(sm_fullLengthVector);
-        sm_fullLengthVector = nullptr;
-        ::release(sm_indexVector);
-        sm_indexVector = nullptr;
-        ::release(sm_indexPointerVector);
-        sm_indexPointerVector = nullptr;
-        sm_fullLengthVectorLength = 0;
-    }
 }
 
 SparseVector SparseVector::createUnitVector(unsigned int length, unsigned int index)
@@ -201,9 +192,7 @@ SparseVector SparseVector::createUnitVector(unsigned int length, unsigned int in
 SparseVector SparseVector::createVectorFromDenseArray(const Numerical::Double *source,
                                                       unsigned int length)
 {
-    if (unlikely(sm_fullLengthVectorLength < length)) {
-        resizeFullLengthVector(length);
-    }
+    SparseVector result(length);
     unsigned int nonZeros = 0;
     unsigned int index;
     for (index = 0; index < length; index++) {
@@ -213,7 +202,6 @@ SparseVector SparseVector::createVectorFromDenseArray(const Numerical::Double *s
             nonZeros++;
         }
     }
-    SparseVector result(length);
     result.m_nonZeros = nonZeros;
     result.m_data = alloc<Numerical::Double, 32>(nonZeros);
     result.m_indices = alloc<unsigned int, 16>(nonZeros);
@@ -456,6 +444,8 @@ void SparseVector::resizeFullLengthVector(unsigned int length)
     ::release(sm_indexPointerVector);
     sm_indexPointerVector = alloc<unsigned int*, 16>(length);
     panOptMemset(sm_indexPointerVector, 0, sizeof(unsigned int**) * length);
+
+    sm_fullLengthVectorLength = length;
 }
 
 void SparseVector::_globalInit()
@@ -464,7 +454,6 @@ void SparseVector::_globalInit()
     sm_indexVector = nullptr;
     sm_indexPointerVector = nullptr;
     sm_fullLengthVectorLength = 0;
-    sm_fullLenghtReferenceCounter = 0;
     sm_elbowRoom = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
 
     sm_addSparseToSparse = &SparseVector::addSparseToSparseFast;
@@ -476,15 +465,38 @@ void SparseVector::_globalInit()
 
 }
 
+void SparseVector::_globalRelease()
+{
+    ::release(sm_fullLengthVector);
+    sm_fullLengthVector = nullptr;
+    ::release(sm_indexVector);
+    sm_indexVector = nullptr;
+    ::release(sm_indexPointerVector);
+    sm_indexPointerVector = nullptr;
+    sm_fullLengthVectorLength = 0;
+
+    sm_addSparseToSparse = &SparseVector::addSparseToSparseFast;
+    sm_addDenseToSparse = &SparseVector::addDenseToSparseFast;
+    sm_addIndexedDenseToSparse = &SparseVector::addIndexedDenseToSparseFast;
+    sm_sparseToIndexedDenseDotProduct = &SparseVector::dotProductSparseToIndexedDenseUnstable;
+    sm_sparseToDenseDotProduct = &SparseVector::dotProductSparseToDenseUnstable;
+    sm_sparseToSparseDotProduct = &SparseVector::dotProductSparseToSparseUnstable;
+}
+
 void SparseVector::copy(const SparseVector &orig)
 {
     m_length = orig.m_length;
     m_nonZeros = orig.m_nonZeros;
     m_capacity = orig.m_capacity;
-    m_data = alloc<Numerical::Double, 32>(m_capacity);
-    COPY_DOUBLES(m_data, orig.m_data, m_nonZeros);
-    m_indices = alloc<unsigned int, 16>(m_capacity);
-    panOptMemcpy(m_indices, orig.m_indices, sizeof(unsigned int) * m_capacity);
+    if (orig.m_nonZeros != 0) {
+        m_data = alloc<Numerical::Double, 32>(m_capacity);
+        COPY_DOUBLES(m_data, orig.m_data, m_nonZeros);
+        m_indices = alloc<unsigned int, 16>(m_capacity);
+        panOptMemcpy(m_indices, orig.m_indices, sizeof(unsigned int) * m_capacity);
+    } else {
+        m_data = nullptr;
+        m_indices = nullptr;
+    }
 }
 
 void SparseVector::release()
@@ -523,13 +535,11 @@ void SparseVector::resize(unsigned int capacity)
     panOptMemcpy(indices, m_indices, m_nonZeros);
     ::release(m_indices);
     m_indices = indices;
+    m_capacity = capacity;
 }
 
-void SparseVector::scatter()
+void SparseVector::scatter() const
 {
-    if (unlikely(sm_fullLengthVectorLength < m_length)) {
-        resizeFullLengthVector(m_length);
-    }
     unsigned int nonZeroIndex;
     for (nonZeroIndex = 0; nonZeroIndex < m_nonZeros; nonZeroIndex++) {
         const unsigned int index = m_indices[nonZeroIndex];
@@ -614,120 +624,192 @@ void SparseVector::addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseUnstable(const SparseVector &vector1,
                                                                        const IndexedDenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
-
+    return vector2.dotProductIndexedDenseToSparseUnstable(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseFast(const SparseVector &vector1,
                                                                    const IndexedDenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductIndexedDenseToSparseFast(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbs(const SparseVector &vector1,
                                                                   const IndexedDenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductIndexedDenseToSparseAbs(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseRel(const SparseVector &vector1,
                                                                   const IndexedDenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductIndexedDenseToSparseRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbsRel(const SparseVector &vector1,
                                                                      const IndexedDenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductIndexedDenseToSparseAbsRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseUnstable(const SparseVector &vector1,
                                                                 const DenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductDenseToSparseUnstable(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseFast(const SparseVector &vector1,
                                                             const DenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductDenseToSparseFast(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbs(const SparseVector &vector1,
                                                            const DenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductDenseToSparseAbs(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseRel(const SparseVector &vector1,
                                                            const DenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductDenseToSparseRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbsRel(const SparseVector &vector1,
                                                               const DenseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    return vector2.dotProductDenseToSparseAbsRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseUnstable(const SparseVector &vector1,
                                                                  const SparseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    const SparseVector * smallVector;
+    const SparseVector * largeVector;
+    if (vector1.m_nonZeros < vector2.m_nonZeros) {
+        smallVector = &vector1;
+        largeVector = &vector2;
+    } else {
+        smallVector = &vector2;
+        largeVector = &vector1;
+    }
+    smallVector->scatter();
+    Numerical::Double result = Architecture::getDenseToSparseDotProductUnstable()(
+                sm_fullLengthVector,
+                largeVector->m_data,
+                largeVector->m_indices,
+                largeVector->m_nonZeros);
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < smallVector->m_nonZeros; nonZeroIndex++) {
+        sm_fullLengthVector[ smallVector->m_indices[nonZeroIndex] ] = 0.0;
+    }
+    return result;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseFast(const SparseVector &vector1,
                                                              const SparseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    const SparseVector * smallVector;
+    const SparseVector * largeVector;
+    if (vector1.m_nonZeros < vector2.m_nonZeros) {
+        smallVector = &vector1;
+        largeVector = &vector2;
+    } else {
+        smallVector = &vector2;
+        largeVector = &vector1;
+    }
+    smallVector->scatter();
+    Numerical::Double neg;
+    Numerical::Double pos = Architecture::getDenseToSparseDotProductStable()(
+                sm_fullLengthVector,
+                largeVector->m_data,
+                largeVector->m_indices,
+                largeVector->m_nonZeros,
+                &neg);
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < smallVector->m_nonZeros; nonZeroIndex++) {
+        sm_fullLengthVector[ smallVector->m_indices[nonZeroIndex] ] = 0.0;
+    }
+    return pos + neg;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbs(const SparseVector &vector1,
                                                             const SparseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    const SparseVector * smallVector;
+    const SparseVector * largeVector;
+    if (vector1.m_nonZeros < vector2.m_nonZeros) {
+        smallVector = &vector1;
+        largeVector = &vector2;
+    } else {
+        smallVector = &vector2;
+        largeVector = &vector1;
+    }
+    smallVector->scatter();
+    Numerical::Double neg;
+    Numerical::Double pos = Architecture::getDenseToSparseDotProductStable()(
+                sm_fullLengthVector,
+                largeVector->m_data,
+                largeVector->m_indices,
+                largeVector->m_nonZeros,
+                &neg);
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < smallVector->m_nonZeros; nonZeroIndex++) {
+        sm_fullLengthVector[ smallVector->m_indices[nonZeroIndex] ] = 0.0;
+    }
+    return Numerical::stableAddAbs(pos, neg);
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseRel(const SparseVector &vector1,
                                                             const SparseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    const SparseVector * smallVector;
+    const SparseVector * largeVector;
+    if (vector1.m_nonZeros < vector2.m_nonZeros) {
+        smallVector = &vector1;
+        largeVector = &vector2;
+    } else {
+        smallVector = &vector2;
+        largeVector = &vector1;
+    }
+    smallVector->scatter();
+    Numerical::Double neg;
+    Numerical::Double pos = Architecture::getDenseToSparseDotProductStable()(
+                sm_fullLengthVector,
+                largeVector->m_data,
+                largeVector->m_indices,
+                largeVector->m_nonZeros,
+                &neg);
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < smallVector->m_nonZeros; nonZeroIndex++) {
+        sm_fullLengthVector[ smallVector->m_indices[nonZeroIndex] ] = 0.0;
+    }
+    return Numerical::stableAddRel(pos, neg);
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbsRel(const SparseVector &vector1,
                                                                const SparseVector &vector2) const
 {
-    __UNUSED(vector1);
-    __UNUSED(vector2);
-    return 0;
+    const SparseVector * smallVector;
+    const SparseVector * largeVector;
+    if (vector1.m_nonZeros < vector2.m_nonZeros) {
+        smallVector = &vector1;
+        largeVector = &vector2;
+    } else {
+        smallVector = &vector2;
+        largeVector = &vector1;
+    }
+    smallVector->scatter();
+    Numerical::Double neg;
+    Numerical::Double pos = Architecture::getDenseToSparseDotProductStable()(
+                sm_fullLengthVector,
+                largeVector->m_data,
+                largeVector->m_indices,
+                largeVector->m_nonZeros,
+                &neg);
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < smallVector->m_nonZeros; nonZeroIndex++) {
+        sm_fullLengthVector[ smallVector->m_indices[nonZeroIndex] ] = 0.0;
+    }
+    return Numerical::stableAdd(pos, neg);
 }
