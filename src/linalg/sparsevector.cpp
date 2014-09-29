@@ -614,89 +614,120 @@ void SparseVector::addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseUnstable(const SparseVector &vector1,
                                                                        const IndexedDenseVector &vector2) const
 {
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseFast(const SparseVector &vector1,
                                                                    const IndexedDenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbs(const SparseVector &vector1,
                                                                   const IndexedDenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseRel(const SparseVector &vector1,
                                                                   const IndexedDenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbsRel(const SparseVector &vector1,
                                                                      const IndexedDenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseUnstable(const SparseVector &vector1,
                                                                 const DenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseFast(const SparseVector &vector1,
                                                             const DenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbs(const SparseVector &vector1,
                                                            const DenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseRel(const SparseVector &vector1,
                                                            const DenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbsRel(const SparseVector &vector1,
                                                               const DenseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseUnstable(const SparseVector &vector1,
                                                                  const SparseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseFast(const SparseVector &vector1,
                                                              const SparseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbs(const SparseVector &vector1,
                                                             const SparseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseRel(const SparseVector &vector1,
                                                             const SparseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbsRel(const SparseVector &vector1,
                                                                const SparseVector &vector2) const
 {
-
+    __UNUSED(vector1);
+    __UNUSED(vector2);
+    return 0;
 }

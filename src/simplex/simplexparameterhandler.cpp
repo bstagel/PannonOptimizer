@@ -253,6 +253,18 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Perturbation.perturb_cost_vector",
                       DefaultParameters::Perturbation::PERTURB_COST_VECTOR);
 
+    createParameter("Perturbation.perturb_target",
+                    Entry::STRING,
+                    PERTURBATION_PERTURB_TARGET_COMMENT);
+    setParameterValue("Perturbation.perturb_target",
+                      DefaultParameters::Perturbation::PERTURB_TARGET);
+
+    createParameter("Perturbation.perturb_logical",
+                    Entry::BOOL,
+                    PERTURBATION_PERTURB_LOGICAL_COMMENT);
+    setParameterValue("Perturbation.perturb_logical",
+                      DefaultParameters::Perturbation::PERTURB_LOGICAL);
+
     createParameter("Perturbation.e_cost_vector",
                     Entry::DOUBLE,
                     PERTURBATION_E_COST_VECTOR_COMMENT);

@@ -76,13 +76,20 @@
 #define RATIOTEST_EXPAND_TYPE_COMMENT R"(		# EXPAND procedure \
 # INACTIVE: Inactive \
 # HARRIS: Harris ratiotest \
-# EXPANDING = Expanding tolerance)"
+# EXPANDING: Expanding tolerance)"
 
 #define PERTURBATION_PERTURB_COST_VECTOR_COMMENT R"(	# Cost vector perturbation \
 # INACTIVE: Inactive \
-# STRUCTURAL: Active for structural variables \
-# STRUCTURAL_AND_LOGICAL: Active for structural and logical variables)"
+# STRUCTURAL_RANDOM: Active for structural variables with random values \
+# STRUCTURAL_FEASIBLE: Active for structural variables in feasible direction) \
+# STRUCTURAL_SIGN: Active for structural variables with sign of c_j)"
 
+#define PERTURBATION_PERTURB_TARGET_COMMENT R"(# Perturbation target \
+# NONZEROS: Nonzero values \
+# ZEROS: Zero values \
+# ALL: Both zero and nonzero values)"
+
+#define PERTURBATION_PERTURB_LOGICAL_COMMENT "# Enable perturbation of logical variables"
 #define PERTURBATION_E_COST_VECTOR_COMMENT "# Measure of perturbation"
 #define PERTURBATION_PERTURB_RHS_COMMENT "# RHS perturbation"
 #define PERTURBATION_E_RHS_COMMENT "# Measure of perturbation"
