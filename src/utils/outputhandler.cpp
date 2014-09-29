@@ -106,7 +106,10 @@ void DebugHandler::addMessage(const std::string &message) {
 void DebugHandler::addMessage(const std::string & message,
                               const char *file,
                               unsigned int line) {
+
 #if COLORFLAGS != WINDOWSCOLOR
+    __UNUSED(file);
+    __UNUSED(line);
     if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[ERROR   ]";
     } else {
