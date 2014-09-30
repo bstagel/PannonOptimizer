@@ -14,6 +14,7 @@
 #include <simplex/basisheadbas.h>
 #include <simplex/basisheadpanopt.h>
 #include <simplex/checker.h>
+#include <lp/presolver.h>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -567,28 +568,28 @@ void Simplex::loadBasis()
     }
 }
 
-const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
+const Vector Simplex::getPrimalSolution() const {
     if(!(m_simplexModel->getModel().isPresolved())) {
-        std::vector<Numerical::Double> result;
         unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-        result.resize(totalVariableCount);
+        Vector result(totalVariableCount);
         if ( m_simplexModel->getModel().isScaled() ) {
             const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
             for(unsigned int i = 0; i<totalVariableCount; i++) {
-                result[i] = *(m_variableStates.getAttachedData(i)) / columnMultipliers[i];
+                result.set(i, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
             }
         } else {
             for(unsigned int i = 0; i<totalVariableCount; i++) {
-                result[i] = *(m_variableStates.getAttachedData(i));
+                result.set(i, *(m_variableStates.getAttachedData(i)));
             }
         }
+        result.resize(m_simplexModel->getColumnCount());
         return result;
     } else {
         unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-        Vector structuralSolution(m_simplexModel->getColumnCount()+3, Vector::DENSE_VECTOR);
-        structuralSolution.setNewNonzero(m_simplexModel->getColumnCount(), 1);
+        Vector structuralSolution(m_simplexModel->getColumnCount()+4, Vector::DENSE_VECTOR);
+        structuralSolution.setNewNonzero(m_simplexModel->getColumnCount()+1, 1);
         Vector logicalSolution(m_simplexModel->getRowCount()+3, Vector::DENSE_VECTOR);
-        logicalSolution.set(m_simplexModel->getColumnCount(), 1);
+        logicalSolution.set(m_simplexModel->getRowCount(), 1);
         structuralSolution.setSparsityRatio(0);
         logicalSolution.setSparsityRatio(0);
         if ( m_simplexModel->getModel().isScaled() ) {
@@ -600,6 +601,7 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
                 logicalSolution.set(i - m_simplexModel->getColumnCount() + 1, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
             }
         } else {
+
             for(unsigned int i = 0; i<m_simplexModel->getColumnCount(); i++) {
                 structuralSolution.set(i, *(m_variableStates.getAttachedData(i)));
             }
@@ -610,9 +612,21 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
         const std::vector<Vector*> * subsVectors = m_simplexModel->getModel().getSubstituteVectors();
         for(int i = subsVectors->size() - 1; i >= 0; i--) {
             Vector* currentSubstituteVector = (*subsVectors)[i];
-            LPINFO("restoring variable to index " << currentSubstituteVector->at(currentSubstituteVector->length()-2));
-            structuralSolution.insertElement(currentSubstituteVector->at(currentSubstituteVector->length()-2), structuralSolution.dotProduct(*currentSubstituteVector));
-            totalVariableCount++;
+            int index = currentSubstituteVector->at(currentSubstituteVector->length()-2);
+            int substituteType = currentSubstituteVector->at(currentSubstituteVector->length()-1);
+            switch(substituteType) {
+            case Presolver::PRIMAL_VARIABLE:
+                structuralSolution.insertElement(index, structuralSolution.dotProduct(*currentSubstituteVector));
+                totalVariableCount++;
+                break;
+            case Presolver::DUPLICATE_VARIABLE:
+                LPINFO("duplicate restore: " << index << " of " << currentSubstituteVector->at(currentSubstituteVector->length()-3) << " with lambda " << currentSubstituteVector->at(currentSubstituteVector->length()-4));
+                break;
+            case Presolver::PRIMAL_CONSTRAINT:
+                break;
+            default:
+                break;
+            }
         }
         std::vector<Numerical::Double> result;
         result.resize(totalVariableCount);
@@ -622,7 +636,11 @@ const std::vector<Numerical::Double> Simplex::getPrimalSolution() const {
         for(unsigned i = structuralSolution.length()-3; i < totalVariableCount; i++) {
             result[i] = logicalSolution.at(i-structuralSolution.length()-1);
         }
-        return result;
+        structuralSolution.removeElement(structuralSolution.length()-1);
+        structuralSolution.removeElement(structuralSolution.length()-1);
+        structuralSolution.removeElement(structuralSolution.length()-1);
+        structuralSolution.removeElement(structuralSolution.length()-1);
+        return structuralSolution;
     }
 }
 

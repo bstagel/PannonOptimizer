@@ -533,7 +533,7 @@ bool Checker::checkNonbasicVariableStates(const Simplex &simplex, bool print)
             if(print){
                 LPINFO("UNSATISFIED VARIABLE STATE: "
                        << " state:  " << "NONBASIC_AT_UB"
-                       << " LB: "  << variable.getUpperBound()
+                       << " UB: "  << variable.getUpperBound()
                        << " val: " << *simplex.m_variableStates.getAttachedData(variableIndex));
             }
             okay = false;
@@ -638,4 +638,19 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
         LPERROR("checkBasicVariableFeasibilities FAILED");
     }
     return okay;
+}
+
+bool Checker::checkPresolvedSolution(const Model &originalModel, const Vector &solution, double objectiveValue) {
+    Numerical::Double result = originalModel.getCostVector().dotProduct(solution);
+    result -= originalModel.getCostConstant();
+    if(Numerical::fabs(objectiveValue - result) < Numerical::fabs(objectiveValue * 1e-10)) {
+        LPINFO("checkPresolvedSolution PASSED");
+        return true;
+    } else {
+        LPERROR("postsolve yielded solution results in z=" << result);
+        LPERROR("difference is " << (objectiveValue - result));
+        LPERROR("tolerance was " << (objectiveValue * 1e-10));
+        LPERROR("checkBasicVariableFeasibilities FAILED")
+        return false;
+    }
 }

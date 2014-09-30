@@ -226,7 +226,7 @@ const std::vector<int> &SimplexController::getBasisHead() const
                                                    m_dualSimplex->getBasisHead();
 }
 
-const std::vector<Numerical::Double> SimplexController::getPrimalSolution() const
+const Vector SimplexController::getPrimalSolution() const
 {
     return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getPrimalSolution() :
                                                    m_dualSimplex->getPrimalSolution();

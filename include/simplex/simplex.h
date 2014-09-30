@@ -435,7 +435,7 @@ protected:
     /**
      * Description can be found in SimplexController::getPrimalSolution().
      */
-    const std::vector<Numerical::Double> getPrimalSolution() const;
+    const Vector getPrimalSolution() const;
 
     /**
      * Description can be found in SimplexController::getDualSolution().

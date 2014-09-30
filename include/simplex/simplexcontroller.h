@@ -74,7 +74,7 @@ public:
      * This function returns with the primal solution vector x.
      * @return the x primal solution vector.
      */
-    const std::vector<Numerical::Double> getPrimalSolution() const;
+    const Vector getPrimalSolution() const;
 
     /**
      * This function returns with the dual solution vector y.
