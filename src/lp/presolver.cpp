@@ -9,7 +9,7 @@ Presolver::Presolver(Model *model):
 
     m_model = model;
     //m_timeLimit = 5000;
-    m_iterationLimit = 1;
+    m_iterationLimit = 70;
     m_impliedFreeCount = 0;
     m_mode = DEFAULT;
     m_modules = std::vector<PresolverModule*>();
@@ -187,11 +187,11 @@ void Presolver::presolve() {
         clearModules();
     if(m_mode == DEFAULT) {
         clearModules();
-//        addModule( new DualBoundsModule(this));
+        addModule( new DualBoundsModule(this));
         addModule( new ImpliedBoundsModule(this));
-//        addModule( new SingletonRowsModule(this));
-//        addModule( new SingletonColumnsModule(this));
-//        addModule( new LinearAlgebraicModule(this));
+        addModule( new SingletonRowsModule(this));
+        addModule( new SingletonColumnsModule(this));
+        addModule( new LinearAlgebraicModule(this));
     }
 
     int elim = 0;
@@ -210,7 +210,7 @@ void Presolver::presolve() {
         itc++;
     }
     m_makeSparserModule = new MakeSparserModule(this);
-//    m_makeSparserModule->executeMethod();
+    m_makeSparserModule->executeMethod();
 
 //    for(int i = 1; i < m_variables->size(); i++) {
 //        if((m_variables->at(i).getType() != Variable::FREE) && ((m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getUpperBound() > m_impliedUpper->at(i)) ||

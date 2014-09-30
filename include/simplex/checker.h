@@ -152,6 +152,15 @@ public:
      * @return true if the feasibility sets are correct.
      */
     static bool checkBasicVariableFeasibilityStates(const Simplex& simplex, bool print = true, Numerical::Double tolerance = 0);
+
+    /**
+     * Checks the solution given by the postsolve with the original model.
+     * @param originalModel the original model before the presolve
+     * @param solution the solution yielded by the postsolve
+     * @param objectiveValue the objective value of the solution
+     * @return true if the postsolved solution is correct.
+     */
+    static bool checkPresolvedSolution(const Model& originalModel, const Vector & solution, double objectiveValue);
 };
 
 #endif // CHECKER_H
