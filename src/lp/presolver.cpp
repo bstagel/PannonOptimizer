@@ -222,7 +222,7 @@ void Presolver::presolve() {
 //            m_impliedFreeCount++;
 //        }
 //    }
-//    for(int i = 0; i < m_variables->size(); i++) {
+//    for(unsigned i = 0; i < m_variables->size(); i++) {
 //        if(m_variables->at(i).getType() != Variable::FREE) {
 //            LPERROR("setting " << i << " to " << m_impliedLower->at(i) << "-" << m_impliedUpper->at(i) << Numerical::stableAdd(m_impliedLower->at(i), -1 * m_impliedUpper->at(i)));
 //            m_variables->at(i).setLowerBound(m_impliedLower->at(i));

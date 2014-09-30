@@ -216,11 +216,6 @@ private:
     Vector * m_constraintStack;
 
     /**
-     * The list of variable indices to be fixed due to the actual forcing constaint.
-     */
-    Vector * m_variablesToFix;
-
-    /**
      * Pointer to the vector containing the tightest calculated lower bound of each variable in the model.
      */
     Vector * m_impliedLower;

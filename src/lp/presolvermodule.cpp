@@ -338,6 +338,8 @@ ImpliedBoundsModule::ImpliedBoundsModule(Presolver *parent)
 
 ImpliedBoundsModule::~ImpliedBoundsModule() { }
 
+
+//TODO: Az constraintek ellenorzesi modszerenek ujrairasa gyorsabbra
 void ImpliedBoundsModule::executeMethod() {
 
     const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
@@ -348,8 +350,6 @@ void ImpliedBoundsModule::executeMethod() {
     m_constraintsToCheck->setSparsityRatio(0);
     m_constraintStack = new Vector(rowCount);
     m_constraintStack->setSparsityRatio(0);
-    m_variablesToFix = new Vector(m_parent->getModel()->variableCount());
-    m_variablesToFix->setSparsityRatio(0);
     for(int i = 0; i < rowCount; i++) {
         m_constraintsToCheck->set(i, 1);
     }
@@ -415,8 +415,39 @@ void ImpliedBoundsModule::executeMethod() {
         }
 
         //Check if constraint is redundant
-        if(impliedLB > rowLowerBound + feasibilityTolerance &&
-           impliedUB < rowUpperBound - feasibilityTolerance) {
+        if(impliedLB >= rowLowerBound &&
+           impliedUB <= rowUpperBound ) {
+            bool finiteLower = rowLowerBound > -Numerical::Infinity;
+            bool finiteUpper = rowUpperBound < Numerical::Infinity;
+            it = curConstraint.getVector()->beginNonzero();
+            if(finiteLower && finiteUpper){
+                while(it < itEnd) {
+                    int varIdx = it.getIndex();
+                    (*m_parent->getVariables())[varIdx].setLowerBound(m_impliedLower->at(varIdx));
+                    (*m_parent->getVariables())[varIdx].setUpperBound(m_impliedUpper->at(varIdx));
+                    ++it;
+                }
+            } else if(finiteLower){
+                while(it < itEnd) {
+                    int varIdx = it.getIndex();
+                    if(*it > 0) {
+                        (*m_parent->getVariables())[varIdx].setLowerBound(m_impliedLower->at(varIdx));
+                    } else {
+                        (*m_parent->getVariables())[varIdx].setUpperBound(m_impliedUpper->at(varIdx));
+                    }
+                    ++it;
+                }
+            } else if(finiteUpper){
+                while(it < itEnd) {
+                    int varIdx = it.getIndex();
+                    if(*it < 0) {
+                        (*m_parent->getVariables())[varIdx].setLowerBound(m_impliedLower->at(varIdx));
+                    } else {
+                        (*m_parent->getVariables())[varIdx].setUpperBound(m_impliedUpper->at(varIdx));
+                    }
+                    ++it;
+                }
+            }
             m_parent->removeConstraint(index);
             m_constraintsToCheck->removeElement(index);
             m_constraintStack->removeElement(index);
@@ -493,13 +524,9 @@ void ImpliedBoundsModule::executeMethod() {
 //            curConstraint.setUpperBound(impliedUB);
 //        }
 
-        //Adjusted implied bounds
-//        impliedLB = impliedLB < rowLowerBound ? rowLowerBound : impliedLB;
-//        impliedUB = impliedUB > rowUpperBound ? rowUpperBound : impliedUB;
-
         //If constraint is neither redundant nor forcing, calculate the implied bounds of the participating
         //variables and compare them to the original bounds.
-        //!Make every comparsion based on implied bounds. Current implementetion is numerically unstable.
+        //Make every comparsion based on implied bounds.
         if(impliedLB > -Numerical::Infinity && rowUpperBound < Numerical::Infinity) {
             it = curConstraint.getVector()->beginNonzero();
             itEnd = curConstraint.getVector()->endNonzero();
@@ -507,8 +534,9 @@ void ImpliedBoundsModule::executeMethod() {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
-                    if(Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx)) < m_impliedUpper->at(varIdx)) {
-                        m_impliedUpper->set(varIdx, Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx)));
+                    Numerical::Double newUpperBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx));
+                    if( newUpperBound < m_impliedUpper->at(varIdx)) {
+                        m_impliedUpper->set(varIdx, newUpperBound);
                         itV = curVariable.getVector()->beginNonzero();
                         itVEnd = curVariable.getVector()->endNonzero();
                         for(; itV < itVEnd; ++itV) {
@@ -517,8 +545,9 @@ void ImpliedBoundsModule::executeMethod() {
                     }
 
                 } else {
-                    if(Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx)) > m_impliedLower->at(varIdx)) {
-                       m_impliedLower->set(varIdx, Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx)));
+                    Numerical::Double newLowerBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx));
+                    if(newLowerBound > m_impliedLower->at(varIdx)) {
+                       m_impliedLower->set(varIdx, newLowerBound);
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
@@ -536,18 +565,19 @@ void ImpliedBoundsModule::executeMethod() {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
-                    if(Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedUpper->at(varIdx)) > m_impliedLower->at(varIdx)) {
-                       m_impliedLower->set(varIdx, Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedUpper->at(varIdx)));
+                    Numerical::Double newLowerBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedUpper->at(varIdx));
+                    if(newLowerBound > m_impliedLower->at(varIdx)) {
+                       m_impliedLower->set(varIdx, newLowerBound);
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
                            m_constraintStack->set(itV.getIndex(), 1);
                        }
                     }
-
                 } else {
-                    if(Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx)) < m_impliedUpper->at(varIdx)) {
-                       m_impliedUpper->set(varIdx, Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx)));
+                    Numerical::Double newUpperBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx));
+                    if(newUpperBound < m_impliedUpper->at(varIdx)) {
+                       m_impliedUpper->set(varIdx, newUpperBound);
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
@@ -773,12 +803,14 @@ void LinearAlgebraicModule::executeMethod() {
     //Index list to distuinguish rows with the same hashes
     IndexList<> hashedRows(rowCount, rowCount);
 
-    Vector usedPartitions(rowCount);
-    Vector indices(rowCount);
+    std::vector<int> usedPartitions(rowCount,0);
+    std::vector<int> indices(rowCount,0);
 
     for(int i = 0; i < rowCount; i++) {
         int vhash = 0;
         const Vector* curRowVector = (*m_parent->getConstraints())[i].getVector();
+
+        if(curRowVector->nonZeros() < 2) continue;
 
         //Calculating hash
         Vector::NonzeroIterator begin = curRowVector->beginNonzero();
@@ -788,120 +820,104 @@ void LinearAlgebraicModule::executeMethod() {
             ++begin;
         }
         int partition = vhash % rowCount;
-        usedPartitions.set(partition, usedPartitions.at(partition) + 1);
+        ++(usedPartitions[partition]);
         hashedRows.insert(partition, i);
     }
 
     //Eliminating duplicate rows
-    Vector::NonzeroIterator begin = usedPartitions.beginNonzero();
-    Vector::NonzeroIterator end = usedPartitions.endNonzero();
 
-    while(begin < end) {
+    for(auto begin = usedPartitions.begin(),
+        current = usedPartitions.begin(),
+        end = usedPartitions.end() ;current != end; ++current) {
+        if(*current < 2) {
+            continue;
+        }
 
-        if(*begin < 2) { ++begin; continue; }
-
-        IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
-        hashedRows.getIterators(&itFirst, &itEnd, begin.getIndex());
+        IndexList<>::PartitionIterator itSecond, itFirst, itEnd;
+        hashedRows.getIterators(&itFirst, &itEnd, current-begin);
 
         while(itFirst != itEnd) {
-            it = itFirst;
-            ++it;
+            itSecond = itFirst;
+            ++itSecond;
 
-            while(it != itEnd) {
+            while(itSecond != itEnd) {
 
                 int origIdx = itFirst.getData();
-                int duplIdx = it.getData();
+                int duplIdx = itSecond.getData();
                 Constraint& original = (*m_parent->getConstraints())[origIdx];
                 const Constraint& duplicate = (*m_parent->getConstraints())[duplIdx];
 
-                Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
-                Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
-
-                Numerical::Double lambda = *origIterator / *duplIterator;
-                Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+                Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
+                Vector tryVector(*(original.getVector()));
+                tryVector.addVector(-lambda, *(duplicate.getVector()), Numerical::ADD_ABS);
 
                 if(tryVector.nonZeros() == 0) {
+                    Numerical::Double duplicateLower;
+                    Numerical::Double duplicateUpper;
 
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
-                        //Checking feasibility
-                        if(duplicate.getLowerBound() * lambda > original.getUpperBound()
-                           || duplicate.getUpperBound() * lambda < original.getLowerBound())
-                        {
-                            throw Presolver::PresolverException("The problem is primal infeasible.");
-                            return;
-                        }
-
-                        //Applying the tighter bounds
-                        if(duplicate.getLowerBound() * lambda > original.getLowerBound()) {
-                            original.setLowerBound(duplicate.getLowerBound() * lambda);
-                        }
-
-                        if(duplicate.getUpperBound() * lambda < original.getUpperBound()) {
-                            original.setUpperBound(duplicate.getUpperBound() * lambda);
-                        }
-
+                        duplicateLower = duplicate.getLowerBound() * lambda;
+                        duplicateUpper = duplicate.getUpperBound() * lambda;
                     } else {
-
-                        //Checking feasibility
-                        if(duplicate.getUpperBound() * lambda > original.getUpperBound()
-                           || duplicate.getLowerBound() * lambda < original.getLowerBound())
-                        {
-                            throw Presolver::PresolverException("The problem is primal infeasible.");
-                            return;
-                        }
-
-                        //Applying the tighter bounds
-                        if(duplicate.getUpperBound() * lambda > original.getLowerBound()) {
-                            original.setLowerBound(duplicate.getUpperBound() * lambda);
-                        }
-
-                        if(duplicate.getLowerBound() * lambda < original.getUpperBound()) {
-                            original.setUpperBound(duplicate.getLowerBound() * lambda);
-                        }
+                        duplicateUpper = duplicate.getLowerBound() * lambda;
+                        duplicateLower = duplicate.getUpperBound() * lambda;
                     }
-                    ++it;
+
+                    //Checking feasibility
+                    if(duplicateLower > original.getUpperBound()
+                       || duplicateUpper < original.getLowerBound())
+                    {
+                        throw Presolver::PresolverException("The problem is primal infeasible.");
+                        return;
+                    }
+
+                    //Applying the tighter bounds
+                    if(duplicateLower > original.getLowerBound()) {
+                        original.setLowerBound(duplicateLower);
+                    }
+
+                    if(duplicateUpper < original.getUpperBound()) {
+                        original.setUpperBound(duplicateUpper);
+                    }
+
+                    ++itSecond;
+                    indices[duplIdx] = 1;
                     hashedRows.remove(duplIdx);
-                    indices.set(duplIdx, 1);
-                    hashedRows.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
-                    ++it;
+                    ++itSecond;
                 }
             }
             ++itFirst;
         }
-        ++begin;
     }
 
+
     //The elimination of constraints needs to start at the row with the highest index
+    //Reverse iterators are used to resolve index conflicts
 
-    begin = indices.beginNonzero();
-    end = indices.endNonzero();
-
-    while(begin < end) {
-
-        int removeIndex = begin.getIndex();
-
+    for(int i=indices.size()-1 ; i>0; --i) {
+        if(indices[i] == 0){
+            continue;
+        }
         m_removedConstraints++;
-        m_parent->removeConstraint(removeIndex);
-
-        indices.removeElement(removeIndex);
-        end = indices.endNonzero();
-        if(*begin != 1) { ++begin; }
+        m_parent->removeConstraint(i);
     }
 
     rowCount = m_parent->getModel()->constraintCount();
 
 
-    //Index list to distuinguish rows with the same hashes
+    //Index list to distuinguish columns with the same hashes
     IndexList<> hashedColumns(columnCount, columnCount);
 
-    usedPartitions.reInit(columnCount);
-    indices.reInit(columnCount);
+    usedPartitions.resize(columnCount,0);
+    indices.resize(columnCount,0);
 
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
         const Vector* curColumnVector = (*m_parent->getVariables())[i].getVector();
+
+        if(curColumnVector->nonZeros() < 2) continue;
 
         //Calculating hash
         Vector::NonzeroIterator begin = curColumnVector->beginNonzero();
@@ -911,116 +927,98 @@ void LinearAlgebraicModule::executeMethod() {
             ++begin;
         }
         int partition = vhash % columnCount;
-        usedPartitions.set(partition, usedPartitions.at(partition) + 1);
+        ++(usedPartitions[partition]);
         hashedColumns.insert(partition, i);
     }
 
     //Eliminating duplicate columns
-    begin = usedPartitions.beginNonzero();
-    end = usedPartitions.endNonzero();
 
-    while(begin < end) {
+    for(auto begin = usedPartitions.begin(),
+        current = usedPartitions.begin(),
+        end = usedPartitions.end() ;current != end; ++current) {
+        if(*current < 2) {
+            continue;
+        }
 
-        if(*begin < 2) { ++begin; continue; }
-
-        IndexList<>::PartitionIterator it, itFirst, itEnd, itZero;
-        hashedColumns.getIterators(&itFirst, &itEnd, begin.getIndex());
+        IndexList<>::PartitionIterator itSecond, itFirst, itEnd;
+        hashedColumns.getIterators(&itFirst, &itEnd, current-begin);
 
         while(itFirst != itEnd) {
-            it = itFirst;
-            ++it;
+            itSecond = itFirst;
+            ++itSecond;
 
-            while(it != itEnd) {
+            while(itSecond != itEnd) {
 
                 int origIdx = itFirst.getData();
-                int duplIdx = it.getData();
+                int duplIdx = itSecond.getData();
                 Variable& original = (*m_parent->getVariables())[origIdx];
                 const Variable& duplicate = (*m_parent->getVariables())[duplIdx];
 
-                Vector::NonzeroIterator origIterator = original.getVector()->beginNonzero();
-                Vector::NonzeroIterator duplIterator = duplicate.getVector()->beginNonzero();
-
-                Numerical::Double lambda = *origIterator / *duplIterator;
-                Vector tryVector = *(duplicate.getVector()) * lambda - *(original.getVector());
+                Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
+                Vector tryVector(*(original.getVector()));
+                tryVector.addVector(-lambda, *(duplicate.getVector()), Numerical::ADD_ABS);
 
                 if(tryVector.nonZeros() == 0 && m_parent->getModel()->getCostVector().at(duplIdx) * lambda == m_parent->getModel()->getCostVector().at(origIdx)) {
 
+                    Numerical::Double duplicateLower;
+                    Numerical::Double duplicateUpper;
+
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
-
-                        //Checking feasibility
-                        if(duplicate.getLowerBound() * lambda + original.getLowerBound()
-                           > duplicate.getUpperBound() * lambda + original.getUpperBound())
-                        {
-                            throw Presolver::PresolverException("The problem is primal infeasible.");
-                            return;
-                        }
-
-                        //Creating bounds
-                        original.setLowerBound(duplicate.getLowerBound() * lambda + original.getLowerBound());
-                        original.setUpperBound(duplicate.getUpperBound() * lambda + original.getUpperBound());
-                        m_parent->getImpliedLower()->set(origIdx, duplicate.getLowerBound() * lambda + original.getLowerBound());
-                        m_parent->getImpliedUpper()->set(origIdx, duplicate.getUpperBound() * lambda + original.getUpperBound());
-
+                        duplicateLower = duplicate.getLowerBound() * lambda;
+                        duplicateUpper = duplicate.getUpperBound() * lambda;
                     } else {
-
-                        //Checking feasibility
-                        if(duplicate.getUpperBound() * lambda + original.getLowerBound()
-                           > duplicate.getLowerBound() * lambda + original.getUpperBound())
-                        {
-                            throw Presolver::PresolverException("The problem is primal infeasible.");
-                            return;
-                        }
-
-                        //Creating bounds
-                        original.setLowerBound(duplicate.getUpperBound() * lambda + original.getLowerBound());
-                        original.setUpperBound(duplicate.getLowerBound() * lambda + original.getUpperBound());
-                        m_parent->getImpliedLower()->set(origIdx, duplicate.getUpperBound() * lambda + original.getLowerBound());
-                        m_parent->getImpliedUpper()->set(origIdx, duplicate.getLowerBound() * lambda + original.getUpperBound());
-
+                        duplicateUpper = duplicate.getLowerBound() * lambda;
+                        duplicateLower = duplicate.getUpperBound() * lambda;
                     }
 
-                    ++it;
+                    //Checking feasibility
+                    if(duplicateLower + original.getLowerBound()
+                       > duplicateUpper + original.getUpperBound())
+                    {
+                        throw Presolver::PresolverException("The problem is primal infeasible.");
+                        return;
+                    }
+
+                    //Creating bounds
+                    original.setLowerBound(duplicateLower + original.getLowerBound());
+                    original.setUpperBound(duplicateUpper + original.getUpperBound());
+                    m_parent->getImpliedLower()->set(origIdx, duplicateLower + original.getLowerBound());
+                    m_parent->getImpliedUpper()->set(origIdx, duplicateUpper + original.getUpperBound());
+
+                    ++itSecond;
+                    indices[duplIdx] = 1;
                     hashedColumns.remove(duplIdx);
-                    indices.set(duplIdx, 1);
-                    hashedColumns.getIterators(&itZero, &itEnd, begin.getIndex());
                 } else {
-                    ++it;
+                    ++itSecond;
                 }
             }
             ++itFirst;
         }
-        ++begin;
     }
 
     //The elimination of variables needs to start at the row with the highest index
     //A special type of substitute vector is created to be able to regain correct values for the original variables
 
-    begin = indices.beginNonzero();
-    end = indices.endNonzero();
+    for(int i=indices.size()-1 ; i>0; --i) {
+        if(indices[i] == 0){
+            continue;
+        }
 
-    while(begin < end) {
-
-        int removeIndex = begin.getIndex();
         Vector * substituteVector = new Vector(columnCount + 3);
-        substituteVector->set(columnCount - 1, m_parent->getModel()->getCostVector().at(removeIndex) / m_parent->getModel()->getCostVector().at((*begin) - 1));
-        substituteVector->set(columnCount, *begin);
-        substituteVector->set(columnCount + 1, removeIndex);
+//        substituteVector->set(columnCount - 1, m_parent->getModel()->getCostVector().at(i) / m_parent->getModel()->getCostVector().at((*begin) - 1));
+//        substituteVector->set(columnCount, *begin);
+        substituteVector->set(columnCount + 1, i);
         substituteVector->set(columnCount + 2, Presolver::DUPLICATE_VARIABLE);
         m_parent->getSubstituteVectors()->push_back(substituteVector);
 
         m_removedVariables++;
-        m_parent->getModel()->removeVariable(removeIndex);
-        m_parent->getColumnNonzeros()->removeElement(removeIndex);
-        m_parent->getImpliedLower()->removeElement(removeIndex);
-        m_parent->getImpliedUpper()->removeElement(removeIndex);
-        m_parent->getExtraDualLowerSum()->removeElement(removeIndex);
-        m_parent->getExtraDualUpperSum()->removeElement(removeIndex);
-
-        indices.removeElement(removeIndex);
-        begin = indices.beginNonzero();
-        end = indices.endNonzero();
-        if(*begin != 1) { ++begin; }
+        m_parent->getModel()->removeVariable(i);
+        m_parent->getColumnNonzeros()->removeElement(i);
+        m_parent->getImpliedLower()->removeElement(i);
+        m_parent->getImpliedUpper()->removeElement(i);
+        m_parent->getExtraDualLowerSum()->removeElement(i);
+        m_parent->getExtraDualUpperSum()->removeElement(i);
     }
 }
 

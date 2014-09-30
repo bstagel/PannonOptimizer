@@ -449,6 +449,7 @@ void SimplexController::solve(const Model &model)
         LPINFO("OPTIMAL SOLUTION found! ");
         m_solveTimer.stop();
         m_iterationReport->addProviderForSolution(*m_currentSimplex);
+        LPINFO("CC_ "<<m_currentSimplex->m_simplexModel->getCostConstant());
         writeSolutionReport();
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
