@@ -1,5 +1,6 @@
 /**
  * @file breakpointhandler.h This file contains the API of the BreakpointHandler class.
+ * @author Balint Stagel
  */
 #ifndef BREAKPOINTHANDLER_H
 #define BREAKPOINTHANDLER_H
@@ -24,9 +25,11 @@ public:
     struct BreakPoint{
         /**
          * This is an initializing constructor.
+         *
          * @param variableIndex shows the variable, which defined this breakpoint
          * @param value shows the actual value of the ratio
          * @param additionalValue shows the expanded value of the ratio or the function value
+         *
          * @constructor
          */
         BreakPoint(int variableIndex, Numerical::Double value, Numerical::Double additionalValue):
@@ -36,6 +39,7 @@ public:
 
         /**
          * Default desctructor of the Breakpoint structure.
+         *
          * @destructor
          */
         ~BreakPoint(){}
@@ -58,6 +62,7 @@ public:
 
         /**
          * Operator to write the breakpoints onto an ostream.
+         *
          * @param os is an ofstream reference on which the data will be written
          * @param breakpoint is a reference to the breakpoint which is to be shown
          * @return The reference of the ofstream parameter os.
@@ -70,6 +75,7 @@ public:
 
         /**
          * Assignment operator to be able to simply copy the attributes of a Breakpoint object.
+         *
          * @param other is a reference to the Breakpoint object to be copied.
          * @return constant reference to the object on which the function was called.
          */
