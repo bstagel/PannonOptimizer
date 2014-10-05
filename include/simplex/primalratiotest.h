@@ -1,6 +1,7 @@
 /**
  * @file primalratiotest.h This file contains the API of the PrimalRatiotest class.
  */
+
 #ifndef PRIMALRATIOTEST_H
 #define PRIMALRATIOTEST_H
 
@@ -32,11 +33,12 @@ public:
 
     /**
      * Initialiting constructor of the class.
-     * @param model provides information about the variables, bounds etc
-     * @param basicVariableValues stores the X_B vector
-     * @param basishead stores the basicvariable indices
-     * @param basicVariableFeasibilities linked list storing primal feasibility, defined by PrimalFeasibilityChecker
-     * @param variableStates to be able to check whether a variable is on its lower or upper bound
+     *
+     * @param model The simplex model of the LP problem.
+     * @param basicVariableValues The X_B vector.
+     * @param basishead The basis head storing the basic variable indices.
+     * @param basicVariableFeasibilities Index list storing primal feasibilities, defined by PrimalFeasibilityChecker.
+     * @param variableStates Index list containing variable states to check whether a variable is on its lower or upper bound.
      *
      * @constructor
      */
@@ -48,40 +50,46 @@ public:
 
     /**
      * Getter of the basis index of the outgoing variable.
+     *
      * @return PrimalRatiotest::m_outgoingVariableIndex.
      */
     inline unsigned int getOutgoingVariableIndex()const{return m_outgoingVariableIndex;}
 
     /**
      * Getter of the primal theta value.
+     *
      * @return PrimalRatiotest::m_primalSteplength.
      */
     inline Numerical::Double getPrimalSteplength()const{return m_primalSteplength;}
 
     /**
      * Getter of the phase 1 primal objective value.
+     *
      * @return PrimalRatiotest::m_phaseIObjectiveValue.
      */
     inline Numerical::Double getPhaseIObjectiveValue()const{return m_phaseIObjectiveValue;}
 
     /**
      * Getter of the phase 2 primal objective value.
+     *
      * @return PrimalRatiotest::m_phaseIIObjectiveValue.
      */
     inline Numerical::Double getPhaseIIObjectiveValue()const{return m_phaseIIObjectiveValue;}
 
     /**
      * Getter of the vector containing the boundflipping variables.
+     *
      * @return PrimalRatiotest::m_boundflips.
      */
     inline const std::vector <unsigned int>& getBoundflips()const{return m_boundflips;}
 
     /**
-     * This function performs and controls the phase 1 primal ratiotest.
-     * @param incomingVariableIndex if the incoming variable is blocked by its bound it defines a ratio
-     * @param alpha needed to define ratios
-     * @param phaseIReducedCost needed to define t > 0 and t < 0 cases
-     * @param phaseIObjectiveValue will be computed to the ratios
+     * Performs and controls the phase 1 primal ratiotest.
+     *
+     * @param incomingVariableIndex The index of the incoming variable.
+     * @param alpha The alpha value needed to define ratios.
+     * @param phaseIReducedCost The phase 1 reduced cost needed to define t > 0 and t < 0 cases.
+     * @param phaseIObjectiveValue The current phase 1 objective value.
      */
     void performRatiotestPhase1(int incomingVariableIndex,
                                 const Vector& alpha,
@@ -89,10 +97,11 @@ public:
                                 Numerical::Double phaseIObjectiveValue);
 
     /**
-     * This function performs and controls the phase 2 primal ratiotest.
-     * @param incomingVariableIndex if the incoming variable is blocked by its bound it defines a ratio
-     * @param alpha needed to define ratios
-     * @param reducedCost needed to define t > 0 and t < 0 cases
+     * Performs and controls the phase 2 primal ratiotest.
+     *
+     * @param incomingVariableIndex The index of the incoming variable.
+     * @param alpha The alpha value needed to define ratios.
+     * @param reducedCost The reduces cost needed to define t > 0 and t < 0 cases.
      */
     void performRatiotestPhase2(int incomingVariableIndex,
                                 const Vector& alpha,
@@ -100,6 +109,7 @@ public:
 
     /**
      * Getter of the outgoingAtUpperBound member.
+     *
      * @return PrimalRatiotest::m_outgoingAtUpperBound
      */
     inline bool outgoingAtUpperBound(){return m_outgoingAtUpperBound;}
@@ -107,27 +117,27 @@ public:
 private:
 
     /**
-     * The model provides information about the LP problem such as the variable bounds.
+     * The simplex model of the problem.
      */
     const SimplexModel& m_model;
 
     /**
-     * This vector(X_B) stores the basicvariable values.
+     * This vector(X_B) stores the basic variable values.
      */
     const Vector& m_basicVariableValues;
 
     /**
-     * The basis head holds the variable indices of the basicvariables.
+     * The basis head holds the variable indices of the basic variables.
      */
     const std::vector<int>& m_basishead;
 
     /**
-     * This indexlist contains the feasibility sets of the basicvariables.
+     * Index list contains the feasibility sets of the basic variables.
      */
     const IndexList<>& m_basicVariableFeasibilities;
 
     /**
-     * Indexlist containing the variable states (being at lower upper bound).
+     * Index list containing the variable states (being at lower upper bound).
      */
     const IndexList<const Numerical::Double*>& m_variableStates;
 
@@ -233,49 +243,56 @@ private:
 
     //Parameter references
     /**
-     * Reference of the run-time parameter "nonlinear_primal_phaseI_function",
-     * see SimplexParameterHandler for details.
+     * Reference of the run-time parameter "nonlinear_primal_phaseI_function".
+     *
+     * @see SimplexParameterHandler
      */
     const PRIMAL_RATIOTEST_METHOD m_nonlinearPrimalPhaseIFunction;
 
     /**
-     * Reference of the "e_pivot" tolerance run-time parameter,
-     * see SimplexParameterHandler for details.
+     * Reference of the "e_pivot" tolerance run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const double & m_pivotTolerance;
 
     /**
-     * Reference of the "enable_fake_feasibility" run-time parameter,
-     * see SimplexParameterHandler for details.
+     * Reference of the "enable_fake_feasibility" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_enableFakeFeasibility;
 
     /**
      * This function computes the ratios in primal phase 1.
-     * @param alpha alpha values are the denumerator of the ratios
-     * @param incomingVariableIndex in case if the incoming variable is blocked by its bound it defines a ratio
+     *
+     * @param alpha The alpha values which are the denumerator of the ratios.
+     * @param incomingVariableIndex The index of the incoming variable.
      */
     void generateBreakpointsPhase1(const Vector& alpha, int incomingVariableIndex);
 
     /**
      * This function computes the piecewise linear concave function in primal phase 1.
-     * @param alpha the basicvariable values are devided with the alpha values
-     * @param iterationCounter shows how many breakpoints are computed
-     * @param functionSlope is the value of the objective function's slope
+     *
+     * @param alpha The alpha values.
+     * @param iterationCounter The counter for how many breakpoints are computed.
+     * @param functionSlope The value of the objective function's slope.
      */
     void computeFunctionPhase1(const Vector& alpha, unsigned int &iterationCounter, Numerical::Double functionSlope);
 
     /**
      * This is the phase 1 stable pivot procedure that provides the solver a numerically stable pivot candidate.
-     * @param iterationCounter shows the maximum of the piecewise linear function
-     * @param alpha the basicvariable values are devided with the alpha values
-     * @param functionSlope is the value of the objective function's slope
+     *
+     * @param iterationCounter The maximum of the piecewise linear function.
+     * @param alpha The alpha values.
+     * @param functionSlope The value of the objective function's slope.
      */
     void useNumericalThresholdPhase1(unsigned int iterationCounter, const Vector& alpha, Numerical::Double& functionSlope);
 
     /**
      * This function generates the ratios in phase 2.
-     * @param alpha alpha values are the denumerator of the ratios
+     *
+     * @param alpha The alpha values which are the denumerator of the ratios
      */
     void generateBreakpointsPhase2(const Vector& alpha);
 };

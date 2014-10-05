@@ -32,17 +32,22 @@ public:
 
     /**
      * Function that solves the LP problem given by the parameter.
-     * @param model the model to be solved
+     *
+     * @param model The LP problem model to be solved.
      */
     void solve(const Model& model);
 
     /**
-     * The function returns the iteration report fields of this class, see IterationReportProvider.
+     * The function returns the iteration report fields of this class.
+     *
+     * @see IterationReportProvider
      */
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     /**
-     * Getter of one iteration Entry, see IterationReportProvider.
+     * Getter of one iteration Entry.
+     *
+     * @see IterationReportProvider
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
@@ -54,30 +59,35 @@ public:
 
     /**
      * Getter of the phase 2 objective value according to the current algorithm.
+     *
      * @return phase 2 objective value.
      */
     const Numerical::Double & getObjectiveValue() const;
 
     /**
      * Getter of the phase 1 objective value according to the current algorithm.
+     *
      * @return phase 1 objective value.
      */
     const Numerical::Double & getPhaseIObjectiveValue() const;
 
     /**
      * Getter of the basishead that containts the basic variable indicies.
-     * @return vector containing the basicvariable indices.
+     *
+     * @return vector Basis head containing the basic variable indices.
      */
     const std::vector<int> & getBasisHead() const;
 
     /**
      * This function returns with the primal solution vector x.
+     *
      * @return the x primal solution vector.
      */
     const Vector getPrimalSolution() const;
 
     /**
      * This function returns with the dual solution vector y.
+     *
      * @return the y dual solution vector.
      */
     const std::vector<Numerical::Double> getDualSolution() const;
@@ -139,62 +149,72 @@ private:
 
     //Parameter values
     /**
-     * Parameter reference for "debug_level" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "debug_level" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const int & m_debugLevel;
 
     /**
-     * Parameter reference for "save_basis" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "save_basis" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_saveBasis;
 
     /**
-     * Parameter reference for "save_filename" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "save_filename" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_saveFilename;
 
     /**
-     * Parameter reference for "save_last_basis" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "save_last_basis" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_saveLastBasis;
 
     /**
-     * Parameter reference for "load_basis" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "load_basis" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_loadBasis;
 
     /**
-     * Parameter reference for "load_filename" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "load_filename" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_loadFilename;
 
     /**
-     * Parameter reference for "load_format" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "load_format" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_loadFormat;
 
     /**
-     * Parameter reference for "export_type" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "export_type" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_exportType;
 
     /**
-     * Parameter reference for "enable_export" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "enable_export" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_enableExport;
 
     /**
-     * Parameter reference for "export_filename" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "export_filename" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_exportFilename;
 
@@ -210,7 +230,8 @@ private:
 
     /**
      * This function can perform a switching among the solver algorithms (Simplex::ALGORITHM)
-     * @param model is needed at the first switch to initialize the primal and dual modules.
+     *
+     * @param model The model of the LP problem.
      */
     void switchAlgorithm(const Model &model);
 

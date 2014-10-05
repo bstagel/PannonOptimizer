@@ -17,19 +17,22 @@ class SimplexModel;
 /**
  * Describes the dual pricing module.
  * It determines an improving outgoing variable. Different pricing strategies can be derived from the class.
+ *
  * @class DualPricing
  */
 class DualPricing: public Pricing {
 public:
 
     /**
-     * Initializing constructor of the class
-     * @param basicVariableValues the X_B values
-     * @param basicVariableFeasibilities the feasibility states of the X_B values
-     * @param reducedCostFeasibilities the feasibility states of the reduced costs
-     * @param basisHead containing basicvariable indices
-     * @param simplexModel model of the LP problem
-     * @param basis the B basis
+     * Initializing constructor of the class.
+     *
+     * @param basicVariableValues The basic variable values (X_B vector).
+     * @param basicVariableFeasibilities The feasibility states of the X_B values.
+     * @param reducedCostFeasibilities The feasibility states of the reduced costs.
+     * @param basisHead The basic variable indices.
+     * @param simplexModel The model of the LP problem.
+     * @param basis The B basis.
+     *
      * @constructor
      */
     DualPricing(const Vector &basicVariableValues,
@@ -41,57 +44,67 @@ public:
 
     /**
      * Default destructor of the class.
+     *
      * @destructor
      */
     virtual ~DualPricing();
 
     /**
-     * This function performs and controlls the phase 1 dual pricing.
-     * Pure virtual function should be implemented in the derived classes.
+     * This function performs and controls the phase 1 dual pricing.
+     *
      * @return the variable index of the selected candidate.
      */
     virtual int performPricingPhase1() = 0;
 
     /**
-     * This function performs and controlls the phase 2 dual pricing.
-     * Pure virtual function should be implemented in the derived classes.
+     * This function performs and controls the phase 2 dual pricing.
+     *
      * @return the variable index of the selected candidate.
      */
     virtual int performPricingPhase2() = 0;
 
     /**
      * Returns the selected reduced cost value.
-     * @return DualPricing::m_reducedCost.
+     *
+     * @return the selected reduced cost value.
      */
     inline Numerical::Double getReducedCost() const {return m_reducedCost;}
 
     /**
-     * Function used at checking optimality, dual unboundedness.
+     * Returns true if there is any locked variable index.
+     *
      * @return true if there is any locked variable index.
      */
     bool hasLockedVariable()const;
 
     /**
-     * Getter of the measure of primal infeasibility.
-     * @return The DualPricing::m_primalInfeasibility member.
+     * Returns the measure of primal infeasibility.
+     *
+     * @return the measure of primal infeasibility.
      */
     inline Numerical::Double getPrimalInfeasibility()const{return m_primalInfeasibility;}
 
     /**
-     * Clears and reinitializes the m_used member.
-     * Releases all locked variables if called. For more information see DualPricing::lockLastIndex().
+     * Unlocks the variable indices.
      */
     void releaseUsed();
 
     /**
      * Locks the last variable index so this improving variable can not be selected again.
      * Until it is released its index is stored in the m_used vector.
+     *
      * @throws NumericalException if invalid row index (-1) is given.
      */
     void lockLastIndex();
 
     /**
-     * Pricing updating function, for details see DualDevexPricing::update().
+     * Pricing updating function.
+     *
+     * @param incomingIndex The index of the incoming variable.
+     * @param outgoingIndex The index of the outgoing variable.
+     * @param incomingAlpha The incoming Alpha vector.
+     * @param pivotRow The pivot row vector.
+     * @param pivotRowOfBasisInverse The pivot row vector of the basis inverse.
      */
     virtual void update(int incomingIndex,
                         int outgoingIndex,
@@ -108,30 +121,31 @@ public:
      * Initializing function.
      */
     void init() {}
+
 protected:
 
     /**
-     * X_B vector.
+     * The X_B vector.
      */
     const Vector & m_basicVariableValues;
 
     /**
-     * Pointer of the indexlist containing the basicvariable feasibilities.
+     * Pointer of the index list containing the basic variable feasibilities.
      */
     IndexList<> * m_basicVariableFeasibilities;
 
     /**
-     * Indexlist containing the feasibility sets of the reduced costs.
+     * Index list containing the feasibility sets of the reduced costs.
      */
     const IndexList<> & m_reducedCostFeasibilities;
 
     /**
-     * Vector containing the basicvariable indices.
+     * Vector containing the basic variable indices.
      */
     const std::vector<int> & m_basisHead;
 
     /**
-     * Model of the LP problem.
+     * The model of the LP problem.
      */
     const SimplexModel & m_simplexModel;
 

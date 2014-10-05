@@ -16,21 +16,24 @@ class SimplexModel;
 /**
  * Describes the primal pricing module.
  * It determines an improving incoming variable. Different pricing strategies can be derived from the class.
+ *
  * @class PrimalPricing
  */
 class PrimalPricing: public Pricing {
 public:
 
     /**
-     * Initializing constructor of the class
-     * @param basicVariableValues the X_B values
-     * @param basicVariableFeasibilities the feasibility states of the X_B values
-     * @param reducedCostFeasibilities the feasibility states of the reduced costs
-     * @param variableStates indexlist holding variable states
-     * @param basisHead containing basicvariable indices
-     * @param simplexModel model of the LP problem
-     * @param basis the B basis
-     * @param reducedCosts vector of the reduced costs
+     * Initializing constructor of the class.
+     *
+     * @param basicVariableValues The X_B values.
+     * @param basicVariableFeasibilities The feasibility states of the X_B values.
+     * @param reducedCostFeasibilities The feasibility states of the reduced costs.
+     * @param variableStates Index list containing the variable states.
+     * @param basisHead The basishead containing basic variable indices.
+     * @param simplexModel The simplex model of the LP problem.
+     * @param basis The B basis.
+     * @param reducedCosts Vector of the reduced costs.
+     *
      * @constructor
      */
     PrimalPricing(const Vector & basicVariableValues,
@@ -44,36 +47,42 @@ public:
 
     /**
      * Default destructor of the class.
+     *
      * @destructor
      */
     virtual ~PrimalPricing();
 
     /**
      * Pure virtual function performing and controlling the phase 1 primal pricing.
-     * @return variable index of the chosen variable
+     *
+     * @return variable index of the chosen variable.
      */
     virtual int performPricingPhase1() = 0;
 
     /**
      * Pure virtual function performing and controlling the phase 2 primal pricing.
-     * @return variable index of the chosen variable
+     *
+     * @return variable index of the chosen variable.
      */
     virtual int performPricingPhase2() = 0;
 
     /**
      * Returns the selected reduced cost value.
+     *
      * @return PrimalPricing::m_reducedCost.
      */
     inline Numerical::Double getReducedCost() const {return m_reducedCost;}
 
     /**
-     * Function used at checking optimality, primal unboundedness.
+     * Returns if there is any locked variable index.
+     *
      * @return true if there is any locked variable index.
      */
     bool hasLockedVariable()const;
 
     /**
      * Getter of the measure of dual infeasibility.
+     *
      * @return The DualPricing::m_dualInfeasibility member.
      */
     inline Numerical::Double getDualInfeasibility()const{return m_dualInfeasibility;}
@@ -87,12 +96,13 @@ public:
     /**
      * Locks the last variable index so this improving variable can not be selected again.
      * Until it is released its index is stored in the m_used vector.
+     *
      * @throws NumericalException if invalid column index (-1) is given.
      */
     void lockLastIndex();
 
     /**
-     * Pricing updating pure virtual function.
+     * Pricing updating function.
      */
     virtual void update(int incomingIndex,
                         int outgoingIndex,
@@ -103,6 +113,7 @@ public:
      * Initializing function of the simpri modules.
      */
     void init();
+
 protected:
 
     /**
@@ -111,27 +122,27 @@ protected:
     const Vector & m_basicVariableValues;
 
     /**
-     * The indexlist containing basicvariable feasibilities.
+     * Index list containing basic variable feasibilities.
      */
     const IndexList<> & m_basicVariableFeasibilities;
 
     /**
-     * Indexlist containing the feasibility sets of the reduced costs.
+     * Index list containing the feasibility sets of the reduced costs.
      */
     IndexList<> * m_reducedCostFeasibilities;
 
     /**
-     * Indexlist of the variable states.
+     * Index list ocontaining the variable states.
      */
     const IndexList<const Numerical::Double*> & m_variableStates;
 
     /**
-     * Vector containing the basicvariable indices.
+     * Vector containing the basic variable indices.
      */
     const std::vector<int> & m_basisHead;
 
     /**
-     * Model of the LP problem.
+     * The simplex model of the LP problem.
      */
     const SimplexModel & m_simplexModel;
 
@@ -162,7 +173,8 @@ protected:
 
     /**
      * Vector storing the locked variables.
-     * See PrimalPricing::lockLastIndex().
+     *
+     * @see PrimalPricing::lockLastIndex().
      */
     std::vector<char> m_used;
 
@@ -206,54 +218,58 @@ protected:
     //Parameter references
 
     /**
-     * Parameter reference of the run-time parameter "e_feasibility",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "e_feasibility".
+     *
+     * @see SimplexParameterHandler.
      */
     const double & m_feasibilityTolerance;
 
     /**
-     * Parameter reference of the run-time parameter "e_feasibility",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "e_optimality".
+     *
+     * @see SimplexParameterHandler.
      */
     const double & m_optimalityTolerance;
 
     /**
-     * Parameter reference of the run-time parameter "e_optimality",
-     * for details see SimplexParameterHandler.
-     */
-    /**
-     * Parameter reference of the run-time parameter "simpri_phaseI_clusters",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseI_clusters".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIClusters;
 
     /**
-     * Parameter reference of the run-time parameter "simpri_phaseI_visit_clusters",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseI_visit_clusters".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIVisitClusters;
 
     /**
-     * Parameter reference of the run-time parameter "simpri_phaseI_improving_candidates",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseI_improving_candidates".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIImprovingCandidates;
 
     /**
-     * Parameter reference of the run-time parameter "simpri_phaseII_clusters",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseII_clusters".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIIClusters;
 
     /**
-     * Parameter reference of the run-time parameter "simpri_phaseII_visit_clusters",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseII_visit_clusters".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIIVisitClusters;
 
     /**
-     * Parameter reference of the run-time parameter "simpri_phaseII_improving_candidates",
-     * for details see SimplexParameterHandler.
+     * Parameter reference of the run-time parameter "simpri_phaseII_improving_candidates".
+     *
+     * @see SimplexParameterHandler.
      */
     const int & m_phaseIIImprovingCandidates;
 

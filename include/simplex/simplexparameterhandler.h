@@ -31,8 +31,7 @@ public:
     /**
      * Enables or disables the parallel specific options.
      *
-     * @param value If it is true, the function enables the
-     * parallel options.
+     * @param value If it is true, the function enables the parallel options.
      */
     void enableParallelOptions(bool value);
 

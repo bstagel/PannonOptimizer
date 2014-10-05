@@ -24,8 +24,7 @@ class BasisHeadIO;
 
 /**
  * This class describes a general simplex object. It has all elements of the simplex algorithm:
- * the pricing, ratiotest and other abstract members. The actual implementation of these
- * abstract class members can be found in the derived classes: PrimalSimplex, DualSimplex.
+ * the pricing, ratiotest and other abstract members.
  *
  * @class Simplex
  */
@@ -77,6 +76,7 @@ public:
      * Default constructor of the class.
      *
      * @param simplexController A reference to the controller to reach the controller API.
+     *
      * @constructor
      */
     Simplex(SimplexController& simplexController);
@@ -92,12 +92,16 @@ protected:
 
     // Interface of the iteration report provider
     /**
-     * The function returns the iteration report fields of this class, see IterationReportProvider.
+     * The function returns the iteration report fields of this class.
+     *
+     * @see IterationReportProvider.
      */
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     /**
-     * Getter of one iteration Entry, see IterationReportProvider.
+     * Getter of one iteration Entry.
+     *
+     * @see IterationReportProvider.
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
@@ -108,17 +112,17 @@ protected:
     IterationReport * m_iterationReport;
 
     /**
-     * Holds a reference to the simplex controller to gain the ability to log some events.
+     * Rreference to the simplex controller to gain the ability to log some events.
      */
     SimplexController & m_simplexController;
 
     /**
-     * The simplex model stores all information about the given LP problem.
+     * The simplex model of the LP problem.
      */
     SimplexModel * m_simplexModel;
 
     /**
-     * The basishead containtes the variable indices of the basic variables.
+     * The basis head containing the variable indices of the basic variables.
      */
     std::vector<int> m_basisHead;
 
@@ -128,19 +132,19 @@ protected:
     bool m_degenerate;
 
     /**
-     * An indexlist stroing the variable states described at Simplex::VARIABLE_STATE.
+     * Index list storing the variable states described at Simplex::VARIABLE_STATE.
      * The template parameter holds the value of the variable.
      */
     IndexList<const Numerical::Double*> m_variableStates;
 
     /**
-     * This indexlist containts the feasibilities of the basic variables
-     * its possible values can be found at Simplex::FEASIBILITY.
+     * Index list containts the feasibilities of the basic variables.
+     * Its possible values can be found at Simplex::FEASIBILITY.
      */
     IndexList<> m_basicVariableFeasibilities;
 
     /**
-     * This indexlist containts the feasibilities of the reduced costs.
+     * Index list containts the feasibilities of the reduced costs..
      * Its possible values can be found at Simplex::FEASIBILITY.
      */
     IndexList<> m_reducedCostFeasibilities;
@@ -243,74 +247,83 @@ protected:
 
     //Parameter variables
     /**
-     * Parameter reference of the run-time parameter "enable_export",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "enable_export".
+     *
+     * @see SimplexParameterHandler
      */
     const bool & m_enableExport;
 
     /**
-     * Parameter reference of the run-time parameter "export_filename",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "export_filename".
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_exportFilename;
 
     /**
-     * Parameter reference of the run-time parameter "export_type",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "export_type".
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_exportType;
 
     /**
-     * Parameter reference of the run-time parameter "save_format",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "save_format".
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_saveFormat;
 
     /**
-     * Parameter reference of the run-time parameter "save_iteration",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "save_iteration".
+     *
+     * @see SimplexParameterHandler
      */
     const int & m_saveIteration;
 
     /**
-     * Parameter reference of the run-time parameter "save_periodically",
-     * see SimplexParameterHandler for details.
+     * Parameter reference of the run-time parameter "save_periodically".
+     *
+     * @see SimplexParameterHandler
      */
     const int & m_savePeriodically;
 
     /**
-     * Parameter reference for "save_filename" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "save_filename" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_saveFilename;
 
     /**
-     * Parameter reference for "load_filename" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "load_filename" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_loadFilename;
 
     /**
-     * Parameter reference for "load_format" run-time parameter,
-     * for details see SimplexParameterHandler.
+     * Parameter reference for "load_format" run-time parameter.
+     *
+     * @see SimplexParameterHandler
      */
     const std::string & m_loadFormat;
 
     //Tolerance handling
     /**
-     * The master tolerance is given in the parameter file, and will be initialized in the child classes.
+     * Master tolerance given in the parameter file.
      */
     double m_masterTolerance; //Initialized in child classes
 
     /**
      * The tolerance multiplier is needed in the expand procedure.
-     * Its value is given in the simplex parameter file, initialized in the child classes.
+     * Its value is given in the simplex parameter file.
      */
     double m_toleranceMultiplier; //Initialized in child classes
 
     /**
      * The tolerance divider is needed in the expand procedure.
-     * Its value is given in the simplex parameter file, initialized in the child classes.
+     * Its value is given in the simplex parameter file.
      */
     double m_toleranceDivider; //Initialized in child classes
 
@@ -329,7 +342,7 @@ protected:
     //Measure variables
     /**
      * Reference objective value to be compared with the computed objective value.
-     * So degenerate iterations, bad iterations can be discovered.
+     * Degenerate iterations, bad iterations can be discovered thi way.
      */
     Numerical::Double m_referenceObjective;
 
@@ -372,6 +385,7 @@ protected:
 
     /**
      * Initializes the basis, starting basis finder modules.
+     *
      * @throws ParameterException if wrong factorisation type in the parameter file is specified
      */
     virtual void initModules();
@@ -395,24 +409,28 @@ protected:
 
     /**
      * Setter for the Timer object.
-     * @param solveTimer shows the other Timer object
+     *
+     * @param solveTimer Pointer to the Timer object to be set.
      */
     inline void setSolveTimer(const Timer * solveTimer){ m_solveTimer = solveTimer;}
 
     /**
      * Setter for the iteration reporter.
-     * @param iterationReport shows the other IterationReport object
+     *
+     * @param iterationReport Pointer to the IterationReport object to be set.
      */
     inline void setIterationReport(IterationReport * iterationReport){ m_iterationReport = iterationReport;}
 
     /**
      * Returns whether the current solution is feasible or not.
+     *
      * @return Simplex::m_feasible
      */
     inline bool isFeasible()const{return m_feasible;}
 
     /**
      * Returns whether the last basis was feasible or not.
+     *
      * @return Simplex::m_lastFeasible
      */
     inline bool getLastFeasible()const{return m_lastFeasible;}
@@ -444,29 +462,33 @@ protected:
 
     /**
      * Setter for the mathematical model of the LP problem.
+     *
      * @param model is the other Model object
      */
     void setModel(const Model & model);
 
     /**
      * This function saves the current state of the simplex algorithm, and copies it to the Simplex object given in parameter.
-     * @param simplex the target Simplex object to copy the state to
+     *
+     * @param simplex The target Simplex object to copy the state to.
      */
     void setSimplexState(const Simplex &simplex);
 
     /**
      * Saves the current basis to a file.
-     * @param fileName name of the file where the basis will be saved
-     * @param basisWriter performs the basis writing
-     * @param releaseWriter optional parameter for releasing the basisWriter
+     *
+     * @param fileName Name of the file where the basis will be saved.
+     * @param basisWriter The bases writer performing the basis writing.
+     * @param releaseWriter Optional parameter for releasing the basisWriter.
      */
     void saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter);
 
     /**
      * Loads the basis from a file.
-     * @param fileName name of the file where the basis will be loaded from
-     * @param basisReader performs the basis reading
-     * @param releaseWriter optional parameter for releasing the basisReader
+     *
+     * @param fileName Name of the file where the basis will be loaded from.
+     * @param basisReader Basis reader performing the basis reading.
+     * @param releaseWriter Optional parameter for releasing the basisReader.
      */
     void loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader, bool releaseReader);
 
@@ -474,14 +496,17 @@ protected:
      * Calls the saveBasisToFile() function, if needed.
      * If the iteration index given as parameter corresponds to the reinversion frequency
      * given in the simplex parameter file or the current iteration is to be saved (also from simplex parameterfile).
-     * @param iteratonIndex shows the current iteration
-     * @throws ParameterException at invalid save basis format (read from parameterfile)
+     *
+     * @param iteratonIndex Index of the current iteration.
+     *
+     * @throws ParameterException at invalid save basis format (read from parameterfile).
      */
     void saveBasis(int iterationIndex);
 
     /**
      * Calls the loadBasisFromFile() function, if needed.
-     * @throws ParameterException at invalid load basis format (read from parameterfile)
+     *
+     * @throws ParameterException at invalid load basis format (read from parameterfile).
      */
     void loadBasis();
 
@@ -509,56 +534,51 @@ protected:
     virtual void computeFeasibility() = 0;
 
     /**
-     * Pure virtual function for the pricing module,
-     * implemented in child classes.
+     * Pure virtual function for the pricing module.
      */
     virtual void price() = 0;
 
     /**
-     * Pure virtual function for the ratiotest module,
-     * implemented in child classes.
+     * Pure virtual function for the ratiotest module.
      */
     virtual void selectPivot() = 0;
 
     /**
-     * Pure virtual function for updating the solution,
-     * implemented in child classes.
+     * Pure virtual function for updating the solution.
      */
     virtual void update() = 0;
 
     /**
-     * Pure virtual function for updating the reduced costs,
-     * implemented in child classes.
+     * Pure virtual function for updating the reduced costs.
      */
     virtual void updateReducedCosts() = 0;
 
     /**
-     * Pure virtual setter for the reference objective value,
-     * implemented in child classes.
+     * Pure virtual setter for the reference objective value.
      */
     virtual void setReferenceObjective(bool secondPhase) = 0;
 
     /**
-     * Pure virtual function to check the reference objective value,
-     * implemented in child classes.
+     * Pure virtual function to check the reference objective value.
      */
     virtual void checkReferenceObjective(bool secondPhase) = 0;
 
     /**
      * Pure virtual function for initializing the working tolerance.
-     * See Simplex::m_workingTolerance above. Implemented in child classes.
+     *
+     * @see Simplex::m_workingTolerance
      */
     virtual void initWorkingTolerance() = 0;
 
     /**
      * Pure virtual function for computing the working tolerance in every iteration.
-     * See Simplex::m_workingTolerance above. Implemented in the child classes.
+     *
+     * @see Simplex::m_workingTolerance
      */
     virtual void computeWorkingTolerance() = 0;
 
     /**
      * Pure virtual function for releasing the locked variables (eg. because numerical issues).
-     * Implemented in child classes.
      */
     virtual void releaseLocks() = 0;
 
@@ -566,10 +586,11 @@ protected:
      * This function performs the basis change according to the parameters (incoming, outgoing
      * variables). The value of the incoming variable is determined by the pirmalTheta parameter.
      * This function also performs the boundflips according to the third parameter.
-     * @param incomingIndex shows the incoming variable
-     * @param outgoingIndex shows the outgoing variable
-     * @param boundflips shows the variables on which a boundflip operation shall be performed
-     * @param primalTheta is the value of the incomingVariable in the new basis
+     *
+     * @param incomingIndex Index of the incoming variable.
+     * @param outgoingIndex Index of the outgoing variable.
+     * @param boundflips Indices of the variables on which a boundflip operation shall be performed.
+     * @param primalTheta The value of the incoming variable in the new basis.
      */
     void transform(int incomingIndex,
                    int outgoingIndex,

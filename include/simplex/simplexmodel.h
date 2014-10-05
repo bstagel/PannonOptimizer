@@ -21,7 +21,8 @@ public:
 
     /**
      * Initializing constructor of the class, it calls the SimplexModel::makeComputationalForm() function.
-     * @param model the general model object member stores an LP problem
+     *
+     * @param model The model of the LP problem.
      *
      * @constructor
      */
@@ -29,6 +30,7 @@ public:
 
     /**
      * Getter of the rhs vector member.
+     *
      * @return SimplexModel::m_rhs
      */
     inline const Vector & getRhs() const {return m_rhs;}
@@ -36,86 +38,100 @@ public:
     /**
      * Prints the output of the createComputationalForm (CF3) algorithm.
      * (The generated model with RHS and logical variables.)
-     * @param out is the output stream
+     *
+     * @param out The output stream.
      */
     void print(std::ostream& out = std::cout) const;
 
     /**
-     * Getter of the LP problem's matrix,
-     * for details see Model::getMatrix().
+     * Getter of the LP problem's matrix.
+     *
+     * @see Model::getMatrix()
      */
     inline const Matrix & getMatrix()const {return m_model.getMatrix();}
 
     /**
-     * Getter of the number of rows in the matrix,
-     * for details see Model::getMatrix().rowCount().
+     * Getter of the number of rows in the matrix.
+     *
+     * @see Model::getMatrix().rowCount().
      */
     inline unsigned int getRowCount() const {return m_model.getMatrix().rowCount();}
 
     /**
      * Getter of the number of columns in the matrix,
-     * for details see Model::getMatrix().columnCount().
+     *
+     * @see Model::getMatrix().columnCount().
      */
     inline unsigned int getColumnCount() const {return m_model.getMatrix().columnCount();}
 
     /**
-     * Getter of a contraint,
-     * for details see Model::getConstraint().
+     * Getter of a contraint.
+     *
+     * @see Model::getConstraint()
      */
     inline const Constraint & getConstraint(unsigned int index) const {return m_model.getConstraint(index);}
 
     /**
-     * Getter of all contraints,
-     * for details see Model::getConstraints().
+     * Getter of all contraints.
+     *
+     * @see Model::getConstraints()
      */
     inline const std::vector<Constraint> & getConstraints() const {return m_model.getConstraints();}
 
     /**
-     * Getter of problem's name,
-     * for details see Model::getName().
+     * Getter of problem's name.
+     *
+     * @see Model::getName()
      */
     inline const std::string & getName() const {return m_model.getName();}
 
     /**
-     * Getter of the cost constant,
-     * for details see Model::getCostConstant().
+     * Getter of the cost constant.
+     *
+     * @see Model::getCostConstant()
      */
     inline const Numerical::Double & getCostConstant() const {return m_model.getCostConstant();}
 
     /**
-     * Getter of the objective type,
-     * for details see Model::getObjectiveType().
+     * Getter of the objective type.
+     *
+     * @see Model::getObjectiveType()
      */
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_model.getObjectiveType();}
 
     /**
-     * Getter of objective row name,
-     * for details see Model::getObjectiveRowname().
+     * Getter of objective row name.
+     *
+     * @see Model::getObjectiveRowname()
      */
     inline const std::string & getObjectiveRowname() const {return m_model.getObjectiveRowname();}
 
     /**
-     * A getter of the variables.
-     * @param index the variable to be returned
-     * @return the selected variable as a const reference.
+     * Getter function of the variables.
+     *
+     * @param index The index of the variable to be returned.
+     * @return The selected variable as a const reference.
      */
     inline const Variable & getVariable(unsigned int index) const { return m_variables[index]; }
 
     /**
      * Returns a vector containing both the structural and logical variables.
+     *
      * @return SimplexModel::m_variables
      */
     inline const std::vector<Variable> & getVariables() const {return m_variables;}
 
     /**
      * Getter of the cost vector.
+     *
      * @return SimplexModel::m_costVector
      */
     inline const Vector & getCostVector() const {return m_costVector;}//m_model.getCostVector();}
 
     /**
      * Getter of the model member.
-     * @return the model of the LP problem.
+     *
+     * @return The model of the LP problem.
      */
     inline const Model & getModel() const { return m_model; }
 
