@@ -182,8 +182,8 @@ void SimplexModel::perturbCostVector()
 
     //in feasible direction
     }else if(perturbMethod == "STRUCTURAL_FEASIBLE"){
-        std::uniform_real_distribution<double> negDistribution(-1.5*epsilon,-0.5*epsilon);
-        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,1.5*epsilon);
+        std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
+        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
 //        std::uniform_real_distribution<double> negDistribution(-epsilon,0);
 //        std::uniform_real_distribution<double> posDistribution(0,epsilon);
         std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
@@ -275,10 +275,10 @@ void SimplexModel::perturbCostVector()
 
     //with sign of c_j
     }else if(perturbMethod == "STRUCTURAL_SIGN"){
-//        std::uniform_real_distribution<double> negDistribution(-1.5*epsilon,-0.5*epsilon);
-//        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,1.5*epsilon);
-        std::uniform_real_distribution<double> negDistribution(-epsilon,0);
-        std::uniform_real_distribution<double> posDistribution(0,epsilon);
+        std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
+        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
+//        std::uniform_real_distribution<double> negDistribution(-epsilon,0);
+//        std::uniform_real_distribution<double> posDistribution(0,epsilon);
         //structural
         if(!perturbLogical){
             for(unsigned i=0;i < getColumnCount();i++){
@@ -302,9 +302,94 @@ void SimplexModel::perturbCostVector()
                 }
             }
         }
+    //Koberstein
+    }else if(perturbMethod == "STRUCTAL_KOBERSTEIN"){
+        int steps = 4;
+        Numerical::Double psi = 1E-5;
+        //setting fix part
+        Numerical::Double tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+        Numerical::Double xi = 100 * tolerance;
+        int numberOfPerturbations = 0;
+        if(perturbLogical){
+            numberOfPerturbations = getColumnCount() + getRowCount();
+        }else{
+            numberOfPerturbations = getColumnCount();
+        }
+        //considering size of c_j
+        for(int i=0; i < numberOfPerturbations; i++){
+            epsilonValues.set(i, (xi + Numerical::fabs(m_costVector.at(i)) * psi) );
+        }
+        //considering type of variable
+        if(steps > 1){
+            std::uniform_real_distribution<double> distribution(0.5,1);
+            for(int i=0; i < numberOfPerturbations; i++){
+                //those with finite upper bound
+                if(getVariable(i).getUpperBound() != Numerical::Infinity){
+                    epsilonValues.set(i, - distribution(engine) * epsilonValues.at(i) );
+                }else{
+                    epsilonValues.set(i, distribution(engine) * epsilonValues.at(i) );
+                }
+            }
+            //considering number of nonzeros (alpha column)
+            if(steps > 2){
+                std::vector<Numerical::Double> weightVector;
+                weightVector.push_back(0.01);
+                weightVector.push_back(0.1);
+                weightVector.push_back(1);
+                weightVector.push_back(2);
+                weightVector.push_back(5);
+                weightVector.push_back(10);
+                weightVector.push_back(20);
+                weightVector.push_back(30);
+                weightVector.push_back(40);
+                weightVector.push_back(100);
+
+                for(unsigned i=0; i < getColumnCount(); i++){
+                    unsigned nonzeros = getMatrix().column(i).nonZeros();
+                    if(nonzeros > 8){
+                        epsilonValues.set(i,weightVector[9] * epsilonValues.at(i));
+                    }else{
+                        epsilonValues.set(i,weightVector[nonzeros] * epsilonValues.at(i));
+                    }
+                }
+                //logical alpha vectors have one nonzero element
+                if(perturbLogical){
+                   for(unsigned i=getColumnCount(); i < getColumnCount()+getRowCount(); ++i) {
+                       epsilonValues.set(i,weightVector[1] * epsilonValues.at(i));
+                   }
+                }
+                //checking the interval
+                if(steps > 3){
+                    Numerical::Double minValue = 1E-2 * tolerance < psi ? 1E-2 * tolerance : psi;
+                    Numerical::Double avg = 0;
+                    //summarize nonzero c_j values
+                    auto it = m_costVector.beginNonzero();
+                    auto endit = m_costVector.endNonzero();
+                    for(; it != endit; ++it){
+                        avg += Numerical::fabs(*it);
+                    }
+                    avg = avg / m_costVector.length();
+                    Numerical::Double maxValue = 1E+3 * tolerance > psi * 10 * avg ? 1E+3 * tolerance : psi * 10 * avg;
+                    LPINFO("Setting to interval: (" << std::scientific << minValue << "," << maxValue << ")");
+                    for(int i=0; i < numberOfPerturbations; i++){
+                        Numerical::Double absEpsilon = Numerical::fabs(epsilonValues.at(i));
+                        while(absEpsilon > maxValue){
+//                            LPINFO("above maxValue: "<<absEpsilon);
+                            epsilonValues.set(i,epsilonValues.at(i) * 0.1);
+                            absEpsilon = Numerical::fabs(epsilonValues.at(i));
+                        }
+                        while(absEpsilon < minValue){
+//                            LPINFO("below minValue: "<<absEpsilon);
+                            epsilonValues.set(i,epsilonValues.at(i) * 10);
+                            absEpsilon = Numerical::fabs(epsilonValues.at(i));
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    //perturbation: c+epsilonValues
+    //perturbation: c + epsilonValues
     m_costVector.addVector(1,epsilonValues);
     m_perturbedCostVector = true;
 }
@@ -364,15 +449,16 @@ void SimplexModel::shiftBounds()
 
 void SimplexModel::resetModel()
 {
-    if (m_perturbedCostVector != 0){
+    if (m_perturbedCostVector){
+        LPINFO("Resetting cost vector!");
         m_costVector.clear();
         m_costVector = m_originalCostVector;
     }
-    if (m_perturbedRhs != 0){
+    if (m_perturbedRhs){
         m_rhs.clear();
         m_rhs = m_originalRhs;
     }
-    if (m_perturbedBounds != 0){
+    if (m_perturbedBounds){
         Numerical::Double lb = 0;
         Numerical::Double ub = 0;
         for(unsigned i=0;i < getColumnCount();i++){

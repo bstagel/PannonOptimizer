@@ -82,7 +82,8 @@
 # INACTIVE: Inactive \
 # STRUCTURAL_RANDOM: Active for structural variables with random values \
 # STRUCTURAL_FEASIBLE: Active for structural variables in feasible direction) \
-# STRUCTURAL_SIGN: Active for structural variables with sign of c_j)"
+# STRUCTURAL_SIGN: Active for structural variables with sign of c_j \
+# STRUCTAL_KOBERSTEIN: Active for structural variables with Koberstein's method)"
 
 #define PERTURBATION_PERTURB_TARGET_COMMENT R"(# Perturbation target \
 # NONZEROS: Nonzero values \

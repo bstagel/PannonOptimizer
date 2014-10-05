@@ -302,8 +302,11 @@ void Simplex::setModel(const Model &model) {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
 
+    Timer perturbTimer;
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){
+        perturbTimer.start();
         m_simplexModel->perturbCostVector();
+        perturbTimer.stop();
     }
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_rhs") != false){
         m_simplexModel->perturbRHS();
@@ -311,6 +314,7 @@ void Simplex::setModel(const Model &model) {
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.shift_bounds") != false){
         m_simplexModel->shiftBounds();
     }
+    LPINFO("Perturbation time: " << std::setprecision(6) << perturbTimer.getCPUTotalElapsed());
 }
 
 void Simplex::setSimplexState(const Simplex & simplex)
