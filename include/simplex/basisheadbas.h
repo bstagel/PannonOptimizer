@@ -14,7 +14,7 @@
 
 /**
  * This class describes a BAS (standard) format of the basis.
- * With this we can write, and read the basis into / from a file.
+ * With this we can write and read the basis information to / from a file.
  *
  * @class BasisHeadBAS
  */
@@ -23,35 +23,40 @@ public:
 
     /**
      * Default constructor of the class.
+     *
      * @constructor
      */
     BasisHeadBAS() {}
 
     /**
      * Default destructor of the class.
+     *
      * @destructor
      */
     ~BasisHeadBAS() {}
 
     /**
-     * This function reopens the outputfile, and clears the members.
-     * @param fileName name of the outputfile
-     * @param model model of the LP problem
+     * This function reopens the output file, and clears the members.
+     *
+     * @param fileName The name of the output file.
+     * @param model The model of the LP problem.
      */
     void startWrting(const char * fileName, const Model & model);
 
     /**
      * Initializes the m_info member with the given parameter.
-     * @param info will be added as an std::string
+     *
+     * @param The info to be added.
      */
     void addInfo(const char * info);
 
     /**
-     * With this function we can add a new basicvariable to the m_basicVariables vector.
-     * @param variable pointer of the variable to be added
-     * @param basisPosition the basis position on which the variable should be added
-     * @param variableIndex parameter unused
-     * @param value parameter unused
+     * Adds a basic variable to the m_basicVariables vector.
+     *
+     * @param variable Pointer to the variable to be added.
+     * @param basisPosition The basis position on which the variable will be added.
+     * @param variableIndex The index of the variable to be added.
+     * @param value The current value of the variable to be added.
      */
     void addBasicVariable(const Variable * variable,
                           unsigned int basisPosition,
@@ -59,11 +64,12 @@ public:
                           Numerical::Double value);
 
     /**
-     * With this function we can add a new nonbasic variable to the m_nonBasicVariables vector.
-     * @param variable pointer of the variable to be added
-     * @param variableIndex parameter unused
-     * @param state describes whether the nonbasic variable is on its lower or upper bound
-     * @param value parameter unused
+     * Adds a nonbasic variable to the m_nonBasicVariables vector.
+     *
+     * @param variable Pointer to the variable to be added.
+     * @param variableIndex The index of the variable to be added.
+     * @param state Describes whether the nonbasic variable is on its lower or upper bound.
+     * @param value The current value of the variable to be added.
      */
     void addNonbasicVariable(const Variable *variable,
                              unsigned int variableIndex,
@@ -71,42 +77,45 @@ public:
                              Numerical::Double value);
 
     /**
-     * Writes the nonbasic variables into the output file, and closes it.
+     * Writes the nonbasic variables to the output file, and closes it.
      */
     void finishWriting();
 
     /**
-     * This function opens the input file, and initializes the hash.
-     * @param fileName name of the input file
-     * @param model model of the LP problem
+     * This function opens the input file, and initializes the variables' hash table.
+     *
+     * @param fileName The name of the input file.
+     * @param model The model of the LP problem.
      */
     void startReading(const char * fileName,
                       const Model & model);
 
     /**
-     * Adds the variable to the hash.
-     * @param variable variable to be added
+     * Adds a specific variable to the hash table.
+     *
+     * @param variable The variable to be added.
      */
     void addVariable(const Variable & variable);
 
     /**
-     * Reades the variables from the input file, and adds them to the right position. (Lower, upper bound, etc.)
+     * Reads the variables from the input file, and adds them to the right position. (Lower, upper bound, etc.)
      */
     void finishReading();
 
 private:
     /**
-     * The output file.
+     * The output file stream.
      */
     std::ofstream m_outputFile;
 
     /**
-     * The input file.
+     * The input file stream.
      */
     std::ifstream m_inputFile;
 
     /**
-     * This struct describes a basicvariable.
+     * This struct describes a basic variable.
+     *
      * @struct BasicVariable
      */
     struct BasicVariable {
@@ -116,6 +125,7 @@ private:
 
     /**
      * This struct describes a nonbasic variable.
+     *
      * @struct NonBasicVariable
      */
     struct NonBasicVariable {
@@ -124,7 +134,8 @@ private:
     };
 
     /**
-     * Struct containing a variable, and its index.
+     * Struct containing a variable with its index.
+     *
      * @struct VariableIndex
      */
     struct VariableIndex {
@@ -141,14 +152,16 @@ private:
 
     /**
      * Describes the hash used to read and write data from / to a file.
+     *
      * @class VariableIndexHash
      */
     class VariableIndexHash {
     public:
         /**
          * This function performs an SHA-1 cryptographic algorithm.
-         * @param vi is a variable and its index
-         * @return the produced hash value.
+         *
+         * @param vi The variable with its index to be hashed.
+         * @return The produced hash value.
          */
         static unsigned int getHash(const VariableIndex & vi) {
             unsigned int bits = 0;
@@ -181,24 +194,25 @@ private:
     };
 
     /**
-     * This creates a new Variable according to the name parameter, and sets it to the second parameter.
-     * @param name name of the new variable
-     * @param index container of the variable
+     * Sets a new Variable to a given variable index struct.
+     *
+     * @param name Name of the new variable.
+     * @param index Container of the variable.
      */
     void getNamedVariable(const char * name, VariableIndex *index);
 
     /**
-     * Vector containing basicvariables.
+     * Vector containing the basic variables.
      */
     std::vector<BasicVariable> m_basicVariables;
 
     /**
-     * Vector storing nonbasic variables.
+     * Vector containing the nonbasic variables.
      */
     std::vector<NonBasicVariable> m_nonBasicVariables;
 
     /**
-     * Stores additional information that can be written.
+     * Additional information to be stored.
      */
     std::string m_info;
 
@@ -209,9 +223,10 @@ private:
 
     /**
      * This function inserts the variable to its right place considering the state.
-     * @param state state of the variable
-     * @param variableIndex variable and its index
-     * @param attached optional parameter for the basicvariables: their values
+     *
+     * @param state The state of the variable.
+     * @param variableIndex The variable with its index.
+     * @param attached The value of the variable if it is basic.
      */
     void insertVariable(Simplex::VARIABLE_STATE state,
                         const VariableIndex * variableIndex,

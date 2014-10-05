@@ -1,6 +1,7 @@
 /**
  * @file primalfeasibilitychecker.h This file contains the API of the PrimalFeasibilityChecker class.
  */
+
 #ifndef PRIMALFEASIBILITYCHECKER_H
 #define PRIMALFEASIBILITYCHECKER_H
 
@@ -9,7 +10,7 @@
 #include <simplex/simplexmodel.h>
 
 /**
- * This class computes and checkes the primal feasibility of the basicvariables.
+ * This class computes and checks the primal feasibility of the basic variables.
  *
  * @class PrimalFeasibilityChecker
  */
@@ -17,11 +18,12 @@ class PrimalFeasibilityChecker{
 public:
 
     /**
-     * Initializing constructor of the class.
-     * @param model provides information such as variable bounds etc.
-     * @param variableStates holds the states (being at upper / lower bound) of the variables
-     * @param basicVariableFeasibilities holds the feasibility sets defined in the feasibility checker.
-     * @param basisHead contains the variable indices of the basicvariables
+     * Initializing constructor.
+     *
+     * @param model The model of the LP problem.
+     * @param variableStates The states (being at upper / lower bound) of the variables
+     * @param basicVariableFeasibilities The feasibility sets defined in the feasibility checker.
+     * @param basisHead The variable indices of the basic variables.
      * @constructor
      */
     PrimalFeasibilityChecker(const SimplexModel& model,
@@ -32,13 +34,15 @@ public:
     /**
      * This function computes the feasibilities of the basic variables.
      * It determines the M, F, P feasibility sets, and the phase 1 objective value, the sum of primal infeasibilities.
-     * @param tolerance is the currently used primal feasibility tolerance
-     * @return True if everything is dual feasible
+     *
+     * @param tolerance The currently used primal feasibility tolerance.
+     * @return true if everything is dual feasible.
      */
     bool computeFeasibilities(Numerical::Double tolerance);
 
     /**
      * Getter of the primal phase 1 objective value, the sum of primal infeasibilities.
+     *
      * @return PrimalFeasibilityChecker::m_phaseIObjectiveValue;
      */
     inline Numerical::Double getPhaseIObjectiveValue() {return m_phaseIObjectiveValue;}
@@ -46,22 +50,22 @@ public:
 private:
 
     /**
-     * The model provides the class inforamtion such as the values or bounds of the variables.
+     * The simplex model of the LP problem.
      */
     const SimplexModel& m_model;
 
     /**
-     * This indexlist stores the state (being at lower/upper bound) of the nonbasic variables.
+     * Index list storing the state (being at lower/upper bound) of the nonbasic variables.
      */
     IndexList<const Numerical::Double*>* m_variableStates;
 
     /**
-     * This indexlist stores the feasibilities of the basic variables, which are computed by this class.
+     * Index list storing the feasibilities of the basic variables, which are computed by this class.
      */
     IndexList<>* m_basicVariableFeasibilities;
 
     /**
-     * The basishead containtes the variable indices of the basicvariables.
+     * The basishead containing the variable indices of the basic variables.
      */
     const std::vector<int>& m_basisHead;
 

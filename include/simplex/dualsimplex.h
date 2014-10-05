@@ -31,6 +31,7 @@ private:
      * Default constructor of the class.
      *
      * @param simplexController A reference to the controller to reach the controller API.
+     *
      * @constructor
      */
     DualSimplex(SimplexController& simplexController);
@@ -48,7 +49,7 @@ private:
     DualPricing * m_pricing;
 
     /**
-     * The dual pricing controller is needed for the paralell pricing framework.
+     * The dual pricing controller is needed for the parallel pricing framework.
      */
     DualPricingController * m_pricingController;
 
@@ -92,94 +93,100 @@ private:
     Vector m_pivotRowOfBasisInverse;
 
     /**
-     * Function that initializes the dual simplex modules.
-     * The pricing is initialized according to the simplex parameter file, the ratiotest and
-     * the dual feasibility checker are also initialized.
+     * Initializes the dual simplex modules.
+     * The pricing is initialized according to the simplex parameter file.
      */
     void initModules();
 
     /**
-     * The function releases the dual simplex modules reserved in DualSimplex::initModules().
+     * Releases the dual simplex modules reserved in DualSimplex::initModules().
      */
     void releaseModules();
 
     /**
-     * Inherited from the parent Simplex class, computing the measure of dual infeasibility of the reduced costs.
+     * Computes the measure of dual infeasibility of the reduced costs.
+     *
      * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void computeFeasibility();
 
     /**
-     * Inherited from the parent Simplex class, performing the dual pricing.
+     * Performs the dual pricing.
+     *
      * @throws DualInfeasibleException if there is no improving candidate in phase 1
      * @throws OptimalException if there is no improving candidate in phase 2
      */
     virtual void price();
 
     /**
-     * Inherited from the parent Simplex class, performing the dual ratiotest.
+     * Performs the dual ratiotest.
      */
     virtual void selectPivot();
 
     /**
-     * Inherited from the parent Simplex class, performing the basis change.
-     * It also computes the reduced costs, and the basic solution.
-     * @throws PanOptException if there is a boundflipping variable in the basis
-     * @throws PanOptException if there is an invalid variable type
+     * Performs the basis change, computes the reduced costs and the basic solution.
+     *
+     * @throws PanOptException if there is a boundflipping variable in the basis.
+     * @throws PanOptException if there is an invalid variable type.
      */
     virtual void update();
 
     /**
-     * Inherited from the parent Simplex class, it updates the reduced cost values.
+     * Updates the reduced cost values.
      */
     virtual void updateReducedCosts();
 
     /**
-     * Inherited from the parent Simplex class, sets the objective function value.
-     * It considers the current phase.
+     * Sets the objective function value, considering the current phase.
      *
-     * @param secondPhase Describes if the reference check is done in second phase or not.
+     * @param secondPhase True if it is performed in the second phase.
      */
     virtual void setReferenceObjective(bool secondPhase);
 
     /**
-     * Inherited from the parent Simplex class, checks whether a bad iteration was done.
+     * Checks if a bad iteration was done.
      *
-     * @param secondPhase Describes if the reference check is done in second phase or not.
+     * @param secondPhase True if it is performed in the second phase.
      */
     virtual void checkReferenceObjective(bool secondPhase);
 
     /**
-     * Inherited from the parent Simplex class, initializes the expand working tolerance.
+     * Initializes the expand working tolerance.
      */
     virtual void initWorkingTolerance();
 
     /**
-     * Inherited from the parent Simplex class, copmutes the expand working tolerance in every iteration.
+     * Computes the expand working tolerance in the next iteration.
      */
     virtual void computeWorkingTolerance();
 
     /**
-     * Inherited from the parent Simplex class, releases the locked variables by the pricing.
+     * Releases the locked variables in the pricing.
      */
     virtual void releaseLocks();
 
     /**
-     * This function computes the transformed alpha row.
-     * @param alpha will hold the computed vector
-     * @param rowIndex shows the row of the problem's matrix to be transformed
-     * @throws NumericalException if the rowIndex is invalid
+     * Computes the transformed alpha row.
+     *
+     * @param alpha Pointer to the vector to be computed.
+     * @param rowIndex Index of the row of the problem's matrix to be transformed.
+     *
+     * @throws NumericalException if the rowIndex is invalid.
      */
     void computeTransformedRow(Vector* alpha, int rowIndex);
 
     // Interface of the iteration report provider:
     /**
-     * The function returns the iteration report fields of this class, see IterationReportProvider.
+     * Returns the iteration report fields of this class.
+     *
+     * @see IterationReportProvider.
      */
     std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     /**
-     * Getter of one iteration Entry, see IterationReportProvider.
+     * Getter of one iteration Entry.
+     *
+     * @see IterationReportProvider.
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;

@@ -810,7 +810,7 @@ void LinearAlgebraicModule::executeMethod() {
         int vhash = 0;
         const Vector* curRowVector = (*m_parent->getConstraints())[i].getVector();
 
-        if(curRowVector->nonZeros() < 2) continue;
+        if(curRowVector->nonZeros() < 1) continue;
 
         //Calculating hash
         Vector::NonzeroIterator begin = curRowVector->beginNonzero();
@@ -916,8 +916,7 @@ void LinearAlgebraicModule::executeMethod() {
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
         const Vector* curColumnVector = (*m_parent->getVariables())[i].getVector();
-
-        if(curColumnVector->nonZeros() < 2) continue;
+        if(curColumnVector->nonZeros() < 1) continue;
 
         //Calculating hash
         Vector::NonzeroIterator begin = curColumnVector->beginNonzero();
@@ -981,8 +980,8 @@ void LinearAlgebraicModule::executeMethod() {
                     }
 
                     //Creating bounds
-                    original.setLowerBound(duplicateLower + original.getLowerBound());
-                    original.setUpperBound(duplicateUpper + original.getUpperBound());
+                    original.setBounds(duplicateLower + original.getLowerBound(),
+                                       duplicateUpper + original.getUpperBound());
                     m_parent->getImpliedLower()->set(origIdx, duplicateLower + original.getLowerBound());
                     m_parent->getImpliedUpper()->set(origIdx, duplicateUpper + original.getUpperBound());
 
@@ -1053,7 +1052,7 @@ void MakeSparserModule::executeMethod() {
 
     Vector::NonzeroIterator begin = usedPartitions.beginNonzero();
     Vector::NonzeroIterator end = usedPartitions.endNonzero();
-    while(begin.getIndex() < 1) ++begin;
+    if(begin.getIndex() == 0) ++begin;
     while(begin < end) {
         sortedRows.getIterators(&it, &itEnd, begin.getIndex());
         while(it != itEnd) {
@@ -1063,6 +1062,10 @@ void MakeSparserModule::executeMethod() {
             Vector::NonzeroIterator pivotItEnd = pivotRow.getVector()->endNonzero();
             int columnIdx = pivotIt.getIndex();
             int pivotNonzeros = pivotRow.getVector()->nonZeros();
+            if(pivotNonzeros == 0) {
+                ++it;
+                continue;
+            }
             Vector::NonzeroIterator beginColumn = m_parent->getVariables()->at(columnIdx).getVector()->beginNonzero();
             Vector::NonzeroIterator endColumn = m_parent->getVariables()->at(columnIdx).getVector()->endNonzero();
             while(beginColumn < endColumn) {
@@ -1082,7 +1085,16 @@ void MakeSparserModule::executeMethod() {
                         pivotIt = pivotRow.getVector()->beginNonzero();
                         Numerical::Double lambda = *beginColumn / *pivotIt;
                         m_parent->getModel()->addToConstraint(secondIndex, index, -lambda);
-                        curRow.setBounds(curRow.getLowerBound() - lambda * pivotRow.getLowerBound(), curRow.getUpperBound() - lambda * pivotRow.getUpperBound());
+                        Numerical::Double newLowerBound;
+                        Numerical::Double newUpperBound;
+                        if(lambda > 0) {
+                            newLowerBound = curRow.getLowerBound() - lambda * pivotRow.getLowerBound();
+                            newUpperBound = curRow.getUpperBound() - lambda * pivotRow.getUpperBound();
+                        } else {
+                            newLowerBound = curRow.getLowerBound() - lambda * pivotRow.getUpperBound();
+                            newUpperBound = curRow.getUpperBound() - lambda * pivotRow.getLowerBound();
+                        }
+                        curRow.setBounds(newLowerBound, newUpperBound);
                         if(nonzeros - (int)curRow.getVector()->nonZeros() < 0) LPERROR("Make sparser module error: vector substraction created extra " << -(nonzeros - (int)curRow.getVector()->nonZeros()) << " nonzeros");
                         m_removedNzr += nonzeros - (int)curRow.getVector()->nonZeros();
                     } else {

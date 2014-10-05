@@ -13,9 +13,8 @@
 #include <vector>
 
 /**
- * This abstract class describes a general basishead input output unit.
- * It contains many abstract members that should be implemented in the derived classes.
- * With this we can write (and read) the basic and nonbasic variables into a file.
+ * This abstract class describes a general basishead input/output unit.
+ * Derived classes from this are able to write and read the basis into / from a file.
  *
  * @class BasisHeadIO
  */
@@ -37,11 +36,12 @@ public:
     virtual ~BasisHeadIO() {}
 
     /**
-     * Pure virtual function, adding a new basicvariable to a vector.
-     * @param variable pointer to the variable
-     * @param basisPosition basis index of the variable
-     * @param variableIndex variable index of the choosen variable
-     * @param value value of the selected variable
+     * Pure virtual function, adding a new basic variable to the input/output unit.
+     *
+     * @param variable Pointer to the variable to be added.
+     * @param basisPosition The basis position on which the variable will be added.
+     * @param variableIndex The index of the variable to be added.
+     * @param value The current value of the variable to be added.
      */
     virtual void addBasicVariable(const Variable * variable,
                                   unsigned int basisPosition,
@@ -49,11 +49,12 @@ public:
                                   Numerical::Double value) = 0;
 
     /**
-     * Pure virtual function, adding a new nonbasic variable to a vector.
-     * @param variable pointer to the variable to be added
-     * @param variableIndex variable index of the chosen variable
-     * @param state state of the nonbasic variable (lower/upper bound)
-     * @param value value of the nonbasic variable
+     * Pure virtual function, adding a new nonbasic variable to the input/output unit.
+     *
+     * @param variable Pointer to the variable to be added.
+     * @param variableIndex The index of the variable to be added.
+     * @param state Describes whether the nonbasic variable is on its lower or upper bound.
+     * @param value The current value of the variable to be added.
      */
     virtual void addNonbasicVariable(const Variable * variable,
                                      unsigned int variableIndex,
@@ -61,14 +62,16 @@ public:
                                      Numerical::Double value) = 0;
 
     /**
-     * Pure virtual function, adding a new variable to a vector.
-     * @param variable variable to be added
+     * Adds a specific variable to the input/output unit.
+     *
+     * @param variable The variable to be added.
      */
     virtual void addVariable(const Variable & variable) = 0;
 
     /**
-     * Setter for the basishead.
-     * @param basisHead pointer to the basishead to be set.
+     * Setter for the basis head pointer.
+     *
+     * @param basisHead Pointer to the basis head to be set.
      */
     void setBasisHead(std::vector<int> * basisHead) {
         m_basisHeadPtr = basisHead;
@@ -76,7 +79,8 @@ public:
 
     /**
      * Setter for the list containing the variable states.
-     * @param variableStates pointer of the inexlist to be set.
+     *
+     * @param variableStates Pointer to the indexlist to be set.
      */
     void setVariableStateList(IndexList<const Numerical::Double*> * variableStates) {
         m_variableStatesPtr = variableStates;
@@ -85,12 +89,12 @@ public:
 protected:
 
     /**
-     * Pointer of the basishead (containing variable indices of basicvariables)
+     * Pointer to the basis head vector (containing variable indices of basic variables)
      */
     std::vector<int> * m_basisHeadPtr;
 
     /**
-     * Pointer of indexlist holding the variable states.
+     * Pointer of indexlist containing the variable states.
      */
     IndexList<const Numerical::Double*> * m_variableStatesPtr;
 };
