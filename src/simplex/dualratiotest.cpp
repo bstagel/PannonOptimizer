@@ -566,10 +566,10 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
             if (signedAlpha < - m_pivotTolerance) {
-                Numerical::Double value = m_reducedCosts.at(variableIndex) / signedAlpha;
+                const Numerical::Double& reducedCost = m_reducedCosts.at(variableIndex);
                 m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     value,
-                                                     value  - (workingTolerance / signedAlpha));
+                                                     reducedCost / signedAlpha,
+                                                     (reducedCost - workingTolerance) / signedAlpha);
             }
             ++it;
         }
