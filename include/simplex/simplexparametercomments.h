@@ -80,10 +80,10 @@
 
 #define PERTURBATION_PERTURB_COST_VECTOR_COMMENT R"(	# Cost vector perturbation \
 # INACTIVE: Inactive \
-# STRUCTURAL_RANDOM: Active for structural variables with random values \
-# STRUCTURAL_FEASIBLE: Active for structural variables in feasible direction) \
-# STRUCTURAL_SIGN: Active for structural variables with sign of c_j \
-# STRUCTAL_KOBERSTEIN: Active for structural variables with Koberstein's method)"
+# STRUCTURAL_RANDOM: Active for structural variables with random values between +/- epsilon\
+# STRUCTURAL_FEASIBLE: Active for structural variables in feasible direction between +/- (0.5 epsilon, epsilon) \
+# STRUCTURAL_SIGN: Active for structural variables with sign of c_j between +/- (0.5 epsilon, epsilon)\
+# STRUCTURAL_KOBERSTEIN: Active for structural variables with Koberstein's method)"
 
 #define PERTURBATION_PERTURB_TARGET_COMMENT R"(# Perturbation target \
 # NONZEROS: Nonzero values \
