@@ -9,6 +9,7 @@
 #include <simplex/simplex.h>
 #include <simplex/primalpricing.h>
 #include <simplex/primalratiotest.h>
+#include <simplex/primalfeasibilitychecker.h>
 
 /**
  * This class describes a general primal simplex object, containing all members of the algorithm.
@@ -26,6 +27,7 @@ private:
      * Default constructor of the class.
      *
      * @param simplexController A reference to the controller to reach the controller API.
+     *
      * @constructor
      */
     PrimalSimplex(SimplexController & simplexController);
@@ -55,12 +57,8 @@ private:
     PrimalRatiotest * m_ratiotest;
 
     /**
-     * The transformed alpha column vector.
-     */
-    Vector m_alpha;
-
-    /**
      * The primal reduced cost(d) is needed to update the objective function value.
+     * It is also needed by the iteration reporter.
      * The measure of the change is the product of d and the primal theta.
      */
     Numerical::Double m_primalReducedCost;
@@ -72,9 +70,9 @@ private:
     Numerical::Double m_primalTheta;
 
     /**
-     * This parameter contains the name of the current phase of the solver algorithm.
+     * The dual theta (steplength) is used in updating the reduced costs.
      */
-    const char * m_phaseName;
+    Numerical::Double m_dualTheta;
 
     /**
      * Function that initializes the primal simplex modules.
@@ -89,12 +87,14 @@ private:
 
     /**
      * Inherited from the parent Simplex class, computing the measure of primal infeasibility of the basicvariables.
+     *
      * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void computeFeasibility();
 
     /**
      * Inherited from the parent Simplex class, performing the primal pricing.
+     *
      * @throws PrimalInfeasibleException if there is no improving candidate in phase 1
      * @throws OptimalException if there is no improving candidate in phase 2
      */

@@ -172,7 +172,7 @@ protected:
     /**
      * Alpha column vector corresponding to the incoming variable.
      */
-    Vector m_incomingAlpha;
+    Vector m_pivotColumn;
 
     /**
      * Alpha row vector corresponding to the outgoing variable.
