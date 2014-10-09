@@ -1,5 +1,6 @@
 /**
  * @file primalsimplex.cpp
+ * @author Peter Tar, Balint Stagel
  */
 
 #include <simplex/primalsimplex.h>
@@ -13,7 +14,6 @@ const static char * OUTGOING_NAME = "Outgoing";
 const static char * PHASE_NAME = "Phase";
 const static char * PHASE_1_STRING = "ph-1";
 const static char * PHASE_2_STRING = "ph-2";
-const static char * PHASE_UNKNOWN_STRING = "unknown";
 const static char * PRIMAL_INFEASIBILITY_STRING = "Primal infeasibility";
 const static char * OBJ_VAL_STRING = "Objective value";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
@@ -23,8 +23,7 @@ PrimalSimplex::PrimalSimplex(SimplexController &simplexController):
     Simplex(simplexController),
     m_pricing(0),
     m_feasibilityChecker(0),
-    m_ratiotest(0),
-    m_phaseName(PHASE_UNKNOWN_STRING)
+    m_ratiotest(0)
 {
     m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
     m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
@@ -100,7 +99,7 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
 
     case IterationReportProvider::IRF_ITERATION:
         if (name == PHASE_NAME) {
-            reply.m_string = new std::string(m_phaseName);
+            reply.m_string = new std::string(m_feasible?PHASE_2_STRING:PHASE_1_STRING);
         } else if (name == INCOMING_NAME) {
             reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {
@@ -176,8 +175,8 @@ void PrimalSimplex::initModules() {
 
 
     //The alpha vector for the column calculations
-    m_alpha.resize(m_simplexModel->getRowCount());
-    m_alpha.setSparsityRatio(DENSE);
+    m_pivotColumn.resize(m_simplexModel->getRowCount());
+    m_pivotColumn.setSparsityRatio(DENSE);
 }
 
 void PrimalSimplex::releaseModules() {
@@ -219,13 +218,11 @@ void PrimalSimplex::computeFeasibility() {
 
 void PrimalSimplex::price() {
     if(!m_feasible){
-        m_phaseName = PHASE_1_STRING;
         m_incomingIndex = m_pricing->performPricingPhase1();
         if(m_incomingIndex == -1){
             throw PrimalInfeasibleException("The problem is PRIMAL INFEASIBLE!");
         }
     } else {
-        m_phaseName = PHASE_2_STRING;
         m_incomingIndex = m_pricing->performPricingPhase2();
         if(m_incomingIndex == -1){
             throw OptimalException("OPTIMAL SOLUTION found!");
@@ -248,14 +245,14 @@ void PrimalSimplex::selectPivot() {
 
     while(m_outgoingIndex == -1){
 
-        m_alpha.clear();
+        m_pivotColumn.clear();
         if(m_incomingIndex < (int)columnCount){
-            m_alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
-            m_alpha.setSparsityRatio(DENSE);
+            m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
+            m_pivotColumn.setSparsityRatio(DENSE);
         } else {
-            m_alpha.setNewNonzero(m_incomingIndex - columnCount, 1);
+            m_pivotColumn.setNewNonzero(m_incomingIndex - columnCount, 1);
         }
-        m_basis->Ftran(m_alpha);
+        m_basis->Ftran(m_pivotColumn);
 
         //Test code to check primal ph_1 reduced cost
 //        Numerical::Double rcCheck=0;
@@ -275,7 +272,7 @@ void PrimalSimplex::selectPivot() {
 //        }
 
         if(!m_feasible){
-            m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_alpha, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
+            m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_pivotColumn, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
 #ifndef NDEBUG
             for(unsigned i=0;i<m_basicVariableValues.length();i++){
@@ -289,7 +286,7 @@ void PrimalSimplex::selectPivot() {
                 }
             }
 #endif
-            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_alpha, m_reducedCosts.at(m_incomingIndex));
+            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_pivotColumn, m_reducedCosts.at(m_incomingIndex));
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
 
@@ -321,13 +318,13 @@ void PrimalSimplex::update() {
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
 //            LPINFO("LB->UB");
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
 //            LPINFO("UB->LB");
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_alpha, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             LPERROR("Boundflipping variable in the basis (or superbasic)!");
@@ -381,12 +378,12 @@ void PrimalSimplex::update() {
 
         m_pricing->update( m_incomingIndex, m_outgoingIndex, 0, 0);
 
-        m_basicVariableValues.addVector(-1 * m_primalTheta, m_alpha, Numerical::ADD_ABS);
+        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn, Numerical::ADD_ABS);
 
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-        m_basis->append(m_alpha, m_outgoingIndex, m_incomingIndex, outgoingState);
+        m_basis->append(m_pivotColumn, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));

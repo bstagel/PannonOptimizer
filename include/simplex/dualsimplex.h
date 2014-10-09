@@ -9,10 +9,8 @@
 #include <globals.h>
 #include <simplex/simplex.h>
 #include <simplex/dualpricing.h>
-#include <simplex/dualfeasibilitychecker.h>
 #include <simplex/dualratiotest.h>
-#include <utils/iterationreportprovider.h>
-#include <utils/iterationreport.h>
+#include <simplex/dualfeasibilitychecker.h>
 #include <simplex/dualpricingcontroller.h>
 
 /**
@@ -66,13 +64,13 @@ private:
     DualRatiotest * m_ratiotest;
 
     /**
-     * The primal reduced cost(d) is needed to update the objective function value.
+     * The primal reduced cost(d) is needed by the iteration reporter.
      * The measure of the change is the product of d and the primal theta.
      */
     Numerical::Double m_primalReducedCost;
 
     /**
-     * The primal theta (steplength) is needed to update the objective function value.
+     * The primal theta (steplength) is needed to update the basic variable values.
      * It is needed along with the primal reduced cost.
      */
     Numerical::Double m_primalTheta;
@@ -81,11 +79,6 @@ private:
      * The dual theta (steplength) is used in updating the solution, and updating the reduced costs.
      */
     Numerical::Double m_dualTheta;
-
-    /**
-     * This parameter contains the name of the current phase of the solver algorithm.
-     */
-    const char * m_phaseName;
 
     /**
      * This vector is needed in the pricing updater.
@@ -168,12 +161,9 @@ private:
     /**
      * Computes the transformed alpha row.
      *
-     * @param alpha Pointer to the vector to be computed.
-     * @param rowIndex Index of the row of the problem's matrix to be transformed.
-     *
      * @throws NumericalException if the rowIndex is invalid.
      */
-    void computeTransformedRow(Vector* alpha, int rowIndex);
+    void computeTransformedRow();
 
     // Interface of the iteration report provider:
     /**
