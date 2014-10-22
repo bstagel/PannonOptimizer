@@ -199,6 +199,8 @@ int PrimalDantzigPricing::performPricingPhase1()
 //        }
 //    }
 
+//    LPINFO("min: "<<minReducedCost<<" index: "<<minIndex);
+//    LPINFO("max: "<<maxReducedCost<<" index: "<<maxIndex);
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;

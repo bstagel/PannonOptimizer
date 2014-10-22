@@ -5,7 +5,6 @@
 #ifndef DUALFEASIBILITYCHECKER_H
 #define DUALFEASIBILITYCHECKER_H
 
-#include <globals.h>
 #include <utils/indexlist.h>
 #include <linalg/vector.h>
 #include <simplex/simplexmodel.h>

@@ -17,21 +17,22 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_basishead(basishead),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_variableStates(variableStates),
+    m_sigma(1),
     m_outgoingVariableIndex(-1),
     m_primalSteplength(0),
     m_phaseIObjectiveValue(0),
-    m_phaseIIObjectiveValue(0),
-    m_sigma(1),
     m_nonlinearPrimalPhaseIFunction(getPrimalRatiotestMethod(
                                         SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_primal_phaseI_function"))),
+    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility")),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
-    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility"))
-{
+    m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility")),
+    m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
+    m_toleranceStep(m_feasibilityTolerance * (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier")) /
+                    SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
+    m_degenerate(false)
+{}
 
-}
-
-void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
-                                                int incomingVariableIndex)
+void PrimalRatiotest::generateSignedBreakpointsPhase1(const Vector &alpha, int incomingVariableIndex)
 {
     m_boundflips.clear();
 
@@ -49,7 +50,7 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
         Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
         if (signedAlpha < -epsilon) {
-//                    LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
+//            LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
             m_breakpointHandler.insertBreakpoint(basisIndex,
                                                 (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
             if (variable.getType() == Variable::FIXED) {
@@ -119,7 +120,7 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
     Numerical::Double t_actual = 0;
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
 
-    while (functionSlope >= 0 && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()) {
+    while (functionSlope > 0 && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
 
@@ -271,7 +272,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
         m_sigma = 1;
     }
 
-    generateBreakpointsPhase1(alpha,incomingVariableIndex);
+    generateSignedBreakpointsPhase1(alpha,incomingVariableIndex);
 
 //    LPINFO("BREAKPOINTS:");
 //    m_breakpointHandler.printBreakpoints();
@@ -352,7 +353,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     }
 
     if(m_outgoingVariableIndex == -2){
-//        LPWARNING("Boundflip in phase 1!");
+        LPINFO("Boundflip in phase 1!");
         m_outgoingVariableIndex = -1;
         m_boundflips.push_back(incomingVariableIndex);
         m_primalSteplength = 0;
@@ -372,7 +373,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
 }
 
-void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha)
+void PrimalRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
 {
 #ifndef NDEBUG
     if (m_basicVariableValues.getType() == Vector::SPARSE_VECTOR) LPWARNING("x_b is sparse vector!");
@@ -395,9 +396,36 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha)
     m_breakpointHandler.finalizeBreakpoints();
 }
 
+void PrimalRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha, Numerical::Double workingTolerance)
+{
+#ifndef NDEBUG
+    if (m_basicVariableValues.getType() == Vector::SPARSE_VECTOR) LPWARNING("x_b is sparse vector!");
+#endif
+    Numerical::Double epsilon = m_pivotTolerance;
+
+    for (unsigned int basisIndex = 0; basisIndex < m_basicVariableValues.length(); basisIndex++) {
+        const Variable& variable = m_model.getVariable(m_basishead[basisIndex]);
+        Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
+        const Numerical::Double & basicVariableValue = m_basicVariableValues.at(basisIndex);
+
+        if ( signedAlpha > epsilon && variable.getLowerBound() != - Numerical::Infinity) {
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (basicVariableValue - variable.getLowerBound()) / signedAlpha,
+                                                 (basicVariableValue - variable.getLowerBound() + workingTolerance) / signedAlpha);
+        } else if (signedAlpha < -epsilon && variable.getUpperBound() != Numerical::Infinity) {
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (basicVariableValue - variable.getUpperBound()) / signedAlpha,
+                                                 (basicVariableValue - variable.getUpperBound() - workingTolerance ) / signedAlpha);
+        }
+    }
+
+    m_breakpointHandler.finalizeBreakpoints();
+}
+
 void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                                              const Vector &alpha,
-                                             Numerical::Double reducedCost){
+                                             Numerical::Double reducedCost,
+                                             Numerical::Double workingTolerance){
     #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
@@ -416,7 +444,11 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
         m_sigma = 1;
     }
 
-    generateBreakpointsPhase2(alpha);
+    if(m_expand != "INACTIVE"){
+        generateExpandedBreakpointsPhase2(alpha,workingTolerance);
+    }else{
+        generateSignedBreakpointsPhase2(alpha);
+    }
     m_breakpointHandler.initSorting();
 
     if ( m_breakpointHandler.getNumberOfBreakpoints() > 0 ) {
@@ -425,25 +457,85 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
 
         if ( breakpoint->value < boundOfIncoming ) {
             m_outgoingVariableIndex = breakpoint->variableIndex;
-            m_primalSteplength = breakpoint->value;
-
-            if (breakpoint->value < 0){
-                LPERROR("Negative ratio in phase2! "<<breakpoint->value);
-                LPINFO("t_sigma: "<<m_sigma<<
-                       " xb: "<<m_basicVariableValues.at(breakpoint->variableIndex)<<
-                       " alpha: "<<alpha.at(m_outgoingVariableIndex)<<
-                       " lb: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getLowerBound()<<
-                       " ub: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound());
+            m_primalSteplength = m_sigma * breakpoint->value;
+            if(m_primalSteplength != 0){
+                m_degenerate = false;
+            }else{
+                m_degenerate = true;
             }
       //boundflip
         } else {
-//            LPINFO("Boundflip in phase 2!");
+            LPINFO("Boundflip in phase 2!");
             m_boundflips.push_back(incomingVariableIndex);
             m_outgoingVariableIndex = -1;
-            m_primalSteplength = boundOfIncoming;
+            m_primalSteplength = m_sigma * boundOfIncoming;
         }
+
+        //Harris, expand
+        if(m_expand != "INACTIVE" && m_boundflips.empty()){
+            const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios = m_breakpointHandler.getExpandSecondPass();
+#ifndef NDEBUG
+            if(secondPassRatios.size() == 0){
+                LPWARNING("No second pass ratios found!!");
+                exit(-1);
+            }
+#endif
+            int maxBreakpointId = 0;
+            int maxAlphaId = secondPassRatios[0]->variableIndex;
+            int variableIndex = -1;
+
+            //choosing best pivot candidate
+            //TODO: megvizsgálni, hogy egy másik kiválasztása mit eredményez
+            for(unsigned i=1; i < secondPassRatios.size(); i++){
+                variableIndex = secondPassRatios[i]->variableIndex;
+                if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
+                    maxAlphaId = variableIndex;
+                    maxBreakpointId = i;
+                }
+            }
+
+            Numerical::Double theta;
+            //theta remains zero if the choosen breakpoint value is negative
+            if(m_expand == "HARRIS"){
+                //HARRIS
+                if(secondPassRatios[maxBreakpointId]->value < 0){
+//                            LPINFO("Harris ratiotest theta is zero!");
+                    m_degenerate = true;
+                    theta = 0;
+                } else {
+                    m_degenerate = false;
+                    theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                }
+            } else {
+                //EXPAND
+                Numerical::Double thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
+
+                //Expand procedure ensures a positive step
+                if(secondPassRatios[maxBreakpointId]->value < thetaMin){
+//                            LPINFO("Expand procedure ensures a positive step");
+                    m_degenerate = true;
+                    theta = m_sigma * thetaMin;
+                } else {
+                    const Variable & variable = m_model.getVariable(m_basishead[m_outgoingVariableIndex]);
+                    if( (Numerical::fabs(m_basicVariableValues.at(m_outgoingVariableIndex) -
+                         variable.getLowerBound()) < workingTolerance) ||
+                            (Numerical::fabs(m_basicVariableValues.at(m_outgoingVariableIndex) -
+                                                     variable.getUpperBound()) < workingTolerance)){
+                        m_degenerate = true;
+//                                LPINFO("nondegenerate step");
+                    }else{
+                        m_degenerate = false;
+                    }
+                    theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                }
+            }
+            m_outgoingVariableIndex = maxAlphaId;
+            m_primalSteplength = theta;
+        }
+
   //no breakpoints found
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
+        m_outgoingVariableIndex = -1;
     }
 }

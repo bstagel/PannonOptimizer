@@ -38,7 +38,7 @@ public:
      * @param tolerance The currently used primal feasibility tolerance.
      * @return true if everything is dual feasible.
      */
-    bool computeFeasibilities(Numerical::Double tolerance);
+    bool computeFeasibility(Numerical::Double tolerance);
 
     /**
      * Getter of the primal phase 1 objective value, the sum of primal infeasibilities.
@@ -73,13 +73,6 @@ private:
      * The phase 1 primal objective value, the sum of primal infeasibilities.
      */
     Numerical::Double m_phaseIObjectiveValue;
-
-    //Parameter references
-    /**
-     * This is a parameter reference to "e_feasibility" run-time parameter,
-     * for details see SimplexParameterHandler.
-     */
-    const double & m_feasibilityTolerance;
 };
 
 #endif // PRIMALFEASIBILITYCHECKER_H
