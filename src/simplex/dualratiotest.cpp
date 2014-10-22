@@ -58,12 +58,12 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     Variable::VARIABLE_TYPE typeOfIthVariable;
     Numerical::Double epsilon = 0;
     if(m_nonlinearDualPhaseIFunction < 2){
-        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
+        epsilon = m_pivotTolerance;
     }
 
     //computing ratios in M
     m_reducedCostFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
-    for (; it!=endit; ++it){
+    for (; it != endit; ++it){
         int variableIndex = it.getData();
         Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
         if (signedAlpha < -epsilon) {
@@ -180,7 +180,7 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
                 }
             }
 
-            iterationCounter++;
+            ++iterationCounter;
             t_prev = t_actual;
         }
     //    LPINFO("firstCandidate "<<firstCandidate);

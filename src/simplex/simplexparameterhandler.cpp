@@ -277,6 +277,24 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Perturbation.e_cost_vector",
                       DefaultParameters::Perturbation::E_COST_VECTOR);
 
+    createParameter("Perturbation.xi_multiplier",
+                    Entry::DOUBLE,
+                    PERTURBATION_XI_MULTIPLIER_COMMENT);
+    setParameterValue("Perturbation.xi_multiplier",
+                      DefaultParameters::Perturbation::XI_MULTIPLIER);
+
+    createParameter("Perturbation.weighting",
+                    Entry::STRING,
+                    PERTURBATION_WEIGHTING_COMMENT);
+    setParameterValue("Perturbation.weighting",
+                      DefaultParameters::Perturbation::WEIGHTING);
+
+    createParameter("Perturbation.psi",
+                    Entry::DOUBLE,
+                    PERTURBATION_PSI_COMMENT);
+    setParameterValue("Perturbation.psi",
+                      DefaultParameters::Perturbation::PSI);
+
     createParameter("Perturbation.perturb_rhs",
                     Entry::BOOL,
                     PERTURBATION_PERTURB_RHS_COMMENT);

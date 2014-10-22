@@ -22,8 +22,8 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_phaseIObjectiveValue(0),
     m_phaseIIObjectiveValue(0),
     m_sigma(1),
-    m_nonlinearPrimalPhaseIFunction(static_cast<PRIMAL_RATIOTEST_METHOD>
-                                    (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_primal_phaseI_function"))),
+    m_nonlinearPrimalPhaseIFunction(getPrimalRatiotestMethod(
+                                        SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_primal_phaseI_function"))),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
     m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility"))
 {
@@ -37,23 +37,27 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
 
     IndexList<>::PartitionIterator it;
     IndexList<>::PartitionIterator endit;
-    Numerical::Double value = 0;
     Numerical::Double epsilon = 0;
+    if(m_nonlinearPrimalPhaseIFunction < 2){
+        epsilon = m_pivotTolerance;
+    }
 
     //computing ratios in M
     m_basicVariableFeasibilities.getIterators(&it,&endit,Simplex::MINUS);
     for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
-        if (m_sigma * alpha.at(basisIndex) < -epsilon) {
+        Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
+        if (signedAlpha < -epsilon) {
 //                    LPINFO("Ratio in M "<<basisIndex<<" type: "<<variable.getType());
-            value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
             if (variable.getType() == Variable::FIXED) {
-                m_breakpointHandler.insertBreakpoint(basisIndex,value);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
             } else if (variable.getType() == Variable::BOUNDED) {
-                value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
-                m_breakpointHandler.insertBreakpoint(basisIndex,value);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
             }
         }
     }
@@ -63,15 +67,17 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
     for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
-        if (m_sigma * alpha.at(basisIndex) > epsilon) {
+        Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
+        if (signedAlpha > epsilon) {
 //                    LPINFO("Ratio in P "<<basisIndex<<" type: "<<variable.getType());
-            value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
             if (variable.getType() == Variable::FIXED) {
-                m_breakpointHandler.insertBreakpoint(basisIndex,value);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
             } else if (variable.getType() == Variable::BOUNDED) {
-                value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
-                m_breakpointHandler.insertBreakpoint(basisIndex,value);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
             }
         }
     }
@@ -81,24 +87,25 @@ void PrimalRatiotest::generateBreakpointsPhase1(const Vector &alpha,
     for (; it != endit; ++it) {
         unsigned basisIndex = it.getData();
         const Variable & variable = m_model.getVariable(m_basishead[basisIndex]);
+        Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
       //F->P
-        if (m_sigma * alpha.at(basisIndex) < -epsilon && (variable.getUpperBound() != Numerical::Infinity) ) {
+        if (signedAlpha < -epsilon && (variable.getUpperBound() != Numerical::Infinity) ) {
 //                    LPINFO("Ratio in F->P "<<basisIndex<<" type: "<<variable.getType());
-            value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
       //F->M
-        } else if (m_sigma * alpha.at(basisIndex) > epsilon && (variable.getLowerBound() != - Numerical::Infinity) ) {
+        } else if (signedAlpha > epsilon && (variable.getLowerBound() != - Numerical::Infinity) ) {
 //                    LPINFO("Ratio in F->M "<<basisIndex<<" type: "<<variable.getType());
-            value = m_sigma * (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
         }
     }
 
   //breakpoint defined by the bound of the incoming variable
     if (m_model.getVariable(incomingVariableIndex).getType() == Variable::BOUNDED) {
-        value = m_sigma * m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound();
-//            LPINFO("Bounded incoming variable defined ratio at "<<value);
-        m_breakpointHandler.insertBreakpoint(-2,value);
+        m_breakpointHandler.insertBreakpoint(-2,
+                                             m_sigma * (m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound()));
+//      LPINFO("Bounded incoming variable defined ratio at "<<m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound());
     }
 
     m_breakpointHandler.finalizeBreakpoints();
@@ -118,7 +125,7 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
 
         m_phaseIObjectiveValue += functionSlope * (t_actual - t_prev);
         actualBreakpoint->additionalValue = m_phaseIObjectiveValue;
-        iterationCounter++;
+        ++iterationCounter;
         t_prev = t_actual;
 
       //ratio defined by the bound of the incoming variable
@@ -131,7 +138,7 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
 //        LPINFO("s: "<<functionSlope<<" t_actual: "<<t_actual<<" index: "<<actualBreakpoint->variableIndex);
     }
     if (actualBreakpoint != NULL){
-        m_primalSteplength = m_sigma>0 ? actualBreakpoint->value : - actualBreakpoint->value;
+        m_primalSteplength = m_sigma * actualBreakpoint->value;
         m_outgoingVariableIndex = actualBreakpoint->variableIndex;
     } else {
         LPWARNING("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
@@ -258,10 +265,10 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     m_primalSteplength = 0;
 
     //determining t>=0 or t<=0 cases
-    if (phaseIReducedCost < 0) {
-       m_sigma = 1;
-    } else{
+    if (phaseIReducedCost > 0) {
         m_sigma = -1;
+    } else{
+        m_sigma = 1;
     }
 
     generateBreakpointsPhase1(alpha,incomingVariableIndex);
@@ -269,10 +276,11 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 //    LPINFO("BREAKPOINTS:");
 //    m_breakpointHandler.printBreakpoints();
 
+    //If is there any breakpoint
     if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
+        //Initialize the handler to provide sorted breakpoints
         m_breakpointHandler.initSorting();
-
-        //fake feasible variables
+        //Handle fake feasible variables if enables
         if (m_enableFakeFeasibility) {
             const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
             int fakeFeasibilityCounter = 0;
@@ -284,18 +292,22 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
                 iterationCounter++;
 
+                //Check the next breakpoint for fake feasibility
                 if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
                     breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
                 } else {
-                    break;
+                    //If all breakpoints were fake feasible return
+                    return;
                 }
             }
 
+            //Update the fake feasibility report
             if(fakeFeasibilityCounter > 0){
                 m_fakeFeasibilityActivationPhase1++;
                 m_fakeFeasibilityCounterPhase1+=fakeFeasibilityCounter;
             }
 
+            //If the slope gone to negative return
             if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
 //                if(functionSlope < 0 ){ LPWARNING("functionSlope < 0 in the beginning: "<<functionSlope);
 //                }else LPWARNING("Only fakefeasible breakpints found!");
@@ -305,35 +317,36 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
             }
         }
 
-        if (iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()) {
-            switch(m_nonlinearPrimalPhaseIFunction){
-                case ONE_STEP:{
-                    const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(0);
+        //IterationCounter points to the first non-fake feasible breakpoint if there is any (otherwise returned)
+        switch(m_nonlinearPrimalPhaseIFunction){
+            case ONE_STEP:{
+                const BreakpointHandler::BreakPoint* breakpoint = m_breakpointHandler.getBreakpoint(0);
 
-                    m_phaseIObjectiveValue += functionSlope * breakpoint->value;
-                    breakpoint->additionalValue = m_phaseIObjectiveValue;
-                    m_outgoingVariableIndex = breakpoint->variableIndex;
-                    m_primalSteplength = m_sigma>0 ? breakpoint->value : - breakpoint->value;
-                    break;
-                }
-                case PIECEWISE_LINEAR_FUNCTION:{
-                    computeFunctionPhase1(alpha,iterationCounter,functionSlope);
-                    break;
-                }
-                case STABLE_PIVOT:{
-                    computeFunctionPhase1(alpha,iterationCounter,functionSlope);
-                    if( Numerical::fabs(alpha.at(m_outgoingVariableIndex)) < m_pivotTolerance ) {
-                        useNumericalThresholdPhase1(iterationCounter, alpha, functionSlope);
-                    }
-                    break;
-                }
+                m_phaseIObjectiveValue += functionSlope * breakpoint->value;
+                breakpoint->additionalValue = m_phaseIObjectiveValue;
+
+                m_outgoingVariableIndex = breakpoint->variableIndex;
+                m_primalSteplength = m_sigma * breakpoint->value;
+                break;
             }
+            case PIECEWISE_LINEAR_FUNCTION:{
+                computeFunctionPhase1(alpha,iterationCounter,functionSlope);
+                break;
+            }
+            case STABLE_PIVOT:{
+                computeFunctionPhase1(alpha,iterationCounter,functionSlope);
+
+                if( Numerical::fabs(alpha.at(m_outgoingVariableIndex)) < m_pivotTolerance ) {
+                    useNumericalThresholdPhase1(iterationCounter, alpha, functionSlope);
+                }
+                break;
+            }
+        }
 //            if (m_outgoingVariableIndex >= 0){
 //                 LPINFO("type of outgoing: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getType());
 //            }else{
 //                LPINFO("no outgoing");
 //            }
-        }
     } else {
         LPWARNING(" - Ratiotest - No breakpoint found!");
     }
@@ -364,18 +377,18 @@ void PrimalRatiotest::generateBreakpointsPhase2(const Vector &alpha)
 #ifndef NDEBUG
     if (m_basicVariableValues.getType() == Vector::SPARSE_VECTOR) LPWARNING("x_b is sparse vector!");
 #endif
-    Numerical::Double value = 0;
-    Numerical::Double epsilon = 0;
+    Numerical::Double epsilon = m_pivotTolerance;
 
     for (unsigned int basisIndex = 0; basisIndex < m_basicVariableValues.length(); basisIndex++) {
         const Variable& variable = m_model.getVariable(m_basishead[basisIndex]);
+        Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
 
-        if ( m_sigma * alpha.at(basisIndex) > epsilon && variable.getLowerBound() != - Numerical::Infinity) {
-            value = (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
-        } else if (m_sigma * alpha.at(basisIndex) < -epsilon && variable.getUpperBound() != Numerical::Infinity) {
-            value = (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / alpha.at(basisIndex);
-            m_breakpointHandler.insertBreakpoint(basisIndex,value);
+        if ( signedAlpha > epsilon && variable.getLowerBound() != - Numerical::Infinity) {
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
+        } else if (signedAlpha < -epsilon && variable.getUpperBound() != Numerical::Infinity) {
+            m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                 (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
         }
     }
 
@@ -397,10 +410,10 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
     m_primalSteplength = 0;
 
     //determining t<=0 ot t>=0 cases
-    if (reducedCost < 0) {
-        m_sigma = 1;
-    } else {
+    if (reducedCost > 0) {
         m_sigma = -1;
+    } else {
+        m_sigma = 1;
     }
 
     generateBreakpointsPhase2(alpha);

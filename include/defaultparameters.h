@@ -98,6 +98,9 @@ public:
         static const char* PERTURB_TARGET;
         static const bool PERTURB_LOGICAL;
         static const double E_COST_VECTOR;
+        static const double XI_MULTIPLIER;
+        static const char* WEIGHTING;
+        static const double PSI;
         static const bool PERTURB_RHS;
         static const double E_RHS;
         static const bool SHIFT_BOUNDS;

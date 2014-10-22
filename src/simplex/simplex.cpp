@@ -307,6 +307,7 @@ void Simplex::setModel(const Model &model) {
         perturbTimer.start();
         m_simplexModel->perturbCostVector();
         perturbTimer.stop();
+        LPINFO("Perturbation time: " << std::setprecision(6) << perturbTimer.getCPUTotalElapsed());
     }
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_rhs") != false){
         m_simplexModel->perturbRHS();
@@ -314,7 +315,6 @@ void Simplex::setModel(const Model &model) {
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.shift_bounds") != false){
         m_simplexModel->shiftBounds();
     }
-    LPINFO("Perturbation time: " << std::setprecision(6) << perturbTimer.getCPUTotalElapsed());
 }
 
 void Simplex::setSimplexState(const Simplex & simplex)

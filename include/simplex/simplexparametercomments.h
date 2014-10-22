@@ -70,7 +70,7 @@
 # PIECEWIESE: Piecewise linear function \
 # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold )"
 
-#define RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT "# Enable fake feasibility handling in Dual Phase I and II"
+#define RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT "# Enable fake feasibility handling in Primal / Dual Phase I and II"
 #define RATIOTEST_EXPAND_MULTIPLIER_COMMENT "# EXPAND multiplier initializing value"
 #define RATIOTEST_EXPAND_DIVIDER_COMMENT "# EXPAND divider initializing value"
 #define RATIOTEST_EXPAND_TYPE_COMMENT R"(		# EXPAND procedure \
@@ -80,10 +80,20 @@
 
 #define PERTURBATION_PERTURB_COST_VECTOR_COMMENT R"(	# Cost vector perturbation \
 # INACTIVE: Inactive \
-# STRUCTURAL_RANDOM: Active for structural variables with random values between +/- epsilon\
-# STRUCTURAL_FEASIBLE: Active for structural variables in feasible direction between +/- (0.5 epsilon, epsilon) \
-# STRUCTURAL_SIGN: Active for structural variables with sign of c_j between +/- (0.5 epsilon, epsilon)\
-# STRUCTURAL_KOBERSTEIN: Active for structural variables with Koberstein's method)"
+# RANDOM: Active for structural variables with random values between +/- epsilon\
+# FEASIBLE: Active for structural variables in feasible direction between +/- (0.5 epsilon, epsilon) \
+# SIGN: Active for structural variables with sign of c_j between +/- (0.5 epsilon, epsilon)\
+# KOBERSTEIN: Active for structural variables with Koberstein's method)"
+
+#define PERTURBATION_XI_MULTIPLIER_COMMENT R"(# Koberstein fix part multiplier of perturbation (xi * e_optimality) )"
+#define PERTURBATION_PSI_COMMENT R"(# Koberstein relative part of perturbation (psi * |c_j|) )"
+
+#define PERTURBATION_WEIGHTING_COMMENT R"(# Weighting perturbation to consider number of nonzeros in the alpha column vector\
+# INACTIVE: Inactive \
+# WEIGHT: Weighting perturbation values \
+# SET_TO_INTERVAL: Weighting and setting to interval (lower,upper), where\
+# lower = min{0.01 * e_optimality, psi}\
+# upper = max{1000 * e_optimality, 10 * psi * average of c_j absolute values})"
 
 #define PERTURBATION_PERTURB_TARGET_COMMENT R"(# Perturbation target \
 # NONZEROS: Nonzero values \
