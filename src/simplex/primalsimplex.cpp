@@ -199,18 +199,17 @@ void PrimalSimplex::releaseModules() {
 }
 
 void PrimalSimplex::computeFeasibility() {
-    //TODO: A toleranciakezelest helyretenni
-    bool lastFeasible = m_feasible;
-    m_feasible = m_feasibilityChecker->computeFeasibilities(m_workingTolerance);
+    m_lastFeasible = m_feasible;
+    m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
 
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
-    if(lastFeasible == false && m_feasible == true){
+    if(m_lastFeasible == false && m_feasible == true){
         if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_WHEN_ENTER_PH2"){
             throw SwitchAlgorithmException("phase-2 entered!");
         }
         m_referenceObjective = m_objectiveValue;
-    } else if(lastFeasible == true && m_feasible == false){
+    } else if(m_lastFeasible == true && m_feasible == false){
         //Becomes infeasible
         m_fallbacks++;
     }
@@ -272,19 +271,20 @@ void PrimalSimplex::selectPivot() {
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_pivotColumn, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
-#ifndef NDEBUG
-            for(unsigned i=0;i<m_basicVariableValues.length();i++){
-                const Variable& var = m_simplexModel->getVariable(m_basisHead[i]);
-                Numerical::Double value = m_basicVariableValues.at(i);
-                Numerical::Double lb = var.getLowerBound();
-                Numerical::Double ub = var.getUpperBound();
-                if (value < lb || value > ub){
-                    LPWARNING("Infeasible variable in phase 2: "<<i);
-                    LPINFO("value: "<<value<<" lb: "<<lb<<" ub: "<<ub);
-                }
-            }
-#endif
-            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_pivotColumn, m_reducedCosts.at(m_incomingIndex));
+            //debug code for checking feasibility
+//            for(unsigned i=0;i<m_basisHead.size();++i){
+//                const Variable& variable = m_simplexModel->getVariable(m_basisHead[i]);
+//                Numerical::Double lb = variable.getLowerBound();
+//                Numerical::Double ub = variable.getUpperBound();
+//                Numerical::Double val = m_basicVariableValues.at(i);
+//                if( ((val-lb) < - m_workingTolerance) || ((val-ub) > m_workingTolerance)){
+//                    LPWARNING("Infeasible variable in ph2: "<<m_basisHead[i]);
+//                    LPINFO("val: "<<val);
+//                    LPINFO("lb: "<<lb);
+//                    LPINFO("ub: "<<ub);
+//                }
+//            }
+            m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_pivotColumn, m_reducedCosts.at(m_incomingIndex), m_workingTolerance);
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
 
@@ -347,12 +347,12 @@ void PrimalSimplex::update() {
         else if (outgoingType == Variable::BOUNDED) {
             if(m_ratiotest->outgoingAtUpperBound()){
                 outgoingState = NONBASIC_AT_UB;
-//                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
-//                       " lb: "<<lbOfOutgoingVariable);
-            } else {
-                outgoingState = NONBASIC_AT_LB;
 //                LPINFO("outgoing variable vounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
 //                       " ub: "<<ubOfOutgoingVariable);
+            } else {
+                outgoingState = NONBASIC_AT_LB;
+//                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
+//                       " lb: "<<lbOfOutgoingVariable);
             }
 //            LPWARNING("state out: "<<outgoingState);
         }
@@ -429,7 +429,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
 
 void PrimalSimplex::initWorkingTolerance() {
     //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.nonlinear_primal_phaseI_function") == 3) {
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") != "INACTIVE" ) {
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
         m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
     } else {

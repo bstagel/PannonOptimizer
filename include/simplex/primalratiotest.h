@@ -49,6 +49,13 @@ public:
                     const IndexList<const Numerical::Double*>& variableStates);
 
     /**
+     * Default destructor of the class.
+     *
+     * @destructor
+     */
+    virtual ~PrimalRatiotest(){}
+
+    /**
      * Getter of the basis index of the outgoing variable.
      *
      * @return PrimalRatiotest::m_outgoingVariableIndex.
@@ -70,13 +77,6 @@ public:
     inline Numerical::Double getPhaseIObjectiveValue()const{return m_phaseIObjectiveValue;}
 
     /**
-     * Getter of the phase 2 primal objective value.
-     *
-     * @return PrimalRatiotest::m_phaseIIObjectiveValue.
-     */
-    inline Numerical::Double getPhaseIIObjectiveValue()const{return m_phaseIIObjectiveValue;}
-
-    /**
      * Getter of the vector containing the boundflipping variables.
      *
      * @return PrimalRatiotest::m_boundflips.
@@ -91,10 +91,7 @@ public:
      * @param phaseIReducedCost The phase 1 reduced cost needed to define t > 0 and t < 0 cases.
      * @param phaseIObjectiveValue The current phase 1 objective value.
      */
-    void performRatiotestPhase1(int incomingVariableIndex,
-                                const Vector& alpha,
-                                Numerical::Double phaseIReducedCost,
-                                Numerical::Double phaseIObjectiveValue);
+    void performRatiotestPhase1(int incomingVariableIndex, const Vector& alpha, Numerical::Double phaseIReducedCost, Numerical::Double phaseIObjectiveValue);
 
     /**
      * Performs and controls the phase 2 primal ratiotest.
@@ -103,9 +100,7 @@ public:
      * @param alpha The alpha value needed to define ratios.
      * @param reducedCost The reduces cost needed to define t > 0 and t < 0 cases.
      */
-    void performRatiotestPhase2(int incomingVariableIndex,
-                                const Vector& alpha,
-                                Numerical::Double reducedCost);
+    void performRatiotestPhase2(int incomingVariableIndex, const Vector& alpha, Numerical::Double reducedCost, Numerical::Double workingTolerance);
 
     /**
      * Getter of the outgoingAtUpperBound member.
@@ -113,6 +108,13 @@ public:
      * @return PrimalRatiotest::m_outgoingAtUpperBound
      */
     inline bool outgoingAtUpperBound(){return m_outgoingAtUpperBound;}
+
+    /**
+     * Returns whether the last iteration was degenerate or not.
+     *
+     * @return 0 if the last iteration was not degenerate, otherwise not 0.
+     */
+    inline int isDegenerate() const {return m_degenerate;}
 
 private:
 
@@ -142,6 +144,12 @@ private:
     const IndexList<const Numerical::Double*>& m_variableStates;
 
     /**
+     * With this the t > 0, and t < 0 cases can easly handeled in the ratiotest.
+     * At defining the ratios we compute with sigma*alpha values.
+     */
+    int m_sigma;
+
+    /**
      * This variable is true if the outgoing variable is leaving at its upper bound.
      */
     bool m_outgoingAtUpperBound;
@@ -162,11 +170,6 @@ private:
     Numerical::Double m_phaseIObjectiveValue;
 
     /**
-     * The phase 2 objective is the objective function of the LP problem.
-     */
-    Numerical::Double m_phaseIIObjectiveValue;
-
-    /**
      * Vector containing the boundflipping variables.
      */
     std::vector <unsigned int> m_boundflips;
@@ -185,12 +188,6 @@ private:
      * The breakpointHandler provides the ratios to the ratiotest.
      */
     BreakpointHandler m_breakpointHandler;
-
-    /**
-     * With this the t > 0, and t < 0 cases can easly handeled in the ratiotest.
-     * At defining the ratios we compute with sigma*alpha values.
-     */
-    int m_sigma;
 
     //Ratiotest research measures
     /**
@@ -250,6 +247,12 @@ private:
     const PRIMAL_RATIOTEST_METHOD m_nonlinearPrimalPhaseIFunction;
 
     /**
+     * Reference of the "e_feasibility" tolerance run-time parameter,
+     * see SimplexParameterHandler for details.
+     */
+    const double & m_feasibilityTolerance;
+
+    /**
      * Reference of the "e_pivot" tolerance run-time parameter.
      *
      * @see SimplexParameterHandler
@@ -264,12 +267,28 @@ private:
     const bool & m_enableFakeFeasibility;
 
     /**
+     * Parameter reference of run-time parameter "expand",
+     * see SimplexParameterHandler for details.
+     */
+    const std::string & m_expand;
+
+    /**
+     * This is the value of the tolerance increment in the expand procedure.
+     */
+    Numerical::Double m_toleranceStep;
+
+    /**
+     * Describes whether the last iteration was degenerate or not.
+     */
+    bool m_degenerate;
+
+    /**
      * This function computes the ratios in primal phase 1.
      *
      * @param alpha The alpha values which are the denumerator of the ratios.
      * @param incomingVariableIndex The index of the incoming variable.
      */
-    void generateBreakpointsPhase1(const Vector& alpha, int incomingVariableIndex);
+    void generateSignedBreakpointsPhase1(const Vector& alpha, int incomingVariableIndex);
 
     /**
      * This function computes the piecewise linear concave function in primal phase 1.
@@ -294,7 +313,15 @@ private:
      *
      * @param alpha The alpha values which are the denumerator of the ratios
      */
-    void generateBreakpointsPhase2(const Vector& alpha);
+    void generateSignedBreakpointsPhase2(const Vector& alpha);
+
+    /**
+     * With this function we can define ratios corresponding to the expanding tolerance.
+     *
+     * @param alpha The alpha vector.
+     * @param workingTolerance The value of the expanding tolerance in the current iteration.
+     */
+    void generateExpandedBreakpointsPhase2(const Vector& alpha, Numerical::Double workingTolerance);
 
     /**
      * Converts a string describing a primal ratiotest method to the method describing enum.

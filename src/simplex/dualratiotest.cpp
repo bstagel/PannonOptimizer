@@ -20,8 +20,8 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_variableStates(variableStates),
     m_sigma(1),
-    m_variableAge(model.getColumnCount() + model.getRowCount(),1),
     m_incomingVariableIndex(-1),
+    m_variableAge(model.getColumnCount() + model.getRowCount(),1),
     m_dualSteplength(0),
     m_phaseIObjectiveValue(0),
     m_stablePivotActivationPhase1(0),
@@ -456,8 +456,6 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
-    m_breakpointHandler.init(alpha.nonZeros());
-
 //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
@@ -516,8 +514,6 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
     #ifndef NDEBUG
     if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
-
-    m_breakpointHandler.init(alpha.nonZeros());
 
     //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
@@ -623,7 +619,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             m_degenerate = false;
             break;
         }
-        iterationCounter++;
+        ++iterationCounter;
     }
 }
 
@@ -701,6 +697,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 {
     m_boundflips.clear();
     m_boundflips.reserve(alpha.nonZeros());
+    m_breakpointHandler.init(alpha.nonZeros());
 
     m_incomingVariableIndex = -1;
     m_dualSteplength = 0;
@@ -847,7 +844,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             m_degenerate = true;
                             theta = m_sigma * thetaMin;
                         } else {
-                            if(m_reducedCosts.at(maxAlphaId) > workingTolerance){
+                            if(Numerical::fabs(m_reducedCosts.at(maxAlphaId)) > workingTolerance){
                                 m_degenerate = false;
 //                                LPINFO("nondegenerate step");
                             }else{
@@ -866,9 +863,4 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 //            throw DualUnboundedException("No breakpoint found!");
         }
     }
-}
-
-
-DualRatiotest::~DualRatiotest() {
-
 }

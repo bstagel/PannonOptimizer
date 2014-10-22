@@ -13,18 +13,13 @@ PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
     m_model(model),
     m_variableStates(variableStates),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
-    m_basisHead(basisHead),
-    m_feasibilityTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility"))
+    m_basisHead(basisHead)
 {
 
 }
 
-bool PrimalFeasibilityChecker::computeFeasibilities(Numerical::Double tolerance)
-{
-    //TODO: Toleranciakezeles
-    __UNUSED(tolerance);
-    //this function determines M/F/P sets, phaseI objective value
-
+bool PrimalFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
+//this function determines M/F/P sets, phaseI objective value
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
@@ -42,13 +37,13 @@ bool PrimalFeasibilityChecker::computeFeasibilities(Numerical::Double tolerance)
         valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead[basisIndex]));
 
     //basic variables with M type infeasibility
-        if ( Numerical::lessthan(valueOfVariable, lbOfVariable, m_feasibilityTolerance) ) {
+        if ( (valueOfVariable - lbOfVariable) < -tolerance)  {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, basisIndex);
             m_phaseIObjectiveValue += (valueOfVariable - lbOfVariable);
         } else
 
     //basic variables with P type infeasibility
-        if ( Numerical::lessthan(ubOfVariable, valueOfVariable, m_feasibilityTolerance) ) {
+        if ( (valueOfVariable - ubOfVariable) > tolerance ) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, basisIndex);
             m_phaseIObjectiveValue -= (valueOfVariable - ubOfVariable);
     //basic variables with F type infeasibility

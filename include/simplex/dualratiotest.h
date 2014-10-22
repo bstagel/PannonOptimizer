@@ -53,7 +53,7 @@ public:
      *
      * @destructor
      */
-    virtual ~DualRatiotest();
+    virtual ~DualRatiotest(){}
 
     /**
      * Getter of the updateFeasibilitySets member.
@@ -88,7 +88,7 @@ public:
      *
      * @return the phase 1 obective value.
      */
-    inline Numerical::Double getObjectiveFunctionPhase1()const{return m_phaseIObjectiveValue;}
+    inline Numerical::Double getPhaseIObjectiveValue()const{return m_phaseIObjectiveValue;}
 
     /**
      * Getter that returns with a vector containing the variables on which a boundflip operation shall be performed.
@@ -180,7 +180,7 @@ public:
     inline int getFakeFeasibilityCounterPhase2() const {return m_fakeFeasibilityCounterPhase2;}
 
     /**
-     * Return whether the last iteration was degenerate or not.
+     * Returns whether the last iteration was degenerate or not.
      *
      * @return 0 if the last iteration was not degenerate, otherwise not 0.
      */
@@ -214,14 +214,15 @@ private:
     int m_sigma;
 
     /**
+     * The variable index of the incoming variable.
+     */
+    int m_incomingVariableIndex;
+
+    /**
       * Age vector to record transformation counts.
       */
     std::vector<Numerical::Double> m_variableAge;
 
-    /**
-     * The variable index of the incoming variable.
-     */
-    int m_incomingVariableIndex;
 
     /**
      * The value of the dual steplength defined in the ratiotest.
@@ -382,9 +383,7 @@ private:
      * @param iterationCounter The count of the computed breakpoints.
      * @param functionSlope The value of the objective function's slope.
      */
-    void computeFunctionPhase1(const Vector& alpha,
-                               unsigned int& iterationCounter,
-                               Numerical::Double& functionSlope);
+    void computeFunctionPhase1(const Vector& alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope);
 
     /**
      * This is the phase 1 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -393,9 +392,7 @@ private:
      * @param alpha The alpha vector.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase1(unsigned int iterationCounter,
-                               const Vector& alpha,
-                               Numerical::Double& functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter, const Vector& alpha, Numerical::Double& functionSlope);
 
     /**
      * This function computes the ratios in dual phase 2.
@@ -410,8 +407,7 @@ private:
      * @param alpha The alpha vector.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void generateExpandedBreakpointsPhase2(const Vector& alpha,
-                                           Numerical::Double workingTolerance);
+    void generateExpandedBreakpointsPhase2(const Vector& alpha, Numerical::Double workingTolerance);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 2.
@@ -422,10 +418,7 @@ private:
      * @param functionSlope The value of the objective function's slope.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void computeFunctionPhase2(const Vector& alpha,
-                               unsigned int& iterationCounter,
-                               Numerical::Double& functionSlope,
-                               Numerical::Double workingTolerance);
+    void computeFunctionPhase2(const Vector& alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope, Numerical::Double workingTolerance);
 
     /**
      * This is the phase 2 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -434,8 +427,7 @@ private:
      * @param alpha The alpha vector.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase2(unsigned int iterationCounter,
-                                     const Vector& alpha);
+    void useNumericalThresholdPhase2(unsigned int iterationCounter, const Vector& alpha);
 
     /**
      * Converts a string describing a dual ratiotest method to the method describing enum.
