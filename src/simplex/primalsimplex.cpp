@@ -149,7 +149,6 @@ void PrimalSimplex::initModules() {
 
     // TODO: ezt majd egy switch-case donti el, amit lehetne
     // kulon fuggvenybe is tenni akar
-
     m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
                                          m_basicVariableFeasibilities,
                                          &m_reducedCostFeasibilities,
@@ -203,6 +202,7 @@ void PrimalSimplex::computeFeasibility() {
     //TODO: A toleranciakezelest helyretenni
     bool lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->computeFeasibilities(m_workingTolerance);
+
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
     if(lastFeasible == false && m_feasible == true){
@@ -229,8 +229,6 @@ void PrimalSimplex::price() {
         }
     }
 
-//    LPWARNING("rc: "<<m_pricing->getReducedCost());
-
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
@@ -244,8 +242,8 @@ void PrimalSimplex::selectPivot() {
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
     while(m_outgoingIndex == -1){
-
         m_pivotColumn.clear();
+
         if(m_incomingIndex < (int)columnCount){
             m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
             m_pivotColumn.setSparsityRatio(DENSE);
@@ -305,7 +303,6 @@ void PrimalSimplex::selectPivot() {
     }
 
     m_primalTheta = m_ratiotest->getPrimalSteplength();
-
 }
 
 void PrimalSimplex::update() {
@@ -327,11 +324,9 @@ void PrimalSimplex::update() {
             m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn, Numerical::ADD_ABS);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
-            LPERROR("Boundflipping variable in the basis (or superbasic)!");
-            //TODO Throw some exception here
+            throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
         }
     }
-
 
     //debug
 //    Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
@@ -414,7 +409,7 @@ void PrimalSimplex::setReferenceObjective(bool secondPhase) {
 
 void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
     if(!secondPhase){
-        if( Numerical::fabs(m_referenceObjective - m_phaseIObjectiveValue) > 1e10 ){
+        if( Numerical::less(m_phaseIObjectiveValue,m_referenceObjective) ){
             LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
@@ -422,7 +417,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
             m_degenerateIterations++;
         }
     } else {
-        if(Numerical::fabs(m_phaseIObjectiveValue - m_referenceObjective) > 1e10 ){
+        if(Numerical::less(m_objectiveValue,m_referenceObjective)){
             LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){

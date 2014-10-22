@@ -142,11 +142,17 @@ void SimplexModel::print(std::ostream& out) const
 void SimplexModel::perturbCostVector()
 {
     m_originalCostVector = m_costVector;
-    //generate random epsilon values
+    //parameter references
     const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_cost_vector");
     const std::string & perturbMethod = SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector");
     const std::string & perturbTarget = SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_target");
     const bool & perturbLogical = SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_logical");
+    const Numerical::Double & psi = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.psi");
+    const Numerical::Double & tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+    const Numerical::Double & xi = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.xi_multiplier") *
+                                    tolerance;
+    const std::string & weighting = SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.weighting");
+
     std::default_random_engine engine;
     Vector epsilonValues(getColumnCount()+getRowCount(), Vector::DENSE_VECTOR);
     LPINFO("Cost vector perturbation with e = " << epsilon <<
@@ -160,7 +166,7 @@ void SimplexModel::perturbCostVector()
     }
 
     //in random directions
-    if(perturbMethod == "STRUCTURAL_RANDOM"){
+    if(perturbMethod == "RANDOM"){
         std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
         for(unsigned i=0;i < numberOfPerturbations;i++){
             if(perturbTarget == "ALL"){
@@ -173,7 +179,7 @@ void SimplexModel::perturbCostVector()
         }
 
     //in feasible direction
-    }else if(perturbMethod == "STRUCTURAL_FEASIBLE"){
+    }else if(perturbMethod == "FEASIBLE"){
         std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
         std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
         std::uniform_int_distribution<int> signDistribution(0,1);
@@ -219,7 +225,7 @@ void SimplexModel::perturbCostVector()
         }
 
     //with sign of c_j
-    }else if(perturbMethod == "STRUCTURAL_SIGN"){
+    }else if(perturbMethod == "SIGN"){
         std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
         std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
         std::uniform_int_distribution<int> signDistribution(0,1);
@@ -233,77 +239,70 @@ void SimplexModel::perturbCostVector()
             }
         }
     //Koberstein
-    }else if(perturbMethod == "STRUCTURAL_KOBERSTEIN"){
-        int steps = 4;
-        Numerical::Double psi = 1E-5;
-        //setting fix part
-        Numerical::Double tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
-        Numerical::Double xi = 100 * tolerance;
-        //considering size of c_j
+    }else if(perturbMethod == "KOBERSTEIN"){
+        //considering size of c_j and fix part
         for(unsigned i=0; i < numberOfPerturbations; i++){
             epsilonValues.set(i, (xi + Numerical::fabs(m_costVector.at(i)) * psi) );
         }
 
         //considering types of variables
-        if(steps > 1){
-            std::uniform_real_distribution<double> distribution(0.5,1);
-            for(unsigned i=0; i < numberOfPerturbations; i++){
-                //those with finite upper bound
-                if(getVariable(i).getUpperBound() != Numerical::Infinity){
-                    epsilonValues.set(i, - distribution(engine) * epsilonValues.at(i) );
-                }else{
-                    epsilonValues.set(i, distribution(engine) * epsilonValues.at(i) );
-                }
+        std::uniform_real_distribution<double> distribution(0.5,1);
+        for(unsigned i=0; i < numberOfPerturbations; i++){
+            //those with finite upper bound
+            if(getVariable(i).getUpperBound() != Numerical::Infinity){
+                epsilonValues.set(i, - distribution(engine) * epsilonValues.at(i) );
+            }else{
+                epsilonValues.set(i, distribution(engine) * epsilonValues.at(i) );
             }
         }
+    }
 
-        //considering number of nonzeros (alpha column)
-        if(steps > 2){
-            std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
+    //considering number of nonzeros (alpha column)
+    if(weighting == "WEIGHT"){
+        std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
 
-            for(unsigned i=0; i < getColumnCount(); ++i){
-                unsigned nonzeros = getMatrix().column(i).nonZeros();
-                if(nonzeros > 9){
-                    epsilonValues.set(i,weightVector[9] * epsilonValues.at(i));
-                }else{
-                    epsilonValues.set(i,weightVector[nonzeros] * epsilonValues.at(i));
-                }
-            }
-            //logical alpha vectors have one nonzero element
-            if(perturbLogical){
-               for(unsigned i=getColumnCount(); i < getColumnCount()+getRowCount(); ++i) {
-                   epsilonValues.set(i,weightVector[1] * epsilonValues.at(i));
-               }
+        for(unsigned i=0; i < getColumnCount(); ++i){
+            unsigned nonzeros = getMatrix().column(i).nonZeros();
+            if(nonzeros > 9){
+                epsilonValues.set(i,weightVector[9] * epsilonValues.at(i));
+            }else{
+                epsilonValues.set(i,weightVector[nonzeros] * epsilonValues.at(i));
             }
         }
+        //logical alpha vectors have one nonzero element
+        if(perturbLogical){
+           for(unsigned i=getColumnCount(); i < getColumnCount()+getRowCount(); ++i) {
+               epsilonValues.set(i,weightVector[1] * epsilonValues.at(i));
+           }
+        }
+    }
 
-        //checking the interval
-        if(steps > 3){
-            Numerical::Double minValue = 1E-2 * tolerance < psi ? 1E-2 * tolerance : psi;
-            Numerical::Double avg = 0;
-            //summarize nonzero c_j values
-            auto it = m_costVector.beginNonzero();
-            auto endit = m_costVector.endNonzero();
-            int n = m_costVector.length();
-            for(; it != endit; ++it){
-                avg+=(Numerical::fabs(*it)-avg)/n;
+    //checking the interval
+    if(weighting == "SET_TO_INTERVAL"){
+        Numerical::Double minValue = 1E-2 * tolerance < psi ? 1E-2 * tolerance : psi;
+        Numerical::Double avg = 0;
+        //summarize nonzero c_j values
+        auto it = m_costVector.beginNonzero();
+        auto endit = m_costVector.endNonzero();
+        int n = m_costVector.length();
+        for(; it != endit; ++it){
+            avg+=(Numerical::fabs(*it)-avg)/n;
+        }
+        Numerical::Double maxValue = 1E+3 * tolerance > psi * 10 * avg ? 1E+3 * tolerance : psi * 10 * avg;
+        LPINFO("Setting to interval: (" << std::scientific << minValue << "," << maxValue << ")");
+        for(unsigned i=0; i < numberOfPerturbations; i++){
+            Numerical::Double absEpsilon = Numerical::fabs(epsilonValues.at(i));
+            double multiplier = 1;
+            while(absEpsilon > maxValue){
+                multiplier *= 0.1;
+                absEpsilon *= 0.1;
             }
-            Numerical::Double maxValue = 1E+3 * tolerance > psi * 10 * avg ? 1E+3 * tolerance : psi * 10 * avg;
-            LPINFO("Setting to interval: (" << std::scientific << minValue << "," << maxValue << ")");
-            for(unsigned i=0; i < numberOfPerturbations; i++){
-                Numerical::Double absEpsilon = Numerical::fabs(epsilonValues.at(i));
-                double multiplier = 1;
-                while(absEpsilon > maxValue){
-                    multiplier *= 0.1;
-                    absEpsilon *= 0.1;
-                }
-                while(absEpsilon < minValue){
-                    multiplier *= 10;
-                    absEpsilon *= 10;
-                }
-                if(multiplier != 1){
-                    epsilonValues.set(i,epsilonValues.at(i) * multiplier);
-                }
+            while(absEpsilon < minValue){
+                multiplier *= 10;
+                absEpsilon *= 10;
+            }
+            if(multiplier != 1){
+                epsilonValues.set(i,epsilonValues.at(i) * multiplier);
             }
         }
     }

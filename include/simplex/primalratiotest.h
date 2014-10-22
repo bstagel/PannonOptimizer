@@ -295,6 +295,26 @@ private:
      * @param alpha The alpha values which are the denumerator of the ratios
      */
     void generateBreakpointsPhase2(const Vector& alpha);
+
+    /**
+     * Converts a string describing a primal ratiotest method to the method describing enum.
+     *
+     * @param method The string to be converted.
+     * @return The dual ratiotest method in PrimalRatiotest::Primal_RATIOTEST_METHOD enum.
+     */
+    static PRIMAL_RATIOTEST_METHOD getPrimalRatiotestMethod(const std::string & method) {
+        if (method == "TRADITIONAL") {
+            return ONE_STEP;
+        }
+        if (method == "PIECEWISE") {
+            return PIECEWISE_LINEAR_FUNCTION;
+        }
+        if (method == "PIECEWISE_THRESHOLD") {
+            return STABLE_PIVOT;
+        }
+        // TODO: exception
+        return ONE_STEP;
+    }
 };
 
 #endif // PRIMALRATIOTEST_H
