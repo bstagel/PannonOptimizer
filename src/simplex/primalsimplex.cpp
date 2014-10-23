@@ -328,10 +328,6 @@ void PrimalSimplex::update() {
         }
     }
 
-    //debug
-//    Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
-//    Numerical::Double ubOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound();
-//    Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(m_outgoingIndex);
 
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
         //Save whether the basis is to be changed
@@ -339,6 +335,10 @@ void PrimalSimplex::update() {
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
+        //debug
+//        Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
+//        Numerical::Double ubOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound();
+//        Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(m_outgoingIndex);
 
         if (outgoingType == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
@@ -347,12 +347,12 @@ void PrimalSimplex::update() {
         else if (outgoingType == Variable::BOUNDED) {
             if(m_ratiotest->outgoingAtUpperBound()){
                 outgoingState = NONBASIC_AT_UB;
-//                LPINFO("outgoing variable vounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
-//                       " ub: "<<ubOfOutgoingVariable);
+//                LPINFO("outgoing variable bounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
+//                       " ub: "<<ubOfOutgoingVariable<<" lb: "<<lbOfOutgoingVariable);
             } else {
                 outgoingState = NONBASIC_AT_LB;
 //                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
-//                       " lb: "<<lbOfOutgoingVariable);
+//                       " lb: "<<lbOfOutgoingVariable<<" ub: "<<ubOfOutgoingVariable);
             }
 //            LPWARNING("state out: "<<outgoingState);
         }

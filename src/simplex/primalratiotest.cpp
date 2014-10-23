@@ -106,7 +106,6 @@ void PrimalRatiotest::generateSignedBreakpointsPhase1(const Vector &alpha, int i
     if (m_model.getVariable(incomingVariableIndex).getType() == Variable::BOUNDED) {
         m_breakpointHandler.insertBreakpoint(-2,
                                              m_sigma * (m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound()));
-//      LPINFO("Bounded incoming variable defined ratio at "<<m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound());
     }
 
     m_breakpointHandler.finalizeBreakpoints();
@@ -353,21 +352,14 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
     }
 
     if(m_outgoingVariableIndex == -2){
-        LPINFO("Boundflip in phase 1!");
+//        LPINFO("Boundflip in phase 1!");
         m_outgoingVariableIndex = -1;
         m_boundflips.push_back(incomingVariableIndex);
-        m_primalSteplength = 0;
+        Numerical::Double boundOfIncoming = m_model.getVariable(incomingVariableIndex).getUpperBound() - m_model.getVariable(incomingVariableIndex).getLowerBound();
+        m_primalSteplength = m_sigma * boundOfIncoming;
     } else if (m_outgoingVariableIndex != -1){
         double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
                       / alpha.at(m_outgoingVariableIndex));
-
-//        LPINFO("m_primalsteplength   : "<<setw(40)<<scientific<<setprecision(36)<<m_primalSteplength);
-//        LPINFO("m_primalsteplengthREF: "<<setw(40)<<scientific<<setprecision(36)<< ref);
-//        LPINFO("m_outgoingAtUpperBound: "<< m_outgoingAtUpperBound);
-//        if(m_primalSteplength ==ref){
-//            LPERROR("ASDASD "<<(m_primalSteplength ==ref) );
-//        }
-//        LPINFO("mrar "<<(m_primalSteplength ==ref));
         m_outgoingAtUpperBound = Numerical::equals(m_primalSteplength, ref);
     }
 
@@ -463,9 +455,12 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
             }else{
                 m_degenerate = true;
             }
+            double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
+                          / alpha.at(m_outgoingVariableIndex));
+            m_outgoingAtUpperBound = Numerical::equals(m_primalSteplength,ref);
       //boundflip
         } else {
-            LPINFO("Boundflip in phase 2!");
+//            LPINFO("Boundflip in phase 2!");
             m_boundflips.push_back(incomingVariableIndex);
             m_outgoingVariableIndex = -1;
             m_primalSteplength = m_sigma * boundOfIncoming;
