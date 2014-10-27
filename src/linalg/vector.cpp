@@ -915,35 +915,12 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         }
     }
 
-
-    /*if (_counter % 10 == 0) {
-        endT = clock();
-        _time += (endT - start) / (double)CLOCKS_PER_SEC;
-        if (_counter % 1000000 == 0) {
-            LPINFO(_time << "   " <<  sm_fullLengthVectorLenght);
-        }
-    }*/
-
     const Numerical::Double * ptrSparse = data;
 //    const Numerical::Double * const ptrSparseEnd = ptrSparse + size;
     const unsigned int * ptrIndex = index;
     //double res = 0;
     Numerical::Double pos = 0;
     Numerical::Double neg = 0;
-    //static unsigned long long int _counter = 0;
-    //_counter++;
-
-    /*if (_counter == 219418115) {
-        __prim_debug = true;
-    } else {
-        __prim_debug = false;
-    }*/
-
-    /*pos = Architecture::getDenseToSparseDotProductUnstable()(
-                denseVector,
-                ptrSparse,
-                ptrIndex,
-                size);*/
 
     pos = Architecture::getDenseToSparseDotProductStable()(
                  denseVector,
@@ -952,59 +929,6 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
                  size,
                  &neg);
 
-   /* double refNeg = 0;
-    double ref = ::denseToSparseDotProductStable(denseVector,
-                                                 ptrSparse,
-                                                 ptrIndex,
-                                                 size,
-                                                 &refNeg);
-
-    Numerical::Double refResult = 0;
-    if(stableAddAbs && stableAddRel){
-        refResult = Numerical::stableAdd(refNeg, ref);
-    } else if(stableAddAbs){
-        refResult = Numerical::stableAddAbs(refNeg, ref);
-    } else if(stableAddRel){
-        refResult = Numerical::stableAddRel(refNeg, ref);
-    } else {
-        refResult = ref + refNeg;
-    }*/
-
-
-
-    /*double ref = ::denseToSparseDotProductUnstable(
-                denseVector,
-                ptrSparse,
-                ptrIndex,
-                size);
-    if ((ref != 0 || pos != 0) && ref != pos) {
-        if (Numerical::fabs(ref - pos) > 1e-1) {
-            LPINFO(ref << " - " << pos << " = " << ref - pos );
-            LPINFO("size = " << size);
-            LPINFO(denseVector[ ptrIndex[0] ] << " * " << ptrSparse[0]);
-            LPINFO(denseVector[ ptrIndex[1] ] << " * " << ptrSparse[1]);
-            LPINFO(denseVector[ ptrIndex[2] ] << " * " << ptrSparse[2]);
-            LPINFO(ptrIndex[0]);
-            LPINFO(ptrIndex[1]);
-            LPINFO(ptrIndex[2]);
-            // LPINFO(_counter);
-            std::cin.get();
-        }
-        //std::cin.get();
-    }*/
-    //LPINFO(ref << " vs " << pos);
-    //std::cin.get();
-    /*while (ptrSparse < ptrSparseEnd) {
-
-        temp = denseVector[ *ptrIndex ] * *ptrSparse;
-        //res += temp;
-        summarizer.add(temp);
-        if (needScatter) {
-            // denseVector[ *ptrIndex ] = 0.0;
-        }
-        ptrSparse++;
-        ptrIndex++;
-    }*/
     if (needScatter) {
         clearFullLenghtVector(sm_fullLengthVector, origIndex, origSize);
     }
@@ -1013,40 +937,11 @@ Numerical::Double Vector::dotProduct(const Vector & vector, bool stableAddAbs, b
         result = Numerical::stableAdd(neg, pos);
     } else if(stableAddAbs){
         result = Numerical::stableAddAbs(neg, pos);
-    } else if(stableAddRel){
-        result = Numerical::stableAddRel(neg, pos);
     } else {
         result = pos + neg;
     }
 
-
-   /* if ((refResult != 0 || result != 0) || refResult != result) {
-        if (Numerical::fabs(refResult - result) > 1e-10) {
-            LPINFO(refResult << " - " << result << " = " << refResult - result );
-            LPINFO("size = " << size);
-            // LPINFO(_counter);
-            std::cin.get();
-        }
-        //std::cin.get();
-    }*/
-
-//    result = refResult;
-
-
-
-    /*Numerical::Double refResult = summarizer.getResult(stableAddAbs, stableAddRel);
-    if ((refResult != 0 || result != 0) && refResult != result) {
-        if (Numerical::fabs(refResult - result) > 1e-1) {
-            LPINFO(result << " - " << refResult << " = " << result - refResult );
-            LPINFO(_counter);
-            std::cin.get();
-        }
-        //std::cin.get();
-    }*/
     return result;
-    //return pos + neg;
-    //return res;
-    //return summarizer.getResult(stableAddAbs, stableAddRel);
 }
 
 Vector & Vector::addVector(Numerical::Double lambda,
@@ -1111,22 +1006,6 @@ void Vector::addDenseToDense(Numerical::Double lambda,
                     m_nonZeros++;
                 }
                 *ptr1 = Numerical::stableAddAbs(*ptr1, *ptr2 * lambda);
-                if (*ptr1 == 0.0) {
-                    *ptr1 = 0.0;
-                    m_nonZeros--;
-                }
-            }
-            ptr1++;
-            ptr2++;
-        }
-        break;
-    case Numerical::ADD_REL:
-        while (ptr1 < end) {
-            if (*ptr2 != 0.0) {
-                if (*ptr1 == 0.0) {
-                    m_nonZeros++;
-                }
-                *ptr1 = Numerical::stableAddRel(*ptr1, *ptr2 * lambda);
                 if (*ptr1 == 0.0) {
                     *ptr1 = 0.0;
                     m_nonZeros--;
@@ -1206,21 +1085,6 @@ void Vector::addSparseToDense(Numerical::Double lambda,
             ptrIndex++;
         }
         break;
-    case Numerical::ADD_REL:
-        while (ptrData < ptrDataEnd) {
-            Numerical::Double & data = m_data[ *ptrIndex ];
-            if (data == 0.0) {
-                m_nonZeros++;
-            }
-            data = Numerical::stableAddRel(data, lambda * *ptrData);
-            if (data == 0.0) {
-                data = 0.0;
-                m_nonZeros--;
-            }
-            ptrData++;
-            ptrIndex++;
-        }
-        break;
     case Numerical::ADD_FAST:
         while (ptrData < ptrDataEnd) {
             Numerical::Double & data = m_data[ *ptrIndex ];
@@ -1283,31 +1147,6 @@ void Vector::addSparseToSparse(Numerical::Double lambda,
             if (denseVector[ *ptrIndex ] != 0.0) {
 
                 Numerical::Double result = Numerical::stableAddAbs(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
-                denseVector[ *ptrIndex ] = 0.0;
-                if (result != 0.0) {
-                    *ptrActualVector = result;
-                    ptrActualVector++;
-                    ptrIndex++;
-                } else {
-                    m_dataEnd--;
-                    m_size--;
-                    m_nonZeros--;
-                    if (ptrActualVector < m_dataEnd) {
-                        *ptrActualVector = *m_dataEnd;
-                        *ptrIndex = m_index[ m_size ];
-                    }
-                }
-            } else {
-                ptrActualVector++;
-                ptrIndex++;
-            }
-        }
-        break;
-    case Numerical::ADD_REL:
-        while (ptrActualVector < m_dataEnd) {
-            if (denseVector[ *ptrIndex ] != 0.0) {
-
-                Numerical::Double result = Numerical::stableAddRel(*ptrActualVector, lambda * denseVector[ *ptrIndex ]);
                 denseVector[ *ptrIndex ] = 0.0;
                 if (result != 0.0) {
                     *ptrActualVector = result;

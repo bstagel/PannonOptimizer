@@ -84,12 +84,36 @@ public:
     ~IndexedDenseVector();
 
     /**
-     * Sets the specified element of the vector.
+     * Creates a unit vector with the specified length.
      *
-     * @param index The index of the changed element.
-     * @param value The new value.
+     * @param length The length of the new vector.
+     * @param index The index of the value 1.
+     * @return The result vector.
      */
-    void set(unsigned int index, Numerical::Double value);
+    static IndexedDenseVector createUnitVector(unsigned int length, unsigned int index);
+
+    /**
+     * Creates a vector from the given dense array.
+     *
+     * @param source The original dense array.
+     * @param size Size of the array.
+     * @return The result vector.
+     */
+    static IndexedDenseVector createVectorFromDenseArray(const Numerical::Double * source,
+                                                         unsigned int size);
+
+    /**
+     * Creates a vector from the given sparse array.
+     *
+     * @param data The array of the nonzero elements.
+     * @param indices The array of the nonzero indices.
+     * @param count Size of the arrays.
+     * @param length Length of the vector.
+     * @return The result vector.
+     */
+    static IndexedDenseVector createVectorFromSparseArray(const Numerical::Double * data,
+                                                          const unsigned int * indices,
+                                                          unsigned int count,                                                         unsigned int length);
 
     /**
      * Returns with the value of the specified element. Checks the index,
@@ -98,7 +122,7 @@ public:
      * @param index The index of the element.
      * @return Value of the index^th element.
      */
-    ALWAYS_INLINE Numerical::Double at(unsigned int index) const {
+    Numerical::Double at(unsigned int index) const {
         if (likely(index < m_length)) {
             return m_data[index];
         } else {
@@ -108,12 +132,20 @@ public:
     }
 
     /**
+     * Sets the specified element of the vector.
+     *
+     * @param index The index of the changed element.
+     * @param value The new value.
+     */
+    void set(unsigned int index, Numerical::Double value);
+
+    /**
      * Returns with the value of the specified element.
      *
      * @param index The index of the element.
      * @return Value of the index^th element.
      */
-    Numerical::Double operator[](unsigned int index) const {
+    ALWAYS_INLINE Numerical::Double operator[](unsigned int index) const {
         return m_data[index];
     }
 
@@ -127,6 +159,17 @@ public:
         return m_length;
     }
 
+    /**
+     * Returns with the number of nonzeros in the vector.
+     *
+     * @return Number of nonzeros.
+     */
+    ALWAYS_INLINE unsigned int nonZeros() const {
+        return m_nonZeros;
+    }
+
+    //TODO: L^Inf Norm
+    //TODO: L^2^2 Norm
     /**
      * Returns with the Euclidean norm of the vector.
      *
@@ -149,8 +192,8 @@ public:
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    IndexedDenseVector & addIndexedDenseVector(Numerical::Double lambda,
-                                               const IndexedDenseVector & vector);
+    IndexedDenseVector & addVector(Numerical::Double lambda,
+                                   const IndexedDenseVector & vector);
 
     /**
      * Adds the DenseVector type vector spefified by the arguments to the
@@ -160,8 +203,8 @@ public:
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    IndexedDenseVector & addDenseVector(Numerical::Double lambda,
-                                        const DenseVector & vector);
+    IndexedDenseVector & addVector(Numerical::Double lambda,
+                                   const DenseVector & vector);
 
     /**
      * Adds the SparseVector type vector spefified by the arguments to the
@@ -171,38 +214,29 @@ public:
      * @param vector The vector to be added to the current vector.
      * @return Reference of the current vector object.
      */
-    IndexedDenseVector & addSparseVector(Numerical::Double lambda,
-                                         const SparseVector & vector);
+    IndexedDenseVector & addVector(Numerical::Double lambda,
+                                   const SparseVector & vector);
 
     /**
      *
      * @param vector
      * @return
      */
-    Numerical::Double dotProductIndexedDenseVector(const IndexedDenseVector & vector) const;
+    Numerical::Double dotProduct(const IndexedDenseVector & vector) const;
 
     /**
      *
      * @param vector
      * @return
      */
-    Numerical::Double dotProductDenseVector(const DenseVector & vector) const;
+    Numerical::Double dotProduct(const DenseVector & vector) const;
 
     /**
      *
      * @param vector
      * @return
      */
-    Numerical::Double dotProductSparseVector(const SparseVector & vector) const;
-
-    /**
-     * Returns with the number of nonzeros in the vector.
-     *
-     * @return Number of nonzeros.
-     */
-    ALWAYS_INLINE unsigned int nonZeros() const {
-        return m_nonZeros;
-    }
+    Numerical::Double dotProduct(const SparseVector & vector) const;
 
     /**
      * Scales the elements of the vector by lambda.
@@ -234,38 +268,6 @@ public:
      * @param type The dot product mode.
      */
     static void setDotProductMode(Numerical::DOT_PRODUCT_TYPE type);
-
-    /**
-     * Creates a unit vector with the specified length.
-     *
-     * @param length The length of the new vector.
-     * @param index The index of the value 1.
-     * @return The result vector.
-     */
-    static IndexedDenseVector createUnitVector(unsigned int length, unsigned int index);
-
-    /**
-     * Creates a vector from the given dense array.
-     *
-     * @param source The original dense array.
-     * @param size Size of the array.
-     * @return The result vector.
-     */
-    static IndexedDenseVector createVectorFromDenseArray(const Numerical::Double * source,
-                                                         unsigned int size);
-
-    /**
-     * Creates a vector from the given sparse array.
-     *
-     * @param data The array of the nonzero elements.
-     * @param indices The array of the nonzero indices.
-     * @param count Size of the arrays.
-     * @param length Length of the vector.
-     * @return The result vector.
-     */
-    static IndexedDenseVector createVectorFromSparseArray(const Numerical::Double * data,
-                                                          const unsigned int * indices,
-                                                          unsigned int count,                                                         unsigned int length);
 
     /**
      * Returns an iterator which points to the
@@ -306,238 +308,74 @@ public:
 
 protected:
 
-    /**
-     *
-     */
-    typedef void (IndexedDenseVector::*AddIndexedDenseToIndexedDense)(Numerical::Double,
-                                                                      const IndexedDenseVector &);
+    typedef void (IndexedDenseVector::*AddIndexedDenseToIndexedDense)(Numerical::Double, const IndexedDenseVector &);
 
-    /**
-     *
-     */
-    typedef void (IndexedDenseVector::*AddDenseToIndexedDense)(Numerical::Double,
-                                                               const DenseVector &);
+    typedef void (IndexedDenseVector::*AddDenseToIndexedDense)(Numerical::Double, const DenseVector &);
 
-    /**
-     *
-     */
-    typedef void (IndexedDenseVector::*AddSparseToIndexedDense)(Numerical::Double,
-                                                                const SparseVector &);
+    typedef void (IndexedDenseVector::*AddSparseToIndexedDense)(Numerical::Double, const SparseVector &);
 
-    /**
-     *
-     */
-    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToIndexedDenseDotProduct)(
-            const IndexedDenseVector &,
-            const IndexedDenseVector &) const;
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToIndexedDenseDotProduct)(const IndexedDenseVector &,
+                                                                                          const IndexedDenseVector &) const;
 
-    /**
-     *
-     */
-    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToDenseDotProduct)(
-            const IndexedDenseVector &,
-            const DenseVector &) const;
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToDenseDotProduct)(const IndexedDenseVector &,
+                                                                                   const DenseVector &) const;
 
-    /**
-     *
-     */
-    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToSparseDotProduct)(
-            const IndexedDenseVector &,
-            const SparseVector &) const;
-    /**
-     */
+    typedef Numerical::Double (IndexedDenseVector::*IndexedDenseToSparseDotProduct)(const IndexedDenseVector &,
+                                                                                    const SparseVector &) const;
+
     static thread_local AddIndexedDenseToIndexedDense sm_addIndexedDenseToIndexedDense;
-
-    /**
-     *
-     */
     static thread_local AddDenseToIndexedDense sm_addDenseToIndexedDense;
-
-    /**
-     *
-     */
     static thread_local AddSparseToIndexedDense sm_addSparseToIndexedDense;
 
-    /**
-     *
-     */
     static thread_local IndexedDenseToIndexedDenseDotProduct sm_indexedDenseToIndexedDenseDotProduct;
-
-    /**
-     *
-     */
     static thread_local IndexedDenseToDenseDotProduct sm_indexedDenseToDenseDotProduct;
-
-    /**
-     *
-     */
     static thread_local IndexedDenseToSparseDotProduct sm_indexedDenseToSparseDotProduct;
 
-    /**
-     */
     Numerical::Double * m_data;
 
-    /**
-     */
     unsigned int * m_nonzeroIndices;
 
-    /**
-     */
     unsigned int ** m_indexIndices;
 
-    /**
-     */
     unsigned int m_nonZeros;
 
-    /**
-     */
     unsigned int m_length;
 
-    /**
-     * @param orig
-     */
+    static void _globalInit();
+
     void copy(const IndexedDenseVector & orig);
 
-    /**
-     */
-    void release();
-
-    /**
-     * @param orig
-     */
     void move(IndexedDenseVector & orig);
 
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addIndexedDenseToIndexedDenseFast(Numerical::Double lambda,
-                                           const IndexedDenseVector & vector);
+    void release();
 
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addIndexedDenseToIndexedDenseAbs(Numerical::Double lambda,
-                                          const IndexedDenseVector & vector);
+    void addIndexedDenseToIndexedDenseFast(Numerical::Double lambda, const IndexedDenseVector & vector);
+    void addIndexedDenseToIndexedDenseAbs(Numerical::Double lambda, const IndexedDenseVector & vector);
+    void addIndexedDenseToIndexedDenseAbsRel(Numerical::Double lambda, const IndexedDenseVector & vector);
 
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addIndexedDenseToIndexedDenseRel(Numerical::Double lambda,
-                                          const IndexedDenseVector & vector);
+    void addDenseToIndexedDenseFast(Numerical::Double lambda, const DenseVector & vector);
+    void addDenseToIndexedDenseAbs(Numerical::Double lambda, const DenseVector & vector);
+    void addDenseToIndexedDenseAbsRel(Numerical::Double lambda, const DenseVector & vector);
 
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addIndexedDenseToIndexedDenseAbsRel(Numerical::Double lambda,
-                                             const IndexedDenseVector & vector);
+    void addSparseToIndexedDenseFast(Numerical::Double lambda, const SparseVector & vector);
+    void addSparseToIndexedDenseAbs(Numerical::Double lambda, const SparseVector & vector);
+    void addSparseToIndexedDenseAbsRel(Numerical::Double lambda, const SparseVector & vector);
 
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addDenseToIndexedDenseFast(Numerical::Double lambda,
-                                    const DenseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addDenseToIndexedDenseAbs(Numerical::Double lambda,
-                                   const DenseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addDenseToIndexedDenseRel(Numerical::Double lambda,
-                                   const DenseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addDenseToIndexedDenseAbsRel(Numerical::Double lambda,
-                                      const DenseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addSparseToIndexedDenseFast(Numerical::Double lambda,
-                                     const SparseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addSparseToIndexedDenseAbs(Numerical::Double lambda,
-                                    const SparseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addSparseToIndexedDenseRel(Numerical::Double lambda,
-                                    const SparseVector & vector);
-
-    /**
-     * @param lambda
-     * @param vector
-     */
-    void addSparseToIndexedDenseAbsRel(Numerical::Double lambda,
-                                       const SparseVector & vector);
-
-    Numerical::Double dotProductIndexedDenseToIndexedDenseUnstable(const IndexedDenseVector & vector1,
-                                                                   const IndexedDenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToIndexedDenseFast(const IndexedDenseVector & vector1,
-                                                               const IndexedDenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToIndexedDenseAbs(const IndexedDenseVector & vector1,
-                                                              const IndexedDenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToIndexedDenseRel(const IndexedDenseVector & vector1,
-                                                              const IndexedDenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToIndexedDenseAbsRel(const IndexedDenseVector & vector1,
-                                                                 const IndexedDenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToIndexedDenseUnstable(const IndexedDenseVector & vector1, const IndexedDenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToIndexedDenseFast(const IndexedDenseVector & vector1, const IndexedDenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToIndexedDenseAbs(const IndexedDenseVector & vector1, const IndexedDenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToIndexedDenseAbsRel(const IndexedDenseVector & vector1, const IndexedDenseVector & vector2) const;
 
 
-    Numerical::Double dotProductIndexedDenseToDenseUnstable(const IndexedDenseVector & vector1,
-                                                            const DenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToDenseUnstable(const IndexedDenseVector & vector1, const DenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToDenseFast(const IndexedDenseVector & vector1, const DenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToDenseAbs(const IndexedDenseVector & vector1, const DenseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToDenseAbsRel(const IndexedDenseVector & vector1, const DenseVector & vector2) const;
 
-    Numerical::Double dotProductIndexedDenseToDenseFast(const IndexedDenseVector & vector1,
-                                                        const DenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToDenseAbs(const IndexedDenseVector & vector1,
-                                                       const DenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToDenseRel(const IndexedDenseVector & vector1,
-                                                       const DenseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToDenseAbsRel(const IndexedDenseVector & vector1,
-                                                          const DenseVector & vector2) const;
-
-
-    Numerical::Double dotProductIndexedDenseToSparseUnstable(const IndexedDenseVector & vector1,
-                                                             const SparseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToSparseFast(const IndexedDenseVector & vector1,
-                                                         const SparseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToSparseAbs(const IndexedDenseVector & vector1,
-                                                        const SparseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToSparseRel(const IndexedDenseVector & vector1,
-                                                        const SparseVector & vector2) const;
-
-    Numerical::Double dotProductIndexedDenseToSparseAbsRel(const IndexedDenseVector & vector1,
-                                                           const SparseVector & vector2) const;
-    static void _globalInit();
+    Numerical::Double dotProductIndexedDenseToSparseUnstable(const IndexedDenseVector & vector1, const SparseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToSparseFast(const IndexedDenseVector & vector1, const SparseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToSparseAbs(const IndexedDenseVector & vector1, const SparseVector & vector2) const;
+    Numerical::Double dotProductIndexedDenseToSparseAbsRel(const IndexedDenseVector & vector1, const SparseVector & vector2) const;
 };
 
 #endif // DENSEVECTOR_H

@@ -59,7 +59,6 @@ public:
     enum ADD_TYPE {
         ADD_FAST,
         ADD_ABS,
-        ADD_REL,
         ADD_ABS_REL
     };
 
@@ -70,7 +69,6 @@ public:
         DOT_UNSTABLE,
         DOT_FAST,
         DOT_ABS,
-        DOT_REL,
         DOT_ABS_REL
     };
 
@@ -147,8 +145,6 @@ public:
                 return stableAdd(m_negpos[0], m_negpos[1]);
             } else if(abs){
                 return stableAddAbs(m_negpos[0], m_negpos[1]);
-            } else if(rel){
-                return stableAddRel(m_negpos[0], m_negpos[1]);
             } else {
                 return m_negpos[0] + m_negpos[1];
             }
@@ -273,8 +269,6 @@ public:
                 return stableAdd(pos1 + pos2, neg1 + neg2);
             } else if(abs){
                 return stableAddAbs(pos1 + pos2, neg1 + neg2);
-            } else if(rel){
-                return stableAddRel(pos1 + pos2, neg1 + neg2);
             } else {
                 return (pos1 + pos2) + (neg1 + neg2);
             }
@@ -484,28 +478,6 @@ public:
         }
         return result;
     }
-
-    /**
-     * Numerical stable add operation.
-     * Ensures that when the first operand is negative of second one, the result will be zero.
-     * This function uses only relative tolerance.
-     *
-     * @param value1 The first value.
-     * @param value2 The second value to be added.
-     * @return The sum of the two values.
-     */
-    static ALWAYS_INLINE Double stableAddRel(const Double & value1, const Double & value2)
-    {
-        const Double value1abs = Numerical::fabs(value1);
-        const Double value2abs = Numerical::fabs(value2);
-        const Double result = value1 + value2;
-        if ((value1abs + value2abs) * RelativeTolerance >= Numerical::fabs(result)) {
-            return 0.0;
-        }
-
-        return result;
-    }
-
 
     /**
      * Numerical stable add operation.
