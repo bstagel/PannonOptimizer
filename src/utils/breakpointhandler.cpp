@@ -37,8 +37,6 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(unsigned i
             }
         }
     }
-//    printBreakpoints();
-//    LPINFO("_breakpoints[size-1-index]: "<<m_breakpoints[size-1-index].variableIndex);
 //    checkHeap();
     return &m_breakpoints[m_size-1-index];
 }
@@ -74,8 +72,7 @@ void BreakpointHandler::initSorting()
 void BreakpointHandler::init(unsigned maxNumberOfBreakpoints)
 {
     m_breakpoints.clear();
-//    m_breakpoints.reserve(maxNumberOfBreakpoints);
-    m_breakpoints.reserve(maxNumberOfBreakpoints+1);
+    m_breakpoints.reserve(maxNumberOfBreakpoints);
 }
 
 const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getExpandSecondPass()

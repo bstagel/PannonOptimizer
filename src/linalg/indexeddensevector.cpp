@@ -98,38 +98,38 @@ Numerical::Double IndexedDenseVector::l1Norm() const
     return sum;
 }
 
-IndexedDenseVector &IndexedDenseVector::addIndexedDenseVector(Numerical::Double lambda,
-                                                              const IndexedDenseVector &vector)
+IndexedDenseVector &IndexedDenseVector::addVector(Numerical::Double lambda,
+                                                  const IndexedDenseVector &vector)
 {
     (this->*sm_addIndexedDenseToIndexedDense)(lambda, vector);
     return *this;
 }
 
-IndexedDenseVector &IndexedDenseVector::addDenseVector(Numerical::Double lambda,
-                                                       const DenseVector &vector)
+IndexedDenseVector &IndexedDenseVector::addVector(Numerical::Double lambda,
+                                                  const DenseVector &vector)
 {
     (this->*sm_addDenseToIndexedDense)(lambda, vector);
     return *this;
 }
 
-IndexedDenseVector &IndexedDenseVector::addSparseVector(Numerical::Double lambda,
-                                                        const SparseVector &vector)
+IndexedDenseVector &IndexedDenseVector::addVector(Numerical::Double lambda,
+                                                  const SparseVector &vector)
 {
     (this->*sm_addSparseToIndexedDense)(lambda, vector);
     return *this;
 }
 
-Numerical::Double IndexedDenseVector::dotProductIndexedDenseVector(const IndexedDenseVector &vector) const
+Numerical::Double IndexedDenseVector::dotProduct(const IndexedDenseVector &vector) const
 {
     return (this->*sm_indexedDenseToIndexedDenseDotProduct)(*this, vector);
 }
 
-Numerical::Double IndexedDenseVector::dotProductDenseVector(const DenseVector &vector) const
+Numerical::Double IndexedDenseVector::dotProduct(const DenseVector &vector) const
 {
     return (this->*sm_indexedDenseToDenseDotProduct)(*this, vector);
 }
 
-Numerical::Double IndexedDenseVector::dotProductSparseVector(const SparseVector &vector) const
+Numerical::Double IndexedDenseVector::dotProduct(const SparseVector &vector) const
 {
     return (this->*sm_indexedDenseToSparseDotProduct)(*this, vector);
 }
@@ -151,6 +151,7 @@ void IndexedDenseVector::scale(Numerical::Double lambda)
 
 void IndexedDenseVector::sortIndices()
 {
+    //TODO: Exploit sorted indices everywhere, where it is possible
     const unsigned int chooseSortSteps = m_nonZeros * m_nonZeros / 2;
     if (chooseSortSteps < m_length) {
         unsigned int index1;
@@ -203,11 +204,6 @@ void IndexedDenseVector::setAddMode(Numerical::ADD_TYPE type)
         break;
     case Numerical::ADD_ABS_REL:
         sm_addIndexedDenseToIndexedDense = &IndexedDenseVector::addIndexedDenseToIndexedDenseAbsRel;
-        sm_addDenseToIndexedDense = &IndexedDenseVector::addDenseToIndexedDenseRel;
-        sm_addSparseToIndexedDense = &IndexedDenseVector::addSparseToIndexedDenseRel;
-        break;
-    case Numerical::ADD_REL:
-        sm_addIndexedDenseToIndexedDense = &IndexedDenseVector::addIndexedDenseToIndexedDenseAbsRel;
         sm_addDenseToIndexedDense = &IndexedDenseVector::addDenseToIndexedDenseAbsRel;
         sm_addSparseToIndexedDense = &IndexedDenseVector::addSparseToIndexedDenseAbsRel;
         break;
@@ -236,11 +232,6 @@ void IndexedDenseVector::setDotProductMode(Numerical::DOT_PRODUCT_TYPE type)
         sm_indexedDenseToIndexedDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToIndexedDenseAbsRel;
         sm_indexedDenseToDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToDenseAbsRel;
         sm_indexedDenseToSparseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToSparseAbsRel;
-        break;
-    case Numerical::DOT_REL:
-        sm_indexedDenseToIndexedDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToIndexedDenseRel;
-        sm_indexedDenseToDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToDenseRel;
-        sm_indexedDenseToSparseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToSparseRel;
         break;
     }
 }
@@ -349,17 +340,6 @@ void IndexedDenseVector::addIndexedDenseToIndexedDenseAbs(Numerical::Double lamb
     }
 }
 
-void IndexedDenseVector::addIndexedDenseToIndexedDenseRel(Numerical::Double lambda,
-                                                          const IndexedDenseVector &vector)
-{
-    unsigned int nonzeroIndex;
-    for (nonzeroIndex = 0; nonzeroIndex < vector.m_nonZeros; nonzeroIndex++) {
-        const unsigned int index = vector.m_nonzeroIndices[nonzeroIndex];
-        set(index, Numerical::stableAddRel(m_data[index], lambda * vector.m_data[index]));
-    }
-
-}
-
 void IndexedDenseVector::addIndexedDenseToIndexedDenseAbsRel(Numerical::Double lambda,
                                                              const IndexedDenseVector &vector)
 {
@@ -389,15 +369,6 @@ void IndexedDenseVector::addDenseToIndexedDenseAbs(Numerical::Double lambda,
     }
 }
 
-void IndexedDenseVector::addDenseToIndexedDenseRel(Numerical::Double lambda,
-                                                   const DenseVector &vector)
-{
-    unsigned int index;
-    for (index = 0; index < vector.m_length; index++) {
-        set(index, Numerical::stableAddRel(m_data[index], lambda * vector.m_data[index]));
-    }
-}
-
 void IndexedDenseVector::addDenseToIndexedDenseAbsRel(Numerical::Double lambda,
                                                       const DenseVector &vector)
 {
@@ -424,16 +395,6 @@ void IndexedDenseVector::addSparseToIndexedDenseAbs(Numerical::Double lambda,
     for (nonzeroIndex = 0; nonzeroIndex < vector.m_nonZeros; nonzeroIndex++) {
         const unsigned int index = vector.m_indices[nonzeroIndex];
         set(index, Numerical::stableAddAbs(m_data[index], lambda * vector.m_data[nonzeroIndex]));
-    }
-}
-
-void IndexedDenseVector::addSparseToIndexedDenseRel(Numerical::Double lambda,
-                                                    const SparseVector &vector)
-{
-    unsigned int nonzeroIndex;
-    for (nonzeroIndex = 0; nonzeroIndex < vector.m_nonZeros; nonzeroIndex++) {
-        const unsigned int index = vector.m_indices[nonzeroIndex];
-        set(index, Numerical::stableAddRel(m_data[index], lambda * vector.m_data[nonzeroIndex]));
     }
 }
 
@@ -504,26 +465,6 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToIndexedDenseAbs(
     return Numerical::stableAddAbs(pos, neg);
 }
 
-Numerical::Double IndexedDenseVector::dotProductIndexedDenseToIndexedDenseRel(
-        const IndexedDenseVector &vector1,
-        const IndexedDenseVector &vector2) const
-{
-    Numerical::Double pos;
-    Numerical::Double neg;
-    unsigned int nonZeros = vector1.m_nonZeros;
-    const unsigned int * indices = vector1.m_nonzeroIndices;
-    if (vector1.m_nonZeros > vector2.m_nonZeros) {
-        nonZeros = vector2.m_nonZeros;
-        indices = vector2.m_nonzeroIndices;
-    }
-    pos = Architecture::getIndexedDenseToIndexedDenseDotProductStable()(vector1.m_data,
-                                                                        vector2.m_data,
-                                                                        indices,
-                                                                        nonZeros,
-                                                                        &neg);
-    return Numerical::stableAddRel(pos, neg);
-}
-
 Numerical::Double IndexedDenseVector::dotProductIndexedDenseToIndexedDenseAbsRel(
         const IndexedDenseVector &vector1,
         const IndexedDenseVector &vector2) const
@@ -579,18 +520,6 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToDenseAbs(const Ind
     return Numerical::stableAddAbs(pos, neg);
 }
 
-Numerical::Double IndexedDenseVector::dotProductIndexedDenseToDenseRel(const IndexedDenseVector &vector1,
-                                                                       const DenseVector &vector2) const
-{
-    Numerical::Double pos;
-    Numerical::Double neg;
-    pos = Architecture::getIndexedDenseToIndexedDenseDotProductStable()(vector1.m_data,
-                                                                        vector2.m_data,
-                                                                        vector1.m_nonzeroIndices,
-                                                                        vector1.m_nonZeros,
-                                                                        &neg);
-    return Numerical::stableAddRel(pos, neg);
-}
 
 Numerical::Double IndexedDenseVector::dotProductIndexedDenseToDenseAbsRel(const IndexedDenseVector &vector1,
                                                                           const DenseVector &vector2) const
@@ -638,19 +567,6 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseAbs(const In
                                                      vector2.m_nonZeros,
                                                      &neg);
     return Numerical::stableAddAbs(pos, neg);
-}
-
-Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseRel(const IndexedDenseVector &vector1,
-                                                                        const SparseVector &vector2) const
-{
-    Numerical::Double pos;
-    Numerical::Double neg;
-    pos = Architecture::getDenseToSparseDotProductStable()(vector1.m_data,
-                                                     vector2.m_data,
-                                                     vector2.m_indices,
-                                                     vector2.m_nonZeros,
-                                                     &neg);
-    return Numerical::stableAddRel(pos, neg);
 }
 
 Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseAbsRel(const IndexedDenseVector &vector1,

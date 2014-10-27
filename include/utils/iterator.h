@@ -7,7 +7,7 @@
  * A general purpose iterator template.
  * It iterates on the elements of a vector.
  */
-template <class T>
+template <class DATA_TYPE>
 class NormalIterator {
 public:
 
@@ -16,7 +16,7 @@ public:
      *
      * @param ptr Starting address.
      */
-    ALWAYS_INLINE NormalIterator(T * ptr = nullptr): m_ptr(ptr) {
+    ALWAYS_INLINE NormalIterator(DATA_TYPE * data = nullptr): m_data(data) {
 
     }
 
@@ -25,36 +25,22 @@ public:
      *
      * @return The current number.
      */
-    ALWAYS_INLINE T operator*() {
-        return *m_ptr;
-    }
-
-    /**
-     * Steps the iterator to the following value.
-     */
-    ALWAYS_INLINE void next() {
-        m_ptr++;
-    }
-
-    /**
-     * Steps the iterator to the previous value.
-     */
-    ALWAYS_INLINE void previous() {
-        m_ptr--;
+    ALWAYS_INLINE DATA_TYPE operator*() {
+        return *m_data;
     }
 
     /**
      * Steps the iterator to the following value.
      */
     ALWAYS_INLINE void operator++() {
-        m_ptr++;
+        m_data++;
     }
 
     /**
      * Steps the iterator to the previous value.
      */
     ALWAYS_INLINE void operator--() {
-        m_ptr--;
+        m_data--;
     }
 
     /**
@@ -66,7 +52,7 @@ public:
      * same element.
      */
     ALWAYS_INLINE bool operator==(const NormalIterator & iter) const {
-        return m_ptr == iter.m_ptr;
+        return m_data == iter.m_data;
     }
 
     /**
@@ -78,7 +64,7 @@ public:
      * elements.
      */
     ALWAYS_INLINE bool operator!=(const NormalIterator & iter) const {
-        return m_ptr != iter.m_ptr;
+        return m_data != iter.m_data;
     }
 
     /**
@@ -90,7 +76,7 @@ public:
      * is less then the address of the second element.
      */
     ALWAYS_INLINE bool operator<(const NormalIterator & iter) const {
-        return m_ptr < iter.m_ptr;
+        return m_data < iter.m_data;
     }
 
     /**
@@ -102,7 +88,7 @@ public:
      * is greater then the address of the second element.
      */
     ALWAYS_INLINE bool operator>(const NormalIterator & iter) const {
-        return m_ptr > iter.m_ptr;
+        return m_data > iter.m_data;
     }
 
     /**
@@ -114,7 +100,7 @@ public:
      * is less or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator<=(const NormalIterator & iter) const {
-        return m_ptr <= iter.m_ptr;
+        return m_data <= iter.m_data;
     }
 
     /**
@@ -126,7 +112,7 @@ public:
      * is greater or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator>=(const NormalIterator & iter) const {
-        return m_ptr >= iter.m_ptr;
+        return m_data >= iter.m_data;
     }
 
 private:
@@ -134,13 +120,13 @@ private:
     /**
      * This pointer points to a vector element.
      */
-    const T * m_ptr;
+    const DATA_TYPE * m_data;
 };
 
 /**
  * A general purpose indexed iterator template.
  */
-template<class T, class INDEX_TYPE>
+template<class DATA_TYPE, class INDEX_TYPE>
 class IndexedIterator {
 public:
 
@@ -148,7 +134,7 @@ public:
      * Constructor of the class IndexedIterator.
      */
     ALWAYS_INLINE IndexedIterator():
-        m_ptr(nullptr),
+        m_index(nullptr),
         m_data(nullptr) {
 
     }
@@ -160,8 +146,8 @@ public:
      * @param data Dense array address.
      */
     ALWAYS_INLINE IndexedIterator(INDEX_TYPE * ptr,
-                                  const T * data):
-        m_ptr(ptr),
+                                  const DATA_TYPE * data):
+        m_index(ptr),
         m_data(data) {
 
     }
@@ -171,8 +157,8 @@ public:
      *
      * @return The current number.
      */
-    ALWAYS_INLINE const T & operator*() {
-        return m_data[ *m_ptr ];
+    ALWAYS_INLINE const DATA_TYPE & operator*() {
+        return m_data[ *m_index ];
     }
 
     /**
@@ -181,35 +167,21 @@ public:
      * @return The current index.
      */
     ALWAYS_INLINE INDEX_TYPE getIndex() const {
-        return *m_ptr;
-    }
-
-    /**
-     * Steps the iterator to the following value.
-     */
-    ALWAYS_INLINE void next() {
-        m_ptr++;
-    }
-
-    /**
-     * Steps the iterator to the previous value.
-     */
-    ALWAYS_INLINE void previous() {
-        m_ptr--;
+        return *m_index;
     }
 
     /**
      * Steps the iterator to the following value.
      */
     ALWAYS_INLINE void operator++() {
-        m_ptr++;
+        m_index++;
     }
 
     /**
      * Steps the iterator to the previous value.
      */
     ALWAYS_INLINE void operator--() {
-        m_ptr--;
+        m_index--;
     }
 
     /**
@@ -221,7 +193,7 @@ public:
      * same element.
      */
     ALWAYS_INLINE bool operator==(const IndexedIterator & iter) const {
-        return m_ptr == iter.m_ptr;
+        return m_index == iter.m_index;
     }
 
     /**
@@ -233,55 +205,7 @@ public:
      * elements.
      */
     ALWAYS_INLINE bool operator!=(const IndexedIterator & iter) const {
-        return m_ptr != iter.m_ptr;
-    }
-
-    /**
-     * Less operator.
-     *
-     * @param iter The operator compares the current iterator with this
-     * iterator.
-     * @return The result is true, if the address of the first element
-     * is less then the address of the second element.
-     */
-    ALWAYS_INLINE bool operator<(const IndexedIterator & iter) const {
-        return m_ptr < iter.m_ptr;
-    }
-
-    /**
-     * Greater operator.
-     *
-     * @param iter The operator compares the current iterator with this
-     * iterator.
-     * @return The result is true, if the address of the first element
-     * is greater then the address of the second element.
-     */
-    ALWAYS_INLINE bool operator>(const IndexedIterator & iter) const {
-        return m_ptr > iter.m_ptr;
-    }
-
-    /**
-     * Less or equal operator.
-     *
-     * @param iter The operator compares the current iterator with this
-     * iterator.
-     * @return The result is true, if the address of the first element
-     * is less or equal then the address of the second element.
-     */
-    ALWAYS_INLINE bool operator<=(const IndexedIterator & iter) const {
-        return m_ptr <= iter.m_ptr;
-    }
-
-    /**
-     * Greater or equal operator.
-     *
-     * @param iter The operator compares the current iterator with this
-     * iterator.
-     * @return The result is true, if the address of the first element
-     * is greater or equal then the address of the second element.
-     */
-    ALWAYS_INLINE bool operator>=(const IndexedIterator & iter) const {
-        return m_ptr >= iter.m_ptr;
+        return m_index != iter.m_index;
     }
 
 private:
@@ -289,19 +213,19 @@ private:
     /**
      * This pointer points to an index element.
      */
-    const INDEX_TYPE * m_ptr;
+    const INDEX_TYPE * m_index;
 
     /**
      * This pointer points to the dense array.
      */
-    const T * m_data;
+    const DATA_TYPE * m_data;
 
 };
 
 /**
  * A general purpose iterator template, which skips some elements.
  */
-template<class T, class SKIP>
+template<class DATA_TYPE, class SKIP>
 class SkipIterator {
 public:
 
@@ -310,8 +234,8 @@ public:
      *
      */
     ALWAYS_INLINE SkipIterator():
-        m_ptr(nullptr),
-        m_endPtr(nullptr) {
+        m_data(nullptr),
+        m_dataEnd(nullptr) {
 
     }
 
@@ -321,10 +245,10 @@ public:
      * @param ptr Starting address.
      * @param end Address of the end of the vector.
      */
-    ALWAYS_INLINE SkipIterator(const T * ptr, const T * end):
-        m_ptr(ptr),
-        m_endPtr(end) {
-        SKIP::init(m_ptr, m_endPtr);
+    ALWAYS_INLINE SkipIterator(const DATA_TYPE * ptr, const DATA_TYPE * end):
+        m_data(ptr),
+        m_dataEnd(end) {
+        SKIP::init(m_data, m_dataEnd);
     }
 
     /**
@@ -332,37 +256,16 @@ public:
      *
      * @return The current number.
      */
-    ALWAYS_INLINE const T & operator*() {
-        return *m_ptr;
+    ALWAYS_INLINE const DATA_TYPE & operator*() {
+        return *m_data;
     }
-
-    /**
-     * Steps the iterator to the following value.
-     */
-    ALWAYS_INLINE void next() {
-        SKIP::next(m_ptr, m_endPtr);
-    }
-
-    ///**
-    // * Steps the iterator to the previous value.
-    // */
-    /*ALWAYS_INLINE void previous() {
-        SKIP::previous(m_ptr, m_endPtr);
-    }*/
 
     /**
      * Steps the iterator to the following value.
      */
     ALWAYS_INLINE void operator++() {
-        SKIP::next(m_ptr, m_endPtr);
+        SKIP::next(m_data, m_dataEnd);
     }
-
-    ///**
-    // * Steps the iterator to the previous value.
-    // */
-    /*ALWAYS_INLINE void operator--() {
-        SKIP::previous(m_ptr, m_endPtr);
-    }*/
 
     /**
      * Equality operator.
@@ -373,7 +276,7 @@ public:
      * same element.
      */
     ALWAYS_INLINE bool operator==(const SkipIterator & iter) const {
-        return m_ptr == iter.m_ptr;
+        return m_data == iter.m_data;
     }
 
     /**
@@ -385,7 +288,7 @@ public:
      * elements.
      */
     ALWAYS_INLINE bool operator!=(const SkipIterator & iter) const {
-        return m_ptr != iter.m_ptr;
+        return m_data != iter.m_data;
     }
 
     /**
@@ -397,7 +300,7 @@ public:
      * is less then the address of the second element.
      */
     ALWAYS_INLINE bool operator<(const SkipIterator & iter) const {
-        return m_ptr < iter.m_ptr;
+        return m_data < iter.m_data;
     }
 
     /**
@@ -409,7 +312,7 @@ public:
      * is greater then the address of the second element.
      */
     ALWAYS_INLINE bool operator>(const SkipIterator & iter) const {
-        return m_ptr > iter.m_ptr;
+        return m_data > iter.m_data;
     }
 
     /**
@@ -421,7 +324,7 @@ public:
      * is less or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator<=(const SkipIterator & iter) const {
-        return m_ptr <= iter.m_ptr;
+        return m_data <= iter.m_data;
     }
 
     /**
@@ -433,7 +336,7 @@ public:
      * is greater or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator>=(const SkipIterator & iter) const {
-        return m_ptr >= iter.m_ptr;
+        return m_data >= iter.m_data;
     }
 
 private:
@@ -441,12 +344,12 @@ private:
     /**
      * This pointer points to the dense array.
      */
-    const T * m_ptr;
+    const DATA_TYPE * m_data;
 
     /**
      * This pointer points to the end of the dense array.
      */
-    const T * m_endPtr;
+    const DATA_TYPE * m_dataEnd;
 
 };
 
@@ -454,7 +357,7 @@ private:
 /**
  * A general purpose indexed iterator template.
  */
-template<class T, class INDEX_TYPE>
+template<class DATA_TYPE, class INDEX_TYPE>
 class ValueIndexPairIterator {
 public:
 
@@ -463,7 +366,7 @@ public:
      */
     ALWAYS_INLINE ValueIndexPairIterator():
         m_data(nullptr),
-        m_ptr(nullptr){
+        m_index(nullptr){
 
     }
 
@@ -473,10 +376,10 @@ public:
      * @param ptr Starting index address.
      * @param data Dense array address.
      */
-    ALWAYS_INLINE ValueIndexPairIterator(const T * data,
+    ALWAYS_INLINE ValueIndexPairIterator(const DATA_TYPE * data,
                                          INDEX_TYPE * ptr):
         m_data(data),
-        m_ptr(ptr)
+        m_index(ptr)
     {
 
     }
@@ -486,7 +389,7 @@ public:
      *
      * @return The current number.
      */
-    ALWAYS_INLINE const T & operator*() {
+    ALWAYS_INLINE const DATA_TYPE & operator*() {
         return *m_data;
     }
 
@@ -496,7 +399,7 @@ public:
      * @return The current index.
      */
     ALWAYS_INLINE INDEX_TYPE getIndex() const {
-        return *m_ptr;
+        return *m_index;
     }
 
     /**
@@ -504,7 +407,7 @@ public:
      */
     ALWAYS_INLINE void next() {
         m_data++;
-        m_ptr++;
+        m_index++;
     }
 
     /**
@@ -512,7 +415,7 @@ public:
      */
     ALWAYS_INLINE void previous() {
         m_data--;
-        m_ptr--;
+        m_index--;
     }
 
     /**
@@ -520,7 +423,7 @@ public:
      */
     ALWAYS_INLINE void operator++() {
         m_data++;
-        m_ptr++;
+        m_index++;
     }
 
     /**
@@ -528,7 +431,7 @@ public:
      */
     ALWAYS_INLINE void operator--() {
         m_data--;
-        m_ptr--;
+        m_index--;
     }
 
     /**
@@ -540,7 +443,7 @@ public:
      * same element.
      */
     ALWAYS_INLINE bool operator==(const ValueIndexPairIterator & iter) const {
-        return m_ptr == iter.m_ptr;
+        return m_index == iter.m_index;
     }
 
     /**
@@ -552,7 +455,7 @@ public:
      * elements.
      */
     ALWAYS_INLINE bool operator!=(const ValueIndexPairIterator & iter) const {
-        return m_ptr != iter.m_ptr;
+        return m_index != iter.m_index;
     }
 
     /**
@@ -564,7 +467,7 @@ public:
      * is less then the address of the second element.
      */
     ALWAYS_INLINE bool operator<(const ValueIndexPairIterator & iter) const {
-        return m_ptr < iter.m_ptr;
+        return m_index < iter.m_index;
     }
 
     /**
@@ -576,7 +479,7 @@ public:
      * is greater then the address of the second element.
      */
     ALWAYS_INLINE bool operator>(const ValueIndexPairIterator & iter) const {
-        return m_ptr > iter.m_ptr;
+        return m_index > iter.m_index;
     }
 
     /**
@@ -588,7 +491,7 @@ public:
      * is less or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator<=(const ValueIndexPairIterator & iter) const {
-        return m_ptr <= iter.m_ptr;
+        return m_index <= iter.m_index;
     }
 
     /**
@@ -600,19 +503,19 @@ public:
      * is greater or equal then the address of the second element.
      */
     ALWAYS_INLINE bool operator>=(const ValueIndexPairIterator & iter) const {
-        return m_ptr >= iter.m_ptr;
+        return m_index >= iter.m_index;
     }
 
 private:
     /**
      * This pointer points to the data array.
      */
-    const T * m_data;
+    const DATA_TYPE * m_data;
 
     /**
      * This pointer points to an index element.
      */
-    const INDEX_TYPE * m_ptr;
+    const INDEX_TYPE * m_index;
 
 };
 
