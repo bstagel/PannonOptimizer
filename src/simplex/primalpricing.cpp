@@ -5,6 +5,7 @@
 
 #include <simplex/primalpricing.h>
 #include <simplex/simplexparameterhandler.h>
+#include <utils/thirdparty/prettyprint.h>
 
 PrimalPricing::PrimalPricing(const Vector & basicVariableValues,
                              const IndexList<> & basicVariableFeasibilities,
@@ -92,11 +93,8 @@ void PrimalPricing::releaseUsed() {
 
 void PrimalPricing::lockLastIndex() {
     if (m_incomingIndex != -1) {
-        /*LPERROR("LOCK");
-        std::cin.get();*/
         m_used[m_incomingIndex] = true;
     } else {
-        // TODO: kell ez ide egyaltalan?
         throw NumericalException(std::string("Invalid column lock index!"));
     }
 }
@@ -116,35 +114,17 @@ void PrimalPricing::initPhase1() {
     IndexList<>::Iterator iter, iterEnd;
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; ++iter) {
-        /*if (m_basicVariableValues.at(iter.getData()) >= this->m_simplexModel.getVariable(  m_basisHead[ iter.getData() ]   ).getLowerBound()) {
-            LPERROR("ERROR");
-            std::cin.get();
-        }*/
         auxVector.setNewNonzero(iter.getData(), 1.0);
     }
 
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
     for (; iter != iterEnd; ++iter) {
-        /*if (m_basicVariableValues.at(iter.getData()) <= this->m_simplexModel.getVariable(  m_basisHead[ iter.getData() ]   ).getUpperBound()) {
-            LPERROR("ERROR");
-            std::cin.get();
-        }*/
         auxVector.setNewNonzero(iter.getData(), -1.0);
     }
     // compute the simplex multiplier
     m_basis.Btran(auxVector);
 
     // compute the reduced costs
-    std::vector<Numerical::Double>::iterator sumIter = m_negativeSums.begin();
-    std::vector<Numerical::Double>::iterator sumIterEnd = m_negativeSums.end();
-    for (; sumIter != sumIterEnd; sumIter++) {
-        *sumIter = 0.0;
-    }
-    sumIter = m_positiveSums.begin();
-    sumIterEnd = m_positiveSums.end();
-    for (; sumIter != sumIterEnd; sumIter++) {
-        *sumIter = 0.0;
-    }
     const Matrix & matrix = m_simplexModel.getMatrix();
     Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
     Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
@@ -169,6 +149,7 @@ void PrimalPricing::initPhase1() {
     }
     unsigned int index;
     for (index = 0; index < m_phase1ReducedCosts.size(); index++) {
-        m_phase1ReducedCosts[index] = Numerical::stableAdd( m_positiveSums[index], m_negativeSums[index] );
+        //Stable addition is NOT appropriate here!
+        m_phase1ReducedCosts[index] = m_positiveSums[index] + m_negativeSums[index];
     }
 }

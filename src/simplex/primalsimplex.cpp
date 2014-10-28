@@ -99,7 +99,7 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
 
     case IterationReportProvider::IRF_ITERATION:
         if (name == PHASE_NAME) {
-            reply.m_string = new std::string(m_feasible?PHASE_2_STRING:PHASE_1_STRING);
+            reply.m_string = new std::string(m_feasibleIteration?PHASE_2_STRING:PHASE_1_STRING);
         } else if (name == INCOMING_NAME) {
             reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {
@@ -224,7 +224,11 @@ void PrimalSimplex::price() {
     } else {
         m_incomingIndex = m_pricing->performPricingPhase2();
         if(m_incomingIndex == -1){
-            throw OptimalException("OPTIMAL SOLUTION found!");
+            if(m_pricing->hasLockedVariable()){
+                throw PrimalUnboundedException("The problem is PRIMAL UNBOUNDED!");
+            }else{
+                throw OptimalException("OPTIMAL SOLUTION found!");
+            }
         }
     }
 
@@ -251,39 +255,9 @@ void PrimalSimplex::selectPivot() {
         }
         m_basis->Ftran(m_pivotColumn);
 
-        //Test code to check primal ph_1 reduced cost
-//        Numerical::Double rcCheck=0;
-//        if(!m_feasible){
-//            for(int i=0; i<m_alpha.length(); i++){
-//                if(m_basicVariableFeasibilities.where(i) == Simplex::MINUS){
-//                    rcCheck += m_alpha.at(i);
-//                } else if(m_basicVariableFeasibilities.where(i) == Simplex::PLUS){
-//                    rcCheck -= m_alpha.at(i);
-//                }
-//            }
-
-//            if(!Numerical::equals(rcCheck, m_pricing->getReducedCost())){
-//                LPERROR("Phase 1 reduced cost error: pricing: "<<m_pricing->getReducedCost()<< " ; alpha: "<<rcCheck);
-//                exit(-1);
-//            }
-//        }
-
         if(!m_feasible){
             m_ratiotest->performRatiotestPhase1(m_incomingIndex, m_pivotColumn, m_pricing->getReducedCost(), m_phaseIObjectiveValue);
         } else {
-            //debug code for checking feasibility
-//            for(unsigned i=0;i<m_basisHead.size();++i){
-//                const Variable& variable = m_simplexModel->getVariable(m_basisHead[i]);
-//                Numerical::Double lb = variable.getLowerBound();
-//                Numerical::Double ub = variable.getUpperBound();
-//                Numerical::Double val = m_basicVariableValues.at(i);
-//                if( ((val-lb) < - m_workingTolerance) || ((val-ub) > m_workingTolerance)){
-//                    LPWARNING("Infeasible variable in ph2: "<<m_basisHead[i]);
-//                    LPINFO("val: "<<val);
-//                    LPINFO("lb: "<<lb);
-//                    LPINFO("ub: "<<ub);
-//                }
-//            }
             m_ratiotest->performRatiotestPhase2(m_incomingIndex, m_pivotColumn, m_reducedCosts.at(m_incomingIndex), m_workingTolerance);
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
@@ -335,37 +309,24 @@ void PrimalSimplex::update() {
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
-        //debug
-//        Numerical::Double lbOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getLowerBound();
-//        Numerical::Double ubOfOutgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex)).getUpperBound();
-//        Numerical::Double valueOfOutgoingVariable = m_basicVariableValues.at(m_outgoingIndex);
 
         if (outgoingType == Variable::FIXED) {
             outgoingState = NONBASIC_FIXED;
-//            LPINFO("ougoing variable fix, value: "<<valueOfOutgoingVariable);
         }
         else if (outgoingType == Variable::BOUNDED) {
             if(m_ratiotest->outgoingAtUpperBound()){
                 outgoingState = NONBASIC_AT_UB;
-//                LPINFO("outgoing variable bounded, leaves at UB, value: "<<valueOfOutgoingVariable<<
-//                       " ub: "<<ubOfOutgoingVariable<<" lb: "<<lbOfOutgoingVariable);
             } else {
                 outgoingState = NONBASIC_AT_LB;
-//                LPINFO("outgoing variable bounded, leaves at LB, value: "<<valueOfOutgoingVariable<<
-//                       " lb: "<<lbOfOutgoingVariable<<" ub: "<<ubOfOutgoingVariable);
             }
-//            LPWARNING("state out: "<<outgoingState);
         }
         else if (outgoingType == Variable::PLUS) {
-//            LPINFO("outgoing variable PLUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_LB;
         }
         else if (outgoingType == Variable::FREE) {
-//            LPINFO("outgoing variable FREE type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_FREE;
         }
         else if (outgoingType == Variable::MINUS) {
-//            LPINFO("outgoing variable MINUS type, val:"<<valueOfOutgoingVariable);
             outgoingState = NONBASIC_AT_UB;
         } else {
             throw PanOptException("Invalid variable type");
@@ -390,13 +351,6 @@ void PrimalSimplex::update() {
     if(!m_feasible){
         computeFeasibility();
     }
-
-//    LPWARNING("outgoing variable val: "<<valueOfOutgoingVariable<<
-//              " lb: "<<lbOfOutgoingVariable<<
-//              " ub: "<<ubOfOutgoingVariable<<" state: " <<outgoingState<<" type: "<<typeOfIthVariable);
-//    LPWARNING("incoming variable LB: "<<m_simplexModel->getVariable(m_incomingIndex).getLowerBound()<<
-//              " UB: "<<m_simplexModel->getVariable(m_incomingIndex).getUpperBound());
-//    LPWARNING("teta: "<<m_primalTheta<< " sum: "<<valueOfOutgoingVariable+m_primalTheta);
 }
 
 void PrimalSimplex::setReferenceObjective(bool secondPhase) {

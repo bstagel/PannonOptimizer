@@ -40,64 +40,25 @@ void PrimalDantzigPricing::release()
 
 int PrimalDantzigPricing::performPricingPhase1()
 {
-    static int __counter = 0;
-
     initPhase1();
-    int maxIndex = -1;
-    int minIndex = -1;
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
 
-    //TODO: What the hell is this? :O
-    //    Numerical::Double maxReducedCost = m_feasibilityTolerance;
-    //    Numerical::Double minReducedCost = -m_feasibilityTolerance;
-
     m_phase1Simpri.start();
 
+    int maxIndex = -1;
+    int minIndex = -1;
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;
 
-    /*if (__counter == 2371) {
-        int i;
-        for (i = 0; i < m_phase1ReducedCosts.size(); i++) {
-            if (m_phase1ReducedCosts[i] != 0) {
-                LPERROR(i << "  " << m_phase1ReducedCosts[i] << "  " << this->m_variableStates.where(i));
-
-                std::cin.get();
-            }
-        }
-        //exit(1);
-    }*/
-
     unsigned int variableIndex;
-    unsigned int mennyi = 0;
-    std::vector<char> volt( m_simplexModel.getVariables().size(), 0 );
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
-        mennyi++;
-        /*if (volt[variableIndex] == 1) {
-            LPERROR("VOLT MAR");
-            exit(1);
-        }*/
-        volt[variableIndex] = 1;
         if ( m_used[variableIndex] == true ) {
             continue;
         }
-        /*if (__counter == 2371) {
-            if (variableIndex == 45 || variableIndex == 2037 || variableIndex == 2070 || variableIndex == 2131
-                    || variableIndex == 2139 || variableIndex == 2146) {
-                LPINFO("MEGVAN where: " << m_variableStates.where(variableIndex) << "  " << m_phase1ReducedCosts[variableIndex]);
-                LPINFO("used: " << m_used[variableIndex]  << "  " << Simplex::NONBASIC_FREE);
-                std::cin.get();
-            }
-            LPINFO(variableIndex << "  " << m_phase1ReducedCosts[variableIndex]);
-        }*/
 
-
-        // LPINFO(variableIndex);
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
-//            LPINFO("m_phase1ReducedCosts[variableIndex] "<<m_phase1ReducedCosts[variableIndex]<<
-//                   " minReducedCost "<<minReducedCost);
             if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
@@ -112,8 +73,6 @@ int PrimalDantzigPricing::performPricingPhase1()
             }
             break;
         case Simplex::NONBASIC_FREE:
-      //      if (__counter == 2371)
-      //          LPINFO("FREE: " << m_phase1ReducedCosts[variableIndex]);
             if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
@@ -128,89 +87,21 @@ int PrimalDantzigPricing::performPricingPhase1()
             break;
         }
     }
-    /*if (__counter == 2371) {
-        LPINFO("probak: " << mennyi << "  " << m_simplexModel.getMatrix().columnCount());
-    }*/
-    // TODO: fixed valtozokat be se rakjuk a szakaszokba
 
-    /*IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
-
-    for (; iter != iterEnd; ++iter) {
-        unsigned int variableIndex = iter.getData();
-        if (m_used[variableIndex] == true) {
-            continue;
-        }
-        if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
-            minIndex = variableIndex;
-            minReducedCost = m_phase1ReducedCosts[variableIndex];
-        }
-    }
-
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_UB, 1);
-
-    for (; iter != iterEnd; ++iter) {
-        unsigned int variableIndex = iter.getData();
-        if (m_used[variableIndex] == true) {
-            continue;
-        }
-        if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
-            maxIndex = variableIndex;
-            maxReducedCost = m_phase1ReducedCosts[variableIndex];
-        }
-    }
-
-    m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FREE, 1);
-    for (; iter != iterEnd; ++iter) {
-        unsigned int variableIndex = iter.getData();
-        if (m_used[variableIndex] == true) {
-            continue;
-        }
-        if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
-            minIndex = variableIndex;
-            minReducedCost = m_phase1ReducedCosts[variableIndex];
-        } else if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
-            maxIndex = variableIndex;
-            maxReducedCost = m_phase1ReducedCosts[variableIndex];
-        }
-    }*/
-
-    //LPINFO(minIndex << ", " << maxIndex << "  " << __counter);
-    __counter++;
 //    LPINFO("PRICING: minReducedCost: "<<minReducedCost<<" maxReducedCost: "<<maxReducedCost);
 //    LPINFO("PRICING: minIndex: "<<minIndex<<" maxIndex: "<<maxIndex);
-
-    IndexList<const Numerical::Double*>::Iterator it;
-    IndexList<const Numerical::Double*>::Iterator endit;
-    m_variableStates.getIterators(&it,&endit,0,5);
-
-//    for(;it!=endit;++it){
-//        if(m_phase1ReducedCosts[it.getData()] < 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB){
-//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-//        }
-//        if(m_phase1ReducedCosts[it.getData()] > 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_UB){
-//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-//        }
-//        if(m_phase1ReducedCosts[it.getData()] != 0 && m_variableStates.where(it.getData()) == Simplex::NONBASIC_FREE){
-//            LPWARNING("Improving candidate d: "<<m_phase1ReducedCosts[it.getData()]<<
-//                   " index: "<<it.getData()<<" type: "<<m_simplexModel.getVariable(it.getData()).getType());
-//        }
-//    }
 
 //    LPINFO("min: "<<minReducedCost<<" index: "<<minIndex);
 //    LPINFO("max: "<<maxReducedCost<<" index: "<<maxIndex);
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
-        //LPINFO("\t\tminIndex = " << minIndex << "  " << m_reducedCost);
         return minIndex;
+    } else {
+        m_reducedCost = maxReducedCost;
+        m_incomingIndex = maxIndex;
+        return maxIndex;
     }
-    m_reducedCost = maxReducedCost;
-    m_incomingIndex = maxIndex;
-    //LPINFO("\t\tmaxIndex = " << maxIndex << "  " << m_reducedCost);
-    return maxIndex;
 }
 
 int PrimalDantzigPricing::performPricingPhase2()
