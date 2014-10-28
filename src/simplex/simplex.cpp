@@ -60,6 +60,7 @@ Simplex::Simplex(SimplexController &simplexController):
     m_objectiveValue(0),
     m_phaseIObjectiveValue(-Numerical::Infinity),
     m_feasible(false),
+    m_feasibleIteration(false),
     m_baseChanged(false),
     //Parameter references
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
@@ -357,6 +358,7 @@ void Simplex::setSimplexState(const Simplex & simplex)
 
 void Simplex::iterate()
 {
+    m_feasibleIteration = m_feasible;
     computeWorkingTolerance();
 
     m_priceTimer.start();

@@ -37,13 +37,13 @@ bool PrimalFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
         valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead[basisIndex]));
 
     //basic variables with M type infeasibility
-        if ( (valueOfVariable - lbOfVariable) < -tolerance)  {
+        if ( (valueOfVariable + tolerance) < lbOfVariable)  {
             m_basicVariableFeasibilities->insert(Simplex::MINUS, basisIndex);
             m_phaseIObjectiveValue += (valueOfVariable - lbOfVariable);
         } else
 
     //basic variables with P type infeasibility
-        if ( (valueOfVariable - ubOfVariable) > tolerance ) {
+        if ( (valueOfVariable - tolerance) > ubOfVariable) {
             m_basicVariableFeasibilities->insert(Simplex::PLUS, basisIndex);
             m_phaseIObjectiveValue -= (valueOfVariable - ubOfVariable);
     //basic variables with F type infeasibility

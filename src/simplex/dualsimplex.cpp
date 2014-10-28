@@ -149,7 +149,7 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
 
     case IterationReportProvider::IRF_ITERATION:
         if (name == PHASE_NAME) {
-            reply.m_string = new std::string(m_feasible?PHASE_2_STRING:PHASE_1_STRING);
+            reply.m_string = new std::string(m_feasibleIteration?PHASE_2_STRING:PHASE_1_STRING);
         } else if (name == INCOMING_NAME) {
             reply.m_integer = m_incomingIndex;
         } else if (name == OUTGOING_NAME) {

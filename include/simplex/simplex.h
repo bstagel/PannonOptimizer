@@ -196,6 +196,11 @@ protected:
     bool m_feasible;
 
     /**
+     * A simple boolean variable describing the actual iteration (Phase I or Phase II).
+     */
+    bool m_feasibleIteration;
+
+    /**
      * Describes whether the basis in the previous iteration was feasible or not.
      */
     bool m_lastFeasible;
