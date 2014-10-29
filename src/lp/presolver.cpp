@@ -16,7 +16,9 @@ Presolver::Presolver(Model *model):
     unsigned int rowCount = m_model->constraintCount();
     unsigned int columnCount = m_model->variableCount();
     m_rowNonzeros = new Vector(rowCount);
+    m_rowNonzeros->setSparsityRatio(0);
     m_columnNonzeros = new Vector(columnCount);
+    m_columnNonzeros->setSparsityRatio(0);
     m_variables = m_model->getVariables();
     m_constraints = m_model->getConstraints();
 
@@ -142,26 +144,21 @@ void Presolver::printStatistics() {
 }
 
 void Presolver::fixVariable(int index, Numerical::Double value) {
-    //make sure the variable is not fixed out of bounds
-    if(Numerical::stableAdd(m_model->getVariable(index).getLowerBound(), -1 * value) > 0 ||
-       Numerical::stableAdd(m_model->getVariable(index).getUpperBound(), -1 * value) < 0) {
-        throw PresolverException("Variable fixing value is out of bounds.");
-        return;
-    }
 
     Vector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
     Vector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
     for(;it != itEnd; ++it) {
-        (*m_constraints)[it.getIndex()].setBounds(Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getLowerBound(), -1 * (*it) * value),
-                                                   Numerical::stableAdd(m_model->getConstraint(it.getIndex()).getUpperBound(), -1 * (*it) * value));
-        m_rowNonzeros->set(it.getIndex(), m_rowNonzeros->at(it.getIndex()) - 1);
+        int constraintIdx = it.getIndex();
+        (*m_constraints)[constraintIdx].setBounds(Numerical::stableAdd(m_model->getConstraint(constraintIdx).getLowerBound(), -1 * (*it) * value),
+                                                   Numerical::stableAdd(m_model->getConstraint(constraintIdx).getUpperBound(), -1 * (*it) * value));
+        m_rowNonzeros->set(constraintIdx, m_rowNonzeros->at(constraintIdx) - 1);
 
     }
     //substitute the variable
     Vector * substituteVector = new Vector(m_model->variableCount() + 3);
     substituteVector->set(m_model->variableCount(), value);
     substituteVector->set(m_model->variableCount() + 1, index);
-    substituteVector->set(m_model->variableCount() + 2, PRIMAL_VARIABLE);
+    substituteVector->set(m_model->variableCount() + 2, FIXED_VARIABLE);
     m_substituteVectors->push_back(substituteVector);
 
     //update cost constant and remove fixed variable from the model
@@ -174,6 +171,62 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
     m_columnNonzeros->removeElement(index);
 }
 
+void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, int removeCount, SUBSTITUTED_VARIABLE_FLAG fixMode) {
+    if(removeCount < 0) {
+        removeCount = 0;
+        for(auto it = fixValues.begin(), itEnd = fixValues.end(); it != itEnd; ++it) {
+            if(*it != 0) removeCount++;
+        }
+    }
+    int newVariableCount = m_model->variableCount() - removeCount;
+    int removedCount = 0;
+    Vector * newImpliedLower = new Vector(newVariableCount);
+    newImpliedLower->setSparsityRatio(0);
+    Vector * newImpliedUpper = new Vector(newVariableCount);
+    newImpliedUpper->setSparsityRatio(0);
+    Vector * newColumnNzr = new Vector(newVariableCount);
+    newColumnNzr->setSparsityRatio(0);
+    Vector * newExtraDLSum = new Vector(newVariableCount);
+    newExtraDLSum->setSparsityRatio(0);
+    Vector * newExtraDUSum = new Vector(newVariableCount);
+    newExtraDUSum->setSparsityRatio(0);
+    for(auto itStart = fixValues.begin(), it = fixValues.begin(), itEnd = fixValues.end(); it != itEnd; ++it) {
+        int index = it - itStart - removedCount;
+        if(*it != 0) {
+            Numerical::Double fixVal = *it==Numerical::Infinity?0:*it;
+            Vector::NonzeroIterator itV = m_model->getVariable(index).getVector()->beginNonzero();
+            Vector::NonzeroIterator itVEnd = m_model->getVariable(index).getVector()->endNonzero();
+            for(;itV != itVEnd; ++itV) {
+                int vIndex = itV.getIndex();
+                (*m_constraints)[vIndex].setBounds(Numerical::stableAdd(m_model->getConstraint(vIndex).getLowerBound(), -1 * (*itV) * fixVal),
+                                                           Numerical::stableAdd(m_model->getConstraint(vIndex).getUpperBound(), -1 * (*itV) * fixVal));
+                m_rowNonzeros->set(vIndex, m_rowNonzeros->at(vIndex) - 1);
+            }
+            if(fixMode == FIXED_VARIABLE){
+                Vector * substituteVector = new Vector(m_model->variableCount() + 3);
+                substituteVector->set(m_model->variableCount(), fixVal);
+                substituteVector->set(m_model->variableCount() + 1, index);
+                substituteVector->set(m_model->variableCount() + 2, FIXED_VARIABLE);
+                m_substituteVectors->push_back(substituteVector);
+            }
+            m_model->setCostConstant(Numerical::stableAdd(m_model->getCostConstant(), -1 * m_model->getCostVector().at(index) * fixVal));
+            m_model->removeVariable(index);
+            removedCount++;
+        } else {
+            newColumnNzr->set(index, m_columnNonzeros->at(index + removedCount));
+            newImpliedLower->set(index, m_impliedLower->at(index + removedCount));
+            newImpliedUpper->set(index, m_impliedUpper->at(index + removedCount));
+            newExtraDLSum->set(index, m_extraDualLowerSum->at(index + removedCount));
+            newExtraDUSum->set(index, m_extraDualUpperSum->at(index + removedCount));
+        }
+    }
+    m_columnNonzeros = newColumnNzr;
+    m_impliedLower = newImpliedLower;
+    m_impliedUpper = newImpliedUpper;
+    m_extraDualLowerSum = newExtraDLSum;
+    m_extraDualUpperSum = newExtraDUSum;
+}
+
 void Presolver::removeConstraint(int index) {
     getModel()->removeConstraint(index);
     getImpliedDualLower()->removeElement(index);
@@ -181,8 +234,41 @@ void Presolver::removeConstraint(int index) {
     getRowNonzeros()->removeElement(index);
 }
 
-void Presolver::presolve() {
+void Presolver::removeConstraints(const std::vector<int>& removeIndices, int removeCount) {
+    if(removeCount < 0) {
+        removeCount = 0;
+        for(auto it = removeIndices.begin(), itEnd = removeIndices.end(); it != itEnd; ++it) {
+            if(*it != 0) removeCount++;
+        }
+    }
+    if(removeCount == 0) return;
+    int newConstraintCount = m_model->constraintCount() - removeCount;
+    int removedCount = 0;
+    Vector * newRowNzr = new Vector(newConstraintCount);
+    newRowNzr->setSparsityRatio(0);
+    Vector * newImpDualLower = new Vector(newConstraintCount);
+    newImpDualLower->setSparsityRatio(0);
+    Vector * newImpDualUpper = new Vector(newConstraintCount);
+    newImpDualUpper->setSparsityRatio(0);
+    for(auto itStart = removeIndices.begin(), it = removeIndices.begin(), itEnd = removeIndices.end(); it != itEnd; ++it) {
+        int index = it - itStart - removedCount;
+        if(*it != 0) {
+            m_model->removeConstraint(index);
+            removedCount++;
+        } else {
+            newRowNzr->set(index, m_rowNonzeros->at(index + removedCount));
+            newImpDualLower->set(index, m_impliedDualLower->at(index + removedCount));
+            newImpDualUpper->set(index, m_impliedDualUpper->at(index + removedCount));
+        }
+    }
+    m_rowNonzeros = newRowNzr;
+    m_impliedDualLower = newImpDualLower;
+    m_impliedDualUpper = newImpDualUpper;
+}
 
+void Presolver::presolve() {
+int nzr = m_model->getMatrix().nonZeros();
+LPINFO("nzr count: " << nzr);
     if(m_mode == NO_PRESOLVE)
         clearModules();
     if(m_mode == DEFAULT) {
@@ -211,6 +297,14 @@ void Presolver::presolve() {
     }
     m_makeSparserModule = new MakeSparserModule(this);
     m_makeSparserModule->executeMethod();
+    if(m_makeSparserModule->getRemovedNonzerosCount()) {
+        for(unsigned int i = 0; i < m_modules.size(); i++) {
+            std::string name = m_modules[i]->getName();
+            if(name == "Singleton rows module" || name == "Singleton columns module") {
+                m_modules[i]->executeMethod();
+            }
+        }
+    }
 
 //    for(int i = 1; i < m_variables->size(); i++) {
 //        if((m_variables->at(i).getType() != Variable::FREE) && ((m_variables->at(i).getLowerBound() < m_impliedLower->at(i) && m_variables->at(i).getUpperBound() > m_impliedUpper->at(i)) ||
@@ -231,4 +325,5 @@ void Presolver::presolve() {
 //    }
     m_model->setSubstitueVectors(m_substituteVectors);
     m_timer->stop();
+    LPINFO("removed nzr: " << nzr - m_model->getMatrix().nonZeros());
 }
