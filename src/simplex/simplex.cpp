@@ -621,7 +621,7 @@ const Vector Simplex::getPrimalSolution() const {
             int index = currentSubstituteVector->at(currentSubstituteVector->length()-2);
             int substituteType = currentSubstituteVector->at(currentSubstituteVector->length()-1);
             switch(substituteType) {
-            case Presolver::PRIMAL_VARIABLE:
+            case Presolver::FIXED_VARIABLE:
                 structuralSolution.insertElement(index, structuralSolution.dotProduct(*currentSubstituteVector));
                 totalVariableCount++;
                 break;

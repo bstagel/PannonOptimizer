@@ -370,6 +370,13 @@ public:
      */
     void printStatistics();
 
+    /**
+     * Returns the number of successfully removed nonzero elements by this module.
+     *
+     * @return  The number of successfully removed nonzero elements by this module.
+     */
+    inline int getRemovedNonzerosCount() const { return m_removedNzr; }
+
 private:
 
     /**

@@ -33,6 +33,13 @@ SingletonRowsModule::~SingletonRowsModule() { }
 void SingletonRowsModule::executeMethod() {
     int eliminatedVariableCount;
     const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
+    for(unsigned i = 0; i < m_parent->getModel()->constraintCount();i++) {
+         m_parent->getRowNonzeros()->set(i, (*m_parent->getConstraints())[i].getVector()->nonZeros());
+    }
+    int rowCount = m_parent->getModel()->constraintCount();
+
+    std::vector<int> removedRows(rowCount, 0);
+    int removedCount = 0;
 
     //If no variable was eliminated from the model, no empty or singleton row is created,
     //otherwise we need to check the rows again
@@ -46,7 +53,7 @@ void SingletonRowsModule::executeMethod() {
         while(currentRow < lastRow) {
 
             //handle empty rows
-            if(*currentRow == 0) {
+            if(*currentRow == 0 && removedRows[currentRow.getIndex()] == 0) {
                 int index = currentRow.getIndex();
                 const Constraint& curConstraint = (*m_parent->getConstraints())[index];
 
@@ -57,14 +64,16 @@ void SingletonRowsModule::executeMethod() {
                 } else {
                     //remove constraint
                     m_removedConstraints++;
-                    m_parent->removeConstraint(index);
-                    lastRow = m_parent->getRowNonzeros()->end();
+                    removedCount++;
+                    removedRows[index] = 1;
+//                    m_parent->removeConstraint(index);
+//                    lastRow = m_parent->getRowNonzeros()->end();
                     continue;
                 }
             }
 
             //handle singleton rows
-            if(*currentRow == 1) {
+            if(*currentRow == 1 && removedRows[currentRow.getIndex()] == 0) {
                 int index = currentRow.getIndex();
                 const Constraint& curConstraint = (*m_parent->getConstraints())[index];
 
@@ -113,8 +122,10 @@ void SingletonRowsModule::executeMethod() {
                     }
                     //remove constraint, fix variable and break
                     m_removedConstraints++;
-                    m_parent->removeConstraint(index);
-                    lastRow = m_parent->getRowNonzeros()->end();
+                    removedCount++;
+                    removedRows[index] = 1;
+//                    m_parent->removeConstraint(index);
+//                    lastRow = m_parent->getRowNonzeros()->end();
 
                     m_parent->fixVariable(varIdx, fixVal);
                     eliminatedVariableCount++;
@@ -144,15 +155,20 @@ void SingletonRowsModule::executeMethod() {
 
                     //remove constraint
                     m_removedConstraints++;
-                    m_parent->removeConstraint(index);
+                    removedCount++;
+                    removedRows[index] = 1;
+//                    m_parent->removeConstraint(index);
                     m_parent->getColumnNonzeros()->set(varIdx, m_parent->getColumnNonzeros()->at(varIdx) - 1);
-                    lastRow = m_parent->getRowNonzeros()->end();
+//                    lastRow = m_parent->getRowNonzeros()->end();
                     continue;
                 }
             }
             ++currentRow;
         }
     } while (eliminatedVariableCount);
+
+    m_parent->removeConstraints(removedRows, removedCount);
+
 }
 
 SingletonColumnsModule::SingletonColumnsModule(Presolver *parent) :
@@ -165,6 +181,10 @@ SingletonColumnsModule::~SingletonColumnsModule() { }
 
 void SingletonColumnsModule::executeMethod() {
     int eliminatedConstraintCount;
+
+    for(unsigned i = 0; i < m_parent->getModel()->variableCount();i++) {
+         m_parent->getColumnNonzeros()->set(i, (*m_parent->getVariables())[i].getVector()->nonZeros());
+    }
 
     //If no constraint was eliminated from the model, no empty or singleton row is created,
     //otherwise we need to check the rows again
@@ -181,7 +201,6 @@ void SingletonColumnsModule::executeMethod() {
             const Variable& curVariable = (*m_parent->getVariables())[index];
             const Numerical::Double& varLowerBound = curVariable.getLowerBound();
             const Numerical::Double& varUpperBound = curVariable.getUpperBound();
-
             //handle fixed variables
             if(varLowerBound - varUpperBound >= 0) {
                 m_parent->fixVariable(index, varLowerBound);
@@ -238,7 +257,6 @@ void SingletonColumnsModule::executeMethod() {
                 const Constraint& curConstraint = (*m_parent->getConstraints())[constraintIdx];
                 const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
                 const Numerical::Double& rowUpperBound = curConstraint.getUpperBound();
-
                 //this module only treats free variables, implied free variables are checked in the implied
                 //variable bounds module
                 //!int fixSign;
@@ -260,10 +278,22 @@ void SingletonColumnsModule::executeMethod() {
                     if(*it > 0) {
 
                         //get the constraint bound to fix the variable
-                        if(costCoeff > 0) {
-                            fixBound = rowLowerBound;
+                        if(costCoeff == 0) {
+                            if(rowLowerBound == -Numerical::Infinity) {
+                                if(rowUpperBound == Numerical::Infinity) {
+                                    fixBound = 0;
+                                } else {
+                                    fixBound = rowUpperBound;
+                                }
+                            } else {
+                                fixBound = rowLowerBound;
+                            }
                         } else {
-                            fixBound = rowUpperBound;
+                            if(costCoeff > 0) {
+                                fixBound = rowLowerBound;
+                            } else {
+                                fixBound = rowUpperBound;
+                            }
                         }
 
                         //detect unboundedness
@@ -274,10 +304,22 @@ void SingletonColumnsModule::executeMethod() {
                     } else {
 
                         //get the constraint bound to fix the variable
-                        if(costCoeff > 0) {
-                            fixBound = rowUpperBound;
+                        if(costCoeff == 0) {
+                            if(rowLowerBound == -Numerical::Infinity) {
+                                if(rowUpperBound == Numerical::Infinity) {
+                                    fixBound = 0;
+                                } else {
+                                    fixBound = rowUpperBound;
+                                }
+                            } else {
+                                fixBound = rowLowerBound;
+                            }
                         } else {
-                            fixBound = rowLowerBound;
+                            if(costCoeff > 0) {
+                                fixBound = rowUpperBound;
+                            } else {
+                                fixBound = rowLowerBound;
+                            }
                         }
 
                         //detect unboundedness
@@ -303,12 +345,15 @@ void SingletonColumnsModule::executeMethod() {
                     substituteVector->set(index, 0);
                     substituteVector->set(varCount, fixBound / (*it));
                     substituteVector->set(varCount + 1, index);
-                    substituteVector->set(varCount + 2, Presolver::PRIMAL_VARIABLE);
+                    substituteVector->set(varCount + 2, Presolver::FIXED_VARIABLE);
                     m_parent->getSubstituteVectors()->push_back(substituteVector);
 
                     m_removedConstraints++;
                     eliminatedConstraintCount++;
-                    m_parent->removeConstraint(constraintIdx);
+
+                    std::vector<int> removeIndices(m_parent->getModel()->constraintCount(), 0);
+                    removeIndices[constraintIdx] = 1;
+                    m_parent->removeConstraints(removeIndices, 1);
 
                     m_removedVariables++;
                     m_parent->getModel()->removeVariable(index);
@@ -332,8 +377,6 @@ ImpliedBoundsModule::ImpliedBoundsModule(Presolver *parent)
     m_removedVariables = 0;
     m_parent = parent;
     m_name = "Implied bounds module";
-    m_impliedLower = m_parent->getImpliedLower();
-    m_impliedUpper = m_parent->getImpliedUpper();
 }
 
 ImpliedBoundsModule::~ImpliedBoundsModule() { }
@@ -341,11 +384,15 @@ ImpliedBoundsModule::~ImpliedBoundsModule() { }
 
 //TODO: Az constraintek ellenorzesi modszerenek ujrairasa gyorsabbra
 void ImpliedBoundsModule::executeMethod() {
-
     const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
+    m_impliedLower = m_parent->getImpliedLower();
+    m_impliedUpper = m_parent->getImpliedUpper();
 
-    //Initialize the stacks according to the current state of the model
+    //Initializing
     int rowCount = m_parent->getModel()->constraintCount();
+    std::vector<int> removedRows(rowCount, 0);
+    int removedCount = 0;
+
     m_constraintsToCheck = new Vector(rowCount);
     m_constraintsToCheck->setSparsityRatio(0);
     m_constraintStack = new Vector(rowCount);
@@ -380,7 +427,6 @@ void ImpliedBoundsModule::executeMethod() {
         const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
         const Numerical::Double& rowUpperBound = curConstraint.getUpperBound();
 
-
         Numerical::Summarizer impliedLBSummarizer;
         Numerical::Summarizer impliedUBSummarizer;
         Vector::NonzeroIterator it = curConstraint.getVector()->beginNonzero();
@@ -396,6 +442,7 @@ void ImpliedBoundsModule::executeMethod() {
         lowers[1] = m_impliedUpper;
         uppers[0] = m_impliedUpper;
         uppers[1] = m_impliedLower;
+
         //Calculate implied constraint bounds
         for(; it < itEnd; ++it) {
             int curVar = it.getIndex();
@@ -448,9 +495,17 @@ void ImpliedBoundsModule::executeMethod() {
                     ++it;
                 }
             }
-            m_parent->removeConstraint(index);
-            m_constraintsToCheck->removeElement(index);
-            m_constraintStack->removeElement(index);
+            removedRows[index] = 1;
+            for(auto it = curConstraint.getVector()->beginNonzero(), itEnd = curConstraint.getVector()->endNonzero(); it != itEnd; ++it) {
+                m_parent->getColumnNonzeros()->set(it.getIndex(), m_parent->getColumnNonzeros()->at(it.getIndex()) - 1);
+            }
+            m_constraintStack->set(index, 0);
+            removedCount++;
+            ++begin;
+            m_constraintsToCheck->set(index, 0);
+//            m_parent->removeConstraint(index);
+//            m_constraintsToCheck->removeElement(index);
+//            m_constraintStack->removeElement(index);
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
             m_removedConstraints++;
@@ -468,7 +523,10 @@ void ImpliedBoundsModule::executeMethod() {
                 itV = curVariable.getVector()->beginNonzero();
                 itVEnd = curVariable.getVector()->endNonzero();
                 for(; itV < itVEnd; ++itV) {
-                    m_constraintStack->set(itV.getIndex(), 1);
+                    if(removedRows[itV.getIndex()] == 0)
+                    {
+                        m_constraintStack->set(itV.getIndex(), 1);
+                    }
                 }
                 if(*it > 0) {
                     m_parent->fixVariable(varIdx, m_impliedLower->at(varIdx));
@@ -479,9 +537,14 @@ void ImpliedBoundsModule::executeMethod() {
                 m_removedVariables++;
                 if(*it == 0.0) { ++it; }
             }
-            m_parent->removeConstraint(index);
-            m_constraintsToCheck->removeElement(index);
-            m_constraintStack->removeElement(index);
+            removedRows[index] = 1;
+            m_constraintStack->set(index, 0);
+            removedCount++;
+            ++begin;
+            m_constraintsToCheck->set(index, 0);
+//            m_parent->removeConstraint(index);
+//            m_constraintsToCheck->removeElement(index);
+//            m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
@@ -495,7 +558,10 @@ void ImpliedBoundsModule::executeMethod() {
                 itV = curVariable.getVector()->beginNonzero();
                 itVEnd = curVariable.getVector()->endNonzero();
                 for(; itV < itVEnd; ++itV) {
-                    m_constraintStack->set(itV.getIndex(), 1);
+                    if(removedRows[itV.getIndex()] == 0)
+                    {
+                        m_constraintStack->set(itV.getIndex(), 1);
+                    }
                 }
                 if(*it > 0) {
                     m_parent->fixVariable(varIdx, m_impliedUpper->at(varIdx));
@@ -506,9 +572,14 @@ void ImpliedBoundsModule::executeMethod() {
                 m_removedVariables++;
                 if(*it == 0.0) { ++it; }
             }
-            m_parent->removeConstraint(index);
-            m_constraintsToCheck->removeElement(index);
-            m_constraintStack->removeElement(index);
+            removedRows[index] = 1;
+            m_constraintStack->set(index, 0);
+            removedCount++;
+            ++begin;
+            m_constraintsToCheck->set(index, 0);
+//            m_parent->removeConstraint(index);
+//            m_constraintsToCheck->removeElement(index);
+//            m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
@@ -540,7 +611,10 @@ void ImpliedBoundsModule::executeMethod() {
                         itV = curVariable.getVector()->beginNonzero();
                         itVEnd = curVariable.getVector()->endNonzero();
                         for(; itV < itVEnd; ++itV) {
-                            m_constraintStack->set(itV.getIndex(), 1);
+                            if(removedRows[itV.getIndex()] == 0)
+                            {
+                                m_constraintStack->set(itV.getIndex(), 1);
+                            }
                         }
                     }
 
@@ -551,7 +625,10 @@ void ImpliedBoundsModule::executeMethod() {
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
-                           m_constraintStack->set(itV.getIndex(), 1);
+                           if(removedRows[itV.getIndex()] == 0)
+                           {
+                               m_constraintStack->set(itV.getIndex(), 1);
+                           }
                        }
                     }
                 }
@@ -571,7 +648,10 @@ void ImpliedBoundsModule::executeMethod() {
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
-                           m_constraintStack->set(itV.getIndex(), 1);
+                           if(removedRows[itV.getIndex()] == 0)
+                           {
+                               m_constraintStack->set(itV.getIndex(), 1);
+                           }
                        }
                     }
                 } else {
@@ -581,7 +661,10 @@ void ImpliedBoundsModule::executeMethod() {
                        itV = curVariable.getVector()->beginNonzero();
                        itVEnd = curVariable.getVector()->endNonzero();
                        for(; itV < itVEnd; ++itV) {
-                           m_constraintStack->set(itV.getIndex(), 1);
+                           if(removedRows[itV.getIndex()] == 0)
+                           {
+                               m_constraintStack->set(itV.getIndex(), 1);
+                           }
                        }
                     }
                 }
@@ -592,22 +675,23 @@ void ImpliedBoundsModule::executeMethod() {
         m_constraintsToCheck->set(index, 0);
         ++begin;
     }
+    m_parent->removeConstraints(removedRows, removedCount);
+
 }
 
 DualBoundsModule::DualBoundsModule(Presolver *parent) :
     PresolverModule(parent)
 {
     m_name = "Dual bounds module";
-    m_impliedDualLower = m_parent->getImpliedDualLower();
-    m_impliedDualUpper = m_parent->getImpliedDualUpper();
-    m_extraDualLowerSum = m_parent->getExtraDualLowerSum();
-    m_extraDualUpperSum = m_parent->getExtraDualUpperSum();
 }
 
 DualBoundsModule::~DualBoundsModule() { }
 
 void DualBoundsModule::executeMethod() {
-
+    m_impliedDualLower = m_parent->getImpliedDualLower();
+    m_impliedDualUpper = m_parent->getImpliedDualUpper();
+    m_extraDualLowerSum = m_parent->getExtraDualLowerSum();
+    m_extraDualUpperSum = m_parent->getExtraDualUpperSum();
     int columnCount = m_parent->getModel()->variableCount();
     m_variablesToCheck = new Vector(columnCount);
     m_variablesToCheck->setSparsityRatio(0);
@@ -649,7 +733,6 @@ void DualBoundsModule::executeMethod() {
         Vector::NonzeroIterator itEnd = curVariable.getVector()->endNonzero();
         Vector::NonzeroIterator itC = it;
         Vector::NonzeroIterator itCEnd = itEnd;
-
         //Calculating the implied dual constraint bounds
         for(; it < itEnd; ++it) {
             int curRow = it.getIndex();
@@ -678,7 +761,6 @@ void DualBoundsModule::executeMethod() {
                 throw Presolver::PresolverException("The problem is dual infeasible.");
                 return;
             }
-
             //Check if variable is dominated
             if(costVector.at(index) > impliedUB) {
                 if(varLowerBound == -Numerical::Infinity) {
@@ -796,18 +878,17 @@ LinearAlgebraicModule::LinearAlgebraicModule(Presolver *parent) :
 LinearAlgebraicModule::~LinearAlgebraicModule() { }
 
 void LinearAlgebraicModule::executeMethod() {
-
     int rowCount = m_parent->getModel()->constraintCount();
     int columnCount = m_parent->getModel()->variableCount();
+    int removeCount = 0;
 
     //Index list to distuinguish rows with the same hashes
     IndexList<> hashedRows(rowCount, rowCount);
 
     std::vector<int> usedPartitions(rowCount,0);
     std::vector<int> indices(rowCount,0);
-
     for(int i = 0; i < rowCount; i++) {
-        int vhash = 0;
+        unsigned int vhash = 0;
         const Vector* curRowVector = (*m_parent->getConstraints())[i].getVector();
 
         if(curRowVector->nonZeros() < 1) continue;
@@ -823,7 +904,6 @@ void LinearAlgebraicModule::executeMethod() {
         ++(usedPartitions[partition]);
         hashedRows.insert(partition, i);
     }
-
     //Eliminating duplicate rows
 
     for(auto begin = usedPartitions.begin(),
@@ -883,6 +963,10 @@ void LinearAlgebraicModule::executeMethod() {
 
                     ++itSecond;
                     indices[duplIdx] = 1;
+                    removeCount++;
+                    for(auto it = duplicate.getVector()->beginNonzero(), itEnd = duplicate.getVector()->endNonzero(); it != itEnd; ++it) {
+                        m_parent->getColumnNonzeros()->set(it.getIndex(), m_parent->getColumnNonzeros()->at(it.getIndex()) - 1);
+                    }
                     hashedRows.remove(duplIdx);
                 } else {
                     ++itSecond;
@@ -892,26 +976,33 @@ void LinearAlgebraicModule::executeMethod() {
         }
     }
 
-
     //The elimination of constraints needs to start at the row with the highest index
     //Reverse iterators are used to resolve index conflicts
 
-    for(int i=indices.size()-1 ; i>0; --i) {
-        if(indices[i] == 0){
-            continue;
-        }
-        m_removedConstraints++;
-        m_parent->removeConstraint(i);
-    }
+    m_parent->removeConstraints(indices, removeCount);
+    m_removedConstraints += removeCount;
+
+//    for(int i=indices.size()-1 ; i>0; --i) {
+//        if(indices[i] == 0){
+//            continue;
+//        }
+//        m_removedConstraints++;
+//        m_parent->removeConstraint(i);
+//    }
 
     rowCount = m_parent->getModel()->constraintCount();
-
+    removeCount = 0;
 
     //Index list to distuinguish columns with the same hashes
     IndexList<> hashedColumns(columnCount, columnCount);
 
     usedPartitions.resize(columnCount,0);
-    indices.resize(columnCount,0);
+//    indices.resize(columnCount);
+
+//    for(int i = 0; i < columnCount; i++) {
+//        indices[i] = 0;
+//    }
+    std::vector<Numerical::Double> vIndices(columnCount, 0.0);
 
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
@@ -964,11 +1055,11 @@ void LinearAlgebraicModule::executeMethod() {
 
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
-                        duplicateLower = duplicate.getLowerBound() * lambda;
-                        duplicateUpper = duplicate.getUpperBound() * lambda;
+                        duplicateLower = duplicate.getLowerBound() * (1/lambda);
+                        duplicateUpper = duplicate.getUpperBound() * (1/lambda);
                     } else {
-                        duplicateUpper = duplicate.getLowerBound() * lambda;
-                        duplicateLower = duplicate.getUpperBound() * lambda;
+                        duplicateUpper = duplicate.getLowerBound() * (1/lambda);
+                        duplicateLower = duplicate.getUpperBound() * (1/lambda);
                     }
 
                     //Checking feasibility
@@ -986,7 +1077,11 @@ void LinearAlgebraicModule::executeMethod() {
                     m_parent->getImpliedUpper()->set(origIdx, duplicateUpper + original.getUpperBound());
 
                     ++itSecond;
-                    indices[duplIdx] = 1;
+                    vIndices[duplIdx] = Numerical::Infinity;
+                    removeCount++;
+                    for(auto it = duplicate.getVector()->beginNonzero(), itEnd = duplicate.getVector()->endNonzero(); it != itEnd; ++it) {
+                        m_parent->getRowNonzeros()->set(it.getIndex(), m_parent->getRowNonzeros()->at(it.getIndex()) - 1);
+                    }
                     hashedColumns.remove(duplIdx);
                 } else {
                     ++itSecond;
@@ -999,26 +1094,27 @@ void LinearAlgebraicModule::executeMethod() {
     //The elimination of variables needs to start at the row with the highest index
     //A special type of substitute vector is created to be able to regain correct values for the original variables
 
-    for(int i=indices.size()-1 ; i>0; --i) {
-        if(indices[i] == 0){
-            continue;
-        }
+    m_parent->fixVariables(vIndices, removeCount);
 
-        Vector * substituteVector = new Vector(columnCount + 3);
-//        substituteVector->set(columnCount - 1, m_parent->getModel()->getCostVector().at(i) / m_parent->getModel()->getCostVector().at((*begin) - 1));
-//        substituteVector->set(columnCount, *begin);
-        substituteVector->set(columnCount + 1, i);
-        substituteVector->set(columnCount + 2, Presolver::DUPLICATE_VARIABLE);
-        m_parent->getSubstituteVectors()->push_back(substituteVector);
+//    for(int i=vIndices.size()-1 ; i>0; --i) {
+//        if(vIndices[i] == 0.0){
+//            continue;
+//        }
+//        Vector * substituteVector = new Vector(columnCount + 3);
+////        substituteVector->set(columnCount - 1, m_parent->getModel()->getCostVector().at(i) / m_parent->getModel()->getCostVector().at((*begin) - 1));
+////        substituteVector->set(columnCount, *begin);
+//        substituteVector->set(columnCount + 1, i);
+//        substituteVector->set(columnCount + 2, Presolver::DUPLICATE_VARIABLE);
+//        m_parent->getSubstituteVectors()->push_back(substituteVector);
+//        m_removedVariables++;
+//        m_parent->getModel()->removeVariable(i);
+//        m_parent->getColumnNonzeros()->removeElement(i);
+//        m_parent->getImpliedLower()->removeElement(i);
+//        m_parent->getImpliedUpper()->removeElement(i);
+//        m_parent->getExtraDualLowerSum()->removeElement(i);
+//        m_parent->getExtraDualUpperSum()->removeElement(i);
+//    }
 
-        m_removedVariables++;
-        m_parent->getModel()->removeVariable(i);
-        m_parent->getColumnNonzeros()->removeElement(i);
-        m_parent->getImpliedLower()->removeElement(i);
-        m_parent->getImpliedUpper()->removeElement(i);
-        m_parent->getExtraDualLowerSum()->removeElement(i);
-        m_parent->getExtraDualUpperSum()->removeElement(i);
-    }
 }
 
 MakeSparserModule::MakeSparserModule(Presolver *parent) :
@@ -1095,8 +1191,10 @@ void MakeSparserModule::executeMethod() {
                             newUpperBound = curRow.getUpperBound() - lambda * pivotRow.getLowerBound();
                         }
                         curRow.setBounds(newLowerBound, newUpperBound);
-                        if(nonzeros - (int)curRow.getVector()->nonZeros() < 0) LPERROR("Make sparser module error: vector substraction created extra " << -(nonzeros - (int)curRow.getVector()->nonZeros()) << " nonzeros");
-                        m_removedNzr += nonzeros - (int)curRow.getVector()->nonZeros();
+                        if(nonzeros - (int)curRow.getVector()->nonZeros() < 0) LPERROR("Make sparser module error: vector substraction created extra " << (nonzeros - (int)curRow.getVector()->nonZeros()) << " nonzeros");
+                        int curNzrDiff = nonzeros - (int)curRow.getVector()->nonZeros();
+                        m_parent->getRowNonzeros()->set(secondIndex, m_parent->getRowNonzeros()->at(secondIndex) - curNzrDiff);
+                        m_removedNzr += curNzrDiff;
                     } else {
                         pivotIt = pivotRow.getVector()->beginNonzero();
                     }

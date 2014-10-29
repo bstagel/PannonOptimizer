@@ -8,6 +8,7 @@
 #define PRESOLVER_H
 
 class PresolverModule;
+class MakeSparserModule;
 #include <lp/model.h>
 #include <lp/presolvermodule.h>
 #include <utils/indexlist.h>
@@ -50,9 +51,11 @@ public:
      */
     enum SUBSTITUTED_VARIABLE_FLAG
     {
-        PRIMAL_VARIABLE = 0,
+        FIXED_VARIABLE = 0,
+        COMBINED_VARIABLE,
         DUPLICATE_VARIABLE,
         PRIMAL_CONSTRAINT,
+        EMPTY_VECTOR,
         SUBSTITUTED_VARIABLE_FLAG_ENUM_LENGTH
     };
 
@@ -270,11 +273,29 @@ public:
     void fixVariable(int index, Numerical::Double value);
 
     /**
+     * Sets the specified variables in the model to their given values, then removes them
+     * from the model.
+     *
+     * @param fixValues Vector with nonzero values at indices to be fixed. When a variable is to be fixed
+     * to 0, the corresponding nonzero value is infinity.
+     * @param removeCount The number of indices to be removed. The vector will be checked if this parameter is -1.
+     */
+    void fixVariables(const std::vector<Numerical::Double> &fixValues, int removeCount = -1, SUBSTITUTED_VARIABLE_FLAG fixMode = FIXED_VARIABLE);
+
+    /**
      * Removes a specified constraint from the model.
      *
      * @param index The index of the constraint to be removed.
      */
     void removeConstraint(int index);
+
+    /**
+     * Removes the specified constraints from the model.
+     *
+     * @param removeIndices Vector with nonzero values at indices to be removed.
+     * @param removeCount The number of indices to be removed. The vector will be checked if this parameter is -1.
+     */
+    void removeConstraints(const std::vector<int> &removeIndices, int removeCount = -1);
 
     /**
      * Executes the currently queued modules on the model.
@@ -331,7 +352,10 @@ private:
      */
     std::vector<PresolverModule*> m_modules;
 
-    PresolverModule * m_makeSparserModule;
+    /**
+     * Pointer to the special module making the matrix of the model sparser.
+     */
+    MakeSparserModule * m_makeSparserModule;
 
     /**
      * Pointer to the vector of substitution vectors of the model.
