@@ -21,7 +21,7 @@
 #include <utils/primitives.h>
 
 int ELBOWROOM = 0;
-double SPARSITY_RATIO = 0;
+Numerical::Double SPARSITY_RATIO = 0;
 thread_local Numerical::Double * Vector::sm_fullLengthVector = nullptr;
 thread_local unsigned int Vector::sm_fullLengthVectorLength = 0;
 thread_local unsigned int Vector::sm_fullLenghtReferenceCounter = 0;
@@ -56,7 +56,7 @@ Vector::Vector(void *, void *, void *)
     m_dimension = 0;
     m_sorted = true;
     m_sparsityRatio = SPARSITY_RATIO;
-    m_sparsityThreshold = (unsigned int) Numerical::round((Numerical::Double)m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round((Numerical::Double)m_dimension * m_sparsityRatio);
 }
 
 Vector::Vector(const Vector & original)
@@ -163,31 +163,50 @@ void Vector::reInit(unsigned int dimension)
 Numerical::Double * Vector::allocateData(unsigned int capacity)
 {
     if (capacity == 0) {
-        return 0;
+        return nullptr;
     }
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     return alloc<Numerical::Double, 32>(capacity);
+#else
+    Numerical::Double * result = new Numerical::Double(capacity);
+    LPINFO("result: " << result);
+    return result;
+#endif
     //return new Numerical::Double[capacity];
 }
 
 unsigned int * Vector::allocateIndex(unsigned int capacity)
 {
     if (capacity == 0) {
-        return 0;
+        return nullptr;
     }
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     return alloc<unsigned int, 32>(capacity);
+#else
+    return new unsigned int(capacity);
+#endif
     //return new unsigned int[capacity];
 }
 
 void Vector::freeData(Numerical::Double * & data)
 {
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     release(data);
-    data = 0;
+#else
+    LPINFO("data pointer: " << data);
+    delete [] data;
+#endif
+    data = nullptr;
 }
 
 void Vector::freeIndex(unsigned int * & index)
 {
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     release(index);
-    index = 0;
+#else
+    delete [] index;
+#endif
+    index = nullptr;
 }
 
 void Vector::init(unsigned int dimension)
@@ -212,7 +231,7 @@ void Vector::init(unsigned int dimension)
 
     m_dimension = dimension;
     m_sorted = true;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (m_sparsityThreshold == 0) {
         m_vectorType = DENSE_VECTOR;
         m_sorted = true;
@@ -369,7 +388,7 @@ void Vector::resize(unsigned int length)
         }
     }
     m_dimension = length;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (m_vectorType == DENSE_VECTOR) {
         if (m_nonZeros < m_sparsityThreshold) {
             denseToSparse();
@@ -1275,7 +1294,7 @@ void Vector::removeElement(unsigned int index)
         // minden ennel nagyobb indexet csokkenteni kell
     }
     m_dimension--;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (minus) {
         m_nonZeros--;
     }
@@ -1342,7 +1361,7 @@ void Vector::insertElement(unsigned int index, Numerical::Double value)
         m_dimension++;
     }
 
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (m_nonZeros >= m_sparsityThreshold && m_vectorType == SPARSE_VECTOR) {
         sparseToDense();
     } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
@@ -1380,7 +1399,7 @@ void Vector::append(Numerical::Double value)
         m_dimension++;
     }
 
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (m_nonZeros >= m_sparsityThreshold && m_vectorType == SPARSE_VECTOR) {
         sparseToDense();
     } else if (m_nonZeros < m_sparsityThreshold && m_vectorType == DENSE_VECTOR) {
@@ -1637,7 +1656,7 @@ void Vector::resizeDense(unsigned int size, unsigned int elbowroom)
     }
     m_size = size;
     m_dimension = size;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
 }
 
 void Vector::resizeSparse(unsigned int capacity)
@@ -1667,7 +1686,7 @@ void Vector::resizeSparse(unsigned int capacity)
     m_dataEnd = m_data + m_size;
     m_capacity = capacity;
 
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
 }
 
 Numerical::Double * Vector::getElementSparseLinear(unsigned int index) const
@@ -1916,7 +1935,7 @@ void Vector::sparseToDense()
 void Vector::setSparsityRatio(Numerical::Double ratio)
 {
     m_sparsityRatio = ratio;
-    m_sparsityThreshold = (unsigned int) Numerical::round(m_dimension * m_sparsityRatio);
+    m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
     if (m_vectorType == DENSE_VECTOR && m_nonZeros < m_sparsityThreshold) {
         denseToSparse();
     } else if (m_vectorType == SPARSE_VECTOR && m_nonZeros >= m_sparsityThreshold) {

@@ -1040,6 +1040,18 @@ void SparseVectorTestSuite::moveAssign()
     TEST_ASSERT(v7_c.m_data[0] == 4.2);
     TEST_ASSERT(v7_c.m_indices[0] == 0);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 20);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseAbs);
+
     SparseVector v8(10);
     v8.set(4, 1.2);
     v8.set(1, 5.6);
@@ -1066,6 +1078,18 @@ void SparseVectorTestSuite::moveAssign()
     TEST_ASSERT(v8_c.m_indices[1] == 1);
     TEST_ASSERT(v8_c.m_data[2] == 1.4);
     TEST_ASSERT(v8_c.m_indices[2] == 9);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 20);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseAbs);
 
     SparseVector v9(3);
     v9.set(1, 1.2);
@@ -1094,6 +1118,18 @@ void SparseVectorTestSuite::moveAssign()
     TEST_ASSERT(v9_c.m_data[2] == 1.4);
     TEST_ASSERT(v9_c.m_indices[2] == 2);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 20);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseAbs );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseAbs);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseAbs);
+
     SparseVector::_globalRelease();
 }
 
@@ -1112,6 +1148,18 @@ void SparseVectorTestSuite::createUnitVector()
     TEST_ASSERT(v1.m_data[0] == 1);
     TEST_ASSERT(v1.m_indices[0] == 0);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 1);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
     SparseVector v2 = SparseVector::createUnitVector(2, 0);
     TEST_ASSERT(v2.m_length == 2);
     TEST_ASSERT(v2.m_nonZeros == 1);
@@ -1121,6 +1169,18 @@ void SparseVectorTestSuite::createUnitVector()
 
     TEST_ASSERT(v2.m_data[0] == 1);
     TEST_ASSERT(v2.m_indices[0] == 0);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 2);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
 
     SparseVector v3 = SparseVector::createUnitVector(2, 1);
     TEST_ASSERT(v3.m_length == 2);
@@ -1132,6 +1192,18 @@ void SparseVectorTestSuite::createUnitVector()
     TEST_ASSERT(v3.m_data[0] == 1);
     TEST_ASSERT(v3.m_indices[0] == 1);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 2);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
     SparseVector v4 = SparseVector::createUnitVector(10, 0);
     TEST_ASSERT(v4.m_length == 10);
     TEST_ASSERT(v4.m_nonZeros == 1);
@@ -1141,6 +1213,18 @@ void SparseVectorTestSuite::createUnitVector()
 
     TEST_ASSERT(v4.m_data[0] == 1);
     TEST_ASSERT(v4.m_indices[0] == 0);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 10);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
 
     SparseVector v5 = SparseVector::createUnitVector(10, 4);
     TEST_ASSERT(v5.m_length == 10);
@@ -1152,6 +1236,18 @@ void SparseVectorTestSuite::createUnitVector()
     TEST_ASSERT(v5.m_data[0] == 1);
     TEST_ASSERT(v5.m_indices[0] == 4);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 10);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
     SparseVector v6 = SparseVector::createUnitVector(10, 9);
     TEST_ASSERT(v6.m_length == 10);
     TEST_ASSERT(v6.m_nonZeros == 1);
@@ -1162,6 +1258,18 @@ void SparseVectorTestSuite::createUnitVector()
     TEST_ASSERT(v6.m_data[0] == 1);
     TEST_ASSERT(v6.m_indices[0] == 9);
 
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 10);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
     SparseVector::_globalRelease();
 }
 
@@ -1169,6 +1277,69 @@ void SparseVectorTestSuite::createVectorFromDenseArray()
 {
     SparseVector::_globalRelease();
     SparseVector::_globalInit();
+
+    const Numerical::Double dense1[] = {3, 4, 1, 0, 5, 6, 0, 9};
+
+    SparseVector v1 = SparseVector::createVectorFromDenseArray(
+                dense1,
+                STATIC_ARRAY_SIZE(dense1));
+    TEST_ASSERT(v1.m_length == STATIC_ARRAY_SIZE(dense1));
+    TEST_ASSERT(v1.m_nonZeros == 6);
+    TEST_ASSERT(v1.m_data != nullptr);
+    TEST_ASSERT(v1.m_indices != nullptr);
+    TEST_ASSERT(v1.m_capacity >= 6);
+
+    TEST_ASSERT(v1.m_data[0] == 3);
+    TEST_ASSERT(v1.m_indices[0] == 0);
+    TEST_ASSERT(v1.m_data[1] == 4);
+    TEST_ASSERT(v1.m_indices[1] == 1);
+    TEST_ASSERT(v1.m_data[2] == 1);
+    TEST_ASSERT(v1.m_indices[2] == 2);
+    TEST_ASSERT(v1.m_data[3] == 5);
+    TEST_ASSERT(v1.m_indices[3] == 4);
+    TEST_ASSERT(v1.m_data[4] == 6);
+    TEST_ASSERT(v1.m_indices[4] == 5);
+    TEST_ASSERT(v1.m_data[5] == 9);
+    TEST_ASSERT(v1.m_indices[5] == 7);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == STATIC_ARRAY_SIZE(dense1));
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
+    SparseVector::_globalRelease();
+    SparseVector::_globalInit();
+
+    const Numerical::Double dense2[] = {0, 0, 0, 0, 0};
+
+    SparseVector v2 = SparseVector::createVectorFromDenseArray(
+                dense2,
+                STATIC_ARRAY_SIZE(dense2));
+    TEST_ASSERT(v2.m_length == STATIC_ARRAY_SIZE(dense2));
+    TEST_ASSERT(v2.m_nonZeros == 0);
+    TEST_ASSERT(v2.m_data == nullptr);
+    TEST_ASSERT(v2.m_indices == nullptr);
+    TEST_ASSERT(v2.m_capacity == 0);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == STATIC_ARRAY_SIZE(dense2));
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
 
     SparseVector::_globalRelease();
 }
@@ -1178,6 +1349,70 @@ void SparseVectorTestSuite::createVectorFromSparseArray()
     SparseVector::_globalRelease();
     SparseVector::_globalInit();
 
+    const Numerical::Double data1[] = {3, 4, 1, 5, 6, 9};
+    const unsigned int indices1[] =   {0, 1, 2, 4, 5, 7};
+
+    SparseVector v1 = SparseVector::createVectorFromSparseArray(data1,
+                                                                indices1,
+                                                                STATIC_ARRAY_SIZE(data1),
+                                                                10);
+
+    TEST_ASSERT(v1.m_length == 10);
+    TEST_ASSERT(v1.m_nonZeros == 6);
+    TEST_ASSERT(v1.m_data != nullptr);
+    TEST_ASSERT(v1.m_indices != nullptr);
+    TEST_ASSERT(v1.m_capacity >= 6);
+
+    TEST_ASSERT(v1.m_data[0] == 3);
+    TEST_ASSERT(v1.m_indices[0] == 0);
+    TEST_ASSERT(v1.m_data[1] == 4);
+    TEST_ASSERT(v1.m_indices[1] == 1);
+    TEST_ASSERT(v1.m_data[2] == 1);
+    TEST_ASSERT(v1.m_indices[2] == 2);
+    TEST_ASSERT(v1.m_data[3] == 5);
+    TEST_ASSERT(v1.m_indices[3] == 4);
+    TEST_ASSERT(v1.m_data[4] == 6);
+    TEST_ASSERT(v1.m_indices[4] == 5);
+    TEST_ASSERT(v1.m_data[5] == 9);
+    TEST_ASSERT(v1.m_indices[5] == 7);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 10);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
+    SparseVector::_globalRelease();
+    SparseVector::_globalInit();
+
+    SparseVector v2 = SparseVector::createVectorFromSparseArray(nullptr,
+                                                                nullptr,
+                                                                0,
+                                                                20);
+    TEST_ASSERT(v2.m_length == 20);
+    TEST_ASSERT(v2.m_nonZeros == 0);
+    TEST_ASSERT(v2.m_data == nullptr);
+    TEST_ASSERT(v2.m_indices == nullptr);
+    TEST_ASSERT(v2.m_capacity == 0);
+
+    TEST_ASSERT(SparseVector::sm_fullLengthVectorLength == 20);
+    TEST_ASSERT(SparseVector::sm_fullLengthVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexPointerVector != nullptr);
+    TEST_ASSERT(SparseVector::sm_indexVector != nullptr);
+
+    TEST_ASSERT(SparseVector::sm_sparseToDenseDotProduct == &SparseVector::dotProductSparseToDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToIndexedDenseDotProduct == &SparseVector::dotProductSparseToIndexedDenseUnstable );
+    TEST_ASSERT(SparseVector::sm_sparseToSparseDotProduct == &SparseVector::dotProductSparseToSparseUnstable);
+    TEST_ASSERT(SparseVector::sm_addDenseToSparse == &SparseVector::addDenseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addSparseToSparse == &SparseVector::addSparseToSparseFast);
+    TEST_ASSERT(SparseVector::sm_addIndexedDenseToSparse == &SparseVector::addIndexedDenseToSparseFast);
+
     SparseVector::_globalRelease();
 }
 
@@ -1185,6 +1420,22 @@ void SparseVectorTestSuite::createEtaByPivotValue()
 {
     SparseVector::_globalRelease();
     SparseVector::_globalInit();
+
+    const Numerical::Double data1[] = {1.4, 6.7, 0.1, 3.0, 0, -2.4};
+
+    SparseVector vec = SparseVector::createVectorFromDenseArray(data1, 6);
+
+    SparseVector * eta1 = SparseVector::createEtaByPivotValue(vec,
+                                                              4.0,
+                                                              3);
+    TEST_ASSERT(eta1->m_length == 6);
+    TEST_ASSERT(eta1->m_nonZeros == 5);
+    TEST_ASSERT(eta1->m_data != nullptr);
+    TEST_ASSERT(eta1->m_indices != nullptr);
+    TEST_ASSERT(eta1->m_capacity >= 5);
+
+    delete eta1;
+    eta1 = nullptr;
 
     SparseVector::_globalRelease();
 }

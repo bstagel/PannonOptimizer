@@ -225,7 +225,7 @@ public:
      */
     inline Numerical::Double getCostCoefficient(int index) { return m_model->getCostVector().at(index); }
 
-    inline const Numerical::Double & getFeasibilityTolerance() {return m_feasibilityTolerance;}
+    inline const double & getFeasibilityTolerance() {return m_feasibilityTolerance;}
 
     //setter functions of the presolver
 
@@ -430,7 +430,7 @@ private:
     /**
      * Parameter reference to the feasibility tolerance.
      */
-    const Numerical::Double & m_feasibilityTolerance;
+    const double & m_feasibilityTolerance;
 };
 
 #endif // PRESOLVER_H

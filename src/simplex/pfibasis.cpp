@@ -443,7 +443,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
     checkDenseVector = alloc<Numerical::Double, 16>( vector.length() );
     unsigned int index;
     for (index = 0; index < vector.length(); index++) {
-        double mul = ((rand() % 10000) / (double)1e15)*pow(1, index);
+        Numerical::Double mul = ((rand() % 10000) / (Numerical::Double)1e15)*pow(1, index);
         checkDenseVector[index] = mul;
 
     }
@@ -481,13 +481,13 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                     }
                     *ptrValue1 = val;
 
-                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
                     mul = 1.0;
                     val = Numerical::stableAddAbs(*checkValue, checkPivotValue * value * mul);
                     //cout << val << "   " << lostValueAdd(*checkValue, checkPivotValue * value) << endl;
-                    mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                    mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
                     //mul = 1.0;
-                    *checkValue = val + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);;
+                    *checkValue = val + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);;
                 }
                 ptrValue1++;
                 ptrValue2++;
@@ -503,7 +503,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
             }
             denseVector[iter->index] = val;
 
-            Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+            Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e11)*plusMinus;
             val = checkPivotValue * iter->eta->m_data[iter->index];
             checkDenseVector[iter->index] = val * mul;
 
@@ -520,7 +520,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                     Numerical::Double checkVal;
                     if (*ptrIndex != pivotPosition) {
                         val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-                        Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e12)*plusMinus;
+                        Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
                         mul = 1.0;
                         checkVal = Numerical::stableAddAbs(originalCheckValue, checkPivotValue * *ptrEta * mul);
                         if (originalValue == 0.0 && val != 0.0) {
@@ -536,7 +536,7 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
                     //                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
                     //                    mul = 1.0;
                     originalValue = val;
-                    originalCheckValue = checkVal + ((rand() % 10000) / (double)1e11)*pow(-1, plusMinus);
+                    originalCheckValue = checkVal + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);
 
                 }
                 ptrIndex++;

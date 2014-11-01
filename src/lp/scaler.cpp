@@ -208,7 +208,15 @@ Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
         double m_value;
         unsigned long long int m_bits;
     } temp;
+#if DOUBLE_TYPE == DOUBLE_GMP
+    temp.m_value = value;
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     temp.m_value = (double)value;
+#endif
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+    temp.m_value = (double)value;
+#endif
     temp.m_bits &= 0xFFF0000000000000ULL;
     Numerical::Double result1 = temp.m_value;
     temp.m_bits += 0x0010000000000000ULL;

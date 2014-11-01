@@ -13,7 +13,7 @@
  * Entries can be handled together, independently of their stored
  * variable type.
  */
-union Entry {
+struct Entry {
 
     /**
      * This type describes a variable type.

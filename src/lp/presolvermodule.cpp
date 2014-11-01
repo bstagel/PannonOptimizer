@@ -446,9 +446,15 @@ void ImpliedBoundsModule::executeMethod() {
         //Calculate implied constraint bounds
         for(; it < itEnd; ++it) {
             int curVar = it.getIndex();
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
             number.m_num = *it;
             impliedLBSummarizer.add( *it * lowers[number.m_bits >> 63]->at(curVar));
             impliedUBSummarizer.add( *it * uppers[number.m_bits >> 63]->at(curVar));
+#else
+            int sign = *it > 0.0 ? 1 : 0;
+            impliedLBSummarizer.add( *it * lowers[sign]->at(curVar));
+            impliedUBSummarizer.add( *it * uppers[sign]->at(curVar));
+#endif
         }
 
         impliedLB = impliedLBSummarizer.getResult();

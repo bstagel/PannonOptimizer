@@ -318,19 +318,19 @@ protected:
     /**
      * Master tolerance given in the parameter file.
      */
-    double m_masterTolerance; //Initialized in child classes
+    Numerical::Double m_masterTolerance; //Initialized in child classes
 
     /**
      * The tolerance multiplier is needed in the expand procedure.
      * Its value is given in the simplex parameter file.
      */
-    double m_toleranceMultiplier; //Initialized in child classes
+    Numerical::Double m_toleranceMultiplier; //Initialized in child classes
 
     /**
      * The tolerance divider is needed in the expand procedure.
      * Its value is given in the simplex parameter file.
      */
-    double m_toleranceDivider; //Initialized in child classes
+    Numerical::Double m_toleranceDivider; //Initialized in child classes
 
     /**
      * The tolerance step is the measure of the tolerance increment in every iteration in the expand procedure.

@@ -1,5 +1,5 @@
 #include <lp/mpsproblem.h>
-
+#include <utils/numerical.h>
 #include <iostream>
 #include <cstring>
 
@@ -1070,7 +1070,7 @@ void MpsModelBuilder::finishColumns() {
 
 }
 
-void MpsModelBuilder::readRhsOrRanges(double Row::*range) {
+void MpsModelBuilder::readRhsOrRanges(Numerical::Double Row::*range) {
     MpsName rhsName;
     MpsName currentRhsName;
     const RowIndex * rowIndexPtr1;

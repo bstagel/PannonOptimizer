@@ -6,21 +6,28 @@
 #ifndef _NUMERICAL_H_
 #define _NUMERICAL_H_
 
-#include <globals.h>
+//#include <globals.h>
 
 #include <cmath>
 #include <limits>
 #include <cstring>
 #include <iostream>
-#include <debug.h>
+#include <utils/platform.h>
+#include <utils/memoryman.h>
+//#include <debug.h>
 
 #define DOUBLE_CLASSIC 0
 #define DOUBLE_HISTORY 1
+#define DOUBLE_GMP     2
 
 #define DOUBLE_TYPE DOUBLE_CLASSIC
 
 #if DOUBLE_TYPE == DOUBLE_HISTORY
 #include <utils/doublehistory.h>
+#endif
+
+#if DOUBLE_TYPE == DOUBLE_GMP
+#include <utils/multiplefloat.h>
 #endif
 
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
@@ -35,7 +42,7 @@
     }
 #define CLEAR_DOUBLES(dest, count) {unsigned int _count = (count); \
     for(unsigned int i = 0; i < _count; i++) { \
-    dest[i] = 0.0;
+    dest[i] = 0.0; \
     } \
     }
 #endif
@@ -78,6 +85,10 @@ public:
 
 #if DOUBLE_TYPE == DOUBLE_HISTORY
     typedef DoubleHistory Double;
+#endif
+
+#if DOUBLE_TYPE == DOUBLE_GMP
+    typedef MultipleFloat Double;
 #endif
 
     /**
@@ -128,8 +139,16 @@ public:
          */
         ALWAYS_INLINE void add(const Double & v)
         {
+#if DOUBLE_TYPE != DOUBLE_CLASSIC
+            if (v > 0) {
+                m_negpos[1] += v;
+            } else {
+                m_negpos[0] += v;
+            }
+#else
             m_number.m_num = v;
             *(m_negpos + (m_number.m_bits >> 63)) += v;
+#endif
         }
 
         /**
@@ -172,7 +191,7 @@ public:
         /**
          * The sum of elements with the same magnitude separated.
          */
-        double * m_buckets;
+        Double * m_buckets;
 
         /**
          * The number of bits deciding the magnitude bucket of the number.
@@ -195,8 +214,8 @@ public:
         BucketSummarizer(int level) {
             m_shift = 11 - level;
             m_size = 1 << m_shift;
-            m_buckets = alloc<double, 32>(m_size);
-            memset(m_buckets, 0, sizeof(double) * m_size);
+            m_buckets = alloc<Double, 32>(m_size);
+            memset(m_buckets, 0, sizeof(Double) * m_size);
             m_shift = 53 + level;
         }
 
@@ -219,6 +238,7 @@ public:
             /**
              * This type allows the fast detection of double magnitude by bit operators.
              */
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
             union Bits {
                 double m_value;
                 unsigned long long int m_bits;
@@ -228,6 +248,9 @@ public:
             //const unsigned int index = ((*(unsigned long long int*)(&value)) ) >> (m_shift);
             const unsigned int index = bits.m_bits >> m_shift;
             m_buckets[ index ] += value;
+#else
+            m_buckets[ 0 ] += value;
+#endif
         }
 
         /**
@@ -237,11 +260,11 @@ public:
          * @param rel Set this true to use relative tolerance during the addition.
          * @return The result of the sum.
          */
-        ALWAYS_INLINE double getResult(bool abs = true, bool rel = true) {
-            double pos1 = 0;
-            double pos2 = 0;
-            double neg1 = 0;
-            double neg2 = 0;
+        ALWAYS_INLINE Double getResult(bool abs = true, bool rel = true) {
+            Double pos1 = 0;
+            Double pos2 = 0;
+            Double neg1 = 0;
+            Double neg2 = 0;
             unsigned int i;
 
             if (m_size == 2) {
@@ -285,7 +308,11 @@ public:
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
         return DoubleHistory::fabs(val);
-#else
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+        return MultipleFloat::abs(val);
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
         return ::fabs(val);
 #endif
     }
@@ -300,8 +327,31 @@ public:
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
         return DoubleHistory::sqrt(val);
-#else
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
         return ::sqrt(val);
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+        return MultipleFloat::sqrt(val);
+#endif
+    }
+
+    /**
+     * Returns the 10 based logarithm of the given number.
+     *
+     * @param val The given number.
+     * @return The logarithm of val.
+     */
+    ALWAYS_INLINE static Double log10(Double val)
+    {
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return DoubleHistory::log10(val);
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+        return ::log10(val);
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+        return MultipleFloat::log10(val);
 #endif
     }
 
@@ -315,8 +365,32 @@ public:
     {
 #if DOUBLE_TYPE == DOUBLE_HISTORY
         return DoubleHistory::round(val);
-#else
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+    return MultipleFloat::round(val);
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
         return ::round(val);
+#endif
+    }
+
+    /**
+     * Returns the power of x, where the exponent is y.
+     *
+     * @param x
+     * @param y
+     * @return The power of x.
+     */
+    ALWAYS_INLINE static Double pow(const Double & x, const Double & y)
+    {
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return DoubleHistory::pow(x, y);
+#endif
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+        return ::pow(x, y);
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+        return MultipleFloat::pow(x, y);
 #endif
     }
 
@@ -353,7 +427,7 @@ public:
     /**
      * Constant value limit representing infinity.
      */
-    static const Double Infinity;
+    static const double Infinity;
 
     //static const Double & AbsoluteTolerance;
     //static const Double & RelativeTolerance;
@@ -362,13 +436,13 @@ public:
      * This is a reference of numerical parameter "AbsoluteTolerance".
      * See LinalgParameterHandler for details.
      */
-    static Double AbsoluteTolerance;
+    static double AbsoluteTolerance;
 
     /**
      * This is a reference of numerical parameter "RelativeTolerance".
      * See LinalgParameterHandler for details.
      */
-    static Double RelativeTolerance;
+    static double RelativeTolerance;
 
     /**
      * Does fuzzy comparison for checking equality on two Double variables
@@ -387,7 +461,7 @@ public:
             return false;
         }
         //Equality is necessary here to handle the case if both of them are equal to zero!
-        return Numerical::fabs(a - b) <= (bound > AbsoluteTolerance ? bound : AbsoluteTolerance);
+        return Numerical::fabs(a - b) <= ((bound > AbsoluteTolerance) ? bound : (Numerical::Double)AbsoluteTolerance);
     }
 
     /**

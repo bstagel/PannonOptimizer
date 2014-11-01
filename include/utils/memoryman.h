@@ -9,7 +9,11 @@
 
 #define CLASSIC_NEW_DELETE
 
-template <unsigned n>
+constexpr unsigned int log2(unsigned int n) {
+    return n == 1 ? 0 : 1 + log2(n / 2);
+}
+
+/*template <unsigned n>
 struct Logarithm
 {
     enum { value = 1 + Logarithm<n / 2>::value };
@@ -19,7 +23,7 @@ template <>
 struct Logarithm<1>
 {
     enum { value = 0 };
-};
+};*/
 
 #ifndef CLASSIC_NEW_DELETE
 
@@ -279,6 +283,11 @@ union Pointer {
 
 template <class T, unsigned alignment>
 T * alloc(int size) {
+    int * tttt = nullptr;
+    *tttt = 4;
+    //return new T[size];
+
+
     size *= sizeof(T);
 #ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];
@@ -289,7 +298,7 @@ T * alloc(int size) {
 
     Pointer ptr;
     ptr.ptr = ptr2;
-    ptr.bits &= ~((1 << Logarithm<alignment>::value) - 1);
+    ptr.bits &= ~((1 << log2(alignment)) - 1);
     ptr2 = static_cast<char*>(ptr.ptr);
     ptr2 -= sizeof(void*);
     *((char**)ptr2) = originalPtr;

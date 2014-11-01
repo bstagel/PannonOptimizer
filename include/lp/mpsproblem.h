@@ -299,8 +299,8 @@ private:
 
     struct Row {
         MpsName m_name;
-        double m_rhs;
-        double m_range;
+        Numerical::Double m_rhs;
+        Numerical::Double m_range;
         unsigned int m_index;
         unsigned int m_line;
         char m_rowType;
@@ -462,7 +462,7 @@ private:
 
     void finishColumns();
 
-    void readRhsOrRanges( double Row::*range );
+    void readRhsOrRanges(Numerical::Double Row::*range );
 
     void readBounds();
 

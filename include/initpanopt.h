@@ -3,6 +3,8 @@
 
 #include <utils/architectureinterface.h>
 
+//class ArchitectureInterface;
+
 class InitPanOpt {
 public:
     static InitPanOpt & getInstance();

@@ -89,7 +89,8 @@ public:
     void addConstraint(const Constraint & constraint,
                        const Numerical::Double * values,
                        const unsigned int * indices,
-                       unsigned int nonzeros
+                       unsigned int nonzeros,
+                       Variable * defaultVariablePtr = nullptr
                        );
 
     /**

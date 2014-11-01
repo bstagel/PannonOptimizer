@@ -620,6 +620,7 @@ const Vector Simplex::getPrimalSolution() const {
             Vector* currentSubstituteVector = (*subsVectors)[i];
             int index = currentSubstituteVector->at(currentSubstituteVector->length()-2);
             int substituteType = currentSubstituteVector->at(currentSubstituteVector->length()-1);
+
             switch(substituteType) {
             case Presolver::FIXED_VARIABLE:
                 structuralSolution.insertElement(index, structuralSolution.dotProduct(*currentSubstituteVector));
@@ -840,13 +841,13 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
        //        log10(Numerical::fabs(lower)) << "  " << log10(Numerical::fabs(upper)));
 
         if (Numerical::fabs(lower) != Numerical::Infinity && lower != 0.0) {
-            sumMinLog += log10(Numerical::fabs(lower));
+            sumMinLog += Numerical::log10(Numerical::fabs(lower));
         }
         if (Numerical::fabs(upper) != Numerical::Infinity && upper != 0.0) {
-            sumMaxLog += log10(Numerical::fabs(upper));
+            sumMaxLog += Numerical::log10(Numerical::fabs(upper));
         }
         if (Numerical::fabs(upper - lower) != Numerical::Infinity && upper != lower) {
-            sumDiffLog += log10(Numerical::fabs(upper - lower));
+            sumDiffLog += Numerical::log10(Numerical::fabs(upper - lower));
         }
 
     }

@@ -2,6 +2,7 @@
 #define ARCHITECTUREINTERFACE_H
 
 #include <cstddef>
+#include <utils/numerical.h>
 
 class ArchitectureInterface {
 public:
@@ -49,9 +50,9 @@ public:
      *       - SSE2 or AVX
      *****************************************/
 
-    typedef double (*DenseToDenseDotProductUnstable)(const double * vec1,
-                                                     const double * vec2,
-                                                     size_t count);
+    typedef Numerical::Double (*DenseToDenseDotProductUnstable)(const Numerical::Double * vec1,
+                                                                const Numerical::Double * vec2,
+                                                                size_t count);
 
     /******************************************
      * Dot product dense to sparse, unstable:
@@ -60,10 +61,10 @@ public:
      *       - SSE2 or AVX
      *****************************************/
 
-    typedef double (*DenseToSparseDotProductUnstable)(const double * dense,
-                                                      const double * sparse,
-                                                      const unsigned int * indices,
-                                                      size_t count);
+    typedef Numerical::Double (*DenseToSparseDotProductUnstable)(const Numerical::Double * dense,
+                                                                 const Numerical::Double * sparse,
+                                                                 const unsigned int * indices,
+                                                                 size_t count);
 
     /******************************************
      * Dot product dense to dense, stable
@@ -72,10 +73,10 @@ public:
      *       - SSE2 or AVX
      *****************************************/
 
-    typedef double (*DenseToDenseDotProductStable)(const double * vec1,
-                                                   const double * vec2,
-                                                   size_t count,
-                                                   double * negPtr);
+    typedef Numerical::Double (*DenseToDenseDotProductStable)(const Numerical::Double * vec1,
+                                                              const Numerical::Double * vec2,
+                                                              size_t count,
+                                                              Numerical::Double * negPtr);
 
     /******************************************
      * Dot product dense to sparse, stable:
@@ -84,22 +85,22 @@ public:
      *       - SSE2 or AVX
      *****************************************/
 
-    typedef double (*DenseToSparseDotProductStable)(const double * dense,
-                                                    const double * sparse,
-                                                    const unsigned int * indices,
-                                                    size_t count,
-                                                    double * negPtr);
+    typedef Numerical::Double (*DenseToSparseDotProductStable)(const Numerical::Double * dense,
+                                                               const Numerical::Double * sparse,
+                                                               const unsigned int * indices,
+                                                               size_t count,
+                                                               Numerical::Double * negPtr);
 
-    typedef double (*IndexedDenseToIndexedDenseDotProductUnstable)(const double * dense1,
-                                                                   const double * dense2,
-                                                                   const unsigned int * indices,
-                                                                   size_t nonZeroCount);
+    typedef Numerical::Double (*IndexedDenseToIndexedDenseDotProductUnstable)(const Numerical::Double * dense1,
+                                                                              const Numerical::Double * dense2,
+                                                                              const unsigned int * indices,
+                                                                              size_t nonZeroCount);
 
-    typedef double (*IndexedDenseToIndexedDenseDotProductStable)(const double * dense1,
-                                                                 const double * dense2,
-                                                                 const unsigned int * indices,
-                                                                 size_t nonZeroCount,
-                                                                 double * negPtr);
+    typedef Numerical::Double (*IndexedDenseToIndexedDenseDotProductStable)(const Numerical::Double * dense1,
+                                                                            const Numerical::Double * dense2,
+                                                                            const unsigned int * indices,
+                                                                            size_t nonZeroCount,
+                                                                            Numerical::Double * negPtr);
 
     /******************************************
      * Add dense to dense:
@@ -114,19 +115,19 @@ public:
      *****************************************/
 
 
-    typedef unsigned int (*AddVecDenseToDense_NonzCount)(const double * vec1,
-                                                         const double * vec2,
-                                                         double * result,
-                                                         double lambda,
+    typedef unsigned int (*AddVecDenseToDense_NonzCount)(const Numerical::Double * vec1,
+                                                         const Numerical::Double * vec2,
+                                                         Numerical::Double * result,
+                                                         Numerical::Double lambda,
                                                          unsigned int count,
                                                          unsigned int nonzeros1,
                                                          unsigned int nonzeros2,
                                                          unsigned int tolerances);
 
-    typedef void (*AddVecDenseToDense)(const double * vec1,
-                                       const double * vec2,
-                                       double * result,
-                                       double lambda,
+    typedef void (*AddVecDenseToDense)(const Numerical::Double * vec1,
+                                       const Numerical::Double * vec2,
+                                       Numerical::Double * result,
+                                       Numerical::Double lambda,
                                        unsigned int count,
                                        unsigned int nonzeros1,
                                        unsigned int nonzeros2,

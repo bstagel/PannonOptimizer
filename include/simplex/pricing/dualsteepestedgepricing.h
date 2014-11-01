@@ -27,7 +27,7 @@ public:
     void checkAndFix();
 private:
 
-    std::vector<double> m_weights;
+    std::vector<Numerical::Double> m_weights;
     std::vector<unsigned int> m_updateCounters;
     std::vector<unsigned int> m_recomuteIndices;
 
