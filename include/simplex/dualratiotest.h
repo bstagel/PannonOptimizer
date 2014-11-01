@@ -343,7 +343,7 @@ private:
     /**
      * This is the value of the tolerance increment in the expand procedure.
      */
-    Numerical::Double m_toleranceStep;
+    double m_toleranceStep;
 
     /**
      * This contains the directions of the phase 1 ratios.

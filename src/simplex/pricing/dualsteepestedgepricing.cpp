@@ -159,7 +159,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
     unsigned int rowCount = m_simplexModel.getRowCount();
 
     if (unlikely(m_basis.isFresh() )) {
-        std::vector<double> newWeights = m_weights;
+        std::vector<Numerical::Double> newWeights = m_weights;
         unsigned int index;
         for (index = 0; index < rowCount; index++) {
             if (m_shadowBasisHead[index] != m_basisHead[index]) {

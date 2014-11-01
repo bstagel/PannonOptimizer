@@ -21,6 +21,8 @@ class ModelBuilder: public MatrixBuilder
 {
 public:
    
+    virtual ~ModelBuilder() {}
+
     /**
      * 
      * @param index

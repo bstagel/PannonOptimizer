@@ -220,8 +220,8 @@ private:
     std::vector<int>* m_columnSwapLog;
 
     unsigned int m_transformationCount;
-    double m_transformationAverage;
-    double m_mNumAverage;
+    Numerical::Double m_transformationAverage;
+    Numerical::Double m_mNumAverage;
     static thread_local int m_inversionCount;
 
     //Run parameters

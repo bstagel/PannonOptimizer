@@ -55,6 +55,7 @@ void ArchitectureX86::setMemcpy() {
 }
 
 void ArchitectureX86::setDotProduct() {
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     if (featureExists("AVX")) {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX;
         sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX;
@@ -64,6 +65,7 @@ void ArchitectureX86::setDotProduct() {
         sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
         sm_denseToSparseDotProductStablePtr = DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2;
     }
+#endif
 }
 
 unsigned int ArchitectureX86::getBits(unsigned int pattern,

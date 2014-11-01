@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <utils/platform.h>
 #include <utils/thread.h>
+#include <utils/stacktrace.h>
 
 using namespace std;
 
@@ -102,7 +103,7 @@ const ArchitectureInterface & InitPanOpt::getArchitecture() const {
 
 __attribute__((constructor))
 void initPanOpt() {
-
+    //initSignalHandler();
     setbuf(stdout, 0);
     printf("INIT PanOpt!\n");
 

@@ -346,7 +346,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
         m_boundflips.push_back(incomingVariableIndex);
         m_primalSteplength = 0;
     } else if (m_outgoingVariableIndex != -1){
-        double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
+        Numerical::Double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
                       / alpha.at(m_outgoingVariableIndex));
         m_outgoingAtUpperBound = Numerical::equals(m_primalSteplength, ref);
     }

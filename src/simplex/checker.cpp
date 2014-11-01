@@ -85,7 +85,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
             LPWARNING("Instead of: "<< resultVector );
             success = false;
             Vector::NonzeroIterator badIt = basisIt->beginNonzero();
-            double max = 0;
+            Numerical::Double max = 0;
             int maxIndex = 0;
             for(;badIt != basisIt->endNonzero(); ++badIt){
                 if(!Numerical::equals(*badIt, 1) && Numerical::fabs(*badIt)> max){
@@ -640,7 +640,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
     return okay;
 }
 
-bool Checker::checkPresolvedSolution(const Model &originalModel, const Vector &solution, double objectiveValue) {
+bool Checker::checkPresolvedSolution(const Model &originalModel, const Vector &solution, Numerical::Double objectiveValue) {
     Numerical::Double result = originalModel.getCostVector().dotProduct(solution);
     result -= originalModel.getCostConstant();
     if(Numerical::fabs(objectiveValue - result) < Numerical::fabs(objectiveValue * 1e-10)) {

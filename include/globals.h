@@ -6,13 +6,13 @@
 #define GLOBALS_H
 
 //using namespace std;
-#include <utils/platform.h>
-#include <utils/thread.h>
 #include <utils/memoryman.h>
+#include <utils/platform.h>
+#include <initpanopt.h>
+#include <utils/thread.h>
 #include <climits>
 #include <float.h>
 #include <macros.h>
-#include <initpanopt.h>
 
 //#define ANALYSE_DOT_PRODUCT
 

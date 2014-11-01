@@ -196,13 +196,19 @@ SparseVector SparseVector::createVectorFromDenseArray(const Numerical::Double *s
     unsigned int nonZeros = 0;
     unsigned int index;
     for (index = 0; index < length; index++) {
-        if (source[index] == 0) {
+        if (source[index] != 0) {
             sm_fullLengthVector[nonZeros] = source[index];
             sm_indexVector[nonZeros] = index;
             nonZeros++;
         }
     }
     result.m_nonZeros = nonZeros;
+    if (result.m_nonZeros == 0) {
+        result.m_data = nullptr;
+        result.m_indices = nullptr;
+        result.m_capacity = 0;
+        return result;
+    }
     result.m_data = alloc<Numerical::Double, 32>(nonZeros);
     result.m_indices = alloc<unsigned int, 16>(nonZeros);
     for (index = 0; index < nonZeros; index++) {
@@ -221,11 +227,14 @@ SparseVector SparseVector::createVectorFromSparseArray(const Numerical::Double *
                                                        unsigned int length)
 {
     SparseVector result(length);
+    if (count == 0) {
+        return result;
+    }
     result.m_nonZeros = count;
     result.m_data = alloc<Numerical::Double, 32>(count);
     COPY_DOUBLES(result.m_data, data, count);
     result.m_indices = alloc<unsigned int, 16>(count);
-    panOptMemcpy(result.m_indices, indices, count);
+    panOptMemcpy(result.m_indices, indices, count * sizeof(unsigned int));
     result.m_capacity = count;
     return result;
 }
@@ -243,7 +252,7 @@ SparseVector *SparseVector::createEtaVector(const SparseVector &vector,
         result->m_nonZeros = vector.m_nonZeros;
         result->m_data = alloc<Numerical::Double, 32>(vector.m_nonZeros);
         result->m_indices = alloc<unsigned int, 16>(vector.m_nonZeros);
-        panOptMemcpy(result->m_indices, vector.m_indices, vector.m_nonZeros);
+        panOptMemcpy(result->m_indices, vector.m_indices, vector.m_nonZeros * sizeof(unsigned int));
         result->m_capacity = vector.m_capacity;
 
         unsigned int index;
@@ -519,7 +528,7 @@ void SparseVector::resize(unsigned int capacity)
     m_data = data;
 
     unsigned int * indices = alloc<unsigned int, 16>(capacity);
-    panOptMemcpy(indices, m_indices, m_nonZeros);
+    panOptMemcpy(indices, m_indices, m_nonZeros * sizeof(unsigned int));
     ::release(m_indices);
     m_indices = indices;
     m_capacity = capacity;

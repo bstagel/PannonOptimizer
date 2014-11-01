@@ -304,7 +304,7 @@ void SimplexController::solve(const Model &model)
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
-    const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");

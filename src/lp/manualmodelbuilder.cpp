@@ -173,7 +173,8 @@ void ManualModelBuilder::setConstraint(unsigned int index, const Constraint & co
 void ManualModelBuilder::addConstraint(const Constraint & constraint,
                                        const Numerical::Double * values,
                                        const unsigned int * indices,
-                                       unsigned int nonzeros)
+                                       unsigned int nonzeros,
+                                       Variable *defaultVariablePtr)
 {
     m_constraints.push_back(constraint);
 
@@ -195,7 +196,11 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
 
     // creating the necessary variables
     for (index = m_variables.size(); index <= maxIndex; index++) {
-        m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0));
+        if (defaultVariablePtr == nullptr) {
+            m_variables.push_back(Variable::createPlusTypeVariable(0, 0.0));
+        } else {
+            m_variables.push_back( *defaultVariablePtr );
+        }
         m_columns.push_back(newList);
         m_nonZerosInColumns.push_back(0);
         m_costVector.push_back(0.0);
@@ -372,6 +377,7 @@ void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
 void ManualModelBuilder::buildCostVector(Vector * costVector) const
 {
     unsigned int dimension = m_variables.size();
+    LPINFO(m_costVector.size() << "  " << dimension);
     costVector->prepareForData(m_costVector.size(), dimension);
     std::vector< Numerical::Double >::const_iterator iter = m_costVector.begin();
     std::vector< Numerical::Double >::const_iterator iterEnd = m_costVector.end();

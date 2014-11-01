@@ -10,16 +10,18 @@ TARGET = NewPanOpt
 
 LIBS += -pthread
 
+LIBS += -lgmpxx -lgmp
+
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -rdynamic
     DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall -rdynamic
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
@@ -170,7 +172,9 @@ HEADERS += include/debug.h \
     include/simplex/simplexparametercomments.h \
     include/simplex/simplexsolver.h \
     include/utils/parameterfilebuilder.h \
-    include/linalg/linalgparametercomments.h
+    include/linalg/linalgparametercomments.h \
+    include/utils/multiplefloat.h \
+    include/utils/stacktrace.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -245,7 +249,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/thread.cpp \
     src/simplex/simplexsolver.cpp \
     src/lp/abstractmodel.cpp \
-    src/utils/parameterfilebuilder.cpp
+    src/utils/parameterfilebuilder.cpp \
+    src/utils/stacktrace.cpp
 
 #OBJECTS_DIR = .o
 

@@ -49,7 +49,7 @@ Numerical::Double denseToDenseDotProductStable(const Numerical::Double * __restr
                                                const Numerical::Double * __restrict__ vec2,
                                                size_t count,
                                                Numerical::Double * __restrict__ negPtr) {
-#ifdef DOUBLE_CLASSIC
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     double negpos1[2] = {0.0, 0.0};
     double negpos2[2] = {0.0, 0.0};
     Number num1, num2;
@@ -90,7 +90,7 @@ Numerical::Double denseToSparseDotProductStable(const Numerical::Double * __rest
                                                 const unsigned int * __restrict__ indices,
                                                 size_t count,
                                                 Numerical::Double * __restrict__ negPtr) {
-#ifdef DOUBLE_CLASSIC
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     double negpos1[2] = {0.0, 0.0};
     double negpos2[2] = {0.0, 0.0};
     Number num1, num2;
@@ -178,7 +178,7 @@ Numerical::Double indexedDenseToIndexedDenseDotProductStable(const Numerical::Do
                                                                     const unsigned int * __restrict__ indices,
                                                                     size_t nonZeroCount,
                                                                     Numerical::Double * __restrict__ negPtr) {
-#ifdef DOUBLE_CLASSIC
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
     double negpos[2] = {0.0, 0.0};
     Number num1, num2;
     unsigned int nonZeroIndex;
