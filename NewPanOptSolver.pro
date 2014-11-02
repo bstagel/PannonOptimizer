@@ -9,15 +9,14 @@ CONFIG += console
 TARGET = NewPanOptSolver
 
 LIBS += -pthread
-
-LIBS += -lgmpxx -lgmp
-
-LIBS += -rdynamic -ldl
+#linux specific...
+#LIBS += -lgmpxx -lgmp
+#LIBS += -rdynamic -ldl
 
 CONFIG(release, debug|release) {
-    message("NewPanOptSolver: Release mode!")
+    #message("NewPanOptSolver: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -rdynamic
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt -L../panopt/lib/# -lqd
@@ -25,9 +24,8 @@ CONFIG(release, debug|release) {
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
-    message("NewPanOptSolver: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -rdynamic
-    #QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -static
+    #message("NewPanOptSolver: Debug mode!")
+    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt -L../panopt/lib/# -lqd
