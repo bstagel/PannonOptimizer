@@ -539,7 +539,7 @@ void SparseVector::scatter() const
     unsigned int nonZeroIndex;
     for (nonZeroIndex = 0; nonZeroIndex < m_nonZeros; nonZeroIndex++) {
         const unsigned int index = m_indices[nonZeroIndex];
-        sm_indexVector[m_nonZeros] = index;
+        sm_indexVector[nonZeroIndex] = index;
         sm_fullLengthVector[index] = m_data[index];
         sm_indexPointerVector[index] = m_indices + m_nonZeros;
     }
