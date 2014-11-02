@@ -206,6 +206,17 @@ void DenseVector::insertElement(unsigned int index, Numerical::Double value)
     COPY_DOUBLES(newData + index + 1, m_data + index + 1, m_length - index);
     ::release(m_data);
     m_data = newData;
+    m_length++;
+}
+
+void DenseVector::append(Numerical::Double value)
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    COPY_DOUBLES(newData, m_data, m_length);
+    newData[m_length] = value;
+    ::release(m_data);
+    m_data = newData;
+    m_length++;
 }
 
 DenseVector DenseVector::createUnitVector(unsigned int length,
