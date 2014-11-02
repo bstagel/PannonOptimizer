@@ -283,11 +283,6 @@ union Pointer {
 
 template <class T, unsigned alignment>
 T * alloc(int size) {
-    int * tttt = nullptr;
-    *tttt = 4;
-    //return new T[size];
-
-
     size *= sizeof(T);
 #ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];
