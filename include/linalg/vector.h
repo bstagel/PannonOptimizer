@@ -801,7 +801,6 @@ public:
      */
     inline void prepareForData(const unsigned int nonZeros, const unsigned int dimension, Numerical::Double ratio = -1)
     {
-        LPINFO("capacity: " << m_capacity);
         freeData(m_data);
         freeIndex(m_index);
         //delete [] m_data;
@@ -816,7 +815,6 @@ public:
             m_sparsityRatio = ratio;
         }
 
-        LPINFO("------------");
         m_dimension = dimension;
         m_sparsityThreshold = (unsigned int)Numerical::round(m_dimension * m_sparsityRatio);
         if (nonZeros < m_sparsityThreshold) {
@@ -831,24 +829,17 @@ public:
         } else {
             m_vectorType = DENSE_VECTOR;
             m_index = 0;
-            LPINFO("------------ " << __LINE__);
-            LPINFO("size: " << dimension + ELBOWROOM);
             m_data = allocateData(dimension + ELBOWROOM);
-            LPINFO(m_data);
-            LPINFO("------------ " << __LINE__);
             m_dataEnd = m_data + dimension;
             m_capacity = dimension + ELBOWROOM;
             m_nonZeros = nonZeros;
             m_size = dimension;
             m_sorted = true;
             Numerical::Double * ptr = m_data;
-            LPINFO("------------ " << __LINE__);
             while (ptr < m_dataEnd) {
-                LPINFO(__LINE__);
                 *ptr = 0.0;
                 ptr++;
             }
-            LPINFO("------------ " << __LINE__);
         }
     }
 
