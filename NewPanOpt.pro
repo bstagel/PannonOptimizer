@@ -15,19 +15,20 @@ LIBS += -lgmpxx -lgmp
 CONFIG(release, debug|release) {
     message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -rdynamic
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
     DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall -rdynamic
+    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
 
 linux-g++:contains(QMAKE_HOST.arch, x86_64):{
     message(Linux 64 bit system)
+    QMAKE_CXXFLAGS += -rdynamic
     QMAKE_EXTRA_COMPILERS += nasmproc64
     ASM_SRCS_64 += src/utils/arch/x86/cpuinfo64.asm \
                     src/utils/arch/x86/memcpy64.asm \
@@ -41,6 +42,7 @@ linux-g++:contains(QMAKE_HOST.arch, x86_64):{
 
 linux-g++:contains(QMAKE_HOST.arch, x86_32):{
     message(Linux 32 bit system)
+    QMAKE_CXXFLAGS += -rdynamic
     QMAKE_EXTRA_COMPILERS += nasmproc32
     ASM_SRCS_32 += src/utils/arch/x86/cpuinfo32.asm \
         src/utils/arch/x86/memcpy32.asm

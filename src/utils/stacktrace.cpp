@@ -1,6 +1,8 @@
 #include <utils/stacktrace.h>
 #include <utils/platform.h>
 
+#ifdef UNIX
+
 void printStackTrace( std::ostream & out, unsigned int max_frames )
 {
     out << "stack trace:" << std::endl;
@@ -163,18 +165,20 @@ void signal_detected(int sig) {
     exit(sig);
 }
 
+#endif
+
 /**
  * Initializes the signals.
  */
 void initSignalHandler() {
-
+#ifdef UNIX
     signal(SIGSEGV, signal_detected);
     signal(SIGINT, signal_detected);
     signal(SIGILL, signal_detected);
     signal(SIGABRT, signal_detected);
     signal(SIGFPE, signal_detected);
     signal(SIGTERM, signal_detected);
-#ifdef UNIX
+
     signal(SIGHUP, signal_detected);
     signal(SIGQUIT, signal_detected);
     signal(SIGPIPE, signal_detected);
@@ -183,3 +187,4 @@ void initSignalHandler() {
 #endif
 
 }
+
