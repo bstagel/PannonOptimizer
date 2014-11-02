@@ -2,6 +2,7 @@
 #include <linalg/indexeddensevector.h>
 #include <linalg/sparsevector.h>
 #include <utils/architecture.h>
+#include <utils/exceptions.h>
 
 thread_local DenseVector::AddDenseToDense DenseVector::sm_addDenseToDense;
 thread_local DenseVector::AddIndexedDenseToDense DenseVector::sm_addIndexedDenseToDense;
@@ -170,6 +171,41 @@ void DenseVector::setDotProductMode(Numerical::DOT_PRODUCT_TYPE type)
         sm_denseToSparseDotProduct = &DenseVector::dotProductDenseToSparseAbsRel;
         break;
     }
+}
+
+unsigned int DenseVector::nonZeros() const
+{
+    unsigned int index;
+    unsigned int count = 0;
+    for (index = 0; index < m_length; index++) {
+        if (m_data[index] != 0.0) {
+            count++;
+        }
+    }
+    return count;
+}
+
+void DenseVector::removeElement(unsigned int index)
+{
+#ifndef NDEBUG
+    if (index >= m_length) {
+        throw InvalidIndexException("Invalid index in DenseVector", 0, m_length, index);
+    }
+#endif
+    for (; index < m_length - 1; index++) {
+        m_data[index] = m_data[index + 1];
+    }
+    m_length--;
+}
+
+void DenseVector::insertElement(unsigned int index, Numerical::Double value)
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    COPY_DOUBLES(newData, m_data, index);
+    newData[index] = value;
+    COPY_DOUBLES(newData + index + 1, m_data + index + 1, m_length - index);
+    ::release(m_data);
+    m_data = newData;
 }
 
 DenseVector DenseVector::createUnitVector(unsigned int length,

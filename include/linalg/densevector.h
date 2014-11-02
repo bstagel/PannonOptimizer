@@ -320,6 +320,40 @@ public:
         return NonzeroIterator(m_data + m_length, m_data + m_length);
     }
 
+    /**
+     * Returns with the number of nonzeros in the vector.
+     * Complexity: O(n)
+     *
+     * @return Number of nonzeros.
+     */
+    unsigned int nonZeros() const;
+
+
+    /**
+     * Removes an element from the vector.
+     * This operation decreases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be removed.
+     */
+    void removeElement(unsigned int index);
+
+    /**
+     * Inserts a new element to the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be added.
+     * @param value The value of the element to be added.
+     */
+    void insertElement(unsigned int index, Numerical::Double value);
+
+    /**
+     * Appends a new element to the end of the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @see insertElement()
+     * @param value The value of the element to be appended.
+     */
+    void append(Numerical::Double value);
 
 protected:
 
