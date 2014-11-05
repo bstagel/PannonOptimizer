@@ -82,6 +82,9 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 
 bool ArchitectureX86::cpuidSupported()
 {
+#ifndef CACHE_LINE_ALIGNMENT
+    return false;
+#endif
 #ifdef NDEBUG
 #ifdef ENVIRONMENT_32
     return cpuinfo_supported_32();
