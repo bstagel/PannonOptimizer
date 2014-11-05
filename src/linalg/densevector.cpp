@@ -185,7 +185,7 @@ unsigned int DenseVector::nonZeros() const
     return count;
 }
 
-void DenseVector::removeElement(unsigned int index)
+void DenseVector::remove(unsigned int index)
 {
 #ifndef NDEBUG
     if (index >= m_length) {
@@ -198,7 +198,7 @@ void DenseVector::removeElement(unsigned int index)
     m_length--;
 }
 
-void DenseVector::insertElement(unsigned int index, Numerical::Double value)
+void DenseVector::insert(unsigned int index, Numerical::Double value)
 {
     Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
     COPY_DOUBLES(newData, m_data, index);

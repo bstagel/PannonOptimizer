@@ -306,6 +306,32 @@ public:
         return NonzeroIterator(m_nonzeroIndices + m_nonZeros, m_data);
     }
 
+    /**
+     * Removes an element from the vector.
+     * This operation decreases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be removed.
+     */
+    void remove(unsigned int index);
+
+    /**
+     * Inserts a new element to the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be added.
+     * @param value The value of the element to be added.
+     */
+    void insert(unsigned int index, Numerical::Double value);
+
+    /**
+     * Appends a new element to the end of the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @see insertElement()
+     * @param value The value of the element to be appended.
+     */
+    void append(Numerical::Double value);
+
 protected:
 
     typedef void (IndexedDenseVector::*AddIndexedDenseToIndexedDense)(Numerical::Double, const IndexedDenseVector &);
@@ -331,11 +357,11 @@ protected:
     static thread_local IndexedDenseToDenseDotProduct sm_indexedDenseToDenseDotProduct;
     static thread_local IndexedDenseToSparseDotProduct sm_indexedDenseToSparseDotProduct;
 
-    Numerical::Double * m_data;
+    Numerical::Double * m_data; // dense
 
-    unsigned int * m_nonzeroIndices;
+    unsigned int * m_nonzeroIndices; // sparse
 
-    unsigned int ** m_indexIndices;
+    unsigned int ** m_indexIndices; // dense
 
     unsigned int m_nonZeros;
 
