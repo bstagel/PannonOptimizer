@@ -22,6 +22,12 @@ bool MemoryManager::sm_initialized = false;
 #endif
 
 void release(void * ptr) {
+
+#ifndef CACHE_LINE_ALIGNMENT
+    delete [] ptr;
+    return;
+#endif
+
     if (ptr == nullptr) {
         return;
     }

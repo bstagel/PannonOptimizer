@@ -7,6 +7,7 @@
 
 #include <cstddef>
 
+#define CACHE_LINE_ALIGNMENT
 #define CLASSIC_NEW_DELETE
 
 constexpr unsigned int log2(unsigned int n) {
@@ -284,6 +285,11 @@ union Pointer {
 template <class T, unsigned alignment>
 T * alloc(int size) {
     size *= sizeof(T);
+
+#ifndef CACHE_LINE_ALIGNMENT
+    return new char[size];
+#endif
+
 #ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];
 #else

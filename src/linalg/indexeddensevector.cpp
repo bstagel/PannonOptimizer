@@ -236,6 +236,99 @@ void IndexedDenseVector::setDotProductMode(Numerical::DOT_PRODUCT_TYPE type)
     }
 }
 
+void IndexedDenseVector::remove(unsigned int index)
+{
+    if (m_data[index] == 0.0) {
+        for (; index < m_length - 1; index++) {
+            m_data[index] = m_data[index + 1];
+            m_indexIndices[index] = m_indexIndices[index + 1];
+        }
+        unsigned int index2;
+        for (index2 = 0; index2 < m_nonZeros; index2++) {
+            if (m_nonzeroIndices[index2] >= index) {
+                m_nonzeroIndices[index2]--;
+            }
+        }
+        m_length--;
+    } else {
+        for (; index < m_length - 1; index++) {
+            m_data[index] = m_data[index + 1];
+            m_indexIndices[index] = m_indexIndices[index + 1];
+        }
+        unsigned int index2;
+        unsigned int pos = 0;
+        for (index2 = 0; index2 < m_nonZeros; index2++) {
+            if (m_nonzeroIndices[index2] == index) {
+                pos = index2;
+            }
+            if (m_nonzeroIndices[index2] >= index) {
+                m_nonzeroIndices[index2]--;
+            }
+        }
+
+        if (m_nonZeros >= 1) {
+            m_nonzeroIndices[pos] = m_nonzeroIndices[m_nonZeros - 1];
+            m_indexIndices[index] = m_nonzeroIndices + pos;
+        }
+        m_length--;
+        m_nonZeros--;
+    }
+}
+
+void IndexedDenseVector::insert(unsigned int index, Numerical::Double value)
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    COPY_DOUBLES(newData, m_data, index);
+    newData[index] = value;
+    COPY_DOUBLES(newData + index + 1, m_data + index + 1, m_length - index);
+    ::release(m_data);
+    m_data = newData;
+
+    if (value != 0.0) {
+        unsigned int * newIndices = alloc<unsigned int, 16>(m_nonZeros + 1);
+        unsigned int index2;
+        for (index2 = 0; index2 < m_nonZeros; index2++) {
+            if (m_nonzeroIndices[index2] < index) {
+                newIndices[index2] = m_nonzeroIndices[index2];
+            } else {
+                newIndices[index2] = m_nonzeroIndices[index2] + 1;
+            }
+            unsigned int actIndex = newIndices[index2];
+            m_indexIndices[actIndex] = newIndices + index2;
+        }
+        newIndices[m_nonZeros] = index;
+
+        m_nonZeros++;
+    }
+
+    m_length++;
+}
+
+void IndexedDenseVector::append(Numerical::Double value)
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    COPY_DOUBLES(newData, m_data, m_length);
+    newData[m_length] = value;
+    ::release(m_data);
+    m_data = newData;
+
+    if (value != 0.0) {
+        unsigned int * newIndices = alloc<unsigned int, 16>(m_nonZeros + 1);
+        unsigned int index2;
+        for (index2 = 0; index2 < m_nonZeros; index2++) {
+            newIndices[index2] = m_nonzeroIndices[index2];
+            unsigned int actIndex = newIndices[index2];
+            m_indexIndices[actIndex] = newIndices + index2;
+        }
+        newIndices[m_nonZeros] = m_length;
+
+        m_nonZeros++;
+    }
+
+    m_length++;
+
+}
+
 IndexedDenseVector IndexedDenseVector::createUnitVector(unsigned int length, unsigned int index)
 {
     IndexedDenseVector result(length);

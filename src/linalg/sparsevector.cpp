@@ -442,6 +442,146 @@ void SparseVector::setDotProductMode(Numerical::DOT_PRODUCT_TYPE type)
     }
 }
 
+void SparseVector::remove(unsigned int index)
+{
+    unsigned int pos = 0;
+    while (pos < m_nonZeros && m_indices[pos] != index) {
+        pos++;
+    }
+    if (pos < m_nonZeros) {
+        m_indices[pos] = m_indices[m_nonZeros - 1];
+        m_data[pos] = m_data[m_nonZeros - 1];
+        m_nonZeros--;
+    }
+
+    m_length--;
+}
+
+void SparseVector::insert(unsigned int index, Numerical::Double value)
+{
+    unsigned int pos;
+    for (pos = 0; pos < m_nonZeros; pos++) {
+        if (m_indices[pos] >= index) {
+            m_indices[pos]++;
+        }
+    }
+    if (value != 0.0) {
+        if (m_nonZeros >= m_capacity) {
+            resize(m_capacity + 1 + sm_elbowRoom);
+        }
+        m_indices[m_nonZeros] = index;
+        m_data[m_nonZeros] = value;
+        m_nonZeros++;
+    }
+    m_length++;
+}
+
+void SparseVector::append(Numerical::Double value)
+{
+    if (value != 0.0) {
+        if (m_nonZeros >= m_capacity) {
+            resize(m_capacity + 1 + sm_elbowRoom);
+        }
+        m_indices[m_nonZeros] = m_length;
+        m_data[m_nonZeros] = value;
+        m_nonZeros++;
+    }
+    m_length++;
+}
+
+Numerical::Double SparseVector::absMaxElement() const
+{
+    Numerical::Double result = 0;
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        for (; dataPtr < dataEnd; dataPtr++) {
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            if (absValue > result) {
+                result = absValue;
+            }
+        }
+    }
+    return result;
+}
+
+Numerical::Double SparseVector::scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
+                                                   Numerical::Double lambda,
+                                                   Numerical::Double * squareSumPtr,
+                                                   Numerical::Double * minPtr,
+                                                   Numerical::Double * maxPtr) {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    Numerical::Double min = Numerical::Infinity;
+    Numerical::Double max = 0;
+    if (m_nonZeros > 0) {
+        Numerical::Double * dataPtr = m_data;
+        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        const unsigned int * indexPtr = m_indices;
+        for (; dataPtr < dataEnd; dataPtr++, indexPtr++) {
+            *dataPtr *= lambda * multipliers[*indexPtr];
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            absSum += absValue;
+            squareSum += absValue * absValue;
+            if (min > absValue) {
+                min = absValue;
+            }
+            if (max < absValue) {
+                max = absValue;
+            }
+        }
+    }
+    *squareSumPtr = squareSum;
+    *minPtr = min;
+    *maxPtr = max;
+    return absSum;
+
+}
+
+Numerical::Double SparseVector::absMaxSumsAndMinMax(Numerical::Double * squareSumPtr,
+                                                    Numerical::Double * minPtr,
+                                                    Numerical::Double * maxPtr) const {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    Numerical::Double min = Numerical::Infinity;
+    Numerical::Double max = 0;
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        for (; dataPtr < dataEnd; dataPtr++) {
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            absSum += absValue;
+            squareSum += absValue * absValue;
+            if (min > absValue) {
+                min = absValue;
+            }
+            if (max < absValue) {
+                max = absValue;
+            }
+        }
+    }
+    *squareSumPtr = squareSum;
+    *minPtr = min;
+    *maxPtr = max;
+    return absSum;
+}
+
+Numerical::Double SparseVector::absMaxSums(Numerical::Double * squareSumPtr) const {
+    Numerical::Double absSum = 0;
+    Numerical::Double squareSum = 0;
+    if (m_nonZeros > 0) {
+        const Numerical::Double * dataPtr = m_data;
+        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        for (; dataPtr < dataEnd; dataPtr++) {
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            absSum += absValue;
+            squareSum += absValue * absValue;
+        }
+    }
+    *squareSumPtr = squareSum;
+    return absSum;
+}
+
 void SparseVector::resizeFullLengthVector(unsigned int length)
 {
     ::release(sm_fullLengthVector);
@@ -752,3 +892,4 @@ Numerical::Double SparseVector::dotProductSparseToSparseAbsRel(const SparseVecto
     }
     return Numerical::stableAdd(pos, neg);
 }
+

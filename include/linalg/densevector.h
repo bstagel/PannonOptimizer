@@ -328,14 +328,13 @@ public:
      */
     unsigned int nonZeros() const;
 
-
     /**
      * Removes an element from the vector.
      * This operation decreases the dimension of the vector by 1.
      *
      * @param index The index of the element to be removed.
      */
-    void removeElement(unsigned int index);
+    void remove(unsigned int index);
 
     /**
      * Inserts a new element to the vector.
@@ -344,7 +343,7 @@ public:
      * @param index The index of the element to be added.
      * @param value The value of the element to be added.
      */
-    void insertElement(unsigned int index, Numerical::Double value);
+    void insert(unsigned int index, Numerical::Double value);
 
     /**
      * Appends a new element to the end of the vector.

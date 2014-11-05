@@ -8,6 +8,7 @@
 #include <globals.h>
 #include <utils/numerical.h>
 #include <utils/iterator.h>
+#include <vector>
 
 class DenseVector;
 class IndexedDenseVector;
@@ -335,6 +336,46 @@ public:
     ALWAYS_INLINE NonzeroIterator endNonzero() const {
         return NonzeroIterator(m_data + m_nonZeros, m_indices + m_nonZeros);
     }
+
+    /**
+     * Removes an element from the vector.
+     * This operation decreases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be removed.
+     */
+    void remove(unsigned int index);
+
+    /**
+     * Inserts a new element to the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @param index The index of the element to be added.
+     * @param value The value of the element to be added.
+     */
+    void insert(unsigned int index, Numerical::Double value);
+
+    /**
+     * Appends a new element to the end of the vector.
+     * This operation increases the dimension of the vector by 1.
+     *
+     * @see insertElement()
+     * @param value The value of the element to be appended.
+     */
+    void append(Numerical::Double value);
+
+    Numerical::Double absMaxElement() const;
+
+    Numerical::Double scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
+                                         Numerical::Double lambda,
+                                         Numerical::Double * squareSumPtr,
+                                         Numerical::Double * minPtr,
+                                         Numerical::Double * maxPtr);
+
+    Numerical::Double absMaxSumsAndMinMax(Numerical::Double * squareSumPtr,
+                                          Numerical::Double * minPtr,
+                                          Numerical::Double * maxPtr) const;
+
+    Numerical::Double absMaxSums(Numerical::Double * squareSumPtr) const;
 
 protected:
 
