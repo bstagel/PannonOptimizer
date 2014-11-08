@@ -377,6 +377,10 @@ public:
 
     Numerical::Double absMaxSums(Numerical::Double * squareSumPtr) const;
 
+    void batchRemove(const std::vector<int> & indices);
+
+    void reserve();
+
 protected:
 
     typedef void (SparseVector::*AddSparseToSparse)(Numerical::Double,
@@ -430,6 +434,11 @@ protected:
      *
      */
     static thread_local unsigned int ** sm_indexPointerVector;
+
+    /**
+     *
+     */
+    static thread_local char * sm_removeIndices;
 
     /**
      * Describes the size of sm_fullLengthVector.

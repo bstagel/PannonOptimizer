@@ -7,6 +7,7 @@
 thread_local Numerical::Double * SparseVector::sm_fullLengthVector;
 thread_local unsigned int * SparseVector::sm_indexVector;
 thread_local unsigned int ** SparseVector::sm_indexPointerVector;
+thread_local char * SparseVector::sm_removeIndices;
 thread_local unsigned int SparseVector::sm_fullLengthVectorLength;
 thread_local unsigned int SparseVector::sm_elbowRoom;
 
@@ -582,6 +583,55 @@ Numerical::Double SparseVector::absMaxSums(Numerical::Double * squareSumPtr) con
     return absSum;
 }
 
+void SparseVector::batchRemove(const std::vector<int> &indices)
+{
+    if (unlikely(sm_fullLengthVectorLength < m_length)) {
+        resizeFullLengthVector(m_length);
+    }
+
+    unsigned int pos = 1;
+    for (auto i: indices) {
+        sm_removeIndices[i] = pos;
+        pos++;
+    }
+
+    pos = 0;
+    while (pos < m_nonZeros) {
+        unsigned int index = m_indices[pos];
+        if (sm_removeIndices[index] != 0) {
+            m_data[pos] = m_data[m_nonZeros - 1];
+            m_indices[pos] = m_indices[m_nonZeros - 1];
+            m_nonZeros--;
+        } else {
+            m_indices[pos] -= std::lower_bound(
+                        indices.begin(),
+                        indices.end(),
+                        index) - indices.begin();
+
+            pos++;
+        }
+    }
+
+    for (auto i: indices) {
+        sm_removeIndices[i] = 0;
+    }
+    m_length -= indices.size();
+}
+
+void SparseVector::reserve()
+{
+    m_capacity = m_nonZeros;
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_capacity);
+    COPY_DOUBLES(newData, m_data, m_nonZeros);
+    ::release(m_data);
+    m_data = newData;
+
+    unsigned int * newIndices = alloc<unsigned int, 16>(m_capacity);
+    panOptMemcpy(newIndices, m_indices, m_nonZeros);
+    ::release(m_indices);
+    m_indices = newIndices;
+}
+
 void SparseVector::resizeFullLengthVector(unsigned int length)
 {
     ::release(sm_fullLengthVector);
@@ -593,6 +643,10 @@ void SparseVector::resizeFullLengthVector(unsigned int length)
     sm_indexPointerVector = alloc<unsigned int*, 16>(length);
     panOptMemset(sm_indexPointerVector, 0, sizeof(unsigned int**) * length);
 
+    delete [] sm_removeIndices;
+    sm_removeIndices = new char[length];
+    panOptMemset(sm_removeIndices, 0, sizeof(char) * length);
+
     sm_fullLengthVectorLength = length;
 }
 
@@ -601,6 +655,7 @@ void SparseVector::_globalInit()
     sm_fullLengthVector = nullptr;
     sm_indexVector = nullptr;
     sm_indexPointerVector = nullptr;
+    sm_removeIndices = nullptr;
     sm_fullLengthVectorLength = 0;
     sm_elbowRoom = LinalgParameterHandler::getInstance().getIntegerParameterValue("elbowroom");
 
@@ -616,6 +671,8 @@ void SparseVector::_globalRelease()
     sm_indexVector = nullptr;
     ::release(sm_indexPointerVector);
     sm_indexPointerVector = nullptr;
+    delete [] sm_removeIndices;
+    sm_removeIndices = nullptr;
     sm_fullLengthVectorLength = 0;
 }
 
