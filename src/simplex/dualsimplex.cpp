@@ -33,12 +33,14 @@ const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE1 = "export_fake_feasib
 const static char * EXPORT_STABLE_PIVOT_NOT_FOUND_PHASE2 = "export_stable_pivot_not_found_phase2";
 const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2 = "export_fake_feasibility_activation_phase2";
 const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasibility_counter_phase2";
+const static char * EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER = "export_ask_for_another_row";
 
 DualSimplex::DualSimplex(SimplexController &simplexController):
     Simplex(simplexController),
     m_pricing(0),
     m_feasibilityChecker(0),
-    m_ratiotest(0)
+    m_ratiotest(0),
+    m_askForAnotherRowCounter(0)
 {
     m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
     m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
@@ -127,6 +129,8 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_INT, *this));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
         }
@@ -208,6 +212,8 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
             reply.m_integer = m_ratiotest->getFakeFeasibilityActivationPhase2();
         } else if (name == EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2) {
             reply.m_integer = m_ratiotest->getFakeFeasibilityCounterPhase2();
+        } else if (name == EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER) {
+            reply.m_integer = m_askForAnotherRowCounter;
         } else {
             break;
         }
@@ -360,6 +366,7 @@ void DualSimplex::selectPivot() {
             //Ask for another row
             LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
             if (m_pricing) {
+                m_askForAnotherRowCounter ++;
                 m_pricing->lockLastIndex();
             } else {
                 m_pricingController->lockLastIndex();
@@ -371,6 +378,10 @@ void DualSimplex::selectPivot() {
     if(m_degenerate){
         m_degenerate = m_ratiotest->isDegenerate();
     }
+    if(m_ratiotest->isDegenerate()){
+        m_degenerateIterations++;
+    }
+
 
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
@@ -573,15 +584,11 @@ void DualSimplex::checkReferenceObjective(bool secondPhase) {
         if(Numerical::less(m_phaseIObjectiveValue,m_referenceObjective)){
             LPWARNING("BAD ITERATION - PHASE I difference: "<<m_referenceObjective-m_phaseIObjectiveValue);
             m_badIterations++;
-        } else if(m_referenceObjective == m_phaseIObjectiveValue){
-            m_degenerateIterations++;
         }
     } else {
         if(Numerical::less(m_objectiveValue,m_referenceObjective)){
             LPWARNING("BAD ITERATION - PHASE II difference: "<<m_referenceObjective-m_objectiveValue);
             m_badIterations++;
-        } else if(m_referenceObjective == m_objectiveValue){
-            m_degenerateIterations++;
         }
     }
 }

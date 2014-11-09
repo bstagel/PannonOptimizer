@@ -442,6 +442,11 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
                 break;
             }
         }
+        if(m_dualSteplength != 0){
+            m_degenerate = false;
+        }else{
+            m_degenerate = true;
+        }
 
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
@@ -604,7 +609,6 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             }
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * t_actual;
-            m_degenerate = false;
             break;
         }
 
@@ -618,7 +622,6 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
             }
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * t_actual;
-            m_degenerate = false;
             break;
         }
         ++iterationCounter;
@@ -780,11 +783,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
                         m_incomingVariableIndex = breakpoint->variableIndex;
                         m_dualSteplength = m_sigma * breakpoint->value;
-                        if(m_dualSteplength != 0){
-                            m_degenerate = false;
-                        }else{
-                            m_degenerate = true;
-                        }
                         break;
                     }
 
@@ -860,6 +858,10 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                         m_dualSteplength = m_sigma * secondPassRatios[maxBreakpointId]->value;
                     }
                     m_incomingVariableIndex = maxAlphaId;
+                } else if(m_dualSteplength != 0){
+                    m_degenerate = false;
+                }else{
+                    m_degenerate = true;
                 }
             }
         } else {
@@ -871,5 +873,4 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0;
     }
-//    LPINFO("incpoming alpha: "<<alpha.at(m_incomingVariableIndex));
 }

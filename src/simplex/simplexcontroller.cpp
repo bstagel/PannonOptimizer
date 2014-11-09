@@ -24,7 +24,7 @@ SimplexController::SimplexController():
     m_dualSimplex(NULL),
     m_currentSimplex(NULL),
     m_iterationIndex(0),
-    m_phase1Iteration(0),
+    m_phase1Iteration(-1),
     m_phase1Time(0.0),
     m_freshBasis(false),
     //Parameter references
@@ -240,8 +240,10 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
 
 void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
 {
-    m_phase1Iteration = m_iterationIndex;
-    m_phase1Time = phase1Time;
+    if(m_phase1Iteration == -1){
+        m_phase1Iteration = m_iterationIndex;
+        m_phase1Time = phase1Time;
+    }
 }
 
 Numerical::Double SimplexController::parallelIterations(
