@@ -549,7 +549,6 @@ void DualSimplex::update() {
         }
     }
 
-
     //Update the feasibility sets in phase I
     if(!m_feasible){
         computeFeasibility();
