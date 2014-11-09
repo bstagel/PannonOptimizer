@@ -446,6 +446,10 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
     }
+    if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
+        m_incomingVariableIndex = -1;
+        m_dualSteplength = 0;
+    }
 }
 
 void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
@@ -863,4 +867,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             m_incomingVariableIndex = -1;
         }
     }
+    if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
+        m_incomingVariableIndex = -1;
+        m_dualSteplength = 0;
+    }
+//    LPINFO("incpoming alpha: "<<alpha.at(m_incomingVariableIndex));
 }
