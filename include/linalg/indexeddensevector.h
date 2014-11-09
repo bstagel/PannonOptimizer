@@ -332,6 +332,10 @@ public:
      */
     void append(Numerical::Double value);
 
+    void reserve();
+
+    void resize(unsigned int length);
+
 protected:
 
     typedef void (IndexedDenseVector::*AddIndexedDenseToIndexedDense)(Numerical::Double, const IndexedDenseVector &);

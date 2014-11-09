@@ -381,6 +381,8 @@ public:
 
     void reserve();
 
+    void resize(unsigned int length);
+
 protected:
 
     typedef void (SparseVector::*AddSparseToSparse)(Numerical::Double,
@@ -474,7 +476,7 @@ protected:
 
     void release();
 
-    void resize(unsigned int capacity);
+    void resizeCapacity(unsigned int capacity);
 
     void scatter() const;
 
