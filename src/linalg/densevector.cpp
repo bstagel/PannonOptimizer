@@ -219,6 +219,28 @@ void DenseVector::append(Numerical::Double value)
     m_length++;
 }
 
+void DenseVector::reserve()
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length);
+    COPY_DOUBLES(newData, m_data, m_length);
+    ::release(m_data);
+    m_data = newData;
+}
+
+void DenseVector::resize(unsigned int length)
+{
+    if (length <= m_length) {
+        m_length = length;
+        return;
+    }
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+    COPY_DOUBLES(newData, m_data, m_length);
+    CLEAR_DOUBLES(newData + m_length, length - m_length);
+    ::release(m_data);
+    m_data = newData;
+    m_length = length;
+}
+
 DenseVector DenseVector::createUnitVector(unsigned int length,
                                           unsigned int index)
 {

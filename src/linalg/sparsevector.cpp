@@ -43,7 +43,7 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
         SparseVector::sm_fullLengthVector[index] = sum;
     }
     if (nonZeros > vector1->m_capacity) {
-        vector1->resize(nonZeros);
+        vector1->resizeCapacity(nonZeros);
     }
     for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
         const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
@@ -79,7 +79,7 @@ void addDenseToSparseTemplate(Numerical::Double lambda,
         SparseVector::sm_fullLengthVector[index] = sum;
     }
     if (nonZeros > vector1->m_capacity) {
-        vector1->resize(nonZeros);
+        vector1->resizeCapacity(nonZeros);
     }
     unsigned int nonZeroIndex;
     for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
@@ -117,7 +117,7 @@ void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
         SparseVector::sm_fullLengthVector[index] = sum;
     }
     if (nonZeros > vector1->m_capacity) {
-        vector1->resize(nonZeros);
+        vector1->resizeCapacity(nonZeros);
     }
     for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
         const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
@@ -309,7 +309,7 @@ void SparseVector::set(unsigned int index, Numerical::Double value)
         }
     } else if (value != 0.0){
         if (unlikely(m_capacity <= m_nonZeros)) {
-            resize(m_capacity + 1 + sm_elbowRoom);
+            resizeCapacity(m_capacity + 1 + sm_elbowRoom);
         }
         m_data[m_nonZeros] = value;
         m_indices[m_nonZeros] = index;
@@ -468,7 +468,7 @@ void SparseVector::insert(unsigned int index, Numerical::Double value)
     }
     if (value != 0.0) {
         if (m_nonZeros >= m_capacity) {
-            resize(m_capacity + 1 + sm_elbowRoom);
+            resizeCapacity(m_capacity + 1 + sm_elbowRoom);
         }
         m_indices[m_nonZeros] = index;
         m_data[m_nonZeros] = value;
@@ -481,7 +481,7 @@ void SparseVector::append(Numerical::Double value)
 {
     if (value != 0.0) {
         if (m_nonZeros >= m_capacity) {
-            resize(m_capacity + 1 + sm_elbowRoom);
+            resizeCapacity(m_capacity + 1 + sm_elbowRoom);
         }
         m_indices[m_nonZeros] = m_length;
         m_data[m_nonZeros] = value;
@@ -627,9 +627,27 @@ void SparseVector::reserve()
     m_data = newData;
 
     unsigned int * newIndices = alloc<unsigned int, 16>(m_capacity);
-    panOptMemcpy(newIndices, m_indices, m_nonZeros);
+    panOptMemcpy(newIndices, m_indices, m_nonZeros * sizeof(unsigned int));
     ::release(m_indices);
     m_indices = newIndices;
+}
+
+void SparseVector::resize(unsigned int length)
+{
+    if (length >= m_length) {
+        m_length = length;
+        return;
+    }
+    unsigned int index = 0;
+    while (index < m_nonZeros) {
+        if (m_indices[index] >= length) {
+            m_indices[index] = m_indices[m_nonZeros - 1];
+            m_data[index] = m_data[m_nonZeros - 1];
+            m_nonZeros--;
+        } else {
+            index++;
+        }
+    }
 }
 
 void SparseVector::resizeFullLengthVector(unsigned int length)
@@ -641,7 +659,7 @@ void SparseVector::resizeFullLengthVector(unsigned int length)
     sm_indexVector = alloc<unsigned int, 16>(length);
     ::release(sm_indexPointerVector);
     sm_indexPointerVector = alloc<unsigned int*, 16>(length);
-    panOptMemset(sm_indexPointerVector, 0, sizeof(unsigned int**) * length);
+    panOptMemset(sm_indexPointerVector, 0, sizeof(unsigned int*) * length);
 
     delete [] sm_removeIndices;
     sm_removeIndices = new char[length];
@@ -717,7 +735,7 @@ void SparseVector::move(SparseVector &orig)
     orig.m_capacity = 0;
 }
 
-void SparseVector::resize(unsigned int capacity)
+void SparseVector::resizeCapacity(unsigned int capacity)
 {
     Numerical::Double * data = alloc<Numerical::Double, 32>(capacity);
     COPY_DOUBLES(data, m_data, m_nonZeros);

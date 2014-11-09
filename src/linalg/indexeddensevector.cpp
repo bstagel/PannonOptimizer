@@ -329,6 +329,60 @@ void IndexedDenseVector::append(Numerical::Double value)
 
 }
 
+void IndexedDenseVector::reserve()
+{
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length);
+    COPY_DOUBLES(newData, m_data, m_length);
+    ::release(m_data);
+    m_data = newData;
+
+    unsigned int * newNonzeroIndices = alloc<unsigned int, 16>(m_length);
+    panOptMemcpy(newNonzeroIndices, m_nonzeroIndices, m_nonZeros);
+    ::release(m_nonzeroIndices);
+    m_nonzeroIndices = newNonzeroIndices;
+
+    unsigned int ** newIndexIndices = alloc<unsigned int *, 16>(m_length);
+    panOptMemcpy(newIndexIndices, m_indexIndices, sizeof(unsigned int *) * m_length);
+    ::release(m_indexIndices);
+    m_indexIndices = newIndexIndices;
+}
+
+void IndexedDenseVector::resize(unsigned int length)
+{
+    if (length <= m_length) {
+        unsigned int pos = 0;
+        while (pos < m_nonZeros) {
+            if (m_nonzeroIndices[pos] >= length) {
+                m_nonzeroIndices[pos] = m_nonzeroIndices[m_nonZeros - 1];
+                unsigned int index = m_nonzeroIndices[pos];
+                m_indexIndices[index] = m_nonzeroIndices + pos;
+                m_nonZeros--;
+            } else {
+                pos++;
+            }
+        }
+        m_length = length;
+    } else {
+        Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+        COPY_DOUBLES(newData, m_data, m_length);
+        CLEAR_DOUBLES(newData + m_length, length - m_length);
+        ::release(m_data);
+        m_data = newData;
+
+        unsigned int * newNonzeroIndices = alloc<unsigned int, 16>(length);
+        panOptMemcpy(newNonzeroIndices, m_nonzeroIndices, m_nonZeros * sizeof(unsigned int));
+        ::release(m_nonzeroIndices);
+        m_nonzeroIndices = newNonzeroIndices;
+
+        unsigned ** newIndexIndices = alloc<unsigned int *, 16>(length);
+        panOptMemcpy(newIndexIndices, m_indexIndices, m_length * sizeof(unsigned int *));
+        panOptMemset(newIndexIndices + m_length, 0, (length - m_length) * sizeof(unsigned int *));
+        ::release(m_indexIndices);
+        m_indexIndices = newIndexIndices;
+        m_length = length;
+    }
+}
+
 IndexedDenseVector IndexedDenseVector::createUnitVector(unsigned int length, unsigned int index)
 {
     IndexedDenseVector result(length);
