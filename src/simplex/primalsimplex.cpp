@@ -368,6 +368,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
 //            LPWARNING("DEGENERATE - PHASE I");
+            //TODO: Mashogy kell merni
             m_degenerateIterations++;
         }
     } else {

@@ -86,6 +86,11 @@ private:
     Vector m_pivotRowOfBasisInverse;
 
     /**
+     * A counter measuring row disabling
+     */
+    int m_askForAnotherRowCounter;
+
+    /**
      * Initializes the dual simplex modules.
      * The pricing is initialized according to the simplex parameter file.
      */
