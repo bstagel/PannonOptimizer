@@ -388,9 +388,6 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
 
             //If the first breakpoint is fake feasible filter them
             while (breakpoint->value < 0 && functionSlope >=0 ) {
-#ifndef NDEBUG
-//                LPINFO("Fake feasibility detected: " << breakpoint->value);
-#endif
                 fakeFeasibilityCounter++;
 
                 functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex));
@@ -813,7 +810,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     int variableIndex = -1;
 
                     //choosing best pivot candidate
-                    //TODO: megvizsgálni, hogy egy másik kiválasztása mit eredményez
                     for(unsigned i=1; i < secondPassRatios.size(); i++){
                         variableIndex = secondPassRatios[i]->variableIndex;
                         if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
@@ -821,46 +817,49 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             maxBreakpointId = i;
                         }
                     }
-
-                    Numerical::Double theta;
-                    //theta remains zero if the choosen breakpoint value is negative
-                    if(m_expand == "HARRIS"){
-                        //HARRIS
-                        if(secondPassRatios[maxBreakpointId]->value < 0){
-//                            LPINFO("Harris ratiotest theta is zero!");
-                            m_degenerate = true;
-                            theta = 0;
-                        } else {
-                            m_degenerate = false;
-                            theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
-                        }
-                    } else {
-                        //EXPAND
-                        Numerical::Double thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
-
-                        //Expand procedure ensures a positive step
-                        if(secondPassRatios[maxBreakpointId]->value < thetaMin){
-//                            LPINFO("Expand procedure ensures a positive step");
-                            m_degenerate = true;
-                            theta = m_sigma * thetaMin;
-                        } else {
-                            if(Numerical::fabs(m_reducedCosts.at(maxAlphaId)) > workingTolerance){
-                                m_degenerate = false;
-//                                LPINFO("nondegenerate step");
-                            }else{
-                                m_degenerate = true;
+                    Numerical::Double thetaMin = 0;
+                    if(m_expand == "EXPANDING"){
+                        thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
+                    }
+                    //maxAlphaId holds the biggest |alpha| index
+                    //HARRIS: if no positive ratio is present, maxAlphaId is the incoming variable
+                    //EXPAND: if no bigger than theta_min is present, maxAlphaId is the incoming variable
+                    bool original = true;
+                    if(!original){
+                        int candidateAlphaId = secondPassRatios[0]->variableIndex;
+                        int candidateBreakpointId = -1;
+                        double limit = (m_expand == "HARRIS") ? 0 : thetaMin;
+                        //choosing best pivot candidate with positive ratio value
+                        for(unsigned i=1; i < secondPassRatios.size(); i++){
+                            variableIndex = secondPassRatios[i]->variableIndex;
+                            if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(candidateAlphaId)) &&
+                                    (secondPassRatios[i]->value > limit)){
+                                candidateAlphaId = variableIndex;
+                                candidateBreakpointId = i;
                             }
-                            theta = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                        }
+                        if(candidateBreakpointId != -1){
+//                            LPINFO("TAKEOVER");
+                            maxBreakpointId = candidateBreakpointId;
+                            maxAlphaId = candidateAlphaId;
                         }
                     }
+                    //theta remains zero if the choosen breakpoint value is smaller than thetaMin
+                    //Harris, expand
+                    if(secondPassRatios[maxBreakpointId]->value < thetaMin){
+//                        LPINFO("Harris ratiotest theta is zero!");
+                        m_degenerate = true;
+                        m_dualSteplength = m_sigma * thetaMin;
+                    } else {
+                        m_degenerate = false;
+                        m_dualSteplength = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                    }
                     m_incomingVariableIndex = maxAlphaId;
-                    m_dualSteplength = theta;
                 }
             }
         } else {
             LPWARNING(" - Ratiotest - No breakpoint found!");
             m_incomingVariableIndex = -1;
-//            throw DualUnboundedException("No breakpoint found!");
         }
     }
 }
