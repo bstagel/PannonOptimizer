@@ -78,6 +78,7 @@ public:
     //Ratiotest
     class Ratiotest {
     public:
+        static const bool E_PIVOT_GENERATION;
         static const char * NONLINEAR_PRIMAL_PHASEI_FUNCTION;
         static const char * NONLINEAR_DUAL_PHASEI_FUNCTION;
         static const char * NONLINEAR_DUAL_PHASEII_FUNCTION;

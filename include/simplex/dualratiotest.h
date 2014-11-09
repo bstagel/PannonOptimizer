@@ -303,6 +303,8 @@ private:
      */
     int m_fakeFeasibilityCounterPhase2;
 
+    bool m_ePivotGeneration;
+
     //Parameter references
     /**
      * Reference of the run-time parameter "nonlinear_dual_phaseI_function",

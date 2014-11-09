@@ -10,7 +10,8 @@ TARGET = NewPanOpt
 
 LIBS += -pthread
 
-LIBS += -lgmpxx -lgmp
+#linux specific...
+#LIBS += -lgmpxx -lgmp
 
 CONFIG(release, debug|release) {
     #message("NewPanOpt: Release mode!")

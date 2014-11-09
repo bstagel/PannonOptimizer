@@ -55,6 +55,8 @@
 #define PRICING_SIMPRI_PHASEII_VISIT_CLUSTERS_COMMENT ""
 #define PRICING_SIMPRI_PHASEII_IMPROVING_CANDIDADES_COMMENT ""
 
+#define RATIOTEST_E_PIVOT_GENERATION_COMMENT "# Generate ratios with e_pivot tolerance"
+
 #define RATIOTEST_NONLINEAR_PRIMAL_PHASEI_FUNCTION_COMMENT R"(	# Use the piecewise linear concave function in primal phase I. \
 # TRADITIONAL: Traditional one step method \
 # PIECEWISE: Piecewise linear function \

@@ -581,6 +581,7 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToIndexedDenseAbsRel
 Numerical::Double IndexedDenseVector::dotProductIndexedDenseToDenseUnstable(const IndexedDenseVector &vector1,
                                                                             const DenseVector &vector2) const
 {
+    //TODO: What is this actually? This function is not suitable
     return Architecture::getIndexedDenseToIndexedDenseDotProductUnstable()(vector1.m_data,
                                                                            vector2.m_data,
                                                                            vector1.m_nonzeroIndices,

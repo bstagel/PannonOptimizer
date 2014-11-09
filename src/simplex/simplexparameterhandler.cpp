@@ -210,6 +210,12 @@ void SimplexParameterHandler::initParameters()
                       DefaultParameters::Pricing::Simpri::PHASEII_IMPROVING_CANDIDATES);
 
     //Ratiotest
+    createParameter("Ratiotest.e_pivot_generation",
+                    Entry::BOOL,
+                    RATIOTEST_E_PIVOT_GENERATION_COMMENT);
+    setParameterValue("Ratiotest.e_pivot_generation",
+                      DefaultParameters::Ratiotest::E_PIVOT_GENERATION);
+
     createParameter("Ratiotest.nonlinear_primal_phaseI_function",
                     Entry::STRING,
                     RATIOTEST_NONLINEAR_PRIMAL_PHASEI_FUNCTION_COMMENT);

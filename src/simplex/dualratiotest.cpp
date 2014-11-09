@@ -32,6 +32,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_stablePivotNotFoundPhase2(0),
     m_fakeFeasibilityActivationPhase2(0),
     m_fakeFeasibilityCounterPhase2(0),
+    m_ePivotGeneration(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.e_pivot_generation")),
     m_nonlinearDualPhaseIFunction(getDualRatiotestMethod(
                                       SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.nonlinear_dual_phaseI_function"))),
     m_nonlinearDualPhaseIIFunction(getDualRatiotestMethod(
@@ -57,7 +58,7 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     IndexList<>::PartitionIterator endit;
     Variable::VARIABLE_TYPE typeOfIthVariable;
     Numerical::Double epsilon = 0;
-    if(m_nonlinearDualPhaseIFunction < 2){
+    if(m_ePivotGeneration){
         epsilon = m_pivotTolerance;
     }
 
@@ -457,8 +458,8 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
     Numerical::Double epsilon = 0;
-    if(m_nonlinearDualPhaseIIFunction < 2){
-        epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot");
+    if(m_ePivotGeneration){
+        epsilon = m_pivotTolerance;
     }
 
     //free variables always enter the basis
