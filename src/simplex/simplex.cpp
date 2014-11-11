@@ -734,8 +734,7 @@ void Simplex::computeReducedCosts() {
     simplexMultiplier.setSparsityRatio(DENSE);
     const Vector& costVector = m_simplexModel->getCostVector();
     for(unsigned int i = 0; i<m_basisHead.size(); i++){
-        // TODO: majd a perturbacio miatt el kell tekinteni a feltetel elso feletol
-        if(m_basisHead[i] < (int) columnCount && costVector.at(m_basisHead[i]) != 0.0){
+        if(costVector.at(m_basisHead[i]) != 0.0){
             simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
         }
     }

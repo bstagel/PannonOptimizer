@@ -37,7 +37,7 @@ const int DefaultParameters::Pricing::Simpri::PHASEII_CLUSTERS = 1;
 const int DefaultParameters::Pricing::Simpri::PHASEII_VISIT_CLUSTERS = 1;
 const int DefaultParameters::Pricing::Simpri::PHASEII_IMPROVING_CANDIDATES = 0;
 //Ratiotest
-const bool DefaultParameters::Ratiotest::E_PIVOT_GENERATION = false;
+const bool DefaultParameters::Ratiotest::E_PIVOT_GENERATION = true;
 const char * DefaultParameters::Ratiotest::NONLINEAR_PRIMAL_PHASEI_FUNCTION = "PIECEWISE";
 const char * DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEI_FUNCTION = "PIECEWISE";
 const char * DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEII_FUNCTION = "PIECEWISE";

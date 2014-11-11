@@ -69,7 +69,7 @@
 
 #define RATIOTEST_NONLINEAR_DUAL_PHASEII_FUNCTION_COMMENT R"(	# Use the piecewise linear concave function in dual phase II. \
 # TRADITIONAL: Traditional one step method \
-# PIECEWIESE: Piecewise linear function \
+# PIECEWISE: Piecewise linear function \
 # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold )"
 
 #define RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT "# Enable fake feasibility handling in Primal / Dual Phase I and II"
