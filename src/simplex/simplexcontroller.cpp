@@ -449,9 +449,6 @@ void SimplexController::solve(const Model &model)
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
         LPINFO("OPTIMAL SOLUTION found! ");
-        m_solveTimer.stop();
-        m_iterationReport->addProviderForSolution(*m_currentSimplex);
-        writeSolutionReport();
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
@@ -505,6 +502,9 @@ void SimplexController::solve(const Model &model)
     } catch (...) {
         LPERROR("Unknown exception");
     }
+    m_solveTimer.stop();
+    m_iterationReport->addProviderForSolution(*m_currentSimplex);
+    writeSolutionReport();
 }
 
 void SimplexController::switchAlgorithm(const Model &model)
