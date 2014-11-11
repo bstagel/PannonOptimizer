@@ -849,7 +849,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
                     //theta remains zero if the choosen breakpoint value is smaller than thetaMin
                     //Harris, expand
-                    if(secondPassRatios[maxBreakpointId]->value < thetaMin){
+                    if(secondPassRatios[maxBreakpointId]->value <= thetaMin){
 //                        LPINFO("Harris ratiotest theta is zero!");
                         m_degenerate = true;
                         m_dualSteplength = m_sigma * thetaMin;
