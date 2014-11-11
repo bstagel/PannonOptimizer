@@ -652,24 +652,24 @@ void DualSimplex::computeTransformedRow() {
     LPINFO(diff.absMaxElement() << " " << otherRow.euclidNorm() << "  " << m_pivotRowOfBasisInverse.euclidNorm());
     cin.get();*/
 
-    /*IndexList<const Numerical::Double *>::Iterator it;
-    IndexList<const Numerical::Double *>::Iterator itEnd;
+//    IndexList<const Numerical::Double *>::Iterator it;
+//    IndexList<const Numerical::Double *>::Iterator itEnd;
 
-    // columnwise version
-    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-    for(; it != itEnd ; ++it){
-        unsigned int columnIndex = it.getData();
-        if(columnIndex < columnCount){
-            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
-            //Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
-            Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
-            //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
-            m_pivotRow->set(columnIndex, dotProd);
-        } else {
-            m_pivotRow->set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
-        }
-    }
-    m_pivotRow->set( m_basisHead[ m_outgoingIndex ], 1.0 );*/
+//    // columnwise version
+//    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
+//    for(; it != itEnd ; ++it){
+//        unsigned int columnIndex = it.getData();
+//        if(columnIndex < columnCount){
+//            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
+//            //Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+//            Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+//            //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
+//            m_pivotRow.set(columnIndex, dotProd);
+//        } else {
+//            m_pivotRow.set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
+//        }
+//    }
+//    m_pivotRow.set( m_basisHead[ m_outgoingIndex ], 1.0 );
 
     /////////////////////////////////////////
     /*Vector otherAlpha(rowCount + columnCount);

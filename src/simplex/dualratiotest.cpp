@@ -652,9 +652,9 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
         breakpoint = m_breakpointHandler.getBreakpoint(nextIterationCounter);
         Numerical::Double t_next = breakpoint->value;
         if ( t_actual == t_next ) {
-            if (Numerical::fabs(alpha.at(breakpoint->variableIndex)) / m_variableAge[breakpoint->variableIndex] > maxAlphaAbs){
+            if (Numerical::fabs(alpha.at(breakpoint->variableIndex))> maxAlphaAbs){
                 maxAlphaId = nextIterationCounter;
-                maxAlphaAbs = Numerical::fabs(alpha.at(breakpoint->variableIndex)) / m_variableAge[breakpoint->variableIndex];
+                maxAlphaAbs = Numerical::fabs(alpha.at(breakpoint->variableIndex));
             }
         }else{
             break;
@@ -743,7 +743,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             if(m_expand == "INACTIVE" && m_enableFakeFeasibility){
                 const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
                 int fakeFeasibilityCounter = 0;
-
                 while ( breakpoint->value < 0) {
                     if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > m_optimalityTolerance){
                         throw FallbackException("Infeasible variable in phase 2");
