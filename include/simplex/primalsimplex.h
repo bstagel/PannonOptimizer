@@ -158,6 +158,8 @@ private:
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
+
+    void resetTolerances();
 };
 
 #endif /* PRIMALSIMPLEX_H */

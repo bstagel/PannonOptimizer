@@ -155,7 +155,8 @@
 # The export should be clean, it is appended with one line for each problem solved\
 # The available export types are the following: \
 # PARAMETER_STUDY = Parameter study (reporting numerical problems, tolerances and the solution) \
-# RATIOTEST_STUDY = Ratiotest study (reporting measures of the ratio tests) )"
+# RATIOTEST_STUDY = Ratiotest study (reporting measures of the ratio tests) \
+# REVISION_CHECK = Ratiotest study (reporting measures of the ratio tests) )"
 
 #define GLOBAL_EXPORT_ENABLE_COMMENT ""
 #define GLOBAL_EXPORT_FILENAME_COMMENT ""
