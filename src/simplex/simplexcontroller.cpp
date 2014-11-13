@@ -136,6 +136,15 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   6, IterationReportField::IRF_FIXED));
 
+        } else if (m_exportType == "REVISION_CHECK") {
+            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_INT, *this));
+            result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  6, IterationReportField::IRF_FIXED));
+
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
         }
@@ -255,15 +264,12 @@ Numerical::Double SimplexController::parallelIterations(
     for (iterations = 0; iterations < iterationNumber; iterations++) {
         try{
             //iterate
-//            LPINFO("before iteration");
             m_currentSimplex->iterate();
-//            LPINFO("after iteration");
             if(!m_currentSimplex->m_feasible){
                 lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
             }else{
                 lastObjective = m_currentSimplex->getObjectiveValue();
             }
-            //reinversionCounter++;
 
             if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                 m_iterationReport->createIterationReport();
@@ -275,13 +281,11 @@ Numerical::Double SimplexController::parallelIterations(
             m_currentSimplex->reinvert();
             iterations--;
         } catch ( const OptimizationResultException & exception ) {
-            //                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
-            m_currentSimplex->m_simplexModel->resetModel();
+            m_currentSimplex->reset();
             //Check the result with triggering reinversion
             if(m_freshBasis){
                 throw;
             } else {
-                //reinversionCounter = iterationNumber;
                 iterations--;
             }
         } catch ( const NumericalException & exception ) {
@@ -290,7 +294,6 @@ Numerical::Double SimplexController::parallelIterations(
                 throw;
             } else {
                 LPINFO("Numerical error: "<<exception.getMessage());
-                // reinversionCounter = reinversionFrequency;
                 iterations--;
             }
         } catch(const SwitchAlgorithmException& exception){
@@ -364,32 +367,18 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
                 m_freshBasis = true;
-                //switch(switching){
-                //every reinversion
-                //case 1:
+
                 if (switching == "SWITCH_BEFORE_INV") {
                     if (m_iterationIndex > 1){
                         switchAlgorithm(model);
                     }
-                }
-                //   break;
-                //                //at entering phase-2
-                if (switching == "SWITCH_WHEN_ENTER_PH2") {
+                } else if (switching == "SWITCH_WHEN_ENTER_PH2") {
 
-                }
-                //case 2:
-                //    break;
-                //                first reinversion in phase-2
-                //case 3:
-                if (switching == "SWITCH_BEFORE_INV_PH2") {
+                } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
                         switchAlgorithm(model);
                     }
-                }
-                //  break;
-                //at degeneracy
-                //case 4:
-                if (switching == "SWITCH_WHEN_NO_IMPR") {
+                } else if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
                             switchAlgorithm(model);
@@ -398,8 +387,6 @@ void SimplexController::solve(const Model &model)
                         }
                     }
                 }
-                //  break;
-                //}
             }
             //  lastObjective = parallelIterations(model, reinversionFrequency);
             try{
@@ -422,8 +409,7 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->reinvert();
                 m_iterationIndex--;
             } catch ( const OptimizationResultException & exception ) {
-                //                LPWARNING("OptimizationResultException cought! "<<m_freshBasis);
-                m_currentSimplex->m_simplexModel->resetModel();
+                m_currentSimplex->reset();
                 //Check the result with triggering reinversion
                 if(m_freshBasis){
                     throw;

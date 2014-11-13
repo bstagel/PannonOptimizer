@@ -389,6 +389,11 @@ protected:
 //    void variableAdded();
 
     /**
+     * Trigger for recomputation of the reduced costs at the next reinversion
+     */
+    bool m_recomputeReducedCosts;
+
+    /**
      * Initializes the basis, starting basis finder modules.
      *
      * @throws ParameterException if wrong factorisation type in the parameter file is specified
@@ -409,8 +414,6 @@ protected:
      * This function performs one simplex iteration. (pricing, ratiotest, update)
      */
     void iterate();
-
-//    void resetModel();
 
     /**
      * Setter for the Timer object.
@@ -605,6 +608,10 @@ protected:
     void registerIntoIterationReport(const IterationReportProvider & provider);
 
     Numerical::Double sensitivityAnalysisRhs() const;
+
+    void reset();
+
+    virtual void resetTolerances() = 0;
 };
 
 #endif /* SIMPLEX_H */

@@ -397,9 +397,8 @@ void PrimalSimplex::computeWorkingTolerance() {
     //increment the EXPAND tolerance
     if (m_toleranceStep != 0) {
         m_workingTolerance += m_toleranceStep;
-         //reset the EXPAND tolerance
         if (m_workingTolerance >= m_masterTolerance) {
-            m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+            resetTolerances();
         }
     }
 }
@@ -434,5 +433,14 @@ void PrimalSimplex::updateReducedCosts() {
         const unsigned int index = roIter.getIndex() + structuralVariableCount;;
 
         m_reducedCosts.set( index, Numerical::stableAdd( m_reducedCosts.at(index), - lambda) );
+    }
+}
+
+void PrimalSimplex::resetTolerances() {
+    //reset the EXPAND tolerance
+    m_recomputeReducedCosts = true;
+    if(m_workingTolerance != m_masterTolerance * m_toleranceMultiplier){
+        LPINFO("Resetting EXPAND tolerance!");
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

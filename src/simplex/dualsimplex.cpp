@@ -131,6 +131,8 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
+        } else if (m_exportType == "REVISION_CHECK") {
+
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
         }
@@ -608,10 +610,8 @@ void DualSimplex::computeWorkingTolerance() {
     //increment the EXPAND tolerance
     if (m_toleranceStep != 0) {
         m_workingTolerance += m_toleranceStep;
-        //reset the EXPAND tolerance
         if (m_workingTolerance >= m_masterTolerance) {
-            LPINFO("Resetting EXPAND tolerance!");
-            m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+            resetTolerances();
         }
     }
 }
@@ -727,12 +727,16 @@ void DualSimplex::computeTransformedRow() {
 }
 
 void DualSimplex::updateReducedCosts() {
-    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
+    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_FAST );
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
 }
 
-
-
-
-
+void DualSimplex::resetTolerances() {
+    //reset the EXPAND tolerance
+    m_recomputeReducedCosts = true;
+    if(m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
+        LPINFO("Resetting EXPAND tolerance!");
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+    }
+}

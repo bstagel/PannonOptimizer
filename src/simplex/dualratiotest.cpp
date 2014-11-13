@@ -859,7 +859,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     m_incomingVariableIndex = maxAlphaId;
                 } else if(m_dualSteplength != 0){
                     m_degenerate = false;
-                }else{
+                } else{
                     m_degenerate = true;
                 }
             }

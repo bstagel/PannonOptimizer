@@ -82,7 +82,9 @@ Simplex::Simplex(SimplexController &simplexController):
     m_degenerateIterations(0),
     //Modules
     m_startingBasisFinder(NULL),
-    m_basis(NULL)
+    m_basis(NULL),
+    m_pricing(NULL),
+    m_recomputeReducedCosts(true)
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
     m_reducedCosts.setSparsityRatio(DENSE);
@@ -200,6 +202,12 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_ENABLE_FAKE_FEASIBILITY,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_INT, *this));
+        } else if (m_exportType == "REVISION_CHECK") {
+            result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
+                                                  IterationReportField::IRF_STRING, *this));
+            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  10, IterationReportField::IRF_SCIENTIFIC));
         } else {
             throw ParameterException("Invalid export type specified in the parameter file!");
         }
@@ -359,7 +367,6 @@ void Simplex::setSimplexState(const Simplex & simplex)
 void Simplex::iterate()
 {
     m_feasibleIteration = m_feasible;
-    computeWorkingTolerance();
 
     m_priceTimer.start();
     price();
@@ -372,6 +379,8 @@ void Simplex::iterate()
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
+
+    computeWorkingTolerance();
 }
 
 //void Simplex::constraintAdded()
@@ -676,9 +685,12 @@ void Simplex::reinvert() {
 
     //if only degenerate iterations since last inversion, reduced cost values are not recomputed
     //If an exception is thrown incoming or outgoing index is -1, and the reduced costs must be recomputed
-    if(!m_degenerate || m_outgoingIndex == -1 || m_incomingIndex == -1){
+//    if(!m_degenerate || m_outgoingIndex == -1 || m_incomingIndex == -1){
+//        computeReducedCosts();
+//        m_degenerate = true;
+//    }
+    if(m_recomputeReducedCosts){
         computeReducedCosts();
-        m_degenerate = true;
     }
     //No need to update in an else, since the update() function already did the update
     m_computeReducedCostsTimer.stop();
@@ -725,6 +737,9 @@ void Simplex::computeBasicSolution() {
 }
 
 void Simplex::computeReducedCosts() {
+    LPINFO("compute");
+    m_recomputeReducedCosts = false;
+
     m_reducedCosts.clear();
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
@@ -852,4 +867,9 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
     }
     LPINFO((sumMinLog / rowCount) << ", " << (sumMaxLog / rowCount) << "  " << (sumDiffLog / rowCount));
     return upper - lower;
+}
+
+void Simplex::reset() {
+    m_simplexModel->resetModel();
+    resetTolerances();
 }

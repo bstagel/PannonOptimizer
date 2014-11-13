@@ -308,6 +308,7 @@ void SimplexModel::perturbCostVector()
     }
 
     //perturbation: c + epsilonValues
+    //TODO: ADD_FAST kapcsolo hasznalata?
     m_costVector.addVector(1,epsilonValues);
     m_perturbedCostVector = true;
 }
