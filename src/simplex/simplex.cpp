@@ -84,6 +84,7 @@ Simplex::Simplex(SimplexController &simplexController):
     m_startingBasisFinder(NULL),
     m_basis(NULL),
     m_pricing(NULL),
+    m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
 {
     m_basicVariableValues.setSparsityRatio(DENSE);
@@ -381,6 +382,10 @@ void Simplex::iterate()
     m_updateTimer.stop();
 
     computeWorkingTolerance();
+
+    if(!m_feasible){
+        m_recomputeReducedCosts = true;
+    }
 }
 
 //void Simplex::constraintAdded()
@@ -689,7 +694,11 @@ void Simplex::reinvert() {
 //        computeReducedCosts();
 //        m_degenerate = true;
 //    }
-    if(m_recomputeReducedCosts){
+    if(m_expand != "INACTIVE"){
+        if(m_recomputeReducedCosts){
+            computeReducedCosts();
+        }
+    } else {
         computeReducedCosts();
     }
     //No need to update in an else, since the update() function already did the update
@@ -737,7 +746,6 @@ void Simplex::computeBasicSolution() {
 }
 
 void Simplex::computeReducedCosts() {
-    LPINFO("compute");
     m_recomputeReducedCosts = false;
 
     m_reducedCosts.clear();

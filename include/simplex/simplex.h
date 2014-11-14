@@ -389,6 +389,12 @@ protected:
 //    void variableAdded();
 
     /**
+     * Parameter reference of run-time parameter "expand",
+     * see SimplexParameterHandler for details.
+     */
+    const std::string & m_expand;
+
+    /**
      * Trigger for recomputation of the reduced costs at the next reinversion
      */
     bool m_recomputeReducedCosts;
