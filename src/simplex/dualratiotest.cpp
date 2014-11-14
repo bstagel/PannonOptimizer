@@ -494,8 +494,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
             if (signedAlpha > epsilon) {
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             }
             ++it;
         }
@@ -505,8 +504,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
             if (signedAlpha < -epsilon) {
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             }
             ++it;
         }
@@ -518,10 +516,6 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
 void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
                                                       Numerical::Double workingTolerance)
 {
-    #ifndef NDEBUG
-    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
-    #endif
-
     //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
@@ -549,17 +543,10 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
             int variableIndex = it.getData();
             Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
             if ( signedAlpha > m_pivotTolerance) {
-//                Numerical::Double value = m_reducedCosts.at(variableIndex) / signedAlpha;
-//                m_breakpointHandler.insertBreakpoint(variableIndex,
-//                                                     value ,
-//                                                     value + (workingTolerance / signedAlpha ));
                 const Numerical::Double& reducedCost = m_reducedCosts.at(variableIndex);
                 m_breakpointHandler.insertBreakpoint(variableIndex,
                                                      reducedCost / signedAlpha,
                                                      (reducedCost + workingTolerance) / signedAlpha);
-//                m_breakpointHandler.insertBreakpoint(variableIndex,
-//                                                     m_reducedCosts.at(variableIndex) / signedAlpha,
-//                                                     (m_reducedCosts.at(variableIndex) + workingTolerance) / signedAlpha);
             }
             ++it;
         }
@@ -841,7 +828,8 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                             }
                         }
                         if(candidateBreakpointId != -1){
-//                            LPINFO("TAKEOVER");
+//                            LPINFO("t: "<<secondPassRatios[candidateBreakpointId]->value<<" vs "<<
+//                                   secondPassRatios[maxBreakpointId]->value<<" thetamin: "<<thetaMin);
                             maxBreakpointId = candidateBreakpointId;
                             maxAlphaId = candidateAlphaId;
                         }
@@ -849,7 +837,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     //theta remains zero if the choosen breakpoint value is smaller than thetaMin
                     //Harris, expand
                     if(secondPassRatios[maxBreakpointId]->value <= thetaMin){
-//                        LPINFO("Harris ratiotest theta is zero!");
+//                        LPINFO("ThetaMin selected: "<<m_thetaMin);
                         m_degenerate = true;
                         m_dualSteplength = m_sigma * thetaMin;
                     } else {
