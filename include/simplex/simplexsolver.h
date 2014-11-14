@@ -15,7 +15,6 @@ class SimplexSolver {
 public:
     void solve(const Model & model);
 private:
-    const Model * m_model;
     void parallelSolve(const Model *model);
 };
 
