@@ -727,7 +727,7 @@ void DualSimplex::computeTransformedRow() {
 }
 
 void DualSimplex::updateReducedCosts() {
-    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_ABS_REL );
+    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_FAST);
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
 }

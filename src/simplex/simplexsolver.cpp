@@ -7,13 +7,9 @@
 
 void SimplexSolver::solve(const Model &model)
 {
-    bool parallel = SimplexParameterHandler::getInstance().getBoolParameterValue("enableParallelization");
+    bool parallel = SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization");
     if (parallel) {
-       // m_model = &model;
 //        unsigned int threadIndex;
-        LPINFO("\t" << (&model));
-        //Model m1 = model;
-        //Model m2 = model;
         std::thread t1( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
         std::thread t2( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
         t1.join();

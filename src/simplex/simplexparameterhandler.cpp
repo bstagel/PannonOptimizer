@@ -428,10 +428,10 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Global.Export.type",
                       DefaultParameters::Global::Export::TYPE);
 
-    createParameter("enableParallelization",
+    createParameter("enable_parallelization",
                     Entry::BOOL,
                     ENABLE_PARALLELIZATION_COMMENT);
-    setParameterValue("enableParallelization",
+    setParameterValue("enable_parallelization",
                       DefaultParameters::ENABLE_PARALLELIZATION);
 
 
@@ -535,7 +535,7 @@ void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
     NodeFile::Node root = m_nodeFile.getDocumentNode();
     m_enableParallelization = false;
     try {
-        m_enableParallelization = root.getValue("enableParallelization") == "true";
+        m_enableParallelization = root.getValue("enable_parallelization") == "true";
         std::vector<NodeFile::Node>::const_iterator nodeIter;
         std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
         root.getNodes("Parallel", &nodeIter, &nodeIterEnd);
