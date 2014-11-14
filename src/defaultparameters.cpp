@@ -77,7 +77,7 @@ const char* DefaultParameters::Global::LoadBasis::FORMAT = "PBF";
 
 const bool DefaultParameters::Global::Export::ENABLE = false;
 const char * DefaultParameters::Global::Export::FILENAME = "exported_result.txt";
-const char * DefaultParameters::Global::Export::TYPE = "PARAMETER_STUDY";
+const char * DefaultParameters::Global::Export::TYPE = "RATIOTEST_STUDY";
 
 //Parallelization
 const bool DefaultParameters::ENABLE_PARALLELIZATION = false;
