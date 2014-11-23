@@ -735,8 +735,8 @@ void DualSimplex::updateReducedCosts() {
 void DualSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
-    if(m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-        LPINFO("Resetting EXPAND tolerance!");
+    if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
+//        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

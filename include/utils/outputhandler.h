@@ -62,6 +62,22 @@ public:
 };
 
 /**
+ * Report handler class for solution reports.
+ *
+ * @class ReportHandler
+ */
+class ReportHandler: public GeneralMessageHandler {
+public:
+
+    /**
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
+     */
+    void addMessage( const std::string & message );
+};
+
+/**
  * Message handler class for information messages.
  *
  * @class MessageHandler
@@ -153,6 +169,13 @@ public:
     static OutputHandler & getInstance();
 
     /**
+     * Sets the report handler of the program to a given handler object.
+     *
+     * @param handler The new information message handler.
+     */
+    void setReportHandler(GeneralMessageHandler * handler);
+
+    /**
      * Sets the information message handler of the program to a given handler object.
      *
      * @param handler The new information message handler.
@@ -179,6 +202,13 @@ public:
      * @param handler The new debug message handler.
      */
     void setDebugHandler(GeneralMessageHandler * handler);
+
+    /**
+     * Adds a report to the given output with the used report handler.
+     *
+     * @param stream The output stream.
+     */
+    void addReport(const std::ostringstream & stream);
 
     /**
      * Adds an information message to the given output with the used information message handler.
@@ -210,6 +240,11 @@ public:
      */
     void addDebug(const std::ostringstream & stream,
                   const char * file, unsigned int line);
+
+    /**
+     * Sets the report handler of the program to default.
+     */
+    void setDefaultReportHandler();
 
     /**
      * Sets the information message handler of the program to default.
@@ -255,6 +290,11 @@ private:
      * @destructor
      */
     ~OutputHandler();
+
+    /**
+     * The report handler of the program.
+     */
+    GeneralMessageHandler * m_reportHandler;
 
     /**
      * The information message handler of the program.

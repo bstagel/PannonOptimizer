@@ -142,6 +142,9 @@ public:
             static const char * FILENAME;
             static const char * TYPE;
         };
+
+        static const bool BATCH_OUTPUT;
+        static const int BATCH_SIZE;
     };
 
     //Parallelization

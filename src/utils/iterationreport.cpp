@@ -12,13 +12,20 @@ IterationReport::IterationReport():
     m_providerChanged(false),
     m_refreshHeader(true),
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
-    m_lastDebugLevel(m_debugLevel)
+    m_lastDebugLevel(m_debugLevel),
+    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization")),
+    m_batchMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.batch_output")),
+    m_batchSize(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.batch_size")),
+    m_actualBatch(0)
 {
     m_lastOutputEvent = IR_NONE;
 }
 
 IterationReport::IterationReport(const IterationReport & orig):
-    m_debugLevel(orig.m_debugLevel)
+    m_debugLevel(orig.m_debugLevel),
+    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization")),
+    m_batchMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.batch_output")),
+    m_batchSize(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.batch_size"))
 {
     copy(orig);
 }
@@ -41,7 +48,6 @@ void IterationReport::copy(const IterationReport & orig) {
     m_startFields = orig.m_startFields;
     m_iterationFields = orig.m_iterationFields;
     m_solutionFields = orig.m_solutionFields;
-    //m_iterationTable = orig.m_iterationTable;
     m_startTable = orig.m_startTable;
     m_solutionTable = orig.m_solutionTable;
     m_refreshHeader = orig.m_refreshHeader;
@@ -49,15 +55,6 @@ void IterationReport::copy(const IterationReport & orig) {
 
     unsigned int columnIndex = 0;
     unsigned int index = 0;
-    /*STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
-        if (iterIter->getType() == IterationReportField::IRF_STRING) {
-            for (index = 0; index < m_iterationTable.size(); index++) {
-                m_iterationTable[index][columnIndex].m_string =
-                        new std::string(*m_iterationTable[index][columnIndex].m_string);
-            }
-        }
-        columnIndex++;
-    }*/
 
     columnIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, m_startFields, startIter) {
@@ -77,18 +74,7 @@ void IterationReport::copy(const IterationReport & orig) {
 }
 
 void IterationReport::clear() {
-    /*unsigned int columnIndex = 0;
-    unsigned int index = 0;
-    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, iterIter) {
-        if (iterIter->getType() == IterationReportField::IRF_STRING) {
-            for (index = 0; index < m_iterationTable.size(); index++) {
-                delete m_iterationTable[index][columnIndex].m_string;
-            }
-        }
-        columnIndex++;
-    }*/
-
-    /*columnIndex = 0;
+    int columnIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, m_startFields, startIter) {
         if (startIter->getType() == IterationReportField::IRF_STRING) {
             delete m_startTable[columnIndex].m_string;
@@ -102,7 +88,7 @@ void IterationReport::clear() {
             delete m_solutionTable[columnIndex].m_string;
         }
         columnIndex++;
-    }*/
+    }
 }
 
 int IterationReport::getDebugLevel() const {
@@ -206,15 +192,17 @@ void IterationReport::writeSimpleTable(const std::vector<IterationReportField> &
                                        const std::vector< Entry > & row,
                                        IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     if (type == IterationReportProvider::IRF_START) {
-        LPINFO("***** STARTING REPORT *****");
+        LPREPORT("***** STARTING REPORT *****");
     } else if (type == IterationReportProvider::IRF_SOLUTION) {
-        LPINFO("***** SOLUTION REPORT *****");
+        LPREPORT("***** SOLUTION REPORT *****");
     }
     unsigned int entryIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, fields, fieldsIter) {
-        LPINFO(fieldsIter->getName() << ": " << getContent(row[entryIndex], *fieldsIter));
+        LPREPORT(fieldsIter->getName() << ": " << getContent(row[entryIndex], *fieldsIter));
+        m_actualBatch++;
         entryIndex++;
     }
+
 }
 
 void IterationReport::writeExportTable(const std::vector<IterationReportField> &fields,
@@ -243,17 +231,77 @@ void IterationReport::createStartReport() {
 }
 
 void IterationReport::writeStartReport() const {
+    std::streambuf *cerrbuf = std::cerr.rdbuf();
+    if(m_batchMode){
+        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cout to the string
+    }
+
     writeSimpleTable(m_startFields, m_startTable, IterationReportProvider::IRF_START);
+
+    if(m_batchMode){
+        std::cerr.rdbuf(cerrbuf); //reset to standard output again
+        if(m_actualBatch > m_batchSize){
+            flushBatch(); //Flush if necessary
+        }
+    }
 }
 
-void IterationReport::createIterationReport() {
+void IterationReport::showHeader() {
+    std::streambuf *cerrbuf = std::cerr.rdbuf();
+    if(m_batchMode){
+        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cout to the string
+    }
+
+    m_lastOutputEvent = IR_HEADER;
+    std::ostringstream headerString;
+    unsigned int index = 0;
+    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, fieldsIter) {
+        if(m_debugLevel  < fieldsIter->getDebugLevel() ){
+            continue;
+        }
+        // TODO: ezt az igazitosdit majd kiszedni fuggvenyekbe, baromi hulyen
+        // jon ki, hogy kicsit lejjebb is kb ugyanez a kod van
+        unsigned int width = fieldsIter->getName().length();
+        if (width < fieldsIter->getWidth()) {
+            unsigned int spaceCount = fieldsIter->getWidth() - width;
+
+            switch ( fieldsIter->getAlignment() ) {
+            case IterationReportField::IRF_CENTER:
+                headerString << std::string(spaceCount / 2, ' ') << fieldsIter->getName() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
+                break;
+            case IterationReportField::IRF_LEFT:
+                headerString << fieldsIter->getName() << std::string(spaceCount, ' ');
+                break;
+            case IterationReportField::IRF_RIGHT:
+                headerString << std::string(spaceCount, ' ') << fieldsIter->getName();
+                break;
+            }
+
+        } else {
+            headerString << fieldsIter->getName();
+        }
+        if (index < m_iterationFields.size() - 1) {
+            headerString << "|";
+        }
+        index++;
+    }
+    m_actualBatch++;
+    LPREPORT(headerString.str());
+
+    if(m_batchMode){
+        std::cerr.rdbuf(cerrbuf); //reset to standard output again
+        //No flush after a header is prepared
+    }
+}
+
+void IterationReport::writeIterationReport() {
+    std::streambuf *cerrbuf = std::cerr.rdbuf();
+    if(m_batchMode){
+        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cerr to the string
+    }
+
     std::vector<Entry> newRow;
     getRow(m_iterationFields, &newRow, IterationReportProvider::IRF_ITERATION);
-    //m_iterationTable.push_back(newRow);
-
-    /*if (m_iterationTable.size() == 0) {
-        return;
-    }*/
 
     if (m_lastDebugLevel != m_debugLevel || m_providerChanged) {
         showHeader();
@@ -308,50 +356,17 @@ void IterationReport::createIterationReport() {
         }
     }
     if (fieldCounter > 0) {
-        LPINFO(row.str());
+        LPREPORT(row.str());
+        m_actualBatch++;
     }
     m_lastOutputEvent = IR_ROW;
-}
 
-void IterationReport::showHeader() {
-    m_lastOutputEvent = IR_HEADER;
-    std::ostringstream headerString;
-    unsigned int index = 0;
-    STL_FOREACH(std::vector<IterationReportField>, m_iterationFields, fieldsIter) {
-        if(m_debugLevel  < fieldsIter->getDebugLevel() ){
-            continue;
+    if(m_batchMode){
+        std::cerr.rdbuf(cerrbuf); //reset to standard output again
+        if(m_actualBatch > m_batchSize){
+            flushBatch(); //Flush if necessary
         }
-        // TODO: ezt az igazitosdit majd kiszedni fuggvenyekbe, baromi hulyen
-        // jon ki, hogy kicsit lejjebb is kb ugyanez a kod van
-        unsigned int width = fieldsIter->getName().length();
-        if (width < fieldsIter->getWidth()) {
-            unsigned int spaceCount = fieldsIter->getWidth() - width;
-
-            switch ( fieldsIter->getAlignment() ) {
-            case IterationReportField::IRF_CENTER:
-                headerString << std::string(spaceCount / 2, ' ') << fieldsIter->getName() << std::string(spaceCount / 2 + spaceCount % 2, ' ');
-                break;
-            case IterationReportField::IRF_LEFT:
-                headerString << fieldsIter->getName() << std::string(spaceCount, ' ');
-                break;
-            case IterationReportField::IRF_RIGHT:
-                headerString << std::string(spaceCount, ' ') << fieldsIter->getName();
-                break;
-            }
-
-        } else {
-            headerString << fieldsIter->getName();
-        }
-        if (index < m_iterationFields.size() - 1) {
-            headerString << "|";
-        }
-        index++;
     }
-    LPINFO(headerString.str());
-}
-
-void IterationReport::writeIterationReport() {
-
 }
 
 void IterationReport::createSolutionReport() {
@@ -359,7 +374,17 @@ void IterationReport::createSolutionReport() {
 }
 
 void IterationReport::writeSolutionReport() const {
+    std::streambuf *cerrbuf = std::cerr.rdbuf();
+    if(m_batchMode){
+        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cerr to the string
+    }
+
     writeSimpleTable(m_solutionFields, m_solutionTable, IterationReportProvider::IRF_SOLUTION);
+
+    if(m_batchMode){
+        std::cerr.rdbuf(cerrbuf); //reset to standard output again
+        flushBatch(); //Always flush after the solution report
+    }
 }
 
 void IterationReport::createExportReport() {
@@ -368,4 +393,12 @@ void IterationReport::createExportReport() {
 
 void IterationReport::writeExportReport(std::string filename) const {
     writeExportTable(m_exportFields, m_exportTable, filename);
+}
+
+void IterationReport::flushBatch() const {
+    m_outputMutex.lock();
+    std::cerr << m_outputStream.str();
+    m_outputMutex.unlock();
+    m_outputStream.str("");
+    m_actualBatch = 0;
 }

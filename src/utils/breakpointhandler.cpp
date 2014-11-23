@@ -90,9 +90,17 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
         }
     }
 
+    //TODO: Bounded variables can fall back, this remains undetected
     if(theta_1 < 0){
         LPINFO("theta_1 "<<theta_1);
         throw FallbackException(std::string("Expanded value negative"));
+    }
+
+    for(int i = m_unsorted; i < (int)m_size; i++){
+        if(m_breakpoints[i].additionalValue < 0){
+            LPERROR("bounded fallback with additionalValue: "<<m_breakpoints[i].additionalValue);
+            throw FallbackException(std::string("BOUNDED expanded value negative!"));
+        }
     }
 
     for(unsigned i = m_size - (m_unsorted+1); i < m_size; i++){

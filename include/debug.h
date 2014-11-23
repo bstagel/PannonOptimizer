@@ -67,6 +67,11 @@
 /*********************************HELPER****************************************************************/
 
 #define LPTEST(msg)
+#define LPREPORT(msg) { std::ostringstream str; \
+    str << msg; \
+    OutputHandler::getInstance().addReport(str); \
+    }
+
 #define LPINFO(msg) { std::ostringstream str; \
     str << msg; \
     OutputHandler::getInstance().addMessage(str); \

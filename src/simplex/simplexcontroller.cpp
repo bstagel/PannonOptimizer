@@ -272,7 +272,6 @@ Numerical::Double SimplexController::parallelIterations(
             }
 
             if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                m_iterationReport->createIterationReport();
                 m_iterationReport->writeIterationReport();
             }
             m_freshBasis = false;
@@ -349,9 +348,10 @@ void SimplexController::solve(const Model &model)
         }
 
         m_iterationReport->addProviderForStart(*m_currentSimplex);
-        m_iterationReport->writeStartReport();
         m_iterationReport->addProviderForIteration(*m_currentSimplex);
+        m_iterationReport->addProviderForSolution(*m_currentSimplex);
         m_iterationReport->createStartReport();
+        m_iterationReport->writeStartReport();
 
         Numerical::Double lastObjective = 0;
         //Simplex iterations
@@ -400,7 +400,6 @@ void SimplexController::solve(const Model &model)
                 reinversionCounter++;
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                    m_iterationReport->createIterationReport();
                     m_iterationReport->writeIterationReport();
                 }
                 m_freshBasis = false;
@@ -489,7 +488,6 @@ void SimplexController::solve(const Model &model)
         LPERROR("Unknown exception");
     }
     m_solveTimer.stop();
-    m_iterationReport->addProviderForSolution(*m_currentSimplex);
     writeSolutionReport();
 }
 

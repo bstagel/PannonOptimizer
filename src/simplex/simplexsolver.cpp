@@ -9,6 +9,7 @@ void SimplexSolver::solve(const Model &model)
 {
     bool parallel = SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization");
     if (parallel) {
+        std::cout << " ---------------- ";
 //        unsigned int threadIndex;
         std::thread t1( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
         std::thread t2( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
@@ -23,7 +24,7 @@ void SimplexSolver::solve(const Model &model)
 void SimplexSolver::parallelSolve(const Model * model)
 {
     ThreadSupervisor::registerMyThread();
-    LPINFO("PARALLEL SOLVE " << (model));
+
     SimplexController simplexController;
     simplexController.solve(*model);
 
