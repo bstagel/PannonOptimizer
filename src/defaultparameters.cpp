@@ -79,5 +79,8 @@ const bool DefaultParameters::Global::Export::ENABLE = false;
 const char * DefaultParameters::Global::Export::FILENAME = "exported_result.txt";
 const char * DefaultParameters::Global::Export::TYPE = "RATIOTEST_STUDY";
 
+const bool DefaultParameters::Global::BATCH_OUTPUT = false;
+const int DefaultParameters::Global::BATCH_SIZE = 10;
+
 //Parallelization
 const bool DefaultParameters::ENABLE_PARALLELIZATION = false;

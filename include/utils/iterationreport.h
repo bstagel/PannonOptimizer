@@ -8,6 +8,7 @@
 
 #include <globals.h>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <utils/iterationreportfield.h>
 #include <utils/iterationreportprovider.h>
@@ -153,6 +154,11 @@ public:
      */
     int getDebugLevel() const;
 
+    /**
+     * Writes the actual batch from the output stream to the standard output.
+     */
+    void flushBatch() const;
+
 private:
 
     /**
@@ -194,8 +200,6 @@ private:
      */
     std::vector<IterationReportField> m_exportFields;
 
-//    std::vector< std::vector< Entry > > m_iterationTable;
-
     /**
      * The table with the entries for the start of the solver to be printed.
      */
@@ -226,6 +230,37 @@ private:
      * If this is not equal to the current debug level, the next header needs to be printed.
      */
     int m_lastDebugLevel;
+
+    /**
+     * A flag indicating the parallel mode.
+     */
+    const bool & m_parallelMode;
+
+    /**
+     * Provides a batch output mode.
+     */
+    const bool & m_batchMode;
+
+    /**
+     * Provides the batch sizes of the output.
+     * Zero means that there is only one batch.
+     */
+    const int & m_batchSize;
+
+    /**
+     * The size of the actual batch.
+     */
+    mutable int m_actualBatch;
+
+    /**
+     * A mutex to lock the output.
+     */
+    mutable std::mutex m_outputMutex;
+
+    /**
+     * The string stream of one output batch.
+     */
+    mutable std::ostringstream m_outputStream;
 
     /**
      * Prints out the header describing the name of the fields in the rows under it.

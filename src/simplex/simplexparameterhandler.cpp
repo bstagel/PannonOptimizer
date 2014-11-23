@@ -73,7 +73,7 @@ void SimplexParameterHandler::writeParameterFile(){
         root.addComment("Ratiotest.Expand", SIMPLEX_PARAMETERS_RATIOTEST_EXPAND_COMMENT);
         root.addComment("Global.SaveBasis", SIMPLEX_PARAMETERS_GLOBAL_SAVEBASIS_COMMENT);
         root.addComment("Global.LoadBasis", SIMPLEX_PARAMETERS_GLOBAL_LOADBASIS_COMMENT);
-        root.addComment("Globa.Export", SIMPLEX_PARAMETERS_GLOBAL_EXPORT_COMMENT);
+        root.addComment("Global.Export", SIMPLEX_PARAMETERS_GLOBAL_EXPORT_COMMENT);
 
         // TODO:
         // - atrakni az egeszet a parameterhandler-be
@@ -422,6 +422,18 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Global.Export.filename",
                       std::string(DefaultParameters::Global::Export::FILENAME));
 
+    createParameter("Global.batch_output",
+                    Entry::BOOL,
+                    GLOBAL_BATCH_OUTPUT_COMMENT);
+    setParameterValue("Global.batch_output",
+                      DefaultParameters::Global::BATCH_OUTPUT);
+
+    createParameter("Global.batch_size",
+                    Entry::INTEGER,
+                    GLOBAL_BATCH_SIZE_COMMENT);
+    setParameterValue("Global.batch_size",
+                      DefaultParameters::Global::BATCH_SIZE);
+
     createParameter("Global.Export.type",
                     Entry::STRING,
                     GLOBAL_EXPORT_TYPE_COMMENT);
@@ -498,13 +510,15 @@ void SimplexParameterHandler::processParallelNode(const NodeFile::Node &node,
 
 const Parameter &SimplexParameterHandler::getParameter(const std::string &name) const
 {
-    if (m_enableParallelization) {
+    if (m_enableParallelization && m_threadParameters.size()>0) {
         unsigned int threadId = ThreadSupervisor::getThreadId();
-        auto iter = m_threadParameters[threadId].find(name);
-        if (iter == m_threadParameters[threadId].end()) {
-            return m_values.find(name)->second;
+        if(m_threadParameters.size() < threadId){
+            auto iter = m_threadParameters[threadId].find(name);
+            if (iter != m_threadParameters[threadId].end()) {
+                return iter->second;
+            }
         }
-        return iter->second;
+        return m_values.find(name)->second;
 
     } else {
         auto iter = m_values.find(name);
@@ -514,18 +528,21 @@ const Parameter &SimplexParameterHandler::getParameter(const std::string &name) 
 
 Parameter &SimplexParameterHandler::getParameter(const std::string & name)
 {
-    if (m_enableParallelization) {
+    if (m_enableParallelization && m_threadParameters.size()>0) {
         unsigned int threadId = ThreadSupervisor::getThreadId();
-        auto iter = m_threadParameters[threadId].find(name);
-        if (iter == m_threadParameters[threadId].end()) {
-            return m_values.find(name)->second;
+        if(m_threadParameters.size() < threadId){
+            auto iter = m_threadParameters[threadId].find(name);
+            if (iter != m_threadParameters[threadId].end()) {
+                return iter->second;
+            }
         }
-        return iter->second;
+        return m_values.find(name)->second;
 
     } else {
         auto iter = m_values.find(name);
         return iter->second;
-    }}
+    }
+}
 
 void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
 {
@@ -536,20 +553,23 @@ void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
     m_enableParallelization = false;
     try {
         m_enableParallelization = root.getValue("enable_parallelization") == "true";
-        std::vector<NodeFile::Node>::const_iterator nodeIter;
-        std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
-        root.getNodes("Parallel", &nodeIter, &nodeIterEnd);
+        if(m_enableParallelization){
+            std::vector<NodeFile::Node>::const_iterator nodeIter;
+            std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
+            root.getNodes("Parallel", &nodeIter, &nodeIterEnd);
 
-        std::vector<NodeFile::Node>::const_iterator threadIter;
-        std::vector<NodeFile::Node>::const_iterator threadIterEnd;
-
-        nodeIter->getNodes("Thread", &threadIter, &threadIterEnd);
-        for (; threadIter != threadIterEnd; threadIter++) {
-            //LPWARNING(threadIter->getName());
-            std::map<std::string, Parameter> threadParameters;
-            processParallelNode(*threadIter, "", &threadParameters);
-            m_threadParameters.push_back(threadParameters);
+            std::vector<NodeFile::Node>::const_iterator threadIter;
+            std::vector<NodeFile::Node>::const_iterator threadIterEnd;
+            nodeIter->getNodes("Thread", &threadIter, &threadIterEnd);
+            for (; threadIter != threadIterEnd; threadIter++) {
+                //LPWARNING(threadIter->getName());
+                std::map<std::string, Parameter> threadParameters;
+                processParallelNode(*threadIter, "", &threadParameters);
+                m_threadParameters.push_back(threadParameters);
+            }
         }
+    } catch (const PanOptException & exception){
+        LPERROR("PanOpt exception:"<< exception.getMessage() );
     } catch (...) {}
 
 }

@@ -4,7 +4,7 @@ std::mutex ThreadSupervisor::sm_mutex;
 
 std::set<unsigned int> * ThreadSupervisor::sm_threadIds;
 
-thread_local unsigned int ThreadSupervisor::sm_myThreadId;
+thread_local unsigned int ThreadSupervisor::sm_myThreadId = 0;
 
 unsigned int ThreadSupervisor::registerMyThread() {
     sm_mutex.lock();

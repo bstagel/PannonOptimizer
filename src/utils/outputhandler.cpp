@@ -25,10 +25,15 @@ bool GeneralMessageHandler::isColored() const {
     return m_colors;
 }
 
+void ReportHandler::addMessage(const std::string & message) {
+    std::cerr<<"[REPORT ] ";
+    std::cerr << message << std::endl;
+}
+
 void MessageHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
-        std::cerr<<"[INFO   ]";
+        std::cerr<<"[INFO   ] ";
     } else {
         std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   " DC_EMB "]" DC_D );
     }
@@ -54,7 +59,7 @@ void MessageHandler::addMessage(const std::string & message) {
 void WarningHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
-        std::cerr<<"[WARNING   ]";
+        std::cerr<<"[WARNING   ] ";
     } else {
         std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING" DC_EMY "]" DC_D);
     }
@@ -78,7 +83,7 @@ void WarningHandler::addMessage(const std::string & message) {
 void ErrorHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
-        std::cerr<<"[ERROR   ]";
+        std::cerr<<"[ERROR   ] ";
     } else {
         std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  " DC_EMR "]" DC_D );
     }
@@ -111,7 +116,7 @@ void DebugHandler::addMessage(const std::string & message,
     __UNUSED(file);
     __UNUSED(line);
     if (getenv("ECLIPSE") || m_colors == false) {
-        std::cerr<<"[ERROR   ]";
+        std::cerr<<"[ERROR   ] ";
     } else {
         std::cerr<<(DC_EMM DC_BGM "[" DC_EMW "DEBUG " DC_EMM "]" DC_EMW );
     }
@@ -142,6 +147,7 @@ OutputHandler & OutputHandler::getInstance() {
 }
 
 OutputHandler::OutputHandler():
+    m_reportHandler( new ReportHandler ),
     m_messageHandler( new MessageHandler ),
     m_warningHandler( new WarningHandler ),
     m_errorHandler( new ErrorHandler ),
@@ -152,6 +158,8 @@ OutputHandler::OutputHandler():
 }
 
 OutputHandler::~OutputHandler() {
+    delete m_reportHandler;
+    m_reportHandler = 0;
     delete m_messageHandler;
     m_messageHandler = 0;
     delete m_warningHandler;
@@ -160,6 +168,11 @@ OutputHandler::~OutputHandler() {
     m_errorHandler = 0;
     delete m_debugHandler;
     m_debugHandler = 0;
+}
+
+void OutputHandler::setReportHandler(GeneralMessageHandler * handler) {
+    delete m_reportHandler;
+    m_reportHandler = handler;
 }
 
 void OutputHandler::setMessageHandler(GeneralMessageHandler * handler) {
@@ -180,6 +193,12 @@ void OutputHandler::setErrorHandler(GeneralMessageHandler * handler) {
 void OutputHandler::setDebugHandler(GeneralMessageHandler * handler) {
     delete m_debugHandler;
     m_debugHandler = handler;
+}
+
+void OutputHandler::addReport(const std::ostringstream & stream) {
+    if ( m_reportHandler != 0 ) {
+        m_reportHandler->addMessage( stream.str() );
+    }
 }
 
 void OutputHandler::addMessage(const std::ostringstream & stream) {
@@ -213,6 +232,11 @@ void OutputHandler::addDebug(const std::ostringstream & stream,
     }
 }
 
+void OutputHandler::setDefaultReportHandler() {
+    delete m_reportHandler;
+    m_reportHandler = new ReportHandler;
+}
+
 void OutputHandler::setDefaultMessageHandler() {
     delete m_messageHandler;
     m_messageHandler = new MessageHandler;
@@ -234,6 +258,7 @@ void OutputHandler::setDefaultDebugHandler() {
 }
 
 void OutputHandler::enableAllColors() {
+    m_reportHandler->enableColors();
     m_messageHandler->enableColors();
     m_warningHandler->enableColors();
     m_errorHandler->enableColors();
@@ -241,6 +266,7 @@ void OutputHandler::enableAllColors() {
 }
 
 void OutputHandler::disableAllColors() {
+    m_reportHandler->disableColors();
     m_messageHandler->disableColors();
     m_warningHandler->disableColors();
     m_errorHandler->disableColors();

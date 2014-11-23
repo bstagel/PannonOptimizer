@@ -162,6 +162,9 @@
 #define GLOBAL_EXPORT_FILENAME_COMMENT ""
 #define GLOBAL_EXPORT_TYPE_COMMENT ""
 
+#define GLOBAL_BATCH_OUTPUT_COMMENT "# The output can be set to batch mode."
+#define GLOBAL_BATCH_SIZE_COMMENT "# The size of the output batch."
+
 #define ENABLE_PARALLELIZATION_COMMENT ""
 
 /********************************************
