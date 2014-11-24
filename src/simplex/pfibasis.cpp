@@ -719,8 +719,8 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
     //TODO This thread_local leads to memory error
-    static /*thread_local*/ std::vector<int> helper;
-    helper.resize(m_model.getRowCount(), 0);
+    static thread_local std::vector<int> updatehelper;
+    updatehelper.resize(m_model.getRowCount(), 0);
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
             if(m_basicColumnCopies[*it]==NULL){
@@ -733,7 +733,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             Vector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    helper[columnIt.getIndex()]--;
+                    updatehelper[columnIt.getIndex()]--;
                 }
             }
             //            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
@@ -746,7 +746,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    helper[columnIt.getIndex()]++;
+                    updatehelper[columnIt.getIndex()]++;
                     newColumnCount++;
                 }
             }
@@ -754,8 +754,8 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             //Update the column count
             m_columnCounts[*it] = newColumnCount;
 
-            std::vector<int>::iterator helperIt = helper.begin();
-            std::vector<int>::iterator helperItend = helper.end();
+            std::vector<int>::iterator helperIt = updatehelper.begin();
+            std::vector<int>::iterator helperItend = updatehelper.end();
             for(int columnIndex = 0; helperIt != helperItend; helperIt++, columnIndex++){
                 if(*helperIt == -1){
                     *helperIt = 0;
