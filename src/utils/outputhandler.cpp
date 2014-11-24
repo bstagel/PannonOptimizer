@@ -26,8 +26,11 @@ bool GeneralMessageHandler::isColored() const {
 }
 
 void ReportHandler::addMessage(const std::string & message) {
-    std::cerr<<"[REPORT ] ";
-    std::cerr << message << std::endl;
+    std::cerr << "[REPORT ] " << message << std::endl;
+}
+
+void ReportHandler::addMessage(const std::string & message, std::ostringstream & stringstream) {
+    stringstream << "[REPORT ] " << message << std::endl;
 }
 
 void MessageHandler::addMessage(const std::string & message) {
@@ -170,7 +173,7 @@ OutputHandler::~OutputHandler() {
     m_debugHandler = 0;
 }
 
-void OutputHandler::setReportHandler(GeneralMessageHandler * handler) {
+void OutputHandler::setReportHandler(ReportHandler * handler) {
     delete m_reportHandler;
     m_reportHandler = handler;
 }
@@ -195,9 +198,9 @@ void OutputHandler::setDebugHandler(GeneralMessageHandler * handler) {
     m_debugHandler = handler;
 }
 
-void OutputHandler::addReport(const std::ostringstream & stream) {
+void OutputHandler::addReport(const std::ostringstream & stream, std::ostringstream & ss) {
     if ( m_reportHandler != 0 ) {
-        m_reportHandler->addMessage( stream.str() );
+        m_reportHandler->addMessage( stream.str(), ss );
     }
 }
 
