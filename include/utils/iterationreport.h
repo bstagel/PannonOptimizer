@@ -7,6 +7,7 @@
 #define ITERATIONREPORT_H
 
 #include <globals.h>
+#include <mutex>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -249,7 +250,7 @@ private:
     /**
      * A mutex to lock the output.
      */
-    mutable std::mutex m_outputMutex;
+    static std::mutex sm_outputMutex;
 
     /**
      * The string stream of one output batch.

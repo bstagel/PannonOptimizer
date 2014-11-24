@@ -147,7 +147,6 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
 
 Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE &type) const {
     Entry reply;
-    reply.m_integer = 0;
 
     switch (type) {
     case IterationReportProvider::IRF_START:

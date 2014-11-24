@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <simplex/simplexparameterhandler.h>
 
+std::mutex IterationReport::sm_outputMutex;
+
 IterationReport::IterationReport():
     m_providerChanged(false),
     m_refreshHeader(true),
@@ -192,13 +194,13 @@ void IterationReport::writeSimpleTable(const std::vector<IterationReportField> &
                                        const std::vector< Entry > & row,
                                        IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     if (type == IterationReportProvider::IRF_START) {
-        LPREPORT("***** STARTING REPORT *****");
+        LPREPORT("***** STARTING REPORT *****", m_outputStream);
     } else if (type == IterationReportProvider::IRF_SOLUTION) {
-        LPREPORT("***** SOLUTION REPORT *****");
+        LPREPORT("***** SOLUTION REPORT *****", m_outputStream);
     }
     unsigned int entryIndex = 0;
     STL_FOREACH(std::vector<IterationReportField>, fields, fieldsIter) {
-        LPREPORT(fieldsIter->getName() << ": " << getContent(row[entryIndex], *fieldsIter));
+        LPREPORT(fieldsIter->getName() << ": " << getContent(row[entryIndex], *fieldsIter), m_outputStream);
         m_actualBatch++;
         entryIndex++;
     }
@@ -231,27 +233,14 @@ void IterationReport::createStartReport() {
 }
 
 void IterationReport::writeStartReport() const {
-    std::streambuf *cerrbuf = std::cerr.rdbuf();
-    if(m_batchMode){
-        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cout to the string
-    }
-
     writeSimpleTable(m_startFields, m_startTable, IterationReportProvider::IRF_START);
 
-    if(m_batchMode){
-        std::cerr.rdbuf(cerrbuf); //reset to standard output again
-        if(m_actualBatch > m_batchSize){
-            flushBatch(); //Flush if necessary
-        }
+    if(!m_batchMode || m_actualBatch > m_batchSize){
+        flushBatch(); //Flush if necessary
     }
 }
 
 void IterationReport::showHeader() {
-    std::streambuf *cerrbuf = std::cerr.rdbuf();
-    if(m_batchMode){
-        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cout to the string
-    }
-
     m_lastOutputEvent = IR_HEADER;
     std::ostringstream headerString;
     unsigned int index = 0;
@@ -285,21 +274,12 @@ void IterationReport::showHeader() {
         }
         index++;
     }
-    m_actualBatch++;
-    LPREPORT(headerString.str());
 
-    if(m_batchMode){
-        std::cerr.rdbuf(cerrbuf); //reset to standard output again
-        //No flush after a header is prepared
-    }
+    LPREPORT(headerString.str(), m_outputStream);
+    m_actualBatch++;
 }
 
 void IterationReport::writeIterationReport() {
-    std::streambuf *cerrbuf = std::cerr.rdbuf();
-    if(m_batchMode){
-        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cerr to the string
-    }
-
     std::vector<Entry> newRow;
     getRow(m_iterationFields, &newRow, IterationReportProvider::IRF_ITERATION);
 
@@ -356,16 +336,13 @@ void IterationReport::writeIterationReport() {
         }
     }
     if (fieldCounter > 0) {
-        LPREPORT(row.str());
+        LPREPORT(row.str(),m_outputStream);
         m_actualBatch++;
     }
     m_lastOutputEvent = IR_ROW;
 
-    if(m_batchMode){
-        std::cerr.rdbuf(cerrbuf); //reset to standard output again
-        if(m_actualBatch > m_batchSize){
-            flushBatch(); //Flush if necessary
-        }
+    if(!m_batchMode || m_actualBatch > m_batchSize){
+        flushBatch(); //Flush if necessary
     }
 }
 
@@ -374,17 +351,10 @@ void IterationReport::createSolutionReport() {
 }
 
 void IterationReport::writeSolutionReport() const {
-    std::streambuf *cerrbuf = std::cerr.rdbuf();
-    if(m_batchMode){
-        std::cerr.rdbuf(m_outputStream.rdbuf()); //redirect std::cerr to the string
-    }
 
     writeSimpleTable(m_solutionFields, m_solutionTable, IterationReportProvider::IRF_SOLUTION);
 
-    if(m_batchMode){
-        std::cerr.rdbuf(cerrbuf); //reset to standard output again
-        flushBatch(); //Always flush after the solution report
-    }
+    flushBatch(); //Always flush after the solution report
 }
 
 void IterationReport::createExportReport() {
@@ -396,9 +366,9 @@ void IterationReport::writeExportReport(std::string filename) const {
 }
 
 void IterationReport::flushBatch() const {
-    m_outputMutex.lock();
+    sm_outputMutex.lock();
     std::cerr << m_outputStream.str();
-    m_outputMutex.unlock();
+    sm_outputMutex.unlock();
     m_outputStream.str("");
     m_actualBatch = 0;
 }

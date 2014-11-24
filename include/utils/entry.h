@@ -15,6 +15,13 @@
  */
 struct Entry {
 
+    Entry(): m_string(nullptr),
+             m_integer(0),
+             m_double(0.0),
+             m_bool(false) {
+
+    }
+
     /**
      * This type describes a variable type.
      */

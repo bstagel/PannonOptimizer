@@ -75,6 +75,14 @@ public:
      * @param message The message.
      */
     void addMessage( const std::string & message );
+
+    /**
+     * Adds a new message to the handler.
+     *
+     * @param message The message.
+     * @param ss The string stream.
+     */
+    void addMessage(const std::string & message , std::ostringstream & stringstream);
 };
 
 /**
@@ -173,7 +181,7 @@ public:
      *
      * @param handler The new information message handler.
      */
-    void setReportHandler(GeneralMessageHandler * handler);
+    void setReportHandler(ReportHandler * handler);
 
     /**
      * Sets the information message handler of the program to a given handler object.
@@ -202,6 +210,13 @@ public:
      * @param handler The new debug message handler.
      */
     void setDebugHandler(GeneralMessageHandler * handler);
+
+    /**
+     * Adds a report to the given output with the used report handler.
+     *
+     * @param stream The output stream.
+     */
+    void addReport(const std::ostringstream & stream, std::ostringstream & stringstream);
 
     /**
      * Adds a report to the given output with the used report handler.
@@ -294,7 +309,7 @@ private:
     /**
      * The report handler of the program.
      */
-    GeneralMessageHandler * m_reportHandler;
+    ReportHandler * m_reportHandler;
 
     /**
      * The information message handler of the program.

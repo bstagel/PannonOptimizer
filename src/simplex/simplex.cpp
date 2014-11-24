@@ -59,6 +59,8 @@ Simplex::Simplex(SimplexController &simplexController):
     m_reducedCosts(0),
     m_objectiveValue(0),
     m_phaseIObjectiveValue(-Numerical::Infinity),
+    m_incomingIndex(-1),
+    m_outgoingIndex(-1),
     m_feasible(false),
     m_feasibleIteration(false),
     m_baseChanged(false),
@@ -223,7 +225,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
 
 Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE &type) const {
     Entry reply;
-    reply.m_integer = 0;
+
     switch (type) {
     case IterationReportProvider::IRF_START:
         break;
