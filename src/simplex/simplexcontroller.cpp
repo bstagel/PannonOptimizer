@@ -255,9 +255,7 @@ void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
     }
 }
 
-Numerical::Double SimplexController::parallelIterations(
-        const Model & model,
-        unsigned int iterationNumber)
+Numerical::Double SimplexController::parallelIterations(int &iterationIndex, unsigned int iterationNumber)
 {
     Numerical::Double lastObjective = 0.0;
     unsigned int iterations;
@@ -274,31 +272,10 @@ Numerical::Double SimplexController::parallelIterations(
             if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                 m_iterationReport->writeIterationReport();
             }
-            m_freshBasis = false;
-        } catch ( const FallbackException & exception ) {
-            LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
-            m_currentSimplex->reinvert();
-            iterations--;
-        } catch ( const OptimizationResultException & exception ) {
-            m_currentSimplex->reset();
-            //Check the result with triggering reinversion
-            if(m_freshBasis){
-                throw;
-            } else {
-                iterations--;
-            }
-        } catch ( const NumericalException & exception ) {
-            //Check the result with triggering reinversion
-            if(m_freshBasis){
-                throw;
-            } else {
-                LPINFO("Numerical error: "<<exception.getMessage());
-                iterations--;
-            }
-        } catch(const SwitchAlgorithmException& exception){
-            LPINFO("Algorithm switched: "<< exception.getMessage());
-            switchAlgorithm(model);
+        } catch ( const PanOptException & exception ) {
+            throw;
         }
+        m_freshBasis = false;
     }
     return lastObjective;
 }
@@ -312,9 +289,6 @@ void SimplexController::solve(const Model &model)
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
-
-    const int & threadCount = 1;
-    __UNUSED(threadCount);
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
@@ -355,7 +329,6 @@ void SimplexController::solve(const Model &model)
 
         Numerical::Double lastObjective = 0;
         //Simplex iterations
-
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
@@ -363,6 +336,7 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->saveBasis(m_iterationIndex);
             }
 
+//            reinversionCounter = reinversionFrequency;
             if((int)reinversionCounter == reinversionFrequency){
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
@@ -372,8 +346,6 @@ void SimplexController::solve(const Model &model)
                     if (m_iterationIndex > 1){
                         switchAlgorithm(model);
                     }
-                } else if (switching == "SWITCH_WHEN_ENTER_PH2") {
-
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
                         switchAlgorithm(model);
@@ -388,7 +360,32 @@ void SimplexController::solve(const Model &model)
                     }
                 }
             }
-            //  lastObjective = parallelIterations(model, reinversionFrequency);
+//            try{
+//                lastObjective = parallelIterations(m_iterationIndex, reinversionFrequency);
+//            } catch(const SwitchAlgorithmException& exception){
+//                LPINFO("Algorithm switched: "<< exception.getMessage());
+//                switchAlgorithm(model);
+//            } catch ( const FallbackException & exception ) {
+//                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+//                m_currentSimplex->reinvert();
+//                m_iterationIndex--;
+//            } catch ( const OptimizationResultException & exception ) {
+//                m_currentSimplex->reset();
+//                //Check the result with triggering reinversion
+//                if(m_freshBasis){
+//                    throw;
+//                } else {
+//                    m_iterationIndex--;
+//                }
+//            } catch ( const NumericalException & exception ) {
+//                //Check the result with triggering reinversion
+//                if(m_freshBasis){
+//                    throw;
+//                } else {
+//                    LPINFO("Numerical error: "<<exception.getMessage());
+//                    m_iterationIndex--;
+//                }
+//            }
             try{
                 //iterate
                 m_currentSimplex->iterate();
@@ -425,9 +422,6 @@ void SimplexController::solve(const Model &model)
                     reinversionCounter = reinversionFrequency;
                     m_iterationIndex--;
                 }
-            } catch(const SwitchAlgorithmException& exception){
-                LPINFO("Algorithm switched: "<< exception.getMessage());
-                switchAlgorithm(model);
             }
         }
     } catch ( const ParameterException & exception ) {

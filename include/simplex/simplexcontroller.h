@@ -235,7 +235,7 @@ private:
      */
     void switchAlgorithm(const Model &model);
 
-    Numerical::Double parallelIterations(const Model & model, unsigned int iterationNumber);
+    Numerical::Double parallelIterations(int & iterationIndex, unsigned int iterationNumber);
 };
 
 #endif // SIMPLEXCONTROLLER_H

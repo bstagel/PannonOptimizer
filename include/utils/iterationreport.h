@@ -113,12 +113,6 @@ public:
     void writeStartReport() const;
 
     /**
-     * Queries the iteration report for the solver iterations.
-     * The report entries are collected in the iteration report to be printed out later.
-     */
-    void createIterationReport();
-
-    /**
      * Prints the iteration report for the solver iterations to the output.
      */
     void writeIterationReport();
