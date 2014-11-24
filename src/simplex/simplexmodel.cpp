@@ -4,6 +4,7 @@
 
 #include <simplex/simplexmodel.h>
 #include <random>
+#include <cmath>
 #include <simplex/simplexparameterhandler.h>
 
 SimplexModel::SimplexModel(const Model & model):
@@ -189,7 +190,7 @@ void SimplexModel::perturbCostVector()
             //PLUS in positive direction (thus d_j >= 0 is feasible)
             case Variable::PLUS:{
                 if(perturbTarget == "ALL"){
-                    epsilonValues.set(i,posDistribution(engine));
+                    epsilonValues.set(i,posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi);
                 }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
                     epsilonValues.set(i,posDistribution(engine));
                 }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
@@ -200,7 +201,7 @@ void SimplexModel::perturbCostVector()
             //MINUS in negative direction (thus d_j <= 0 is feasible)
             case Variable::MINUS:{
                 if(perturbTarget == "ALL"){
-                    epsilonValues.set(i,negDistribution(engine));
+                    epsilonValues.set(i,negDistribution(engine) - Numerical::fabs(m_costVector.at(i)) * psi);
                 }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
                     epsilonValues.set(i,negDistribution(engine));
                 }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
@@ -209,12 +210,19 @@ void SimplexModel::perturbCostVector()
                 break;
             }
             case Variable::BOUNDED:{
-                if(perturbTarget == "ALL"){
-                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
-                }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
-                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
-                }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
-                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
+//                if(perturbTarget == "ALL"){
+//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
+//                }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
+//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
+//                }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
+//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
+//                }
+                if( m_costVector.at(i) < 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
+                    epsilonValues.set(i,negDistribution(engine) - Numerical::fabs(m_costVector.at(i)) * psi);
+                }else if(m_costVector.at(i) > 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
+                    epsilonValues.set(i,posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi);
+               }else if(m_costVector.at(i) == 0 && (perturbTarget == "ALL" || perturbTarget == "ZEROS")){
+                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*(posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi));
                 }
                 break;
             }
@@ -258,8 +266,26 @@ void SimplexModel::perturbCostVector()
     }
 
     //considering number of nonzeros (alpha column)
-    if(weighting == "WEIGHT"){
+    if(weighting == "WEIGHT" || weighting == "SET_TO_INTERVAL"){
         std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
+
+//        int maxNonzero = 0;
+//        for(unsigned i=0; i < getColumnCount(); ++i){
+//            unsigned nonzeros = getMatrix().column(i).nonZeros();
+//            if(nonzeros > maxNonzero){
+//                maxNonzero = nonzeros;
+//            }
+//        }
+//        std::vector<Numerical::Double> weightVector;
+//        weightVector.resize(maxNonzero);
+//        for(unsigned i=0; i < weightVector.size(); ++i){
+////            weightVector[i] = log2(i+2);
+//            weightVector[i] = i+1;
+//        }
+//        for(unsigned i=0; i < getColumnCount(); ++i){
+//            unsigned nonzeros = getMatrix().column(i).nonZeros();
+//            epsilonValues.set(i,weightVector[nonzeros-1] * epsilonValues.at(i));
+//        }
 
         for(unsigned i=0; i < getColumnCount(); ++i){
             unsigned nonzeros = getMatrix().column(i).nonZeros();
@@ -293,6 +319,10 @@ void SimplexModel::perturbCostVector()
         for(unsigned i=0; i < numberOfPerturbations; i++){
             Numerical::Double absEpsilon = Numerical::fabs(epsilonValues.at(i));
             double multiplier = 1;
+            if(absEpsilon == 0){
+                epsilonValues.set(i,minValue);
+                absEpsilon = Numerical::fabs(epsilonValues.at(i));
+            }
             while(absEpsilon > maxValue){
                 multiplier *= 0.1;
                 absEpsilon *= 0.1;

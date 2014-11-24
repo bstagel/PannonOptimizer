@@ -740,7 +740,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
                     functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
                             (variable.getUpperBound() - variable.getLowerBound());
-                    iterationCounter++;
+                    ++iterationCounter;
 
                     if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
                         breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
@@ -758,6 +758,36 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     LPINFO("Fake feasible slope: "<<functionSlope);
                     m_incomingVariableIndex = -1;
                     m_dualSteplength = 0;
+                    return;
+                }
+            }else if(m_expand != "INACTIVE" && m_enableFakeFeasibility){
+                const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+                //original slope isn't updated, we investigate if there are too many fake feasible breakpoints
+                Numerical::Double slope = functionSlope;
+                unsigned iteration = iterationCounter;
+                while (breakpoint->value < 0){
+                    const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
+                    slope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
+                            (variable.getUpperBound() - variable.getLowerBound());
+                    iteration++;
+                    if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+                        breakpoint = m_breakpointHandler.getBreakpoint(iteration);
+                    } else {
+                        break;
+                    }
+                }
+                //if slope gone negative, fake feasible variable with biggest |alpha| is incoming
+                if(slope < 0 || iteration == m_breakpointHandler.getNumberOfBreakpoints()){
+                    int maxAlphaId = m_breakpointHandler.getBreakpoint(0)->variableIndex;
+                    for(unsigned i=1; i < (iteration-iterationCounter); i++){
+                        int variableIndex = m_breakpointHandler.getBreakpoint(i)->variableIndex;
+                        if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
+                            maxAlphaId = variableIndex;
+                        }
+                    }
+                    LPINFO("Fake feasible variable");
+                    m_dualSteplength = m_sigma * m_reducedCosts.at(maxAlphaId) / Numerical::fabs(alpha.at(maxAlphaId));
+                    m_incomingVariableIndex = maxAlphaId;
                     return;
                 }
             }
