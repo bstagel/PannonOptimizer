@@ -53,6 +53,31 @@ const std::string ParameterHandler::writeParameter(std::string name){
     }
 }
 
+void ParameterHandler::showParameters() const
+{
+    static std::mutex guard;
+    guard.lock();
+    for (auto param: m_values) {
+        Entry::ENTRY_TYPE type = param.second.getEntryType();
+        switch (type) {
+        case Entry::STRING:
+            LPINFO(param.first << " " << getStringParameterValue(param.first));
+            break;
+        case Entry::INTEGER:
+            LPINFO(param.first << " " << getIntegerParameterValue(param.first));
+            break;
+        case Entry::DOUBLE:
+            LPINFO(param.first << " " << getDoubleParameterValue(param.first));
+            break;
+        case Entry::BOOL:
+            LPINFO(param.first << " " << getBoolParameterValue(param.first));
+            break;
+        }
+
+    }
+    guard.unlock();
+}
+
 void ParameterHandler::loadValuesFromFile(std::ifstream &in){
     NodeFile file;
 
