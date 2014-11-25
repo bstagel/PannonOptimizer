@@ -241,6 +241,7 @@ void DualSimplex::initModules() {
                                             m_basisHead,
                                             *m_simplexModel,
                                             *m_basis);
+
     }
     if (pricingType == "DEVEX") {
         m_pricing = new DualDevexPricing (m_basicVariableValues,

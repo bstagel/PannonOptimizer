@@ -26,7 +26,6 @@ Basis::Basis(const SimplexModel& model,
     m_singularityCounter(0),
     m_inversion(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot"))
 {
-
 }
 
 Basis::~Basis()

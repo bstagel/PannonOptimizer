@@ -11,11 +11,17 @@
 
 #ifndef CLASSIC_NEW_DELETE
 
-ChunkStack * MemoryManager::sm_smallStacks = 0;
+thread_local ChunkStack * MemoryManager::sm_smallStacks = nullptr;
 
-ChunkStack * MemoryManager::sm_largeStacks = 0;
+thread_local ChunkStack * MemoryManager::sm_largeStacks = nullptr;
 
-Buffer * Pool::sm_head = 0;
+thread_local Buffer * Pool::sm_head = nullptr;
+
+ChunkStack * MemoryManager::sm_sequentialSmallStacks = nullptr;
+
+ChunkStack * MemoryManager::sm_sequentialLargeStacks = nullptr;
+
+Buffer * Pool::sm_sequentialHead = nullptr;
 
 bool MemoryManager::sm_initialized = false;
 

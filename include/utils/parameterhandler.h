@@ -218,6 +218,11 @@ public:
      */
     inline void setFileName(std::string filename) {m_filename = filename;}
 
+    /**
+     * Prints the parameters to the output.
+     */
+    void showParameters() const;
+
 protected:
 
     /**

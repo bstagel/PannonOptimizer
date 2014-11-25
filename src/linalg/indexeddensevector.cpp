@@ -584,6 +584,7 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToIndexedDenseFast(
         nonZeros = vector2.m_nonZeros;
         indices = vector2.m_nonzeroIndices;
     }
+    // indexeddensetodense
     pos = Architecture::getIndexedDenseToIndexedDenseDotProductStable()(vector1.m_data,
                                                                         vector2.m_data,
                                                                         indices,

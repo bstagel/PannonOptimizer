@@ -6,12 +6,13 @@
 #define MEMORYMAN_H
 
 #include <cstddef>
+#include <iostream>
 
 #define CACHE_LINE_ALIGNMENT
 #define CLASSIC_NEW_DELETE
 
-constexpr unsigned int log2(unsigned int n) {
-    return n == 1 ? 0 : 1 + log2(n / 2);
+constexpr unsigned int logarithm2(unsigned int n) {
+    return n == 1 ? 0 : 1 + logarithm2(n / 2);
 }
 
 /*template <unsigned n>
@@ -57,13 +58,16 @@ struct Buffer {
 class Pool {
     friend class MemoryManagerInitializer;
 public:
-    static void init() {
+    static void init(bool parallel = false) {
         sm_head = static_cast<Buffer*>(malloc(sizeof(Buffer)));
         sm_head->m_next = 0;
         sm_head->m_bufferStart = static_cast<char*>(malloc( sm_poolSize ));
         sm_head->m_actual = sm_head->m_bufferStart;
         sm_head->m_size = sm_poolSize;
         sm_head->m_bufferEnd = sm_head->m_bufferStart + sm_poolSize;
+        if (parallel == true) {
+            sm_sequentialHead = sm_head;
+        }
     }
 
     static void release() {
@@ -101,7 +105,8 @@ public:
         return result;
     }
 
-    static Buffer * sm_head;
+    static thread_local Buffer * sm_head;
+    static Buffer * sm_sequentialHead;
 
 private:
     static const int sm_poolSize = 1048576;
@@ -165,10 +170,10 @@ public:
     inline static void * allocate(size_t size) {
         Chunk * chunk;
         if (likely(size <= (size_t)sm_maxSmallStackSize)) {
-            chunk = sm_smallStacks[size >> Logarithm<sm_smallSteps>::value].getChunk(((size >> Logarithm<sm_smallSteps>::value ) + 1) << Logarithm<sm_smallSteps>::value);
+            chunk = sm_smallStacks[size >> logarithm2(sm_smallSteps)].getChunk(((size >> logarithm2(sm_smallSteps) ) + 1) << logarithm2(sm_smallSteps));
             // std::cout << "ALLOC CHUNK 1: " << chunk << "  " << chunk->m_stack << std::endl;
         } else if (size <= (size_t) sm_maxLargeStackSize) {
-            chunk = sm_largeStacks[size >> Logarithm<sm_largeSteps>::value].getChunk(((size >> Logarithm<sm_largeSteps>::value) + 1) << Logarithm<sm_largeSteps>::value);
+            chunk = sm_largeStacks[size >> logarithm2(sm_largeSteps)].getChunk(((size >> logarithm2(sm_largeSteps)) + 1) << logarithm2(sm_largeSteps));
             // std::cout << "ALLOC CHUNK 2: " << chunk << std::endl;
         } else {
             chunk = static_cast<Chunk*>(malloc( sizeof(Chunk) + size ));
@@ -202,13 +207,27 @@ private:
     static const int sm_largeSteps = 4;
     static const int sm_maxLargeStackSize = 1024 * 256;
 
-    static ChunkStack * sm_smallStacks;
-    static ChunkStack * sm_largeStacks;
+    static thread_local ChunkStack * sm_smallStacks;
+    static thread_local ChunkStack * sm_largeStacks;
+
+    static ChunkStack * sm_sequentialSmallStacks;
+    static ChunkStack * sm_sequentialLargeStacks;
 public:
-    static void init() {
-        Pool::init();
+
+    static void startParallel() {
+        std::cout << "parallel SM_SMALLSTACKS: " << sm_smallStacks << std::endl;
+        init(true);
+    }
+
+    static void endParallel() {
+
+    }
+
+    static void init(bool parallel = false) {
+        Pool::init(parallel);
         unsigned int count = sm_maxSmallStackSize / sm_smallSteps + 1;
         sm_smallStacks = static_cast<ChunkStack*>(malloc( count * sizeof(ChunkStack) ));
+        std::cout << "SM_SMALLSTACKS: " << sm_smallStacks << std::endl;
         unsigned int index;
         for (index = 0; index < count; index++) {
             sm_smallStacks[index].init();
@@ -221,7 +240,10 @@ public:
         }
         sm_initialized = true;
         //printf("Memory manager initialized\n");
-
+        if (parallel == true) {
+            sm_sequentialSmallStacks = sm_smallStacks;
+            sm_sequentialLargeStacks = sm_largeStacks;
+        }
     }
 
     static void release() {
@@ -243,31 +265,29 @@ public:
     }
 };
 
-
-/*
 inline void * operator new (size_t size) {
-    return malloc(size + sizeof(int)*0);
-    //return MemoryManager::allocate(size);
+    //    return malloc(size + sizeof(int)*0);
+    return MemoryManager::allocate(size);
 }
 
 inline void operator delete(void * p) {
-    free(p);
-    //if (likely(p != 0)) {
-    //    MemoryManager::release(p);
-    //}
+    //free(p);
+    if (likely(p != nullptr)) {
+        MemoryManager::release(p);
+    }
 }
 
 inline void * operator new [](size_t size) {
-    return malloc(size + sizeof(int)*0);
-    // return MemoryManager::allocate(size);
+    //return malloc(size + sizeof(int)*0);
+    return MemoryManager::allocate(size);
 }
 
 inline void operator delete [](void * p) {
-    free(p);
-    //if (likely(p != 0)) {
-    //    MemoryManager::release(p);
-    //}
-}*/
+    //free(p);
+    if (likely(p != nullptr)) {
+        MemoryManager::release(p);
+    }
+}
 
 
 #undef likely
@@ -299,7 +319,7 @@ T * alloc(int size) {
 
     Pointer ptr;
     ptr.ptr = ptr2;
-    ptr.bits &= ~((1 << log2(alignment)) - 1);
+    ptr.bits &= ~((1 << logarithm2(alignment)) - 1);
     ptr2 = static_cast<char*>(ptr.ptr);
     ptr2 -= sizeof(void*);
     *((char**)ptr2) = originalPtr;
