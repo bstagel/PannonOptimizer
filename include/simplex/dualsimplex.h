@@ -83,7 +83,7 @@ private:
     /**
      * This vector is needed in the pricing updater.
      */
-    Vector m_pivotRowOfBasisInverse;
+    DenseVector m_pivotRowOfBasisInverse;
 
     /**
      * A counter measuring row disabling

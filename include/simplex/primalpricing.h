@@ -36,14 +36,14 @@ public:
      *
      * @constructor
      */
-    PrimalPricing(const Vector & basicVariableValues,
+    PrimalPricing(const DenseVector & basicVariableValues,
                   const IndexList<> & basicVariableFeasibilities,
                   IndexList<> * reducedCostFeasibilities,
                   const IndexList<const Numerical::Double*> & variableStates,
                   const std::vector<int> & basisHead,
                   const SimplexModel & model,
                   const Basis & basis,
-                  const Vector & reducedCosts);
+                  const DenseVector & reducedCosts);
 
     /**
      * Default destructor of the class.
@@ -119,7 +119,7 @@ protected:
     /**
      * X_B vector.
      */
-    const Vector & m_basicVariableValues;
+    const DenseVector & m_basicVariableValues;
 
     /**
      * Index list containing basic variable feasibilities.
@@ -159,7 +159,7 @@ protected:
     /**
      * Vector storing the reduced costs.
      */
-    const Vector & m_reducedCosts;
+    const DenseVector & m_reducedCosts;
 
     /**
      * Currently unused.

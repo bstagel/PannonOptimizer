@@ -28,7 +28,7 @@ void ArchitectureX86::detect() {
         setFeatureList();
         setCPUTopologyData();
     } else {
-        std::cout << "CPUID not supported" << std::endl;
+        std::cout << "asdCPUID not supported" << std::endl;
     }
     setMemoryData();
     setPrimitives();
@@ -81,7 +81,7 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 }
 
 bool ArchitectureX86::cpuidSupported()
-{
+{return true;
 #ifndef CACHE_LINE_ALIGNMENT
     return false;
 #endif

@@ -208,22 +208,22 @@ private:
     /**
      * The list of constraint indices to be checked in the actual iteration of the module.
      */
-    Vector * m_constraintsToCheck;
+    DenseVector * m_constraintsToCheck;
 
     /**
      * The list of constraint indices to be checked in the next iteration of the module.
      */
-    Vector * m_constraintStack;
+    DenseVector * m_constraintStack;
 
     /**
      * Pointer to the vector containing the tightest calculated lower bound of each variable in the model.
      */
-    Vector * m_impliedLower;
+    DenseVector * m_impliedLower;
 
     /**
      * Pointer to the vector containing the tightest calculated upper bound of each variable in the model.
      */
-    Vector * m_impliedUpper;
+    DenseVector * m_impliedUpper;
 };
 
 /**
@@ -268,34 +268,34 @@ private:
     /**
      * Pointer to the vector containing the tightest calculated lower bound of each dual variable in the model.
      */
-    Vector * m_impliedDualLower;
+    DenseVector * m_impliedDualLower;
 
     /**
      * Pointer to the vector containing the tightest calculated upper bound of each dual variable in the model.
      */
-    Vector * m_impliedDualUpper;
+    DenseVector * m_impliedDualUpper;
 
     /**
      * Pointer to the vector containing the sum of lower bounds of the extra dual variables in the model.
      * Extra dual variables are created by bounded variables or ranged constraints of the model.
      */
-    Vector * m_extraDualLowerSum;
+    DenseVector * m_extraDualLowerSum;
 
     /**
      * Pointer to the vector containing the sum of upper bounds of the extra dual variables in the model.
      * Extra dual variables are created by bounded variables or ranged constraints of the model.
      */
-    Vector * m_extraDualUpperSum;
+    DenseVector * m_extraDualUpperSum;
 
     /**
      * The list of dual constraint indices to be checked in the actual iteration of the module.
      */
-    Vector * m_variablesToCheck;
+    DenseVector * m_variablesToCheck;
 
     /**
      * The list of dual constraint indices to be checked in the next iteration of the module.
      */
-    Vector * m_variableStack;
+    DenseVector * m_variableStack;
 };
 
 /**

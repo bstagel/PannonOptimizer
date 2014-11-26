@@ -33,7 +33,7 @@ public:
      *
      * @return SimplexModel::m_rhs
      */
-    inline const Vector & getRhs() const {return m_rhs;}
+    inline const DenseVector & getRhs() const {return m_rhs;}
 
     /**
      * Prints the output of the createComputationalForm (CF3) algorithm.
@@ -126,7 +126,7 @@ public:
      *
      * @return SimplexModel::m_costVector
      */
-    inline const Vector & getCostVector() const {return m_costVector;}//m_model.getCostVector();}
+    inline const DenseVector & getCostVector() const {return m_costVector;}//m_model.getCostVector();}
 
     /**
      * Getter of the model member.
@@ -170,7 +170,7 @@ private:
     /**
      * The cost vector (c) of the LP problem.
      */
-    Vector m_costVector;
+    DenseVector m_costVector;
 
     /**
      * Vector containing structural and logical variables.
@@ -180,17 +180,17 @@ private:
     /**
      * The right hand side vector (b) of the LP problem.
      */
-    Vector m_rhs;
+    DenseVector m_rhs;
 
     /**
      * This vector is the original (not perturbed) cost vector.
      */
-    Vector m_originalCostVector;
+    DenseVector m_originalCostVector;
 
     /**
      * This vector is the original (not perturbed) rhs vector.
      */
-    Vector m_originalRhs;
+    DenseVector m_originalRhs;
 
     /**
      * True if the cost vector was perturbed.

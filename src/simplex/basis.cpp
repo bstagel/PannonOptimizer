@@ -15,7 +15,7 @@ int etaExpCount = 0;
 Basis::Basis(const SimplexModel& model,
              std::vector<int>* basisHead,
              IndexList<const Numerical::Double*>* variableStates,
-             const Vector &basicVariableValues) :
+             const DenseVector &basicVariableValues) :
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
@@ -76,9 +76,9 @@ void Basis::setNewHead() {
 }
 
 
-Vector* Basis::createEta(const Vector& vector, int pivotPosition)
+SparseVector* Basis::createEta(const SparseVector& vector, int pivotPosition)
 {
-    Vector* eta = new Vector(vector.length(), Vector::SPARSE_VECTOR);
+    SparseVector* eta = new SparseVector(vector.length());
     eta->prepareForData(vector.nonZeros(), vector.length());
     //TODO Ezt vajon lehet gyorsabban?
     Numerical::Double atPivot = vector.at(pivotPosition);
@@ -92,8 +92,8 @@ Vector* Basis::createEta(const Vector& vector, int pivotPosition)
         throw NumericalException(std::string("NUMERICAL problem: Pivot element is ") +  std::to_string(atPivot)
                                  + std::string(" at row ") + std::to_string(pivotPosition) );
     } else {
-        Vector::NonzeroIterator it = vector.beginNonzero();
-        Vector::NonzeroIterator endit = vector.endNonzero();
+        SparseVector::NonzeroIterator it = vector.beginNonzero();
+        SparseVector::NonzeroIterator endit = vector.endNonzero();
         for (; it < endit; ++it) {
             if (it.getIndex() == (unsigned int) pivotPosition) {
                 eta->newNonZero(1 / atPivot, pivotPosition);
@@ -117,7 +117,7 @@ void Basis::printActiveSubmatrix() const
     DEVINFO(D::PFIMAKER, "Active submatrix pattern by columns");
     for (int i = 0; i < (int) m_basicColumns.size(); i++) {
         std::string s;
-        for (std::vector<const Vector*>::const_iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
+        for (std::vector<const SparseVector*>::const_iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
             s += Numerical::equals((*it)->at(i), 0) ? "-" : "X";
         }
         DEVINFO(D::PFIMAKER, s);

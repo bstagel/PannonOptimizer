@@ -5,7 +5,7 @@
 #include <simplex/pricing/dualdevexpricing.h>
 #include <simplex/simplex.h>
 
-DualDevexPricing::DualDevexPricing(const Vector & basicVariableValues,
+DualDevexPricing::DualDevexPricing(const DenseVector &basicVariableValues,
                                    IndexList<> * basicVariableFeasibilities,
                                    const IndexList<> & reducedCostFeasibilities,
                                    const std::vector<int> & basisHead,
@@ -123,9 +123,9 @@ int DualDevexPricing::performPricingPhase2() {
 
 void DualDevexPricing::update(int incomingIndex,
                               int outgoingIndex,
-                              const Vector & incomingAlpha,
-                              const Vector & pivotRow,
-                              const Vector & pivotRowOfBasisInverse)
+                              const DenseVector &incomingAlpha,
+                              const DenseVector &pivotRow,
+                              const DenseVector &pivotRowOfBasisInverse)
 {
     __UNUSED(pivotRowOfBasisInverse);
 
@@ -141,8 +141,8 @@ void DualDevexPricing::update(int incomingIndex,
     alphaPNorm = Numerical::sqrt(alphaPNorm);
 
     Numerical::Double alpha_p_q = pivotRow.at(incomingIndex);
-    Vector::NonzeroIterator nonzIter = incomingAlpha.beginNonzero();
-    Vector::NonzeroIterator nonzIterEnd = incomingAlpha.endNonzero();
+    DenseVector::NonzeroIterator nonzIter = incomingAlpha.beginNonzero();
+    DenseVector::NonzeroIterator nonzIterEnd = incomingAlpha.endNonzero();
     for (; nonzIter != nonzIterEnd; ++nonzIter) {
         index = nonzIter.getIndex();
         if (unlikely((int)index == outgoingIndex)) {

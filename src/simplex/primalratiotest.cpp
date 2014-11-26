@@ -7,7 +7,7 @@
 #include <simplex/simplexparameterhandler.h>
 
 PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
-                                 const Vector& basicVariableValues,
+                                 const DenseVector &basicVariableValues,
                                  const std::vector<int>& basishead,
                                  const IndexList<>& basicVariableFeasibilities,
                                  const IndexList<const Numerical::Double *>& variableStates
@@ -32,7 +32,7 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
     m_degenerate(false)
 {}
 
-void PrimalRatiotest::generateSignedBreakpointsPhase1(const Vector &alpha, int incomingVariableIndex)
+void PrimalRatiotest::generateSignedBreakpointsPhase1(const DenseVector &alpha, int incomingVariableIndex)
 {
     IndexList<>::PartitionIterator it;
     IndexList<>::PartitionIterator endit;
@@ -109,7 +109,7 @@ void PrimalRatiotest::generateSignedBreakpointsPhase1(const Vector &alpha, int i
     m_breakpointHandler.finalizeBreakpoints();
 }
 
-void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
+void PrimalRatiotest::computeFunctionPhase1(const DenseVector &alpha,
                                             unsigned int& iterationCounter,
                                             Numerical::Double functionSlope)
 {
@@ -142,7 +142,7 @@ void PrimalRatiotest::computeFunctionPhase1(const Vector &alpha,
 }
 
 void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
-                                          const Vector& alpha,
+                                          const DenseVector& alpha,
                                           Numerical::Double& functionSlope)
 {
     m_stablePivotActivationPhase1++;
@@ -247,7 +247,7 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
 }
 
 void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
-                                             const Vector &alpha,
+                                             const DenseVector &alpha,
                                              Numerical::Double phaseIReducedCost,
                                              Numerical::Double phaseIObjectiveValue)
 {
@@ -353,7 +353,7 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
 
 }
 
-void PrimalRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
+void PrimalRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 {
     Numerical::Double epsilon = m_pivotTolerance;
 
@@ -373,10 +373,10 @@ void PrimalRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     m_breakpointHandler.finalizeBreakpoints();
 }
 
-void PrimalRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha, Numerical::Double workingTolerance)
+void PrimalRatiotest::generateExpandedBreakpointsPhase2(const DenseVector &alpha, Numerical::Double workingTolerance)
 {
 #ifndef NDEBUG
-    if (m_basicVariableValues.getType() == Vector::SPARSE_VECTOR) LPWARNING("x_b is sparse vector!");
+    //if (m_basicVariableValues.getType() == Vector::SPARSE_VECTOR) LPWARNING("x_b is sparse vector!");
 #endif
     Numerical::Double epsilon = m_pivotTolerance;
 
@@ -400,7 +400,7 @@ void PrimalRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha, Num
 }
 
 void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
-                                             const Vector &alpha,
+                                             const DenseVector &alpha,
                                              Numerical::Double reducedCost,
                                              Numerical::Double workingTolerance){
     m_boundflips.clear();

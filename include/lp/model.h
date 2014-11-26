@@ -14,6 +14,7 @@
 #include <lp/modelbuilder.h>
 #include <lp/abstractmodel.h>
 #include <linalg/vector.h>
+#include <linalg/densevector.h>
 #include <linalg/matrix.h>
 #include <lp/scaler.h>
 
@@ -38,15 +39,15 @@ public:
     inline const std::vector<Variable> & getVariables() const {return m_variables;}
     inline const Constraint & getConstraint(unsigned int index) const {return m_constraints[index];}
     inline const std::vector<Constraint> & getConstraints() const {return m_constraints;}
-    inline const Vector & getCostVector() const {return m_costVector;}
+    inline const DenseVector & getCostVector() const {return m_costVector;}
     inline const std::string & getName() const {return m_name;}
     inline const Numerical::Double & getCostConstant() const {return m_costConstant;}
     inline OBJECTIVE_TYPE getObjectiveType() const {return m_objectiveType;}
     inline const std::string & getObjectiveRowname() const {return m_objectiveRowName;}
-    inline const std::vector<Vector*> * getSubstituteVectors() const {return m_substituteVectors;}
+    inline const std::vector<DenseVector*> * getSubstituteVectors() const {return m_substituteVectors;}
 
-    virtual void addVariable(const Variable & variable, const Vector & column);
-    virtual void addConstraint(const Constraint & constraint, const Vector & row);
+    virtual void addVariable(const Variable & variable, const SparseVector &column);
+    virtual void addConstraint(const Constraint & constraint, const SparseVector & row);
     
     virtual void print(std::ostream& out = std::cout) const;
 
@@ -93,13 +94,13 @@ public:
     inline std::vector<Variable> * getVariables() {return &m_variables;}
     inline std::vector<Constraint> * getConstraints() {return &m_constraints;}
 
-    void setSubstitueVectors(std::vector<Vector *> *substituteVectors);
+    void setSubstitueVectors(std::vector<DenseVector *> *substituteVectors);
 
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
     std::vector<Constraint> m_constraints;
-    Vector m_costVector;
+    DenseVector m_costVector;
     Numerical::Double m_costConstant;
     std::string m_objectiveRowName;
     std::string m_name;
@@ -115,7 +116,7 @@ protected:
     std::vector<Numerical::Double> m_columnMultipliers;
 
     bool m_presolved;
-    std::vector<Vector*> * m_substituteVectors;
+    std::vector<DenseVector*> * m_substituteVectors;
 
     bool m_scaled;
 

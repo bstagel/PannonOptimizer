@@ -11,7 +11,7 @@
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
                                                IndexList<const Numerical::Double*>* variableStates,
                                                IndexList<>* reducedCostFeasibilities,
-                                               const Vector& reducedCosts,
+                                               const DenseVector &reducedCosts,
                                                const Basis& basis):
     m_model(model),
     m_variableStates(variableStates),
@@ -65,12 +65,11 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     return ((setMit == setMendit) && (setPit == setPendit));
 }
 
-void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, Numerical::Double tolerance) {
+void DualFeasibilityChecker::feasibilityCorrection(DenseVector* basicVariableValues, Numerical::Double tolerance) {
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
 
-    Vector transformVector(basicVariableValues->length());
-    transformVector.setSparsityRatio(DENSE);
+    DenseVector transformVector(basicVariableValues->length());
 
     //TODO: Increase efficiency by checking only NONBASIC_AT_*B lists
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
@@ -85,7 +84,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, 
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {
-                    Vector logical(rowCount);
+                    SparseVector logical(rowCount);
                     logical.setNewNonzero(variableIndex - columnCount,1);
                     transformVector.addVector(-1 * theta, logical);
                 }
@@ -100,7 +99,7 @@ void DualFeasibilityChecker::feasibilityCorrection(Vector* basicVariableValues, 
                 if(variableIndex < columnCount){
                     transformVector.addVector(-1 * theta, m_model.getMatrix().column(variableIndex));
                 } else {
-                    Vector logical(rowCount);
+                    SparseVector logical(rowCount);
                     logical.setNewNonzero(variableIndex - columnCount,1);
                     transformVector.addVector(-1 * theta, logical);
                 }

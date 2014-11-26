@@ -5,7 +5,7 @@
 #include <simplex/pricing/dualdantzigpricing.h>
 #include <simplex/simplex.h>
 
-DualDantzigPricing::DualDantzigPricing(const Vector & basicVariableValues,
+DualDantzigPricing::DualDantzigPricing(const DenseVector &basicVariableValues,
                                        IndexList<> * basicVariableFeasibilities,
                                        const IndexList<> & reducedCostFeasibilities,
                                        const std::vector<int> & basisHead,
@@ -27,6 +27,7 @@ DualDantzigPricing::~DualDantzigPricing()
 }
 
 int DualDantzigPricing::performPricingPhase1() {
+
     initPhase1();
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
 //    const unsigned int variableCount = m_simplexModel.getMatrix().rowCount();
@@ -56,6 +57,7 @@ int DualDantzigPricing::performPricingPhase1() {
     if (m_outgoingIndex != -1) {
         m_reducedCost = m_phase1ReducedCosts[m_outgoingIndex];
     }
+
     return m_outgoingIndex;
 }
 
@@ -111,9 +113,9 @@ int DualDantzigPricing::performPricingPhase2() {
 
 void DualDantzigPricing::update(int incomingIndex,
                                 int outgoingIndex,
-                                const Vector & incomingAlpha,
-                                const Vector & pivotRow,
-                                const Vector & pivotRowOfBasisInverse)
+                                const DenseVector &incomingAlpha,
+                                const DenseVector &pivotRow,
+                                const DenseVector &pivotRowOfBasisInverse)
 {
     __UNUSED(incomingIndex);
     __UNUSED(outgoingIndex);

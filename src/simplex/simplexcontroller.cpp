@@ -223,7 +223,7 @@ const std::vector<int> &SimplexController::getBasisHead() const
                                                    m_dualSimplex->getBasisHead();
 }
 
-const Vector SimplexController::getPrimalSolution() const
+const DenseVector SimplexController::getPrimalSolution() const
 {
     return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getPrimalSolution() :
                                                    m_dualSimplex->getPrimalSolution();
@@ -290,6 +290,7 @@ void SimplexController::sequentialSolve(const Model &model)
             }
 
             if((int)reinversionCounter == reinversionFrequency){
+
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
                 m_freshBasis = true;
@@ -316,6 +317,7 @@ void SimplexController::sequentialSolve(const Model &model)
                 //iterate
                 m_currentSimplex->setIterationIndex(m_iterationIndex);
                 m_currentSimplex->iterate();
+
                 if(!m_currentSimplex->m_feasible){
                     lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
                 }else{

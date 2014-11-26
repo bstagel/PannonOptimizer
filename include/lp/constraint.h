@@ -10,6 +10,7 @@
 
 #include <utils/numerical.h>
 #include <linalg/vector.h>
+#include <linalg/sparsevector.h>
 #include <utils/exceptions.h>
 
 /**
@@ -299,7 +300,7 @@ public:
      *
      * @return The pointer of the corresponding vector.
      */
-    inline const Vector * getVector() const;
+    inline const SparseVector * getVector() const;
 
     /**
      * Returns with true when each data members are equal,
@@ -347,7 +348,7 @@ private:
      * Represents the coefficient vector of the constraint. The class Model fills
      * this value.
      */
-    const Vector * m_vector;
+    const SparseVector * m_vector;
 
     /**
      * General constructor of the class. It creates a constraint with the given
@@ -375,7 +376,7 @@ private:
      *
      * @param vector The vector of the coefficient values.
      */
-    inline void setVector(const Vector & vector);
+    inline void setVector(const SparseVector & vector);
 
     /**
      * Checks the validity of the bounds. If the lower bound is + infinity, it
@@ -460,12 +461,12 @@ inline const char * Constraint::getName() const
     return "<NO NAME>";
 }
 
-inline void Constraint::setVector(const Vector & vector)
+inline void Constraint::setVector(const SparseVector &vector)
 {
     m_vector = &vector;
 }
 
-inline const Vector * Constraint::getVector() const
+inline const SparseVector *Constraint::getVector() const
 {
     return m_vector;
 }

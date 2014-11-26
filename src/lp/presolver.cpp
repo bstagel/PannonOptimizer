@@ -15,26 +15,18 @@ Presolver::Presolver(Model *model):
     m_modules = std::vector<PresolverModule*>();
     unsigned int rowCount = m_model->constraintCount();
     unsigned int columnCount = m_model->variableCount();
-    m_rowNonzeros = new Vector(rowCount);
-    m_rowNonzeros->setSparsityRatio(0);
-    m_columnNonzeros = new Vector(columnCount);
-    m_columnNonzeros->setSparsityRatio(0);
+    m_rowNonzeros = new DenseVector(rowCount);
+    m_columnNonzeros = new DenseVector(columnCount);
     m_variables = m_model->getVariables();
     m_constraints = m_model->getConstraints();
 
-    m_impliedLower = new Vector(columnCount);
-    m_impliedLower->setSparsityRatio(0);
-    m_impliedUpper = new Vector(columnCount);
-    m_impliedUpper->setSparsityRatio(0);
-    m_impliedDualLower = new Vector(rowCount);
-    m_impliedDualLower->setSparsityRatio(0);
-    m_impliedDualUpper = new Vector(rowCount);
-    m_impliedDualUpper->setSparsityRatio(0);
-    m_extraDualLowerSum = new Vector(columnCount);
-    m_extraDualLowerSum->setSparsityRatio(0);
-    m_extraDualUpperSum = new Vector(columnCount);
-    m_extraDualUpperSum->setSparsityRatio(0);
-    m_substituteVectors = new std::vector<Vector*>();
+    m_impliedLower = new DenseVector(columnCount);
+    m_impliedUpper = new DenseVector(columnCount);
+    m_impliedDualLower = new DenseVector(rowCount);
+    m_impliedDualUpper = new DenseVector(rowCount);
+    m_extraDualLowerSum = new DenseVector(columnCount);
+    m_extraDualUpperSum = new DenseVector(columnCount);
+    m_substituteVectors = new std::vector<DenseVector*>();
 
     //Fill the nonzero container vectors
     unsigned int biggerCount = (rowCount > columnCount ? columnCount : rowCount);
@@ -55,8 +47,8 @@ Presolver::Presolver(Model *model):
         if((*m_constraints)[i].getType() == Constraint::RANGE) {
             //Range constraints are trated without their lower bound, which are handled with extra constraints
             m_impliedDualLower->set(i, -Numerical::Infinity);
-            Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
-            Vector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
+            SparseVector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
+            SparseVector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
             for(int i = 0; it < itEnd; i++, ++it) {
                 if(*it > 0) {
                     m_extraDualUpperSum->set(it.getIndex(), m_extraDualUpperSum->at(it.getIndex()) + 1);
@@ -85,8 +77,8 @@ Presolver::Presolver(Model *model):
             if((*m_constraints)[i].getType() == Constraint::RANGE) {
                 //Range constraints are trated without their lower bound, which are handled with extra constraints
                 m_impliedDualLower->set(i, -Numerical::Infinity);
-                Vector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
-                Vector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
+                SparseVector::NonzeroIterator it = m_model->getMatrix().row(i).beginNonzero();
+                SparseVector::NonzeroIterator itEnd = m_model->getMatrix().row(i).endNonzero();
                 for(int i = 0; it < itEnd; i++, ++it) {
                     if(*it > 0) {
                         m_extraDualUpperSum->set(it.getIndex(), m_extraDualUpperSum->at(it.getIndex()) + 1);
@@ -145,8 +137,8 @@ void Presolver::printStatistics() {
 
 void Presolver::fixVariable(int index, Numerical::Double value) {
 
-    Vector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
-    Vector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
+    SparseVector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
+    SparseVector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
     for(;it != itEnd; ++it) {
         int constraintIdx = it.getIndex();
         (*m_constraints)[constraintIdx].setBounds(Numerical::stableAdd(m_model->getConstraint(constraintIdx).getLowerBound(), -1 * (*it) * value),
@@ -155,7 +147,7 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
 
     }
     //substitute the variable
-    Vector * substituteVector = new Vector(m_model->variableCount() + 3);
+    DenseVector * substituteVector = new DenseVector(m_model->variableCount() + 3);
     substituteVector->set(m_model->variableCount(), value);
     substituteVector->set(m_model->variableCount() + 1, index);
     substituteVector->set(m_model->variableCount() + 2, FIXED_VARIABLE);
@@ -164,11 +156,11 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
     //update cost constant and remove fixed variable from the model
     m_model->setCostConstant(Numerical::stableAdd(m_model->getCostConstant(), -1 * m_model->getCostVector().at(index) * value));
     m_model->removeVariable(index);
-    m_impliedLower->removeElement(index);
-    m_impliedUpper->removeElement(index);
-    m_extraDualLowerSum->removeElement(index);
-    m_extraDualUpperSum->removeElement(index);
-    m_columnNonzeros->removeElement(index);
+    m_impliedLower->remove(index);
+    m_impliedUpper->remove(index);
+    m_extraDualLowerSum->remove(index);
+    m_extraDualUpperSum->remove(index);
+    m_columnNonzeros->remove(index);
 }
 
 void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, int removeCount, SUBSTITUTED_VARIABLE_FLAG fixMode) {
@@ -180,22 +172,17 @@ void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, in
     }
     int newVariableCount = m_model->variableCount() - removeCount;
     int removedCount = 0;
-    Vector * newImpliedLower = new Vector(newVariableCount);
-    newImpliedLower->setSparsityRatio(0);
-    Vector * newImpliedUpper = new Vector(newVariableCount);
-    newImpliedUpper->setSparsityRatio(0);
-    Vector * newColumnNzr = new Vector(newVariableCount);
-    newColumnNzr->setSparsityRatio(0);
-    Vector * newExtraDLSum = new Vector(newVariableCount);
-    newExtraDLSum->setSparsityRatio(0);
-    Vector * newExtraDUSum = new Vector(newVariableCount);
-    newExtraDUSum->setSparsityRatio(0);
+    DenseVector * newImpliedLower = new DenseVector(newVariableCount);
+    DenseVector * newImpliedUpper = new DenseVector(newVariableCount);
+    DenseVector * newColumnNzr = new DenseVector(newVariableCount);
+    DenseVector * newExtraDLSum = new DenseVector(newVariableCount);
+    DenseVector * newExtraDUSum = new DenseVector(newVariableCount);
     for(auto itStart = fixValues.begin(), it = fixValues.begin(), itEnd = fixValues.end(); it != itEnd; ++it) {
         int index = it - itStart - removedCount;
         if(*it != 0) {
             Numerical::Double fixVal = *it==Numerical::Infinity?0:*it;
-            Vector::NonzeroIterator itV = m_model->getVariable(index).getVector()->beginNonzero();
-            Vector::NonzeroIterator itVEnd = m_model->getVariable(index).getVector()->endNonzero();
+            SparseVector::NonzeroIterator itV = m_model->getVariable(index).getVector()->beginNonzero();
+            SparseVector::NonzeroIterator itVEnd = m_model->getVariable(index).getVector()->endNonzero();
             for(;itV != itVEnd; ++itV) {
                 int vIndex = itV.getIndex();
                 (*m_constraints)[vIndex].setBounds(Numerical::stableAdd(m_model->getConstraint(vIndex).getLowerBound(), -1 * (*itV) * fixVal),
@@ -203,7 +190,7 @@ void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, in
                 m_rowNonzeros->set(vIndex, m_rowNonzeros->at(vIndex) - 1);
             }
             if(fixMode == FIXED_VARIABLE){
-                Vector * substituteVector = new Vector(m_model->variableCount() + 3);
+                DenseVector * substituteVector = new DenseVector(m_model->variableCount() + 3);
                 substituteVector->set(m_model->variableCount(), fixVal);
                 substituteVector->set(m_model->variableCount() + 1, index);
                 substituteVector->set(m_model->variableCount() + 2, FIXED_VARIABLE);
@@ -229,9 +216,9 @@ void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, in
 
 void Presolver::removeConstraint(int index) {
     getModel()->removeConstraint(index);
-    getImpliedDualLower()->removeElement(index);
-    getImpliedDualUpper()->removeElement(index);
-    getRowNonzeros()->removeElement(index);
+    getImpliedDualLower()->remove(index);
+    getImpliedDualUpper()->remove(index);
+    getRowNonzeros()->remove(index);
 }
 
 void Presolver::removeConstraints(const std::vector<int>& removeIndices, int removeCount) {
@@ -244,12 +231,9 @@ void Presolver::removeConstraints(const std::vector<int>& removeIndices, int rem
     if(removeCount == 0) return;
     int newConstraintCount = m_model->constraintCount() - removeCount;
     int removedCount = 0;
-    Vector * newRowNzr = new Vector(newConstraintCount);
-    newRowNzr->setSparsityRatio(0);
-    Vector * newImpDualLower = new Vector(newConstraintCount);
-    newImpDualLower->setSparsityRatio(0);
-    Vector * newImpDualUpper = new Vector(newConstraintCount);
-    newImpDualUpper->setSparsityRatio(0);
+    DenseVector * newRowNzr = new DenseVector(newConstraintCount);
+    DenseVector * newImpDualLower = new DenseVector(newConstraintCount);
+    DenseVector * newImpDualUpper = new DenseVector(newConstraintCount);
     for(auto itStart = removeIndices.begin(), it = removeIndices.begin(), itEnd = removeIndices.end(); it != itEnd; ++it) {
         int index = it - itStart - removedCount;
         if(*it != 0) {
@@ -273,7 +257,7 @@ LPINFO("nzr count: " << nzr);
         clearModules();
     if(m_mode == DEFAULT) {
         clearModules();
-        addModule( new DualBoundsModule(this));
+        //addModule( new DualBoundsModule(this));
         addModule( new ImpliedBoundsModule(this));
         addModule( new SingletonRowsModule(this));
         addModule( new SingletonColumnsModule(this));

@@ -60,7 +60,7 @@ void Matrix::clear()
 
 void Matrix::build(const MatrixBuilder & builder)
 {
-    reInit(builder.getRowCount(), builder.getColumnCount(), false);
+    reInit(builder.getRowCount(), builder.getColumnCount());
     unsigned int rowIndex;
     unsigned int columnIndex;
     std::vector<unsigned int> nonzerosInRows;
@@ -91,12 +91,12 @@ void Matrix::build(const MatrixBuilder & builder)
     }
     if (builder.hasRowwiseRepresentation() == false) {
         for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
-            Vector * row = m_rowWise[rowIndex];
+            SparseVector * row = m_rowWise[rowIndex];
             row->prepareForData(nonzerosInRows[rowIndex], builder.getColumnCount());
         }
         for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
-            Vector::NonzeroIterator iter = m_columnWise[columnIndex]->beginNonzero();
-            Vector::NonzeroIterator iterEnd = m_columnWise[columnIndex]->endNonzero();
+            SparseVector::NonzeroIterator iter = m_columnWise[columnIndex]->beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = m_columnWise[columnIndex]->endNonzero();
             for (; iter < iterEnd; ++iter) {
                 m_rowWise[ iter.getIndex() ]->newNonZero(*iter, columnIndex);
             }
@@ -104,12 +104,12 @@ void Matrix::build(const MatrixBuilder & builder)
     }
     if (builder.hasColumnwiseRepresentation() == false) {
         for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
-            Vector * column = m_columnWise[columnIndex];
+            SparseVector * column = m_columnWise[columnIndex];
             column->prepareForData(nonzerosInRows[columnIndex], builder.getRowCount());
         }
         for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
-            Vector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
-            Vector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
+            SparseVector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
             for (; iter < iterEnd; ++iter) {
                 m_columnWise[ iter.getIndex() ]->newNonZero(*iter, rowIndex);
             }
@@ -117,7 +117,7 @@ void Matrix::build(const MatrixBuilder & builder)
     }
 }
 
-void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
+void Matrix::resizeVectors(SparseVector **&vectors, unsigned int vectorCount,
     unsigned int newCount, unsigned int newLengths)
 {
     unsigned int idx;
@@ -130,19 +130,19 @@ void Matrix::resizeVectors(Vector ** & vectors, unsigned int vectorCount,
     }
 
     if (vectorCount < newCount) {
-        Vector ** newVectors = new Vector*[newCount];
-        panOptMemcpy(newVectors, vectors, sizeof (Vector*) * vectorCount);
+        SparseVector ** newVectors = new SparseVector*[newCount];
+        panOptMemcpy(newVectors, vectors, sizeof (SparseVector*) * vectorCount);
         for (idx = 0; idx < vectorCount; idx++) {
             newVectors[idx]->resize(newLengths);
         }
         for (idx = vectorCount; idx < newCount; idx++) {
-            newVectors[idx] = new Vector(newLengths);
+            newVectors[idx] = new SparseVector(newLengths);
         }
         delete [] vectors;
         vectors = newVectors;
     } else {
-        Vector ** newVectors = new Vector*[newCount];
-        panOptMemcpy(newVectors, vectors, sizeof (Vector*) * newCount);
+        SparseVector ** newVectors = new SparseVector*[newCount];
+        panOptMemcpy(newVectors, vectors, sizeof (SparseVector*) * newCount);
         for (idx = 0; idx < newCount; idx++) {
             newVectors[idx]->resize(newLengths);
         }
@@ -165,10 +165,10 @@ void Matrix::resize(unsigned int rowCount, unsigned int columnCount)
     m_columnCount = columnCount;
 }
 
-void Matrix::reInit(unsigned int rowCount, unsigned int columnCount, bool initVectors)
+void Matrix::reInit(unsigned int rowCount, unsigned int columnCount)
 {
     clear();
-    init(rowCount, columnCount, initVectors);
+    init(rowCount, columnCount);
 }
 
 Matrix & Matrix::operator=(const Matrix & original)
@@ -206,12 +206,12 @@ unsigned int Matrix::columnCount() const
     return m_columnCount;
 }
 
-const Vector & Matrix::row(unsigned int index) const
+const SparseVector & Matrix::row(unsigned int index) const
 {
     return *(m_rowWise[index]);
 }
 
-const Vector & Matrix::column(unsigned int index) const
+const SparseVector & Matrix::column(unsigned int index) const
 {
     return *m_columnWise[index];
 }
@@ -223,7 +223,7 @@ Matrix & Matrix::transpose()
     m_columnCount = m_rowCount;
     m_rowCount = tempSize;
 
-    Vector ** temp = m_rowWise;
+    SparseVector ** temp = m_rowWise;
     m_rowWise = m_columnWise;
     m_columnWise = temp;
     return *this;
@@ -237,16 +237,16 @@ Matrix Matrix::transposed() const
     return transposed;
 }
 
-void Matrix::removeVector(Vector ** & columnWise, unsigned int & columnCount,
-    Vector ** & rowWise, unsigned int & rowCount, unsigned int index)
+void Matrix::removeVector(SparseVector ** & columnWise, unsigned int & columnCount,
+    SparseVector ** & rowWise, unsigned int & rowCount, unsigned int index)
 {
     m_fastColumnScaling = false;
     // minden oszlop index-edik sorabol el kell tavolitani egy elemet
-    Vector ** vector1 = columnWise;
-    Vector ** vector2 = columnWise + columnCount;
+    SparseVector ** vector1 = columnWise;
+    SparseVector ** vector2 = columnWise + columnCount;
 
     while (vector1 < vector2) {
-        (*vector1)->removeElement(index);
+        (*vector1)->remove(index);
         vector1++;
     }
     delete rowWise[index];
@@ -254,7 +254,7 @@ void Matrix::removeVector(Vector ** & columnWise, unsigned int & columnCount,
 
     // el kell tavolitani az index-edik sort
     // majd ezt lehet gyorsitani itt is egy elbowroom-ozassal, de egyelore marad igy
-    Vector ** temp = new Vector*[ rowCount - 1 ];
+    SparseVector ** temp = new SparseVector*[ rowCount - 1 ];
     vector1 = rowWise;
     vector2 = temp;
     unsigned int index2 = 0;
@@ -290,16 +290,16 @@ void Matrix::removeColumn(unsigned int index)
     }
 }
 
-void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
-    unsigned int & rowCount, unsigned int index, const Vector & vector)
+void Matrix::insertVector(SparseVector ** columnWise, SparseVector ** & rowWise,
+    unsigned int & rowCount, unsigned int index, const SparseVector & vector)
 {
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     std::vector<char> inserted(vector.length(), 0);
-    Vector::NonzeroIterator it = vector.beginNonzero();
-    Vector::NonzeroIterator itEnd = vector.endNonzero();
+    SparseVector::NonzeroIterator it = vector.beginNonzero();
+    SparseVector::NonzeroIterator itEnd = vector.endNonzero();
     for (; it < itEnd; ++it) {
-        columnWise[ it.getIndex() ]->insertElement(index, *it);
+        columnWise[ it.getIndex() ]->insert(index, *it);
         inserted[ it.getIndex() ] = true;
     }
     std::vector<char>::const_iterator insertIter = inserted.begin();
@@ -307,44 +307,44 @@ void Matrix::insertVector(Vector ** columnWise, Vector ** & rowWise,
     unsigned int insertIndex = 0;
     for (; insertIter < insertIterEnd; ++insertIter, ++insertIndex) {
         if (*insertIter == false) {
-            columnWise[ insertIndex ]->insertElement(index, 0.0);
+            columnWise[ insertIndex ]->insert(index, 0.0);
         }
     }
 
-    Vector * temp = new Vector(vector);
-    Vector ** vectors = new Vector*[ rowCount + 1 ];
+    SparseVector * temp = new SparseVector(vector);
+    SparseVector ** vectors = new SparseVector*[ rowCount + 1 ];
     // index elottieket
     if (index > 0) {
-        panOptMemcpy(vectors, rowWise, index * sizeof (Vector*));
+        panOptMemcpy(vectors, rowWise, index * sizeof (SparseVector*));
     }
     vectors[index] = temp;
     if (index < rowCount) {
-        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
+        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (SparseVector*) * (rowCount - index));
     }
     delete [] rowWise;
     rowWise = vectors;
     rowCount++;
 }
 
-void Matrix::insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
+void Matrix::insertEmptyVector(SparseVector ** columnWise, SparseVector ** & rowWise,
     unsigned int & rowCount, unsigned int columnCount, unsigned int index)
 {
     m_fastColumnScaling = false;
     // oszlopokba is be kell szurni
     unsigned int insertIndex = 0;
     for (insertIndex = 0; insertIndex < columnCount; insertIndex++) {
-        columnWise[ insertIndex ]->insertElement(index, 0.0);
+        columnWise[ insertIndex ]->insert(index, 0.0);
     }
 
-    Vector * temp = new Vector(columnCount);
-    Vector ** vectors = new Vector*[ rowCount + 1 ];
+    SparseVector * temp = new SparseVector(columnCount);
+    SparseVector ** vectors = new SparseVector*[ rowCount + 1 ];
     // index elottieket
     if (index > 0) {
-        panOptMemcpy(vectors, rowWise, index * sizeof (Vector*));
+        panOptMemcpy(vectors, rowWise, index * sizeof (SparseVector*));
     }
     vectors[index] = temp;
     if (index < rowCount) {
-        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (Vector*) * (rowCount - index));
+        panOptMemcpy(vectors + index + 1, rowWise + index, sizeof (SparseVector*) * (rowCount - index));
     }
     //0 | 1 | 2
     //0 | * | 1 | 2
@@ -363,7 +363,7 @@ void Matrix::insertEmptyColumn(unsigned int index)
     insertEmptyVector(m_rowWise, m_columnWise, m_columnCount, m_rowCount, index);
 }
 
-void Matrix::insertRow(unsigned int index, const Vector & vector)
+void Matrix::insertRow(unsigned int index, const SparseVector & vector)
 {
     if (m_rowCount == 0) {
         this->init(0, vector.length());
@@ -372,7 +372,7 @@ void Matrix::insertRow(unsigned int index, const Vector & vector)
 
 }
 
-void Matrix::insertColumn(unsigned int index, const Vector & vector)
+void Matrix::insertColumn(unsigned int index, const SparseVector &vector)
 {
     if (m_columnCount == 0) {
         this->init(vector.length(), 0);
@@ -380,7 +380,7 @@ void Matrix::insertColumn(unsigned int index, const Vector & vector)
     insertVector(m_rowWise, m_columnWise, m_columnCount, index, vector);
 }
 
-void Matrix::appendRow(const Vector & vector)
+void Matrix::appendRow(const SparseVector & vector)
 {
     if (m_rowCount == 0) {
         this->reInit(0, vector.length());
@@ -388,7 +388,7 @@ void Matrix::appendRow(const Vector & vector)
     insertVector(m_columnWise, m_rowWise, m_rowCount, m_rowCount, vector);
 }
 
-void Matrix::appendColumn(const Vector & vector)
+void Matrix::appendColumn(const SparseVector &vector)
 {
     if (m_columnCount == 0) {
         reInit(vector.length(), 0);
@@ -397,7 +397,7 @@ void Matrix::appendColumn(const Vector & vector)
     //insertColumn(m_columnCount, vector);
 }
 
-void Matrix::prependRow(const Vector & vector)
+void Matrix::prependRow(const SparseVector & vector)
 {
     if (m_rowCount == 0) {
         this->init(0, vector.length());
@@ -405,7 +405,7 @@ void Matrix::prependRow(const Vector & vector)
     insertRow(0, vector);
 }
 
-void Matrix::prependColumn(const Vector & vector)
+void Matrix::prependColumn(const SparseVector &vector)
 {
     if (m_columnCount == 0) {
         this->init(vector.length(), 0);
@@ -436,16 +436,16 @@ Numerical::Double Matrix::get(unsigned int rowindex, unsigned int columnindex) c
 void Matrix::scale(Numerical::Double lambda)
 {
     m_fastColumnScaling = false;
-    Vector ** vector1 = m_columnWise;
-    Vector ** vector2 = m_columnWise + m_columnCount;
+    SparseVector ** vector1 = m_columnWise;
+    SparseVector ** vector2 = m_columnWise + m_columnCount;
     while (vector1 < vector2) {
-        (*vector1)->scaleBy(lambda);
+        (*vector1)->scale(lambda);
         vector1++;
     }
     vector1 = m_rowWise;
     vector2 = m_rowWise + m_rowCount;
     while (vector1 < vector2) {
-        (*vector1)->scaleBy(lambda);
+        (*vector1)->scale(lambda);
         vector1++;
     }
 }
@@ -464,8 +464,8 @@ void Matrix::startRowScaling()
 
 void Matrix::finishColumnScaling()
 {
-    Vector ** vector1 = m_rowWise;
-    Vector ** vector2 = m_rowWise + m_rowCount;
+    SparseVector ** vector1 = m_rowWise;
+    SparseVector ** vector2 = m_rowWise + m_rowCount;
     while (vector1 < vector2) {
         (*vector1)->scaleByLambdas(m_multipliers);
         vector1++;
@@ -475,8 +475,8 @@ void Matrix::finishColumnScaling()
 
 void Matrix::finishRowScaling()
 {
-    Vector ** vector1 = m_columnWise;
-    Vector ** vector2 = m_columnWise + m_columnCount;
+    SparseVector ** vector1 = m_columnWise;
+    SparseVector ** vector2 = m_columnWise + m_columnCount;
     while (vector1 < vector2) {
         (*vector1)->scaleByLambdas(m_multipliers);
         vector1++;
@@ -486,12 +486,12 @@ void Matrix::finishRowScaling()
 
 void Matrix::scaleRow(unsigned int index, Numerical::Double lambda)
 {
-    m_rowWise[index]->scaleBy(lambda);
+    m_rowWise[index]->scale(lambda);
     if (m_fastRowScaling == true) {
         m_multipliers[index] = lambda;
     } else {
-        Vector ** vector1 = m_columnWise;
-        Vector ** vector2 = m_columnWise + m_columnCount;
+        SparseVector ** vector1 = m_columnWise;
+        SparseVector ** vector2 = m_columnWise + m_columnCount;
         while (vector1 < vector2) {
             (*vector1)->scaleElementBy(index, lambda);
             vector1++;
@@ -501,15 +501,15 @@ void Matrix::scaleRow(unsigned int index, Numerical::Double lambda)
 
 void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda)
 {
-    m_columnWise[index]->scaleBy(lambda);
+    m_columnWise[index]->scale(lambda);
     if (m_fastColumnScaling == true) {
         if (index >= m_multipliers.size()) {
             LPERROR("hiba\n");
         }
         m_multipliers[index] = lambda;
     } else {
-        Vector ** vector1 = m_rowWise;
-        Vector ** vector2 = m_rowWise + m_rowCount;
+        SparseVector ** vector1 = m_rowWise;
+        SparseVector ** vector2 = m_rowWise + m_rowCount;
         while (vector1 < vector2) {
             (*vector1)->scaleElementBy(index, lambda);
             vector1++;
@@ -518,11 +518,11 @@ void Matrix::scaleColumn(unsigned int index, Numerical::Double lambda)
 }
 
 void Matrix::scaleOnlyRowwise(unsigned int index, Numerical::Double lambda) {
-    m_rowWise[index]->scaleBy(lambda);
+    m_rowWise[index]->scale(lambda);
 }
 
 void Matrix::scaleOnlyColumnwise(unsigned int index, Numerical::Double lambda) {
-    m_columnWise[index]->scaleBy(lambda);
+    m_columnWise[index]->scale(lambda);
 }
 
 void Matrix::scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas) {
@@ -544,7 +544,7 @@ void Matrix::invert()
     } else {
         Matrix copyMatrix = *this;
         unsigned int i;
-        Vector e(m_rowCount);
+        SparseVector e(m_rowCount);
         for (i = 0; i < m_rowCount; i++) {
             e.set(i, 1.0);
             copyMatrix.appendColumn(e);
@@ -556,8 +556,8 @@ void Matrix::invert()
         }
         for (i = 0; i < m_rowCount; i++) {
             m_rowWise[i]->prepareForData(copyMatrix.m_rowWise[i]->nonZeros() - 1, m_rowCount);
-            Vector::NonzeroIterator iter = copyMatrix.m_rowWise[i]->beginNonzero();
-            Vector::NonzeroIterator iterEnd = copyMatrix.m_rowWise[i]->endNonzero();
+            SparseVector::NonzeroIterator iter = copyMatrix.m_rowWise[i]->beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = copyMatrix.m_rowWise[i]->endNonzero();
             for (; iter != iterEnd; ++iter) {
                 if (iter.getIndex() >= m_rowCount) {
                     unsigned int columnIndex = iter.getIndex() - m_rowCount;
@@ -664,18 +664,15 @@ Numerical::Double Matrix::density() const
     return (Numerical::Double) nonZeros() / (Numerical::Double) (m_rowCount * m_columnCount);
 }
 
-Vector Matrix::operator *(const Vector& rightVector) const
+DenseVector Matrix::operator *(const DenseVector& rightVector) const
 {
-    Vector result(this->rowCount());
-    Numerical::Double ratio = result.getSparsityRatio();
-    result.setSparsityRatio(0.0);
+    DenseVector result(this->rowCount());
 
-    Vector::NonzeroIterator iter = rightVector.beginNonzero();
-    Vector::NonzeroIterator iterEnd = rightVector.endNonzero();
+    DenseVector::NonzeroIterator iter = rightVector.beginNonzero();
+    DenseVector::NonzeroIterator iterEnd = rightVector.endNonzero();
     for (; iter < iterEnd; ++iter) {
         result.addVector(*iter, *(m_columnWise[ iter.getIndex() ]));
     }
-    result.setSparsityRatio(ratio);
 
     return result;
 }
@@ -694,17 +691,17 @@ void Matrix::copy(const Matrix & matrix)
 
     m_fastRowScaling = matrix.m_fastRowScaling;
     m_multipliers = matrix.m_multipliers;
-    m_rowWise = new Vector*[ m_rowCount ];
+    m_rowWise = new SparseVector*[ m_rowCount ];
     for (index = 0; index < m_rowCount; index++) {
-        m_rowWise[index] = new Vector(*matrix.m_rowWise[index]);
+        m_rowWise[index] = new SparseVector(*matrix.m_rowWise[index]);
     }
-    m_columnWise = new Vector*[ m_columnCount ];
+    m_columnWise = new SparseVector*[ m_columnCount ];
     for (index = 0; index < m_columnCount; index++) {
-        m_columnWise[index] = new Vector(*matrix.m_columnWise[index]);
+        m_columnWise[index] = new SparseVector(*matrix.m_columnWise[index]);
     }
 }
 
-void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool initVectors)
+void Matrix::init(unsigned int rowCount, unsigned int columnCount)
 {
     unsigned int index;
     m_isDiagonal = false;
@@ -715,34 +712,34 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount, bool initVect
     m_fastRowScaling = false;
     m_fastColumnScaling = false;
     if (rowCount > 0) {
-        m_rowWise = new Vector*[ rowCount ];
+        m_rowWise = new SparseVector*[ rowCount ];
     } else {
         m_rowWise = 0;
     }
     for (index = 0; index < m_rowCount; index++) {
-        if (initVectors) {
-            m_rowWise[index] = new Vector(m_columnCount);
-        } else {
-            m_rowWise[index] = new Vector(NULL, NULL, NULL);
-        }
+//        if (initVectors) {
+            m_rowWise[index] = new SparseVector(m_columnCount);
+//        } else {
+//            m_rowWise[index] = new SparseVector(NULL, NULL, NULL);
+//        }
     }
     if (m_columnCount > 0) {
-        m_columnWise = new Vector*[ m_columnCount ];
+        m_columnWise = new SparseVector*[ m_columnCount ];
     } else {
         m_columnWise = 0;
     }
 
     for (index = 0; index < m_columnCount; index++) {
-        if (initVectors) {
-            m_columnWise[index] = new Vector(m_rowCount);
-        } else {
-            m_columnWise[index] = new Vector(NULL, NULL, NULL);
-        }
+//        if (initVectors) {
+            m_columnWise[index] = new SparseVector(m_rowCount);
+//        } else {
+//            m_columnWise[index] = new SparseVector(NULL, NULL, NULL);
+//        }
     }
 
 }
 
-Matrix Matrix::createDiagonalMatrix(const Vector& diagonal)
+Matrix Matrix::createDiagonalMatrix(const DenseVector &diagonal)
 {
     unsigned int m = diagonal.length();
     Matrix matrix(m, m);
@@ -754,14 +751,14 @@ Matrix Matrix::createDiagonalMatrix(const Vector& diagonal)
     return matrix;
 }
 
-Matrix Matrix::createRowMatrix(const Vector& row)
+Matrix Matrix::createRowMatrix(const SparseVector &row)
 {
     Matrix ret(0, row.length());
     ret.appendRow(row);
     return ret;
 }
 
-Matrix Matrix::createColumnMatrix(const Vector& column)
+Matrix Matrix::createColumnMatrix(const SparseVector& column)
 {
     Matrix ret(column.length(), 1);
     for (unsigned int i = 0; i < column.length(); i++) {
@@ -781,8 +778,8 @@ Matrix Matrix::operator*(const Matrix& other) const
             //  b     | x2 |   | b*x2 |
             //   c    | x3 | = | c*x3 |
             //    d   | x4 |   | d*x4 |
-            Vector::NonzeroIterator iter = other.column(columnIndex).beginNonzero();
-            Vector::NonzeroIterator iterEnd = other.column(columnIndex).endNonzero();
+            SparseVector::NonzeroIterator iter = other.column(columnIndex).beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = other.column(columnIndex).endNonzero();
             for (; iter < iterEnd; ++iter) {
                 const unsigned int index = iter.getIndex();
                 if (m_rowWise[index]->nonZeros() > 0) {
@@ -798,8 +795,8 @@ Matrix Matrix::operator*(const Matrix& other) const
 
         unsigned int rowIndex;
         for (rowIndex = 0; rowIndex < m_rowCount; rowIndex++) {
-            Vector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
-            Vector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
+            SparseVector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = m_rowWise[rowIndex]->endNonzero();
             for (; iter < iterEnd; ++iter) {
                 const unsigned int index = iter.getIndex();
                 if (other.m_rowWise[index]->nonZeros() > 0) {
@@ -909,10 +906,10 @@ void Matrix::sortVectors() const
 {
     unsigned int index;
     for (index = 0; index < rowCount(); index++) {
-        row(index).sortElements();
+        (*m_rowWise[index]).sortIndices();
     }
     for (index = 0; index < columnCount(); index++) {
-        column(index).sortElements();
+        (*m_columnWise[index]).sortIndices();
     }
 }
 
@@ -931,7 +928,7 @@ int Matrix::gaussianElimination(bool gaussianJordan)
                 return 0;
             }
 
-            Vector temp = *m_rowWise[row];
+            SparseVector temp = *m_rowWise[row];
             *m_rowWise[row] = *m_rowWise[pivot];
             *m_rowWise[pivot] = temp;
             swapCount++;
@@ -954,7 +951,7 @@ int Matrix::gaussianElimination(bool gaussianJordan)
     }
     if (gaussianJordan) {
         for (row = 0; row < m_rowCount; row++) {
-            m_rowWise[row]->scaleBy(1.0 / m_rowWise[row]->at(row));
+            m_rowWise[row]->scale(1.0 / m_rowWise[row]->at(row));
         }
     }
 
@@ -971,7 +968,7 @@ Numerical::Double Matrix::scaleRowAndGetResults(unsigned int rowIndex,
 }
 
 Numerical::Double Matrix::scaleColumnAndGetResults(unsigned int columnIndex,
-                                           const std::vector<Numerical::Double> & multipliers,
+                                           const std::vector<Numerical::Double> &multipliers,
                                            Numerical::Double lambda,
                                            Numerical::Double * squareSumPtr,
                                            Numerical::Double * minPtr,

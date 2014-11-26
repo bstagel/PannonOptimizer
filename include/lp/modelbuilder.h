@@ -41,7 +41,7 @@ public:
      * 
      * @param costVector
      */
-    virtual void buildCostVector(Vector * costVector) const = 0;
+    virtual void buildCostVector(DenseVector * costVector) const = 0;
 
     /**
      * 

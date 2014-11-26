@@ -174,12 +174,12 @@ protected:
     /**
      * Vector containing the basic variable values (X_B vector).
      */
-    Vector m_basicVariableValues;
+    DenseVector m_basicVariableValues;
 
     /**
      * Vector of the reduced costs (primal d_j values).
      */
-    Vector m_reducedCosts;
+    DenseVector m_reducedCosts;
 
     /**
      * The phase 2 objective function value of the LP problem.
@@ -194,12 +194,12 @@ protected:
     /**
      * Alpha column vector corresponding to the incoming variable.
      */
-    Vector m_pivotColumn;
+    DenseVector m_pivotColumn;
 
     /**
      * Alpha row vector corresponding to the outgoing variable.
      */
-    Vector m_pivotRow;
+    DenseVector m_pivotRow;
 
     /**
      * Variable index of the incoming candidate.
@@ -471,7 +471,7 @@ protected:
     /**
      * Description can be found in SimplexController::getPrimalSolution().
      */
-    const Vector getPrimalSolution() const;
+    const DenseVector getPrimalSolution() const;
 
     /**
      * Description can be found in SimplexController::getDualSolution().

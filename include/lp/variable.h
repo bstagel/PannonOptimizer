@@ -12,6 +12,7 @@
 #include <utils/numerical.h>
 #include <utils/exceptions.h>
 #include <linalg/vector.h>
+#include <linalg/sparsevector.h>
 
 class Variable;
 
@@ -310,7 +311,7 @@ public:
      *
      * @return The pointer of the corresponding vector.
      */
-    ALWAYS_INLINE const Vector * getVector() const {
+    ALWAYS_INLINE const SparseVector * getVector() const {
         return m_vector;
     }
 
@@ -369,7 +370,7 @@ private:
      * Represents the coefficient vector of the variable. The class Model fills
      * this value.
      */
-    const Vector * m_vector;
+    const SparseVector * m_vector;
 
     /**
      * General constructor of the class. It creates a variable with the given
@@ -397,7 +398,7 @@ private:
      *
      * @param vector The vector of the coefficient values.
      */
-    inline void setVector(const Vector & vector);
+    inline void setVector(const SparseVector & vector);
 
     /**
      * Checks the validity of the bounds. If the lower bound is + infinity, it
@@ -481,7 +482,7 @@ inline const char * Variable::getName() const
     return "<NO NAME>";
 }
 
-inline void Variable::setVector(const Vector & vector)
+inline void Variable::setVector(const SparseVector & vector)
 {
     m_vector = &vector;
 }

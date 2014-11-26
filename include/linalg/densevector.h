@@ -16,6 +16,9 @@ class DenseVector {
     friend class InitPanOpt;
     friend class IndexedDenseVector;
     friend class SparseVector;
+    friend class PfiBasis;
+    friend class LuBasis;
+    friend class DualSimplex;
 private:
 
     template<class ADD>
@@ -96,6 +99,8 @@ public:
      */
     DenseVector & operator=(const DenseVector & orig);
 
+    DenseVector & operator=(const SparseVector & orig);
+
     /**
      * Move assignment operator.
      *
@@ -149,7 +154,7 @@ public:
      * @param index The index of the element.
      * @return Value of the index^th element.
      */
-    Numerical::Double at(unsigned int index) const {
+    const Numerical::Double& at(unsigned int index) const {
         if (likely(index < m_length)) {
             return m_data[index];
         } else {
@@ -195,6 +200,8 @@ public:
      * @return The norm of the vector.
      */
     Numerical::Double euclidNorm() const;
+
+    Numerical::Double euclidNorm2() const;
 
     /**
      * Returns with the L1 norm of the vector.
@@ -308,7 +315,7 @@ public:
      * @return Iterator to the first nonzero of the vector.
      */
     ALWAYS_INLINE NonzeroIterator beginNonzero() const {
-        return NonzeroIterator(m_data, m_data + m_length);
+        return NonzeroIterator(m_data, m_data, m_data + m_length);
     }
 
     /**
@@ -317,7 +324,7 @@ public:
      * @return Iterator to the end of the vector.
      */
     ALWAYS_INLINE NonzeroIterator endNonzero() const {
-        return NonzeroIterator(m_data + m_length, m_data + m_length);
+        return NonzeroIterator(m_data, m_data + m_length, m_data + m_length);
     }
 
     /**
@@ -357,6 +364,10 @@ public:
     void reserve();
 
     void resize(unsigned int length);
+
+    void resize(unsigned int length, Numerical::Double value);
+
+    void reInit(unsigned int length);
 
 protected:
 

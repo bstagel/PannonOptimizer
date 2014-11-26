@@ -44,7 +44,7 @@ public:
      * @constructor
      */
     DualRatiotest(const SimplexModel & model,
-                  const Vector& reducedCosts,
+                  const DenseVector& reducedCosts,
                   const IndexList<>& reducedCostFeasibilities,
                   const IndexList<const Numerical::Double*>& variableStates);
 
@@ -104,7 +104,7 @@ public:
      * @param phaseIReducedCost The phase 1 reduced cost needed to define t > 0 and t < 0 cases.
      * @param phaseIObjectiveValue The phase 1 objective value.
      */
-    void performRatiotestPhase1(const Vector& alpha,
+    void performRatiotestPhase1(const DenseVector &alpha,
                                 Numerical::Double phaseIReducedCost,
                                 Numerical::Double phaseIObjectiveValue);
 
@@ -119,7 +119,7 @@ public:
      * @throws DualUnboundedException if no breakpoint was found.
      */
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
-                                const Vector& alpha,
+                                const DenseVector &alpha,
                                 Numerical::Double workingTolerance);
 
     //Ratiotest study
@@ -195,7 +195,7 @@ private:
     /**
      * Vector of the reduced costs so that the ratios can be defined.
      */
-    const Vector& m_reducedCosts;
+    const DenseVector& m_reducedCosts;
 
     /**
      * Index list storing the feasibilities of the reduced costs defined by the DualFeasibilityChecker.
@@ -375,7 +375,7 @@ private:
      *
      * @param alpha The reduced cost values derived by the alpha values.
      */
-    void generateSignedBreakpointsPhase1(const Vector& alpha);
+    void generateSignedBreakpointsPhase1(const DenseVector &alpha);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 1.
@@ -385,7 +385,7 @@ private:
      * @param iterationCounter The count of the computed breakpoints.
      * @param functionSlope The value of the objective function's slope.
      */
-    void computeFunctionPhase1(const Vector& alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope);
+    void computeFunctionPhase1(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope);
 
     /**
      * This is the phase 1 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -394,14 +394,14 @@ private:
      * @param alpha The alpha vector.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase1(unsigned int iterationCounter, const Vector& alpha, Numerical::Double& functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double& functionSlope);
 
     /**
      * This function computes the ratios in dual phase 2.
      *
      * @param alpha the reduced cost values are devided by the alpha values
      */
-    void generateSignedBreakpointsPhase2(const Vector& alpha);
+    void generateSignedBreakpointsPhase2(const DenseVector &alpha);
 
     /**
      * With this function we can define ratios corresponding to the expanding tolerance.
@@ -409,7 +409,7 @@ private:
      * @param alpha The alpha vector.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void generateExpandedBreakpointsPhase2(const Vector& alpha, Numerical::Double workingTolerance);
+    void generateExpandedBreakpointsPhase2(const DenseVector &alpha, Numerical::Double workingTolerance);
 
     /**
      * This function computes the piecewise linear concave function in dual phase 2.
@@ -420,7 +420,7 @@ private:
      * @param functionSlope The value of the objective function's slope.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void computeFunctionPhase2(const Vector& alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope, Numerical::Double workingTolerance);
+    void computeFunctionPhase2(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope, Numerical::Double workingTolerance);
 
     /**
      * This is the phase 2 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -429,7 +429,7 @@ private:
      * @param alpha The alpha vector.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase2(unsigned int iterationCounter, const Vector& alpha);
+    void useNumericalThresholdPhase2(unsigned int iterationCounter, const DenseVector &alpha);
 
     /**
      * Converts a string describing a dual ratiotest method to the method describing enum.

@@ -24,7 +24,7 @@ thread_local int PfiBasis::m_inversionCount = 0;
 PfiBasis::PfiBasis(const SimplexModel& model,
                    std::vector<int>* basisHead,
                    IndexList<const Numerical::Double*>* variableStates,
-                   const Vector& basicVariableValues) :
+                   const DenseVector &basicVariableValues) :
     Basis(model, basisHead, variableStates, basicVariableValues),
     m_nontriangularMethod(getNontriangularMethod(SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
     //m_nontriangularMethod(static_cast<NONTRIANGULAR_METHOD>
@@ -41,7 +41,7 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_transformationAverage = 0;
     m_mNumAverage = 0;
 
-    m_cColumns = new std::vector<const Vector*>();
+    m_cColumns = new std::vector<const SparseVector*>();
     m_cPivotIndexes = new std::vector<int>();
 
     m_mmRows = new std::vector<Vector>();
@@ -148,10 +148,10 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
     int maxRowCount = 0;
     int maxColumnCount = 0;
-    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
+    for (std::vector<const SparseVector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
         int columnIndex = it - m_basicColumns.begin();
-        Vector::NonzeroIterator vectorIt = (*it)->beginNonzero();
-        Vector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
+        SparseVector::NonzeroIterator vectorIt = (*it)->beginNonzero();
+        SparseVector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
         for (; vectorIt < vectorItEnd; ++vectorIt) {
             int rowIndex = vectorIt.getIndex();
             if(m_rowCounts[rowIndex] != -1){
@@ -219,7 +219,6 @@ void PfiBasis::invert() {
 
     //Copy the basis for computation
     copyBasis();
-
     DEVINFO(D::PFIMAKER, "Basis copied");
 
     //Invert the R, M, C parts separately
@@ -248,12 +247,11 @@ void PfiBasis::invert() {
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
 
-void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
+void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
     //If the alpha vector comes in, then ftran is done already
 
     int outgoing = (*m_basisHead)[pivotRow];
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
-
     if (outgoingState == Simplex::NONBASIC_AT_LB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
             LPERROR("Outgoing variable is rounded to its lower bound! "<<outgoing);
@@ -292,7 +290,54 @@ void PfiBasis::append(const Vector & vector, int pivotRow, int incoming, Simplex
     m_isFresh = false;
 }
 
-void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
+void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
+    __UNUSED(mode);
+#ifndef NDEBUG
+    //In debug mode the dimensions of the basis and the given vector v are compared.
+    //If the dimension mismatches, then the operation cannot be performed.
+    //This can't happen in the "normal" case, so in release mode this check is unnecessary.
+    if (vector.length() != m_basisHead->size()) {
+        LPERROR("FTRAN failed, vector dimension mismatch! ");
+        LPERROR("Dimension of the vector to be transformed: " << vector.length());
+        LPERROR("Dimension of the basis: " << m_basisHead->size());
+    }
+#endif //!NDEBUG
+    //The ftran operation.
+    Numerical::Double * denseVector;
+    denseVector = vector.m_data;
+
+    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
+    std::vector<ETM>::const_iterator iter = m_basis->begin();
+    const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
+
+    for (; iter != iterEnd; ++iter) {
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                } else {
+                    val = pivotValue * *ptrEta;
+                }
+                originalValue = val;
+            }
+            ptrIndex++;
+            ptrEta++;
+        }
+    }
+
+}
+
+void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
     __UNUSED(mode);
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -309,12 +354,8 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
     Numerical::Double * denseVector;
 
     // 1. lepes: ha kell akkor atvaltjuk dense-re
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        denseVector = vector.m_data;
-    } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
-        denseVector = Vector::sm_fullLengthVector;
-    }
+    vector.scatter();
+    denseVector = SparseVector::sm_fullLengthVector;
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
@@ -326,92 +367,44 @@ void PfiBasis::Ftran(Vector & vector, FTRAN_MODE mode) const {
             continue;
         }
 
-        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
-            Numerical::Double * ptrEta = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_index;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-            const unsigned int pivotPosition = iter->index;
-            while (ptrIndex < ptrIndexEnd) {
-                Numerical::Double & originalValue = denseVector[*ptrIndex];
-                if (*ptrEta != 0.0) {
-                    Numerical::Double val;
-                    if (*ptrIndex != pivotPosition) {
-                        val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-                        if (originalValue == 0.0 && val != 0.0) {
-                            vector.m_nonZeros++;
-                        } else if (originalValue != 0.0 && val == 0.0) {
-                            vector.m_nonZeros--;
-                        }
-                    } else {
-                        val = pivotValue * *ptrEta;
-                    }
-                    originalValue = val;
-                }
-                ptrIndex++;
-                ptrEta++;
-            }
-
-        } else {
-            Numerical::Double * ptrValue2 = iter->eta->m_data;
-            Numerical::Double * ptrValue1 = denseVector;
-            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-            while (ptrValue1 < ptrValueEnd) {
-                const Numerical::Double value = *ptrValue2;
-                if (value != 0.0) {
-                    const Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
-                    if (*ptrValue1 == 0.0 && val != 0.0) {
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                    if (originalValue == 0.0 && val != 0.0) {
                         vector.m_nonZeros++;
-                    } else if (*ptrValue1 != 0.0 && val == 0.0) {
+                    } else if (originalValue != 0.0 && val == 0.0) {
                         vector.m_nonZeros--;
                     }
-                    *ptrValue1 = val;
+                } else {
+                    val = pivotValue * *ptrEta;
                 }
-                ptrValue1++;
-                ptrValue2++;
+                originalValue = val;
             }
-            //A vegen lerendezzuk a pivot poziciot is:
-            const Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
-            if (denseVector[iter->index] == 0.0 && val != 0.0) {
-                vector.m_nonZeros++;
-            } else if (denseVector[iter->index] != 0.0 && val == 0.0) {
-                vector.m_nonZeros--;
-            }
-            denseVector[iter->index] = val;
-
+            ptrIndex++;
+            ptrEta++;
         }
     }
 
     // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
 
-    Vector::VECTOR_TYPE newType;
-    if (vector.m_nonZeros < vector.m_sparsityThreshold) {
-        newType = Vector::SPARSE_VECTOR;
-    } else {
-        newType = Vector::DENSE_VECTOR;
-    }
-
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        if (newType == Vector::DENSE_VECTOR) {
-            return;
-        } else {
-            vector.denseToSparse();
+    vector.prepareForData(vector.m_nonZeros, vector.m_length);
+    Numerical::Double * ptrValue = denseVector;
+    const Numerical::Double * ptrValueEnd = denseVector + vector.m_length;
+    unsigned int index = 0;
+    while (ptrValue < ptrValueEnd) {
+        if (*ptrValue != 0.0) {
+            vector.newNonZero(*ptrValue, index);
+            *ptrValue = 0.0;
         }
-    } else {
-        vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
-        Numerical::Double * ptrValue = denseVector;
-        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-        unsigned int index = 0;
-        while (ptrValue < ptrValueEnd) {
-            if (*ptrValue != 0.0) {
-                vector.newNonZero(*ptrValue, index);
-                *ptrValue = 0.0;
-            }
-            ptrValue++;
-            index++;
-        }
-        if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
-            vector.m_sorted = true;
-        }
+        ptrValue++;
+        index++;
     }
 }
 
@@ -464,84 +457,40 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
             continue;
         }
 
-        if (iter->eta->m_vectorType == Vector::DENSE_VECTOR) {
-            Numerical::Double * ptrValue2 = iter->eta->m_data;
-            Numerical::Double * ptrValue1 = denseVector;
-            Numerical::Double * checkValue = checkDenseVector;
-            const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-            while (ptrValue1 < ptrValueEnd) {
-                const Numerical::Double value = *ptrValue2;
-                if (value != 0.0) {
-                    Numerical::Double val = Numerical::stableAddAbs(*ptrValue1, pivotValue * value);
-                    //LPINFO(*ptrValue1 << " + " << (pivotValue * value) << " = " << val);
-                    if (*ptrValue1 == 0.0 && val != 0.0) {
-                        vector.m_nonZeros++;
-                    } else if (*ptrValue1 != 0.0 && val == 0.0) {
-                        vector.m_nonZeros--;
-                    }
-                    *ptrValue1 = val;
 
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            Numerical::Double & originalCheckValue = checkDenseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                Numerical::Double checkVal;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
                     Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
                     mul = 1.0;
-                    val = Numerical::stableAddAbs(*checkValue, checkPivotValue * value * mul);
-                    //cout << val << "   " << lostValueAdd(*checkValue, checkPivotValue * value) << endl;
-                    mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
-                    //mul = 1.0;
-                    *checkValue = val + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);;
-                }
-                ptrValue1++;
-                ptrValue2++;
-                checkValue++;
-            }
-            // std::cin.get();
-            //A vegen lerendezzuk a pivot poziciot is:
-            Numerical::Double val = pivotValue * iter->eta->m_data[iter->index];
-            if (denseVector[iter->index] == 0.0 && val != 0.0) {
-                vector.m_nonZeros++;
-            } else if (denseVector[iter->index] != 0.0 && val == 0.0) {
-                vector.m_nonZeros--;
-            }
-            denseVector[iter->index] = val;
-
-            Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e11)*plusMinus;
-            val = checkPivotValue * iter->eta->m_data[iter->index];
-            checkDenseVector[iter->index] = val * mul;
-
-        } else {
-            Numerical::Double * ptrEta = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_index;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
-            const unsigned int pivotPosition = iter->index;
-            while (ptrIndex < ptrIndexEnd) {
-                Numerical::Double & originalValue = denseVector[*ptrIndex];
-                Numerical::Double & originalCheckValue = checkDenseVector[*ptrIndex];
-                if (*ptrEta != 0.0) {
-                    Numerical::Double val;
-                    Numerical::Double checkVal;
-                    if (*ptrIndex != pivotPosition) {
-                        val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-                        Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
-                        mul = 1.0;
-                        checkVal = Numerical::stableAddAbs(originalCheckValue, checkPivotValue * *ptrEta * mul);
-                        if (originalValue == 0.0 && val != 0.0) {
-                            vector.m_nonZeros++;
-                        } else if (originalValue != 0.0 && val == 0.0) {
-                            vector.m_nonZeros--;
-                        }
-                    } else {
-                        val = pivotValue * *ptrEta;
-                        checkVal = checkPivotValue * *ptrEta;
+                    checkVal = Numerical::stableAddAbs(originalCheckValue, checkPivotValue * *ptrEta * mul);
+                    if (originalValue == 0.0 && val != 0.0) {
+                        vector.m_nonZeros++;
+                    } else if (originalValue != 0.0 && val == 0.0) {
+                        vector.m_nonZeros--;
                     }
-
-                    //                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
-                    //                    mul = 1.0;
-                    originalValue = val;
-                    originalCheckValue = checkVal + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);
-
+                } else {
+                    val = pivotValue * *ptrEta;
+                    checkVal = checkPivotValue * *ptrEta;
                 }
-                ptrIndex++;
-                ptrEta++;
+
+                //                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
+                //                    mul = 1.0;
+                originalValue = val;
+                originalCheckValue = checkVal + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);
+
             }
+            ptrIndex++;
+            ptrEta++;
         }
     }
 
@@ -593,7 +542,81 @@ void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode
     }
 }
 
-void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
+void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
+{
+    __UNUSED(mode);
+
+
+#ifndef NDEBUG
+    //In debug mode the dimensions of the basis and the given vector v are compared.
+    //If the dimension mismatches, then the operation cannot be performed.
+    //This can't happen in the "normal" case, so in release mode this check is unnecessary.
+    if (vector.length() != m_basisHead->size()) {
+        LPERROR("BTRAN failed, vector dimension mismatch! ");
+        LPERROR("Dimension of the vector to be transformed: " << vector.length());
+        LPERROR("Dimension of the basis: " << m_basisHead->size());
+    }
+#endif //!NDEBUG
+
+    //The btran operation.
+    Numerical::Double * denseVector;
+
+    denseVector = vector.m_data;
+
+    // 2. perform the dot products
+    //std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
+    //const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
+    ETM * iterEnd = m_basis->data() - 1;
+    ETM * iter = iterEnd + m_basis->size();
+
+    unsigned int etaIndex = 0;
+    for (; iter != iterEnd; iter--, etaIndex++) {
+        unsigned int nonZeros = vector.nonZeros();
+
+        Numerical::Summarizer summarizer;
+        Numerical::Double dotProduct = 0;
+
+        //All eta vectors are sparse!
+//        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
+            Numerical::Double * ptrValue = iter->eta->m_data;
+            unsigned int * ptrIndex = iter->eta->m_indices;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+            // if the input vector has less nonzeros than the eta vector,
+            // this implementation can be faster
+            if (nonZeros < iter->eta->m_length) {
+                while (ptrIndex < ptrIndexEnd && nonZeros) {
+                    const Numerical::Double value = denseVector[*ptrIndex];
+                    if (value != 0.0) {
+                        nonZeros--;
+                        summarizer.add(value * *ptrValue);
+
+                    }
+                    ptrIndex++;
+                    ptrValue++;
+                }
+            } else {
+                while (ptrIndex < ptrIndexEnd) {
+//                    const Numerical::Double value = denseVector[*ptrIndex];
+//                    if (value != 0.0) {
+//                        summarizer.add(value * *ptrValue);
+//                    }
+                    summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+                    ptrIndex++;
+                    ptrValue++;
+                }
+            }
+
+            dotProduct = summarizer.getResult();
+//        }
+
+        // store the dot product, and update the nonzero counter
+        const int pivot = iter->index;
+        denseVector[pivot] = dotProduct;
+    }
+
+}
+
+void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
 
@@ -613,12 +636,8 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     Numerical::Double * denseVector;
 
     // 1. convert the input vector to dense form if necessary
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        denseVector = vector.m_data;
-    } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
-        denseVector = Vector::sm_fullLengthVector;
-    }
+    vector.scatter();
+    denseVector = SparseVector::sm_fullLengthVector;
 
     // 2. perform the dot products
     //std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
@@ -636,11 +655,11 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
         //All eta vectors are sparse!
 //        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
             Numerical::Double * ptrValue = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_index;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_size;
+            unsigned int * ptrIndex = iter->eta->m_indices;
+            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
             // if the input vector has less nonzeros than the eta vector,
             // this implementation can be faster
-            if (nonZeros < iter->eta->m_size) {
+            if (nonZeros < iter->eta->m_length) {
                 while (ptrIndex < ptrIndexEnd && nonZeros) {
                     const Numerical::Double value = denseVector[*ptrIndex];
                     if (value != 0.0) {
@@ -678,37 +697,20 @@ void PfiBasis::Btran(Vector & vector, BTRAN_MODE mode) const
     }
 
     // 3. store the result in the output vector
-    Vector::VECTOR_TYPE newType;
     // operating vector and output are the same
-    if (vector.m_nonZeros < vector.m_sparsityThreshold) {
-        newType = Vector::SPARSE_VECTOR;
-    } else {
-        newType = Vector::DENSE_VECTOR;
-    }
 
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        if (newType == Vector::DENSE_VECTOR) {
-            return;
-        } else {
-            vector.denseToSparse();
+    // build the result vector, if the original vector was sparse
+    vector.prepareForData(vector.m_nonZeros, vector.m_length);
+    Numerical::Double * ptrValue = denseVector;
+    const Numerical::Double * ptrValueEnd = denseVector + vector.m_length;
+    unsigned int index = 0;
+    while (ptrValue < ptrValueEnd) {
+        if (*ptrValue != 0.0) {
+            vector.newNonZero(*ptrValue, index);
+            *ptrValue = 0.0;
         }
-    } else {
-        // build the result vector, if the original vector was sparse
-        vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
-        Numerical::Double * ptrValue = denseVector;
-        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-        unsigned int index = 0;
-        while (ptrValue < ptrValueEnd) {
-            if (*ptrValue != 0.0) {
-                vector.newNonZero(*ptrValue, index);
-                *ptrValue = 0.0;
-            }
-            ptrValue++;
-            index++;
-        }
-        if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
-            vector.m_sorted = true;
-        }
+        ptrValue++;
+        index++;
     }
 
 }
@@ -723,23 +725,26 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     updatehelper.resize(m_model.getRowCount(), 0);
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
+
             if(m_basicColumnCopies[*it]==NULL){
-                m_basicColumnCopies[*it] = new Vector(*(m_basicColumns[*it]));
+                m_basicColumnCopies[*it] = new SparseVector(*(m_basicColumns[*it]));
                 m_basicColumns[*it] = m_basicColumnCopies[*it];
             }
             m_transformationCount += m_basis->back().eta->nonZeros();
+
             //Remove everything
-            Vector::NonzeroIterator columnIt = m_basicColumnCopies[*it]->beginNonzero();
-            Vector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
+            SparseVector::NonzeroIterator columnIt = m_basicColumnCopies[*it]->beginNonzero();
+            SparseVector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
                     updatehelper[columnIt.getIndex()]--;
                 }
             }
+
             //            LPINFO("UPDATING COLUMN: "<<*m_basicColumnCopies.at(*it));
             m_basicColumnCopies[*it]->elementaryFtran(*(m_basis->back().eta), m_basis->back().index);
-
             //            LPINFO("UPDATED COLUMN: "<<*m_basicColumnCopies.at(*it));
+
             //Add the changes back
             int newColumnCount = 0;
             columnIt = m_basicColumnCopies[*it]->beginNonzero();
@@ -772,7 +777,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
 
 }
 
-void PfiBasis::pivot(const Vector& column, int pivotRow) {
+void PfiBasis::pivot(const SparseVector& column, int pivotRow) {
     ETM newETM;
     newETM.eta = createEta(column, pivotRow);
     newETM.index = pivotRow;
@@ -792,7 +797,7 @@ void PfiBasis::invertR() {
             //This part searches for rows with row count 1 and order them to the upper triangular part
             int columnindex = m_rowNonzeroIndices[rowindex].front();
 
-            const Vector *currentColumn = m_basicColumns[columnindex];
+            const SparseVector *currentColumn = m_basicColumns[columnindex];
             //Invert the chosen R column
             DEVINFO(D::PFIMAKER, "Inverting R column " << columnindex << " with pivot row " << rowindex);
 
@@ -800,8 +805,8 @@ void PfiBasis::invertR() {
             m_basisNewHead[rowindex] = m_basicColumnIndices[columnindex];
 
             //Update the row lists and row counts
-            Vector::NonzeroIterator it = currentColumn->beginNonzero();
-            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+            SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+            SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
             for (; it < itend; ++it) {
                 int index = it.getIndex();
                 //If the row of the iterated element is still active
@@ -834,15 +839,15 @@ void PfiBasis::findC() {
             int columnindex = m_columnCountIndexList.firstElement(1);
             //This part searches for rows with row count 1 and order them to the upper triangular part
             int rowindex = -1 ;
-            Vector::NonzeroIterator it = m_basicColumns[columnindex]->beginNonzero();
-            Vector::NonzeroIterator itend = m_basicColumns[columnindex]->endNonzero();
+            SparseVector::NonzeroIterator it = m_basicColumns[columnindex]->beginNonzero();
+            SparseVector::NonzeroIterator itend = m_basicColumns[columnindex]->endNonzero();
             for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > 0) {
                     rowindex = it.getIndex();
                     break;
                 }
             }
-            const Vector *currentColumn = m_basicColumns[columnindex];
+            const SparseVector *currentColumn = m_basicColumns[columnindex];
 
             //Store the chosen columns
             m_cColumns->push_back(currentColumn);
@@ -875,6 +880,7 @@ void PfiBasis::findC() {
 }
 
 void PfiBasis::invertM() {
+
     //The middle (non-triangular) part is called M part
     DEVINFO(D::PFIMAKER, "Organize the M part and invert the columns");
     unsigned int mNum = 0;
@@ -890,7 +896,7 @@ void PfiBasis::invertM() {
                     DEVINFO(D::PFIMAKER, "Choosing M column with rowcount " << *it);
                     int rowindex = it - m_rowCounts.begin();
                     int columnindex = m_rowNonzeroIndices[rowindex].front();
-                    const Vector* currentColumn = m_basicColumns[columnindex];
+                    const SparseVector* currentColumn = m_basicColumns[columnindex];
                     if (nontriangularCheck(rowindex, currentColumn, -1)) {
                         //Invert the chosen M column
                         DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
@@ -900,8 +906,8 @@ void PfiBasis::invertM() {
                         //Update the remaining columns
                         updateColumns(rowindex, columnindex);
                         //Update the row lists and row counts
-                        Vector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
-                        Vector::NonzeroIterator vectorItend = currentColumn->endNonzero();
+                        SparseVector::NonzeroIterator vectorIt = currentColumn->beginNonzero();
+                        SparseVector::NonzeroIterator vectorItend = currentColumn->endNonzero();
                         for (; vectorIt < vectorItend; ++vectorIt) {
                             if (m_rowCounts[vectorIt.getIndex()] >= 0) {
                                 m_rowCounts[vectorIt.getIndex()]--;
@@ -923,8 +929,8 @@ void PfiBasis::invertM() {
                     } else {
                         LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
                         //Update the row lists and row counts
-                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+                        SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
                         for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
@@ -960,7 +966,7 @@ void PfiBasis::invertM() {
                 int rowindex = (*m_mmRowIndices)[*rowIt];
                 //Columnindex: Ki volt eredetileg az iteratoradik oszlop
                 int columnindex = (*m_mmColumnIndices)[(*m_columnSwapHash)[rowIt - m_rowSwapHash->begin()]];
-                const Vector* currentColumn = m_basicColumns[columnindex];
+                const SparseVector* currentColumn = m_basicColumns[columnindex];
                 if (nontriangularCheck(rowindex, currentColumn, currentBlock)) {
                     DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
                     //Invert the chosen M column
@@ -971,8 +977,8 @@ void PfiBasis::invertM() {
                     updateColumns(rowindex, columnindex);
 
                     //Update the row lists and row counts
-                    Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                    Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                    SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+                    SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
                     for (; it < itend; ++it) {
                         int index = it.getIndex();
                         //If the row of the iterated element is still active
@@ -999,8 +1005,8 @@ void PfiBasis::invertM() {
                 } else {
                     LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
                     //Update the row lists and row counts
-                    Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                    Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                    SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+                    SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
                     for (; it < itend; ++it) {
                         int index = it.getIndex();
                         //If the row of the iterated element is still active
@@ -1023,6 +1029,7 @@ void PfiBasis::invertM() {
         {
             int blockStart = 0;
             for (std::vector<int>::iterator blockIt = m_mmBlocks->begin(); blockIt < m_mmBlocks->end(); blockIt++) {
+
                 int currentBlock = blockIt - m_mmBlocks->begin();
                 int currentBlockSize = *blockIt;
                 std::multimap<int, int> columnOrders;
@@ -1032,11 +1039,13 @@ void PfiBasis::invertM() {
                                 std::make_pair((int) (*m_mmColumns)[i].nonZeros(),
                                                (*m_mmColumnIndices)[(*m_columnSwapHash)[i]]));
                 }
+
                 for (std::multimap<int, int>::iterator colIt = columnOrders.begin(); colIt != columnOrders.end(); colIt++) {
+
                     blockStart++;
                     int rowindex = -1;
                     int columnindex = colIt->second;
-                    const Vector* currentColumn = m_basicColumns[columnindex];
+                    const SparseVector* currentColumn = m_basicColumns[columnindex];
                     if (nontriangularCheck(rowindex, currentColumn, currentBlock)) {
                         DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
                         //Invert the chosen M column
@@ -1047,8 +1056,8 @@ void PfiBasis::invertM() {
                         updateColumns(rowindex, columnindex);
 
                         //Update the row lists and row counts
-                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+                        SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
                         for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
@@ -1070,11 +1079,12 @@ void PfiBasis::invertM() {
                         //Set the column and row count to zero to represent that which column and row has been chosen.
                         m_rowCounts[rowindex] = -1;
                         m_columnCounts[columnindex] = -1;
+
                     } else {
                         LPWARNING("Non-triangular pivot position is numerically unstable, ignoring column:" << columnindex << ")");
                         //Update the row lists and row counts
-                        Vector::NonzeroIterator it = currentColumn->beginNonzero();
-                        Vector::NonzeroIterator itend = currentColumn->endNonzero();
+                        SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+                        SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
                         for (; it < itend; ++it) {
                             int index = it.getIndex();
                             //If the row of the iterated element is still active
@@ -1087,6 +1097,7 @@ void PfiBasis::invertM() {
                         m_columnCounts[columnindex] = -1;
                     }
                     mNum++;
+
                 }
             }
         }
@@ -1099,12 +1110,13 @@ void PfiBasis::invertM() {
         break;
     }
     DEVINFO(D::PFIMAKER, "MPART num: " << mNum);
+
 }
 
 void PfiBasis::invertC() {
     //The lower triangular part is called C part
     DEVINFO(D::PFIMAKER, "Invert the C part");
-    for (std::vector<const Vector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); ++it) {
+    for (std::vector<const SparseVector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); ++it) {
         DEVINFO(D::PFIMAKER, "Inverting C column " << m_cColumns->rend() - 1 - it <<
                 " with pivot row " << (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
         pivot(*(*it), (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
@@ -1165,8 +1177,8 @@ void PfiBasis::buildMM() {
         //   m_mmColumns->at(i).setSparsityRatio(0.0);
     }
     for (std::vector<int>::iterator it = m_mmColumnIndices->begin(); it < m_mmColumnIndices->end(); ++it) {
-        Vector::NonzeroIterator vectorIt = m_basicColumns[*it]->beginNonzero();
-        Vector::NonzeroIterator vectorItend = m_basicColumns[*it]->endNonzero();
+        SparseVector::NonzeroIterator vectorIt = m_basicColumns[*it]->beginNonzero();
+        SparseVector::NonzeroIterator vectorItend = m_basicColumns[*it]->endNonzero();
         for (; vectorIt < vectorItend; ++vectorIt) {
             if (rowMemory[vectorIt.getIndex()] != -1) {
                 int rowIndex = rowMemory[vectorIt.getIndex()];
@@ -1461,7 +1473,7 @@ void PfiBasis::createBlockTriangular() {
 #endif //!NDEBUG
 }
 
-bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, int blockNum) {
+bool PfiBasis::nontriangularCheck(int& rowindex, const SparseVector* currentColumn, int blockNum) {
     std::vector<int> activeRows;
     std::vector<int> goodRows;
     Numerical::Double nontriangularMax = 0;
@@ -1484,8 +1496,8 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
             }
             //            LPINFO("previousBlocks: "<<previousBlocks);
             //Activerows-ba kigyujtjuk a blokkhoz tartozo nemnullakat
-            Vector::NonzeroIterator it = currentColumn->beginNonzero();
-            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+            SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+            SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
             for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > -1) {
                     //Ha MM-beli nemnullat talaltunk
@@ -1502,8 +1514,8 @@ bool PfiBasis::nontriangularCheck(int& rowindex, const Vector* currentColumn, in
         }
         //Ha nem szamoltunk blokkokat
         else {
-            Vector::NonzeroIterator it = currentColumn->beginNonzero();
-            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+            SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+            SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
             for (; it < itend; ++it) {
                 if (m_rowCounts[it.getIndex()] > -1) {
                     activeRows.push_back(it.getIndex());

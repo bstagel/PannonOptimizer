@@ -91,8 +91,8 @@ void SbfCrash::run()
 
             // choose the column
             rowIndex = minIndex;
-            Vector::NonzeroIterator iter = matrix.row(rowIndex).beginNonzero();
-            Vector::NonzeroIterator iterEnd = matrix.row(rowIndex).endNonzero();
+            SparseVector::NonzeroIterator iter = matrix.row(rowIndex).beginNonzero();
+            SparseVector::NonzeroIterator iterEnd = matrix.row(rowIndex).endNonzero();
 
             while (iter != iterEnd && columnCounter[iter.getIndex()] == 0) {
                 ++iter;
@@ -116,8 +116,8 @@ void SbfCrash::run()
             iterEnd = matrix.row(rowIndex).endNonzero();
             for (; iter != iterEnd; ++iter) {
                 columnCounter[ iter.getIndex() ] = 0;
-                Vector::NonzeroIterator nonzIter = matrix.column( iter.getIndex() ).beginNonzero();
-                Vector::NonzeroIterator nonzIterEnd = matrix.column( iter.getIndex() ).endNonzero();
+                SparseVector::NonzeroIterator nonzIter = matrix.column( iter.getIndex() ).beginNonzero();
+                SparseVector::NonzeroIterator nonzIterEnd = matrix.column( iter.getIndex() ).endNonzero();
                 for (; nonzIter != nonzIterEnd; ++nonzIter) {
                     unsigned int currentCount = rowCounter.where( nonzIter.getIndex() );
                     if (currentCount > 0 && nonzIter.getIndex() != rowIndex) {
@@ -173,7 +173,7 @@ void SbfCrash::run()
     }
 
     case StartingBasisFinder::MIXED: {
-        const Vector & costs = m_model.getCostVector();
+        const DenseVector & costs = m_model.getCostVector();
         //Always minimize
         for (index = 0; index < rowCount + columnCount; index++) {
             if (nonbasicVarialbes[index] == 1) {

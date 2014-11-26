@@ -35,7 +35,7 @@ public:
     DualFeasibilityChecker(const SimplexModel& model,
                            IndexList<const Numerical::Double *>* variableStates,
                            IndexList<>* reducedCostFeasibilities,
-                           const Vector& reducedCosts,
+                           const DenseVector& reducedCosts,
                            const Basis& basis);
 
     /**
@@ -55,7 +55,7 @@ public:
      * @param basicVariableValues The basic variable values needed to compute the basic solution vector.
      * @param tolerance The dual feasibility tolerance.
      */
-    void feasibilityCorrection(Vector* basicVariableValues, Numerical::Double tolerance);
+    void feasibilityCorrection(DenseVector *basicVariableValues, Numerical::Double tolerance);
 
     /**
      * The aim of this function is to be able to update the reduced cost feasibilities in an efficient way.
@@ -93,7 +93,7 @@ private:
     /**
      * The vector of the reduced costs.
      */
-    const Vector& m_reducedCosts;
+    const DenseVector& m_reducedCosts;
 
     /**
      * A reference to the basis, so that during the feasibility correction an Ftran operation can be performed.

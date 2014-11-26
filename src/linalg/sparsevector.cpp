@@ -18,6 +18,33 @@ thread_local SparseVector::SparseToDenseDotProduct SparseVector::sm_sparseToDens
 thread_local SparseVector::SparseToIndexedDenseDotProduct SparseVector::sm_sparseToIndexedDenseDotProduct;
 thread_local SparseVector::SparseToSparseDotProduct SparseVector::sm_sparseToSparseDotProduct;
 
+void SparseVector::checkScattered(int nzr, int length) {
+    for(int i = 0; i < nzr; i++) {
+        int index = SparseVector::sm_indexVector[i];
+        if(SparseVector::sm_fullLengthVector[index] ==  0.0 || SparseVector::sm_indexPointerVector[index] == nullptr) {
+            LPWARNING("error during scattered nzr check at idx " << index);
+            return;
+        }
+    }
+    for(int i = 0; i < length; i++)
+    {
+        if(SparseVector::sm_indexPointerVector[i] != nullptr) {
+            if(*(SparseVector::sm_indexPointerVector[i]) != i) {
+                LPERROR(SparseVector::sm_indexPointerVector[i] << " " << SparseVector::sm_indexVector);
+                LPERROR("SMIDLA "<<i<<" "<<*(SparseVector::sm_indexPointerVector[i])); exit(-19);
+            }
+        }
+    }
+}
+
+void SparseVector::checkVector(const SparseVector & vector) {
+    for(int i = 0; i < vector.nonZeros(); i++) {
+        if(vector.m_data[i] == 0.0 || vector.m_indices[i] >= vector.m_length)
+        {
+            LPWARNING("error during vector check! nzr index: " << i);
+        }
+    }
+}
 
 template<class ADD>
 void addSparseToSparseTemplate(Numerical::Double lambda,
@@ -27,24 +54,29 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
     vector1->scatter();
     unsigned int nonZeroIndex;
     unsigned int nonZeros = vector1->m_nonZeros;
+
     for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
         const unsigned int index = vector2.m_indices[nonZeroIndex];
         const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
                                                vector2.m_data[nonZeroIndex] * lambda);
+
         if (SparseVector::sm_fullLengthVector[index] == 0.0 && sum != 0.0) {
             SparseVector::sm_indexVector[nonZeros] = index;
+            SparseVector::sm_indexPointerVector[index] = SparseVector::sm_indexVector + nonZeros;
             nonZeros++;
         } else if (SparseVector::sm_fullLengthVector[index] != 0.0 && sum == 0.0) {
+            SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]] = SparseVector::sm_indexPointerVector[index];
             *(SparseVector::sm_indexPointerVector[index]) = SparseVector::sm_indexVector[nonZeros - 1];
-            *(SparseVector::sm_indexPointerVector[SparseVector::sm_indexVector[nonZeros - 1]]) = index;
             SparseVector::sm_indexPointerVector[index] = nullptr;
             nonZeros--;
         }
         SparseVector::sm_fullLengthVector[index] = sum;
     }
+
     if (nonZeros > vector1->m_capacity) {
         vector1->resizeCapacity(nonZeros);
     }
+
     for (nonZeroIndex = 0; nonZeroIndex < nonZeros; nonZeroIndex++) {
         const unsigned int index = SparseVector::sm_indexVector[nonZeroIndex];
         vector1->m_data[nonZeroIndex] = SparseVector::sm_fullLengthVector[index];
@@ -160,6 +192,15 @@ SparseVector &SparseVector::operator=(const SparseVector &orig)
     }
     release();
     copy(orig);
+    return *this;
+}
+
+SparseVector &SparseVector::operator =(const DenseVector &orig)
+{
+    this->prepareForData(orig.nonZeros(), orig.m_length);
+    for(unsigned i = 0; i < m_length; i++) {
+        if(orig[i] != 0.0) this->newNonZero(orig[i], i);
+    }
     return *this;
 }
 
@@ -317,6 +358,16 @@ void SparseVector::set(unsigned int index, Numerical::Double value)
     }
 }
 
+void SparseVector::setNewNonzero(unsigned int index, Numerical::Double value)
+{
+    if (unlikely(m_capacity <= m_nonZeros)) {
+        resizeCapacity(m_capacity + 1 + sm_elbowRoom);
+    }
+    m_data[m_nonZeros] = value;
+    m_indices[m_nonZeros] = index;
+    m_nonZeros++;
+}
+
 Numerical::Double SparseVector::euclidNorm() const
 {
     unsigned int index;
@@ -335,6 +386,15 @@ Numerical::Double SparseVector::l1Norm() const
         sum += Numerical::fabs(m_data[index]);
     }
     return sum;
+}
+
+SparseVector & SparseVector::elementaryFtran(const SparseVector & eta, unsigned int pivot)
+{
+    Numerical::Double pivotValue = at(pivot);
+    Numerical::Double atPivot = eta.at(pivot);
+    addVector(pivotValue, eta);
+    set(pivot, atPivot * pivotValue);
+    return *this;
 }
 
 SparseVector & SparseVector::addVector(Numerical::Double lambda,
@@ -383,6 +443,71 @@ void SparseVector::scale(Numerical::Double lambda)
             m_data[index] *= lambda;
         }
     }
+}
+
+void SparseVector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
+{
+    // TODO: lekezelni azt, mikor 0-val szorzunk be
+    Numerical::Double * dataPtr = m_data;
+    unsigned int * indexPtr = m_indices;
+    Numerical::Double * lastData = m_data + m_length - 1;
+    unsigned int * lastIndex = m_indices + m_length - 1;
+
+    while (dataPtr <= lastData) {
+        *dataPtr *= lambdas[*indexPtr];
+        if (*dataPtr == 0.0) {
+            m_nonZeros--;
+            *dataPtr = *lastData;
+            *indexPtr = *lastIndex;
+            lastData--;
+            lastIndex--;
+        } else {
+            dataPtr++;
+            indexPtr++;
+        }
+    }
+}
+
+void SparseVector::scaleElementBy(unsigned int index, Numerical::Double lambda)
+{
+    Numerical::Double * ptr = nullptr;
+    unsigned int nonZeroIndex = 0;
+    while (nonZeroIndex < m_nonZeros && m_indices[nonZeroIndex] != index) {
+        nonZeroIndex++;
+    }
+    if (nonZeroIndex < m_nonZeros) {
+        ptr = m_data + nonZeroIndex;
+    }
+    if (lambda != 0.0) {
+        if (ptr) {
+            *ptr *= lambda;
+        }
+    } else {
+        if (ptr) {
+            *ptr = m_data[ m_nonZeros - 1 ];
+            m_indices[ ptr - m_data ] = m_indices[ m_nonZeros - 1 ];
+            m_nonZeros--;
+        }
+    }
+}
+
+bool SparseVector::operator ==(const SparseVector& other) const
+{
+    if (m_nonZeros != other.m_nonZeros) {
+        return false;
+    }
+    SparseVector::NonzeroIterator iterator1 = other.beginNonzero();
+    SparseVector::NonzeroIterator iterator2 = beginNonzero();
+    SparseVector::NonzeroIterator iteratorEnd1 = other.endNonzero();
+    for (; iterator1 < iteratorEnd1; ++iterator1, ++iterator2) {
+        if (iterator1.getIndex() != iterator2.getIndex()) {
+            return false;
+        }
+        if (*iterator1 != *iterator2) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void SparseVector::sortIndices()
@@ -650,6 +775,14 @@ void SparseVector::resize(unsigned int length)
     }
 }
 
+void SparseVector::reInit(unsigned int length)
+{
+    CLEAR_DOUBLES(m_data, m_nonZeros);
+    panOptMemset(m_indices, 0, sizeof(unsigned int) * m_nonZeros);
+    m_length = length;
+    return;
+}
+
 void SparseVector::resizeFullLengthVector(unsigned int length)
 {
     ::release(sm_fullLengthVector);
@@ -756,7 +889,7 @@ void SparseVector::scatter() const
         const unsigned int index = m_indices[nonZeroIndex];
         sm_indexVector[nonZeroIndex] = index;
         sm_fullLengthVector[index] = m_data[nonZeroIndex];
-        sm_indexPointerVector[index] = m_indices + nonZeroIndex;
+        sm_indexPointerVector[index] = sm_indexVector + nonZeroIndex;
     }
 }
 

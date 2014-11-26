@@ -327,7 +327,9 @@ void DualSimplex::computeFeasibility() {
 }
 
 void DualSimplex::price() {
+
     if(!m_feasible){
+
         m_outgoingIndex = m_pricing ? m_pricing->performPricingPhase1() : m_pricingController->performPricingPhase1() ;
         if(m_outgoingIndex == -1){
             throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
@@ -342,11 +344,11 @@ void DualSimplex::price() {
             }
         }
     }
+
 }
 
 void DualSimplex::selectPivot() {
     m_incomingIndex = -1;
-
     while(m_incomingIndex == -1 ){
         computeTransformedRow();
 
@@ -394,7 +396,6 @@ void DualSimplex::selectPivot() {
 }
 
 void DualSimplex::update() {
-
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
@@ -408,11 +409,11 @@ void DualSimplex::update() {
     it = m_ratiotest->getBoundflips().begin();
     for(; it < itend; ++it){
 //                LPWARNING("BOUNDFLIPPING at: "<<*it);
-        Vector alpha(rowCount);
+        DenseVector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
         } else {
-            alpha.setNewNonzero(*it - columnCount, 1);
+            alpha.set(*it - columnCount, 1);
         }
 
         m_basis->Ftran(alpha);
@@ -421,13 +422,13 @@ void DualSimplex::update() {
         //Alpha is not available, since we are in the dual
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
@@ -442,10 +443,11 @@ void DualSimplex::update() {
 
         //Compute the transformed column
         m_pivotColumn.reInit(rowCount);
+
         if(m_incomingIndex < (int)columnCount){
             m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
         } else {
-            m_pivotColumn.setNewNonzero(m_incomingIndex - columnCount, 1);
+            m_pivotColumn.set(m_incomingIndex - columnCount, 1);
         }
 
         m_basis->Ftran(m_pivotColumn);
@@ -498,7 +500,6 @@ void DualSimplex::update() {
             throw PanOptException("Invalid variable type");
         }
 
-
         //Compute the primal theta
         //Update the solution vector and the objective value
         Numerical::Double beta;
@@ -520,8 +521,7 @@ void DualSimplex::update() {
         }
         m_primalTheta = beta / m_pivotColumn.at(m_outgoingIndex);
 
-
-        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn, Numerical::ADD_ABS);
+        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
         m_objectiveValue += beta * m_dualTheta;
 
         //Do some updates before the basis change
@@ -538,9 +538,10 @@ void DualSimplex::update() {
 
         //Update the reduced costs
         updateReducedCosts();
-
         //Perform the basis change
-        m_basis->append(m_pivotColumn, m_outgoingIndex, m_incomingIndex, outgoingState);
+        SparseVector scattered;
+        scattered = m_pivotColumn;
+        m_basis->append(scattered, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         if (m_pricing) {
             m_pricing->checkAndFix();
@@ -631,15 +632,14 @@ void DualSimplex::computeTransformedRow() {
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
     m_pivotRow.reInit(rowCount + columnCount);
-    m_pivotRow.setSparsityRatio(DENSE);
 
     if (m_pivotRowOfBasisInverse.length() != rowCount) {
         m_pivotRowOfBasisInverse.reInit(rowCount);
-        m_pivotRowOfBasisInverse.setSparsityRatio(DENSE);
     } else {
         m_pivotRowOfBasisInverse.clear();
     }
-    m_pivotRowOfBasisInverse.setNewNonzero(m_outgoingIndex, 1);
+    m_pivotRowOfBasisInverse.set(m_outgoingIndex, 1);
+
     m_basis->Btran(m_pivotRowOfBasisInverse);
 
     /*Vector otherRow(rowCount);
@@ -692,14 +692,14 @@ void DualSimplex::computeTransformedRow() {
 
     // rowwise version
     std::vector<Numerical::Summarizer> results( rowCount + columnCount );
-    Vector::NonzeroIterator pivotRowIter = m_pivotRowOfBasisInverse.beginNonzero();
-    Vector::NonzeroIterator pivotRowIterEnd = m_pivotRowOfBasisInverse.endNonzero();
+    DenseVector::NonzeroIterator pivotRowIter = m_pivotRowOfBasisInverse.beginNonzero();
+    DenseVector::NonzeroIterator pivotRowIterEnd = m_pivotRowOfBasisInverse.endNonzero();
     for (; pivotRowIter != pivotRowIterEnd; ++pivotRowIter) {
         const Numerical::Double lambda = *pivotRowIter;
-        const Vector & row = m_simplexModel->getMatrix().row( pivotRowIter.getIndex() );
+        const SparseVector & row = m_simplexModel->getMatrix().row( pivotRowIter.getIndex() );
         // structural variables
-        Vector::NonzeroIterator rowIter = row.beginNonzero();
-        Vector::NonzeroIterator rowIterEnd = row.endNonzero();
+        SparseVector::NonzeroIterator rowIter = row.beginNonzero();
+        SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
         for (; rowIter != rowIterEnd; ++rowIter) {
             const unsigned int index = rowIter.getIndex();
             if ( m_variableStates.where(index) == Simplex::BASIC ) {
@@ -727,7 +727,7 @@ void DualSimplex::computeTransformedRow() {
 }
 
 void DualSimplex::updateReducedCosts() {
-    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow, Numerical::ADD_FAST);
+    m_reducedCosts.addVector( -m_dualTheta, m_pivotRow);
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
 }

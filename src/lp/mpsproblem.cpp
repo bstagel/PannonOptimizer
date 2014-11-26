@@ -1515,14 +1515,14 @@ unsigned int MpsModelBuilder::getRowCount() const {
     return m_rows.m_totalCounter;
 }
 
-void MpsModelBuilder::buildRow(unsigned int index, Vector * rowVector,
+void MpsModelBuilder::buildRow(unsigned int index, SparseVector *rowVector,
                                std::vector<unsigned int> * nonzeros) const {
     __UNUSED(index);
     __UNUSED(rowVector);
     __UNUSED(nonzeros);
 }
 
-void MpsModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
+void MpsModelBuilder::buildColumn(unsigned int index, SparseVector * columnVector,
                                   std::vector<unsigned int> * nonzeros) const {
 
     const Column * column = m_columnsMap[index];
@@ -1631,14 +1631,13 @@ const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const {
     return result;
 }
 
-void MpsModelBuilder::buildCostVector(Vector * costVector) const {
+void MpsModelBuilder::buildCostVector(DenseVector *costVector) const {
     costVector->reInit( m_columns.m_totalCounter );
-    costVector->setSparsityRatio(0.0);
     std::vector<std::pair<double, unsigned int> >::const_iterator iter = m_costVector.begin();
     std::vector<std::pair<double, unsigned int> >::const_iterator iterEnd = m_costVector.end();
 
     for (; iter != iterEnd; ++iter) {
-        costVector->setNewNonzero( iter->second, iter->first );
+        costVector->set( iter->second, iter->first );
     }
 }
 

@@ -12,7 +12,7 @@
 #include <prettyprint.h>
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
-                             const Vector& reducedCosts,
+                             const DenseVector &reducedCosts,
                              const IndexList<>& reducedCostFeasibilities,
                              const IndexList<const Numerical::Double*>& variableStates) :
     m_model(model),
@@ -48,9 +48,9 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_ratioDirections.resize(m_model.getColumnCount() + m_model.getRowCount());
 }
 
-void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
+void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
     #ifndef NDEBUG
-    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
+    //if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
 //computing ratios
@@ -127,7 +127,7 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const Vector& alpha){
     m_breakpointHandler.finalizeBreakpoints();
 }
 
-void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
+void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
                                           unsigned int& iterationCounter,
                                           Numerical::Double& functionSlope)
 {
@@ -244,7 +244,7 @@ void DualRatiotest::computeFunctionPhase1(const Vector& alpha,
 }
 
 void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
-                                          const Vector& alpha,
+                                          const DenseVector& alpha,
                                           Numerical::Double& functionSlope)
 {
     m_stablePivotActivationPhase1++;
@@ -352,7 +352,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     }
 }
 
-void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
+void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue)
 {
@@ -457,10 +457,10 @@ void DualRatiotest::performRatiotestPhase1(const Vector& alpha,
     }
 }
 
-void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
+void DualRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 {
     #ifndef NDEBUG
-    if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
+    //if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
     #endif
 
 //computing ratios
@@ -513,7 +513,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const Vector &alpha)
     m_breakpointHandler.finalizeBreakpoints();
 }
 
-void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
+void DualRatiotest::generateExpandedBreakpointsPhase2(const DenseVector &alpha,
                                                       Numerical::Double workingTolerance)
 {
     //computing ratios
@@ -568,7 +568,7 @@ void DualRatiotest::generateExpandedBreakpointsPhase2(const Vector &alpha,
     m_breakpointHandler.finalizeBreakpoints();
 }
 
-void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
+void DualRatiotest::computeFunctionPhase2(const DenseVector &alpha,
                                           unsigned int &iterationCounter,
                                           Numerical::Double &functionSlope,
                                           Numerical::Double workingTolerance)
@@ -616,7 +616,7 @@ void DualRatiotest::computeFunctionPhase2(const Vector &alpha,
 }
 
 void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
-                                                const Vector &alpha)
+                                                const DenseVector &alpha)
 {
     unsigned int length = m_breakpointHandler.getNumberOfBreakpoints();
     int maxAlphaId = iterationCounter;
@@ -684,7 +684,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
 }
 
 void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
-                                           const Vector& alpha,
+                                           const DenseVector& alpha,
                                            Numerical::Double workingTolerance)
 {
     m_boundflips.clear();

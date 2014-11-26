@@ -46,15 +46,15 @@ void SingletonRowsModule::executeMethod() {
     do {
         eliminatedVariableCount = 0;
 
-        Vector::Iterator currentRow = m_parent->getRowNonzeros()->begin();
-        Vector::Iterator lastRow = m_parent->getRowNonzeros()->end();
+        DenseVector::Iterator currentRow = m_parent->getRowNonzeros()->begin();
+        DenseVector::Iterator lastRow = m_parent->getRowNonzeros()->end();
+        int index = 0;
 
         //Check every row of the model for empty or singleton rows
         while(currentRow < lastRow) {
 
             //handle empty rows
-            if(*currentRow == 0 && removedRows[currentRow.getIndex()] == 0) {
-                int index = currentRow.getIndex();
+            if(*currentRow == 0 && removedRows[index] == 0) {
                 const Constraint& curConstraint = (*m_parent->getConstraints())[index];
 
                 //Empty rows are either infeasible or can be freely removed
@@ -73,12 +73,11 @@ void SingletonRowsModule::executeMethod() {
             }
 
             //handle singleton rows
-            if(*currentRow == 1 && removedRows[currentRow.getIndex()] == 0) {
-                int index = currentRow.getIndex();
+            if(*currentRow == 1 && removedRows[index] == 0) {
                 const Constraint& curConstraint = (*m_parent->getConstraints())[index];
 
                 //get the singleton position with skipping the removed column indices
-                Vector::NonzeroIterator it = curConstraint.getVector()->beginNonzero();
+                SparseVector::NonzeroIterator it = curConstraint.getVector()->beginNonzero();
                 int varIdx = it.getIndex();
 
                 //Reference is not constant to be able to adjust bounds
@@ -164,6 +163,7 @@ void SingletonRowsModule::executeMethod() {
                 }
             }
             ++currentRow;
+            index++;
         }
     } while (eliminatedVariableCount);
 
@@ -191,13 +191,13 @@ void SingletonColumnsModule::executeMethod() {
     do {
         eliminatedConstraintCount = 0;
 
-        Vector::Iterator currentColumn = m_parent->getColumnNonzeros()->begin();
-        Vector::Iterator lastColumn = m_parent->getColumnNonzeros()->end();
+        DenseVector::Iterator currentColumn = m_parent->getColumnNonzeros()->begin();
+        DenseVector::Iterator lastColumn = m_parent->getColumnNonzeros()->end();
+        int index = 0;
 
         //Check every column of the model for fixed variables, empty or singleton columns
         while(currentColumn < lastColumn) {
 
-            int index = currentColumn.getIndex();
             const Variable& curVariable = (*m_parent->getVariables())[index];
             const Numerical::Double& varLowerBound = curVariable.getLowerBound();
             const Numerical::Double& varUpperBound = curVariable.getUpperBound();
@@ -252,7 +252,7 @@ void SingletonColumnsModule::executeMethod() {
             //handle singleton columns
             if(*currentColumn == 1) {
                 //get the singleton position with skipping the removed row indices
-                Vector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
+                SparseVector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
                 int constraintIdx = it.getIndex();
                 const Constraint& curConstraint = (*m_parent->getConstraints())[constraintIdx];
                 const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
@@ -332,9 +332,9 @@ void SingletonColumnsModule::executeMethod() {
                     //substitute the variable with the other variables present in the constraint,
                     //change the cost vector, and remove the constraint and the variable from the model
                     int varCount = m_parent->getModel()->variableCount();
-                    Vector * substituteVector = new Vector(varCount + 3);
-                    Vector::NonzeroIterator constraintIt = curConstraint.getVector()->beginNonzero();
-                    Vector::NonzeroIterator constraintItEnd = curConstraint.getVector()->endNonzero();
+                    DenseVector * substituteVector = new DenseVector(varCount + 3);
+                    SparseVector::NonzeroIterator constraintIt = curConstraint.getVector()->beginNonzero();
+                    SparseVector::NonzeroIterator constraintItEnd = curConstraint.getVector()->endNonzero();
                     for(; constraintIt < constraintItEnd; ++constraintIt) {
                         int varIndex = constraintIt.getIndex();
                         substituteVector->set(varIndex, (-1) * (*constraintIt) / (*it));
@@ -357,16 +357,17 @@ void SingletonColumnsModule::executeMethod() {
 
                     m_removedVariables++;
                     m_parent->getModel()->removeVariable(index);
-                    m_parent->getColumnNonzeros()->removeElement(index);
-                    m_parent->getImpliedLower()->removeElement(index);
-                    m_parent->getImpliedUpper()->removeElement(index);
-                    m_parent->getExtraDualLowerSum()->removeElement(index);
-                    m_parent->getExtraDualUpperSum()->removeElement(index);
+                    m_parent->getColumnNonzeros()->remove(index);
+                    m_parent->getImpliedLower()->remove(index);
+                    m_parent->getImpliedUpper()->remove(index);
+                    m_parent->getExtraDualLowerSum()->remove(index);
+                    m_parent->getExtraDualUpperSum()->remove(index);
                     lastColumn = m_parent->getColumnNonzeros()->end();
                     continue;
                 }
             }
             ++currentColumn;
+            index++;
         }
     } while (eliminatedConstraintCount);
 }
@@ -393,15 +394,13 @@ void ImpliedBoundsModule::executeMethod() {
     std::vector<int> removedRows(rowCount, 0);
     int removedCount = 0;
 
-    m_constraintsToCheck = new Vector(rowCount);
-    m_constraintsToCheck->setSparsityRatio(0);
-    m_constraintStack = new Vector(rowCount);
-    m_constraintStack->setSparsityRatio(0);
+    m_constraintsToCheck = new DenseVector(rowCount);
+    m_constraintStack = new DenseVector(rowCount);
     for(int i = 0; i < rowCount; i++) {
         m_constraintsToCheck->set(i, 1);
     }
-    Vector::NonzeroIterator begin = m_constraintsToCheck->beginNonzero();
-    Vector::NonzeroIterator end = m_constraintsToCheck->endNonzero();
+    DenseVector::NonzeroIterator begin = m_constraintsToCheck->beginNonzero();
+    DenseVector::NonzeroIterator end = m_constraintsToCheck->endNonzero();
     Numerical::Double impliedUB, impliedLB;
 
     //This loop iterates through the constraints of the model. After the first loop through every constraint of the model
@@ -411,7 +410,7 @@ void ImpliedBoundsModule::executeMethod() {
         //Swap the stacks containing the constraints to check and control the loop
         if (begin >= end) {
             if(m_constraintStack->nonZeros() != 0 && stackSwapCounter < 10) {
-                Vector * temp = m_constraintsToCheck;
+                DenseVector * temp = m_constraintsToCheck;
                 m_constraintsToCheck = m_constraintStack;
                 m_constraintStack = temp;
                 begin = m_constraintsToCheck->beginNonzero();
@@ -429,15 +428,15 @@ void ImpliedBoundsModule::executeMethod() {
 
         Numerical::Summarizer impliedLBSummarizer;
         Numerical::Summarizer impliedUBSummarizer;
-        Vector::NonzeroIterator it = curConstraint.getVector()->beginNonzero();
-        Vector::NonzeroIterator itEnd = curConstraint.getVector()->endNonzero();
-        Vector::NonzeroIterator itV = it;
-        Vector::NonzeroIterator itVEnd = itEnd;
+        SparseVector::NonzeroIterator it = curConstraint.getVector()->beginNonzero();
+        SparseVector::NonzeroIterator itEnd = curConstraint.getVector()->endNonzero();
+        SparseVector::NonzeroIterator itV = it;
+        SparseVector::NonzeroIterator itVEnd = itEnd;
 
         Numerical::Number number;
 
-        Vector* lowers[2];
-        Vector* uppers[2];
+        DenseVector* lowers[2];
+        DenseVector* uppers[2];
         lowers[0] = m_impliedLower;
         lowers[1] = m_impliedUpper;
         uppers[0] = m_impliedUpper;
@@ -699,15 +698,13 @@ void DualBoundsModule::executeMethod() {
     m_extraDualLowerSum = m_parent->getExtraDualLowerSum();
     m_extraDualUpperSum = m_parent->getExtraDualUpperSum();
     int columnCount = m_parent->getModel()->variableCount();
-    m_variablesToCheck = new Vector(columnCount);
-    m_variablesToCheck->setSparsityRatio(0);
+    m_variablesToCheck = new DenseVector(columnCount);
     for(int i = 0; i < columnCount; i++) {
         m_variablesToCheck->set(i, 1);
     }
-    m_variableStack = new Vector(columnCount);
-    m_variableStack->setSparsityRatio(0);
-    Vector::NonzeroIterator begin = m_variablesToCheck->beginNonzero();
-    Vector::NonzeroIterator end = m_variablesToCheck->endNonzero();
+    m_variableStack = new DenseVector(columnCount);
+    DenseVector::NonzeroIterator begin = m_variablesToCheck->beginNonzero();
+    DenseVector::NonzeroIterator end = m_variablesToCheck->endNonzero();
     Numerical::Double impliedUB, impliedLB;
 
     //This loop iterates through the variables of the model. After the first loop through every variable of the model
@@ -718,7 +715,7 @@ void DualBoundsModule::executeMethod() {
         //Swap the stacks containing the variables to check and control the loop
         if (begin >= end) {
             if(m_variableStack->nonZeros() != 0 && stackSwapCounter < 10) {
-                Vector * temp = m_variablesToCheck;
+                DenseVector * temp = m_variablesToCheck;
                 m_variablesToCheck = m_variableStack;
                 m_variableStack = temp;
                 begin = m_variablesToCheck->beginNonzero();
@@ -735,10 +732,10 @@ void DualBoundsModule::executeMethod() {
         const Numerical::Double& varLowerBound = curVariable.getLowerBound();
         const Numerical::Double& varUpperBound = curVariable.getUpperBound();
 
-        Vector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
-        Vector::NonzeroIterator itEnd = curVariable.getVector()->endNonzero();
-        Vector::NonzeroIterator itC = it;
-        Vector::NonzeroIterator itCEnd = itEnd;
+        SparseVector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
+        SparseVector::NonzeroIterator itEnd = curVariable.getVector()->endNonzero();
+        SparseVector::NonzeroIterator itC = it;
+        SparseVector::NonzeroIterator itCEnd = itEnd;
         //Calculating the implied dual constraint bounds
         for(; it < itEnd; ++it) {
             int curRow = it.getIndex();
@@ -757,7 +754,7 @@ void DualBoundsModule::executeMethod() {
             impliedUB = Numerical::Infinity;
         }
 
-        const Vector& costVector = m_parent->getModel()->getCostVector();
+        const DenseVector& costVector = m_parent->getModel()->getCostVector();
 
         //Check if variable can be specially treated
         if(varUpperBound == Numerical::Infinity/* || curVariable.getType() == Variable::BOUNDED*/) {
@@ -774,8 +771,8 @@ void DualBoundsModule::executeMethod() {
                     return;
                 } else {
                     m_parent->fixVariable(index, varLowerBound);
-                    m_variablesToCheck->removeElement(index);
-                    m_variableStack->removeElement(index);
+                    m_variablesToCheck->remove(index);
+                    m_variableStack->remove(index);
                     end = m_variablesToCheck->endNonzero();
                     if(*begin != 1) { ++begin; }
                     m_removedVariables++;
@@ -830,8 +827,8 @@ void DualBoundsModule::executeMethod() {
                     return;
                 } else {
                     m_parent->fixVariable(index, varLowerBound);
-                    m_variablesToCheck->removeElement(index);
-                    m_variableStack->removeElement(index);
+                    m_variablesToCheck->remove(index);
+                    m_variableStack->remove(index);
                     end = m_variablesToCheck->endNonzero();
                     if(*begin != 1) { ++begin; }
                     m_removedVariables++;
@@ -870,7 +867,7 @@ void DualBoundsModule::executeMethod() {
             }
         }
 
-        m_variablesToCheck->set(begin.getIndex(), 0);
+        m_variablesToCheck->set(index, 0);
         ++begin;
     }
 }
@@ -895,13 +892,13 @@ void LinearAlgebraicModule::executeMethod() {
     std::vector<int> indices(rowCount,0);
     for(int i = 0; i < rowCount; i++) {
         unsigned int vhash = 0;
-        const Vector* curRowVector = (*m_parent->getConstraints())[i].getVector();
+        const SparseVector* curRowVector = (*m_parent->getConstraints())[i].getVector();
 
         if(curRowVector->nonZeros() < 1) continue;
 
         //Calculating hash
-        Vector::NonzeroIterator begin = curRowVector->beginNonzero();
-        Vector::NonzeroIterator end = curRowVector->endNonzero();
+        SparseVector::NonzeroIterator begin = curRowVector->beginNonzero();
+        SparseVector::NonzeroIterator end = curRowVector->endNonzero();
         while(begin != end) {
             vhash += begin.getIndex()+1;
             ++begin;
@@ -934,8 +931,8 @@ void LinearAlgebraicModule::executeMethod() {
                 const Constraint& duplicate = (*m_parent->getConstraints())[duplIdx];
 
                 Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
-                Vector tryVector(*(original.getVector()));
-                tryVector.addVector(-lambda, *(duplicate.getVector()), Numerical::ADD_ABS);
+                SparseVector tryVector(*(original.getVector()));
+                tryVector.addVector(-lambda, *(duplicate.getVector()));
 
                 if(tryVector.nonZeros() == 0) {
                     Numerical::Double duplicateLower;
@@ -1012,12 +1009,12 @@ void LinearAlgebraicModule::executeMethod() {
 
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
-        const Vector* curColumnVector = (*m_parent->getVariables())[i].getVector();
+        const SparseVector* curColumnVector = (*m_parent->getVariables())[i].getVector();
         if(curColumnVector->nonZeros() < 1) continue;
 
         //Calculating hash
-        Vector::NonzeroIterator begin = curColumnVector->beginNonzero();
-        Vector::NonzeroIterator end = curColumnVector->endNonzero();
+        SparseVector::NonzeroIterator begin = curColumnVector->beginNonzero();
+        SparseVector::NonzeroIterator end = curColumnVector->endNonzero();
         while(begin != end) {
             vhash += begin.getIndex()+1;
             ++begin;
@@ -1051,8 +1048,8 @@ void LinearAlgebraicModule::executeMethod() {
                 const Variable& duplicate = (*m_parent->getVariables())[duplIdx];
 
                 Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
-                Vector tryVector(*(original.getVector()));
-                tryVector.addVector(-lambda, *(duplicate.getVector()), Numerical::ADD_ABS);
+                SparseVector tryVector(*(original.getVector()));
+                tryVector.addVector(-lambda, *(duplicate.getVector()));
 
                 if(tryVector.nonZeros() == 0 && m_parent->getModel()->getCostVector().at(duplIdx) * lambda == m_parent->getModel()->getCostVector().at(origIdx)) {
 
@@ -1160,16 +1157,16 @@ void MakeSparserModule::executeMethod() {
         while(it != itEnd) {
             int index = it.getData();
             const Constraint& pivotRow = m_parent->getConstraints()->at(index);
-            Vector::NonzeroIterator pivotIt = pivotRow.getVector()->beginNonzero();
-            Vector::NonzeroIterator pivotItEnd = pivotRow.getVector()->endNonzero();
+            SparseVector::NonzeroIterator pivotIt = pivotRow.getVector()->beginNonzero();
+            SparseVector::NonzeroIterator pivotItEnd = pivotRow.getVector()->endNonzero();
             int columnIdx = pivotIt.getIndex();
             int pivotNonzeros = pivotRow.getVector()->nonZeros();
             if(pivotNonzeros == 0) {
                 ++it;
                 continue;
             }
-            Vector::NonzeroIterator beginColumn = m_parent->getVariables()->at(columnIdx).getVector()->beginNonzero();
-            Vector::NonzeroIterator endColumn = m_parent->getVariables()->at(columnIdx).getVector()->endNonzero();
+            SparseVector::NonzeroIterator beginColumn = m_parent->getVariables()->at(columnIdx).getVector()->beginNonzero();
+            SparseVector::NonzeroIterator endColumn = m_parent->getVariables()->at(columnIdx).getVector()->endNonzero();
             while(beginColumn < endColumn) {
                 int secondIndex = beginColumn.getIndex();
                 Constraint& curRow = m_parent->getConstraints()->at(secondIndex);

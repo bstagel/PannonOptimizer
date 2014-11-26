@@ -174,7 +174,7 @@ public:
      * @param objectiveValue The objective value of the solution.
      * @return true if the postsolved solution is correct.
      */
-    static bool checkPresolvedSolution(const Model& originalModel, const Vector & solution, Numerical::Double objectiveValue);
+    static bool checkPresolvedSolution(const Model& originalModel, const DenseVector & solution, Numerical::Double objectiveValue);
 };
 
 #endif // CHECKER_H

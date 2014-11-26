@@ -7,14 +7,14 @@
 #include <simplex/simplexparameterhandler.h>
 #include <utils/thirdparty/prettyprint.h>
 
-PrimalPricing::PrimalPricing(const Vector & basicVariableValues,
+PrimalPricing::PrimalPricing(const DenseVector &basicVariableValues,
                              const IndexList<> & basicVariableFeasibilities,
                              IndexList<> * reducedCostFeasibilities,
                              const IndexList<const Numerical::Double *> & variableStates,
                              const std::vector<int> & basisHead,
                              const SimplexModel & model,
                              const Basis & basis,
-                             const Vector & reducedCosts):
+                             const DenseVector &reducedCosts):
     m_basicVariableValues(basicVariableValues),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
@@ -109,30 +109,30 @@ void PrimalPricing::initPhase1() {
 
     unsigned int rowCount = m_basisHead.size();
     // get the h vector
-    Vector auxVector( rowCount, Vector::DENSE_VECTOR );
+    DenseVector auxVector( rowCount);
     const IndexList<> & basicVariableFeasibilities = m_basicVariableFeasibilities;
     IndexList<>::Iterator iter, iterEnd;
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
     for (; iter != iterEnd; ++iter) {
-        auxVector.setNewNonzero(iter.getData(), 1.0);
+        auxVector.set(iter.getData(), 1.0);
     }
 
     basicVariableFeasibilities.getIterators(&iter, &iterEnd, Simplex::PLUS);
     for (; iter != iterEnd; ++iter) {
-        auxVector.setNewNonzero(iter.getData(), -1.0);
+        auxVector.set(iter.getData(), -1.0);
     }
     // compute the simplex multiplier
     m_basis.Btran(auxVector);
 
     // compute the reduced costs
     const Matrix & matrix = m_simplexModel.getMatrix();
-    Vector::NonzeroIterator auxIter = auxVector.beginNonzero();
-    Vector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
+    DenseVector::NonzeroIterator auxIter = auxVector.beginNonzero();
+    DenseVector::NonzeroIterator auxIterEnd = auxVector.endNonzero();
     for (; auxIter != auxIterEnd; ++auxIter) {
         const unsigned int rowIndex = auxIter.getIndex();
         const Numerical::Double lambda = *auxIter;
-        Vector::NonzeroIterator nonzIter = matrix.row(rowIndex).beginNonzero();
-        Vector::NonzeroIterator nonzIterEnd = matrix.row(rowIndex).endNonzero();
+        SparseVector::NonzeroIterator nonzIter = matrix.row(rowIndex).beginNonzero();
+        SparseVector::NonzeroIterator nonzIterEnd = matrix.row(rowIndex).endNonzero();
         for (; nonzIter != nonzIterEnd; ++nonzIter) {
             Numerical::Double product = lambda * *nonzIter;
             if (product > 0.0) {

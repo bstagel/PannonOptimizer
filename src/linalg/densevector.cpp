@@ -37,8 +37,23 @@ DenseVector &DenseVector::operator=(const DenseVector &orig)
     if (this == &orig) {
         return *this;
     }
-    release();
-    copy(orig);
+    if(m_length == orig.length()) {
+        COPY_DOUBLES(m_data, orig.m_data, m_length);
+    } else {
+        release();
+        copy(orig);
+    }
+    return *this;
+}
+
+DenseVector &DenseVector::operator=(const SparseVector &orig)
+{
+    this->reInit(orig.length());
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < orig.m_nonZeros; nonZeroIndex++) {
+        const unsigned int index = orig.m_indices[nonZeroIndex];
+        m_data[index] = orig.m_data[nonZeroIndex];
+    }
     return *this;
 }
 
@@ -65,6 +80,16 @@ Numerical::Double DenseVector::euclidNorm() const
         sum += m_data[index] * m_data[index];
     }
     return Numerical::sqrt(sum);
+}
+
+Numerical::Double DenseVector::euclidNorm2() const
+{
+    unsigned int index;
+    Numerical::Double sum = 0.0;
+    for (index = 0; index < m_length; index++) {
+        sum += m_data[index] * m_data[index];
+    }
+    return sum;
 }
 
 Numerical::Double DenseVector::l1Norm() const
@@ -239,6 +264,34 @@ void DenseVector::resize(unsigned int length)
     ::release(m_data);
     m_data = newData;
     m_length = length;
+}
+
+void DenseVector::resize(unsigned int length, Numerical::Double value) {
+    if (length <= m_length) {
+        m_length = length;
+        return;
+    }
+    Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+    COPY_DOUBLES(newData, m_data, m_length);
+    for(unsigned int i = 0; i < m_length; i++) {
+        m_data[i] = value;
+    }
+    ::release(m_data);
+    m_data = newData;
+    m_length = length;
+}
+
+void DenseVector::reInit(unsigned int length)
+{
+    if(length <= m_length) {
+        CLEAR_DOUBLES(m_data, length)
+    } else {
+        ::release(m_data);
+        m_data = alloc<Numerical::Double, 32>(length);
+        CLEAR_DOUBLES(m_data, length);
+    }
+    m_length = length;
+    return;
 }
 
 DenseVector DenseVector::createUnitVector(unsigned int length,
@@ -502,11 +555,7 @@ Numerical::Double DenseVector::dotProductDenseToSparseAbsRel(const DenseVector &
 
 void DenseVector::_globalInit()
 {
-    sm_addDenseToDense = &DenseVector::addDenseToDenseFast;
-    sm_addIndexedDenseToDense = &DenseVector::addIndexedDenseToDenseFast;
-    sm_addSparseToDense = &DenseVector::addSparseToDenseFast;
-    sm_denseToDenseDotProduct = &DenseVector::dotProductDenseToDenseUnstable;
-    sm_denseToIndexedDenseDotProduct = &DenseVector::dotProductDenseToIndexedDenseUnstable;
-    sm_denseToSparseDotProduct = &DenseVector::dotProductDenseToSparseUnstable;
+    setAddMode(Numerical::ADD_ABS_REL);
+    setDotProductMode(Numerical::DOT_ABS_REL);
 }
 

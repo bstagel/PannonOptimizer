@@ -5,7 +5,7 @@
 #include <simplex/pricing/dualsteepestedgepricing.h>
 #include <simplex/simplex.h>
 
-DualSteepestEdgePricing::DualSteepestEdgePricing(const Vector & basicVariableValues,
+DualSteepestEdgePricing::DualSteepestEdgePricing(const DenseVector &basicVariableValues,
                                                  IndexList<> * basicVariableFeasibilities,
                                                  const IndexList<> & reducedCostFeasibilities,
                                                  const std::vector<int> & basisHead,
@@ -150,9 +150,9 @@ int DualSteepestEdgePricing::performPricingPhase2() {
 
 void DualSteepestEdgePricing::update(int incomingIndex,
                                      int outgoingIndex,
-                                     const Vector & incomingAlpha,
-                                     const Vector & pivotRow,
-                                     const Vector & pivotRowOfBasisInverse)
+                                     const DenseVector &incomingAlpha,
+                                     const DenseVector &pivotRow,
+                                     const DenseVector &pivotRowOfBasisInverse)
 {
     __UNUSED(pivotRow);
 
@@ -174,7 +174,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
     }
 
     unsigned int index;
-    Vector tau = pivotRowOfBasisInverse;
+    DenseVector tau = pivotRowOfBasisInverse;
     m_basis.Ftran(tau);
 
 
@@ -182,8 +182,8 @@ void DualSteepestEdgePricing::update(int incomingIndex,
 
     Numerical::Double pivotWeight = pivotRowOfBasisInverse.euclidNorm2();
 
-    Vector::NonzeroIterator iter = incomingAlpha.beginNonzero();
-    Vector::NonzeroIterator iterEnd = incomingAlpha.endNonzero();
+    DenseVector::NonzeroIterator iter = incomingAlpha.beginNonzero();
+    DenseVector::NonzeroIterator iterEnd = incomingAlpha.endNonzero();
     for (; iter != iterEnd; ++iter) {
         index = iter.getIndex();
         if (unlikely((int)index == outgoingIndex)) {
@@ -217,7 +217,7 @@ void DualSteepestEdgePricing::checkAndFix()
     unsigned int rowCount = m_simplexModel.getRowCount();
 
     for (auto index: m_recomuteIndices) {
-        Vector row(rowCount, Vector::DENSE_VECTOR);
+        DenseVector row(rowCount);
         row.clear();
         row.set(index, 1.0);
         m_basis.Btran(row);
@@ -239,7 +239,7 @@ void DualSteepestEdgePricing::initWeights() {
     m_basisPositions.resize(rowCount + columnCount);
     m_updateCounters.resize(rowCount + columnCount, 0);
     unsigned int index;
-    Vector row(rowCount, Vector::DENSE_VECTOR);
+    DenseVector row(rowCount);
     for (index = 0; index < rowCount; index++) {
         row.clear();
         row.set(index, 1.0);

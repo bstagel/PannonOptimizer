@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <linalg/vector.h>
+#include <linalg/sparsevector.h>
+#include <linalg/densevector.h>
 #include <linalg/matrixbuilder.h>
 #include <utils/numerical.h>
 
@@ -84,8 +86,7 @@ public:
      * @param initVectors Specifies that, whether the vectors will be initialized or not.
      */
     void reInit(unsigned int rowCount = 0,
-                unsigned int columnCount = 0,
-                bool initVectors = true);
+                unsigned int columnCount = 0);
 
     /**
      * Releases the actual matrix, and copies another matrix.
@@ -137,7 +138,7 @@ public:
      * @param index The index of row vector.
      * @return Constant reference for the index'th row vector.
      */
-    const Vector & row(unsigned int index) const;
+    const SparseVector & row(unsigned int index) const;
 
     /**
      * Get a column of the matrix.
@@ -146,7 +147,7 @@ public:
      * @param index The index of column vector.
      * @return Constant reference for the index'th column vector.
      */
-    const Vector & column(unsigned int index) const;
+    const SparseVector & column(unsigned int index) const;
 
     /**
      * Transposes the matrix.
@@ -189,7 +190,7 @@ public:
      * @param index The function inserts the vector before this row.
      * @param vector The vector which will be inserted.
      */
-    void insertRow(unsigned int index, const Vector & vector);
+    void insertRow(unsigned int index, const SparseVector &vector);
 
     /**
      * Inserts an empty row vector before the index'th row.
@@ -206,7 +207,7 @@ public:
      * @param index The function inserts the vector before this column.
      * @param vector The vector which will be inserted.
      */
-    void insertColumn(unsigned int index, const Vector & vector);
+    void insertColumn(unsigned int index, const SparseVector & vector);
 
     /**
      * Inserts an empty column vector before the index'th column.
@@ -222,7 +223,7 @@ public:
      *
      * @param vector The function appends this vector.
      */
-    void appendRow(const Vector & vector);
+    void appendRow(const SparseVector &vector);
 
     /**
      * Appends the vector after the last column.
@@ -230,7 +231,7 @@ public:
      * @param vector The function appends this vector.
      * The dimension of the matrix changes, the number of columns is increased.
      */
-    void appendColumn(const Vector & vector);
+    void appendColumn(const SparseVector & vector);
 
     /**
      * Inserts the vector before the first row.
@@ -238,7 +239,7 @@ public:
      *
      * @param vector The function inserts this vector.
      */
-    void prependRow(const Vector & vector);
+    void prependRow(const SparseVector &vector);
 
     /**
      * Inserts the vector before the first column.
@@ -246,7 +247,7 @@ public:
      *
      * @param vector The function inserts this vector.
      */
-    void prependColumn(const Vector & vector);
+    void prependColumn(const SparseVector & vector);
 
     /**
      * Replaces a zero value with a given nonzero in the matrix.
@@ -319,7 +320,7 @@ public:
      * @param index The index of the row to be scaled.
      * @param lambdas The function scales with the elements of this vector.
      */
-    void scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas);
+    void scaleOnlyRowwiseLambdas(unsigned int index, const std::vector<Numerical::Double> &lambdas);
 
     /**
      * Scales the elements of the given column. It multiplies only in the columnwise form.
@@ -339,7 +340,7 @@ public:
      * @param index The index of the column to be scaled.
      * @param lambdas The function scales with the elements of this vector.
      */
-    void scaleOnlyColumnwiseLambdas(unsigned int index, const std::vector<Numerical::Double> & lambdas);
+    void scaleOnlyColumnwiseLambdas(unsigned int index, const std::vector<Numerical::Double> &lambdas);
 
     /**
      * Inverts the matrix.
@@ -392,7 +393,7 @@ public:
      * @param rightVector The column vector used to multiply this matrix.
      * @return A column vector containing the product.
      */
-    Vector operator*(const Vector& rightVector) const;
+    DenseVector operator*(const DenseVector &rightVector) const;
 
     /**
      * Creates a diagonal matrix from given vector.
@@ -401,7 +402,7 @@ public:
      * @param diagonal A vector which provides the elements for the diagonal matrix.
      * @return The created diagonal matrix.
      */
-    static Matrix createDiagonalMatrix(const Vector& diagonal);
+    static Matrix createDiagonalMatrix(const DenseVector &diagonal);
 
     /**
      * Creates a matrix from the row vector.
@@ -411,7 +412,7 @@ public:
      * @param row A row vector.
      * @return A row matrix.
      */
-    static Matrix createRowMatrix(const Vector& row);
+    static Matrix createRowMatrix(const SparseVector &row);
 
     /**
      * Creates a matrix from the column vector.
@@ -421,7 +422,7 @@ public:
      * @param column A column vector.
      * @return A column matrix.
      */
-    static Matrix createColumnMatrix(const Vector& column);
+    static Matrix createColumnMatrix(const SparseVector& column);
 
     /**
      * Multiplies two matrices.
@@ -529,7 +530,7 @@ public:
      * @return The sum of the absolute values of the elements.
      */
     Numerical::Double scaleRowAndGetResults(unsigned int rowIndex,
-                                            const std::vector<Numerical::Double> & multipliers,
+                                            const std::vector<Numerical::Double> &multipliers,
                                             Numerical::Double lambda,
                                             Numerical::Double * squareSumPtr,
                                             Numerical::Double * minPtr,
@@ -553,7 +554,7 @@ public:
      * @return The sum of the absolute values of the elements.
      */
     Numerical::Double scaleColumnAndGetResults(unsigned int columnIndex,
-                                               const std::vector<Numerical::Double> & multipliers,
+                                               const std::vector<Numerical::Double> &multipliers,
                                                Numerical::Double lambda,
                                                Numerical::Double * squareSumPtr,
                                                Numerical::Double * minPtr,
@@ -589,14 +590,14 @@ private:
      * Array of Vector pointers, stores pointers to the row vectors.
      * It has m_rowCount elements.
      */
-    Vector ** m_rowWise;
+    SparseVector ** m_rowWise;
 
     /**
      * The columnwise representation of the matrix.
      * Array of Vector pointers, stores pointers to the column vectors.
      * It has m_columncount elements.
      */
-    Vector ** m_columnWise;
+    SparseVector ** m_columnWise;
 
     /**
      * Stores the number of rows of the matrix.
@@ -629,11 +630,9 @@ private:
      *
      * @param rowCount Number of rows.
      * @param columnCount Number of columns.
-     * @param initVectors When true, the function initializes the vectors.
      */
     void init(unsigned int rowCount,
-              unsigned int columnCount,
-              bool initVectors = true);
+              unsigned int columnCount);
 
     /**
      * Resizes a representation of a matrix, allowing to change the number of rows and columns in it.
@@ -643,7 +642,7 @@ private:
      * @param newCount The number of vectors in the new vector array.
      * @param newLengths The length of the vectors in the new vector array.
      */
-    static void resizeVectors(Vector ** & vectors, unsigned int vectorCount,
+    static void resizeVectors(SparseVector ** & vectors, unsigned int vectorCount,
                               unsigned int newCount, unsigned int newLengths);
 
     /**
@@ -660,8 +659,8 @@ private:
      * @param rowCount The row count to be decreased.
      * @param index The index of the row to be removed.
      */
-    void removeVector(Vector ** & columnWise, unsigned int & columnCount,
-                      Vector ** & rowWise, unsigned int & rowCount, unsigned int index);
+    void removeVector(SparseVector **&columnWise, unsigned int & columnCount,
+                      SparseVector **&rowWise, unsigned int & rowCount, unsigned int index);
 
     /**
      * Inserts a vector to the matrix and increases the dimension.
@@ -677,8 +676,8 @@ private:
      * @param index The index of the vector to be added.
      * @param vector The vector to be added.
      */
-    void insertVector(Vector ** columnWise, Vector ** & rowWise,
-                      unsigned int & rowCount, unsigned int index, const Vector & vector);
+    void insertVector(SparseVector **columnWise, SparseVector **&rowWise,
+                      unsigned int & rowCount, unsigned int index, const SparseVector &vector);
 
     /**
      * Inserts an empty vector to the matrix and increases the dimension.
@@ -691,7 +690,7 @@ private:
      * @param columnCount The number of columns in the matrix.
      * @param index The index of the vector to be added.
      */
-    void insertEmptyVector(Vector ** columnWise, Vector ** & rowWise,
+    void insertEmptyVector(SparseVector **columnWise, SparseVector **&rowWise,
                            unsigned int & rowCount, unsigned int columnCount, unsigned int index);
 
 //TODO: Ez a ket fuggveny feltehetoleg torolheto, sehol nincs hasznalva es nincs is jol implementalva!

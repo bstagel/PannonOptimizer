@@ -47,13 +47,13 @@ struct ETM
      * @param eta The nontrivial column of the ETM.
      * @param index The index of the nontrivial column.
      */
-    ETM(Vector* eta, unsigned int index): eta(eta), index(index){}
+    ETM(SparseVector* eta, unsigned int index): eta(eta), index(index){}
 
     /**
      * Pointer to the eta vector.
      * The eta vector is the nontrivial column of the ETM.
      */
-    Vector* eta;
+    SparseVector* eta;
 
     /**
      * Index of the nontrivial column.
@@ -100,7 +100,7 @@ public:
     Basis(const SimplexModel& model,
           std::vector<int>* basisHead,
           IndexList<const Numerical::Double*>* variableStates,
-          const Vector& basicVariableValues);
+          const DenseVector &basicVariableValues);
 
     /**
      * Default destructor.
@@ -134,7 +134,7 @@ public:
      * @throws NumericalException if the outgoing variable tries to leave the basis
      * with a value different from its bounds.
      */
-    virtual void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) = 0;
+    virtual void append(const SparseVector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) = 0;
 
     /**
      * The basic FTRAN operation.
@@ -142,7 +142,9 @@ public:
      * @param The v vector of the operation.
      * @param mode Optional parameter for the different FTRAN modes, see Basis::FTRAN_MODE.
      */
-    virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
+    virtual void Ftran(DenseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
+
+    virtual void Ftran(SparseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
 
     /**
      * The basic BTRAN operation.
@@ -150,7 +152,9 @@ public:
      * @param vector on which the operation shall be done
      * @param mode optional parameter for the different BTRAN modes, see Basis::BTRAN_MODE
      */
-    virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
+    virtual void Btran(DenseVector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
+
+    virtual void Btran(SparseVector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
     virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
 
@@ -183,7 +187,7 @@ protected:
     /**
      * The X_B vector.
      */
-    const Vector& m_basicVariableValues;
+    const DenseVector& m_basicVariableValues;
 
     /**
      * The new basis head needed in the Basis::setNewHead() function.
@@ -196,12 +200,12 @@ protected:
      * in the basis head. The rows of logical are also contained here. The logical rows
      * are omitted by setting the appropriate row counts to -1.
      */
-    std::vector<const Vector*> m_basicColumns;
+    std::vector<const SparseVector*> m_basicColumns;
 
     /**
      * Contains copies of the basic columns. It's needed in the inversion process.
      */
-    std::vector<Vector*> m_basicColumnCopies;
+    std::vector<SparseVector*> m_basicColumnCopies;
 
     /**
      * The vector of linked lists of column indices.
@@ -251,7 +255,7 @@ protected:
      *
      * @throws NumericalException if the pivot element is zero.
      */
-    Vector* createEta(const Vector& vector, int pivotPosition);
+    SparseVector *createEta(const SparseVector &vector, int pivotPosition);
 
     /**
      * Checker for the numerical singularity.
