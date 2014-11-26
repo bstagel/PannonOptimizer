@@ -8,9 +8,7 @@
 #include <prettyprint.h>
 #include <simplex/simplexthread.h>
 
-const static char * ITERATION_INDEX_NAME = "Iteration";
 const static char * ITERATION_TIME_NAME = "Time";
-const static char * ITERATION_INVERSION_NAME = "Inv";
 
 const static char * SOLUTION_ITERATION_NAME = "Total iterations";
 const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
@@ -22,6 +20,7 @@ const static char * EXPORT_TIME = "export_time";
 
 const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion";
 
+Timer SimplexController::sm_solveTimer;
 SimplexController::SimplexController():
     m_primalSimplex(NULL),
     m_dualSimplex(NULL),
@@ -83,12 +82,6 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField inversionField(ITERATION_INVERSION_NAME, 3, 1, IterationReportField::IRF_CENTER,
-                                            IterationReportField::IRF_STRING, *this);
-        result.push_back(inversionField);
-        IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
-                                            IterationReportField::IRF_INT, *this);
-        result.push_back(iterationField);
         IterationReportField timeField(ITERATION_TIME_NAME, 10, 1, IterationReportField::IRF_RIGHT,
                                        IterationReportField::IRF_FLOAT, *this,
                                        4, IterationReportField::IRF_FIXED);
@@ -168,16 +161,8 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
         break;
 
     case IterationReportProvider::IRF_ITERATION:
-        if (name == ITERATION_INDEX_NAME) {
-            reply.m_integer = m_iterationIndex;
-        } else if (name == ITERATION_TIME_NAME) {
-            reply.m_double = m_solveTimer.getCPURunningTime();
-        } else if (name == ITERATION_INVERSION_NAME) {
-            if(m_freshBasis){
-                reply.m_string = new std::string("*I*");
-            } else {
-                reply.m_string = new std::string("");
-            }
+        if (name == ITERATION_TIME_NAME) {
+            reply.m_double = sm_solveTimer.getCPURunningTime();
         }
         break;
 
@@ -185,7 +170,7 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
         if (name == SOLUTION_ITERATION_NAME) {
             reply.m_integer = m_iterationIndex;
         } else if (name == SOLUTION_SOLVE_TIMER_NAME) {
-            reply.m_double = m_solveTimer.getCPUTotalElapsed();
+            reply.m_double = sm_solveTimer.getCPUTotalElapsed();
         }
         break;
 
@@ -199,7 +184,7 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
         } else if(name == EXPORT_ITERATION){
             reply.m_integer = m_iterationIndex;
         } else if(name == EXPORT_TIME){
-            reply.m_double = m_solveTimer.getCPUTotalElapsed();
+            reply.m_double = sm_solveTimer.getCPUTotalElapsed();
         }
         break;
 
@@ -250,14 +235,6 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
                                                    m_dualSimplex->getDualSolution();
 }
 
-void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
-{
-    if(m_phase1Iteration == -1){
-        m_phase1Iteration = m_iterationIndex;
-        m_phase1Time = phase1Time;
-    }
-}
-
 void SimplexController::sequentialSolve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
@@ -277,22 +254,20 @@ void SimplexController::sequentialSolve(const Model &model)
 
 
     if (m_currentAlgorithm == Simplex::PRIMAL){
-        m_primalSimplex = new PrimalSimplex(*this);
+        m_primalSimplex = new PrimalSimplex();
         m_currentSimplex = m_primalSimplex;
     }else{
-        m_dualSimplex = new DualSimplex(*this);
+        m_dualSimplex = new DualSimplex();
         m_currentSimplex = m_dualSimplex;
     }
 
     try{
-
         m_currentSimplex->setModel(model);
 
-        m_currentSimplex->setSolveTimer(&m_solveTimer);
         m_currentSimplex->setIterationReport(m_iterationReport);
         m_currentSimplex->initModules();
 
-        m_solveTimer.start();
+        sm_solveTimer.start();
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
@@ -308,7 +283,7 @@ void SimplexController::sequentialSolve(const Model &model)
         Numerical::Double lastObjective = 0;
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+             (sm_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
@@ -339,6 +314,7 @@ void SimplexController::sequentialSolve(const Model &model)
             }
             try{
                 //iterate
+                m_currentSimplex->setIterationIndex(m_iterationIndex);
                 m_currentSimplex->iterate();
                 if(!m_currentSimplex->m_feasible){
                     lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
@@ -432,12 +408,22 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch (...) {
         LPERROR("Unknown exception");
     }
-    m_solveTimer.stop();
+    sm_solveTimer.stop();
     writeSolutionReport();
 }
 
 void SimplexController::parallelSolve(const Model &model)
 {
+//    int numberOfThreads = 2;
+//    std::vector<SimplexThread> simplexThreadObjects;
+//    std::vector<Simplex *> simplexObjects;
+//    simplexObjects.reserve(numberOfThreads);
+//    simplexThreadObjects.reserve(numberOfThreads);
+//    for(int i=0; i < numberOfThreads; ++i){
+//        Simplex * simplex = new Simplex();
+//        simplexObjects.push_back(simplex);
+//        simplexThreadObjects[i] = new SimplexThread(simplexObjects[i]);
+//    }
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
@@ -447,23 +433,22 @@ void SimplexController::parallelSolve(const Model &model)
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
-        m_primalSimplex = new PrimalSimplex(*this);
+        m_primalSimplex = new PrimalSimplex();
         m_currentSimplex = m_primalSimplex;
     }
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
         m_currentAlgorithm = Simplex::DUAL;
-        m_dualSimplex = new DualSimplex(*this);
+        m_dualSimplex = new DualSimplex();
         m_currentSimplex = m_dualSimplex;
     }
 
     try{
         m_currentSimplex->setModel(model);
 
-        m_currentSimplex->setSolveTimer(&m_solveTimer);
         m_currentSimplex->setIterationReport(m_iterationReport);
         m_currentSimplex->initModules();
 
-        m_solveTimer.start();
+        sm_solveTimer.start();
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
@@ -480,7 +465,7 @@ void SimplexController::parallelSolve(const Model &model)
         bool exceptionCought = false;
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+             (sm_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
@@ -511,8 +496,8 @@ void SimplexController::parallelSolve(const Model &model)
             try{
                 SimplexThread simplexThread1(m_currentSimplex);
                 SimplexThread simplexThread2(m_currentSimplex);
-                std::thread thread1(&SimplexThread::performIterations, &simplexThread1, reinversionFrequency);
-                std::thread thread2(&SimplexThread::performIterations, &simplexThread2, reinversionFrequency);
+                std::thread thread1(&SimplexThread::performIterations, &simplexThread1, m_iterationIndex, reinversionFrequency);
+                std::thread thread2(&SimplexThread::performIterations, &simplexThread2, m_iterationIndex, reinversionFrequency);
                 //synchronise threads, get results
                 thread1.join();
                 thread2.join();
@@ -615,7 +600,7 @@ void SimplexController::parallelSolve(const Model &model)
     } catch (...) {
         LPERROR("Unknown exception");
     }
-    m_solveTimer.stop();
+    sm_solveTimer.stop();
     writeSolutionReport();
 
 }
@@ -624,16 +609,14 @@ void SimplexController::switchAlgorithm(const Model &model)
 {
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
-        m_primalSimplex = new PrimalSimplex(*this);
+        m_primalSimplex = new PrimalSimplex();
         m_primalSimplex->setModel(model);
-        m_primalSimplex->setSolveTimer(&m_solveTimer);
         m_primalSimplex->setIterationReport(m_iterationReport);
         m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
-        m_dualSimplex = new DualSimplex(*this);
+        m_dualSimplex = new DualSimplex();
         m_dualSimplex->setModel(model);
-        m_dualSimplex->setSolveTimer(&m_solveTimer);
         m_dualSimplex->setIterationReport(m_iterationReport);
         m_dualSimplex->initModules();
     }

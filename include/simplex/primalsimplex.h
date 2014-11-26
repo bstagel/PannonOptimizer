@@ -30,7 +30,7 @@ private:
      *
      * @constructor
      */
-    PrimalSimplex(SimplexController & simplexController);
+    PrimalSimplex();
 
     /**
      * Default destructor of the class.

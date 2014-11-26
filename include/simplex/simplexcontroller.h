@@ -100,12 +100,10 @@ public:
     const std::vector<Numerical::Double> getDualSolution() const;
 
     /**
-     * Record the actual iteration number as phase 1 iterations.
-     *
-     * @param phase1Time The time spent in phase 1.
+     * Getter of the solveTimer member.
+     * @return SimplexController::sm_solveTimer
      */
-    void logPhase1Iteration(Numerical::Double phase1Time);
-
+    static const Timer& getSolveTimer(){return sm_solveTimer;}
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.
@@ -135,7 +133,7 @@ private:
     int m_iterationIndex;
 
     /**
-     * The number of iterations spent in phase 1 before entering phsae 2 for the first time.
+     * The number of iterations spent in phase 1 before entering phase 2 for the first time.
      */
     int m_phase1Iteration;
 
@@ -152,7 +150,7 @@ private:
     /**
      * The Timer object computes the solution time of the solver algorithm.
      */
-    Timer m_solveTimer;
+    static Timer sm_solveTimer;
 
     //Parameter values
     /**

@@ -35,8 +35,8 @@ const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2 = "export_fake_fea
 const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasibility_counter_phase2";
 const static char * EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER = "export_ask_for_another_row";
 
-DualSimplex::DualSimplex(SimplexController &simplexController):
-    Simplex(simplexController),
+DualSimplex::DualSimplex():
+    Simplex(),
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),
@@ -316,7 +316,10 @@ void DualSimplex::computeFeasibility() {
     }
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        m_simplexController.logPhase1Iteration(m_solveTimer->getCPURunningTime());
+        if(m_phase1Iteration == -1){
+            m_phase1Iteration = m_iterationIndex;
+            m_phase1Time = SimplexController::getSolveTimer().getCPURunningTime();
+        }
     } else if(m_lastFeasible == true && m_feasible == false ){
         //Becomes infeasible, count the falback
         m_fallbacks++;

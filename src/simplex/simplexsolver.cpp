@@ -11,14 +11,14 @@ void SimplexSolver::solve(const Model &model)
 {
     bool parallel = SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization");
     if (parallel) {
-//        SimplexController simplexController;
-//        simplexController.parallelSolve(model);
+        SimplexController simplexController;
+        simplexController.parallelSolve(model);
 //        unsigned int threadIndex;
-        std::cout << " ---------------- ";
-        std::thread t1( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
-        std::thread t2( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
-        t1.join();
-        t2.join();
+//        std::cout << " ---------------- ";
+//        std::thread t1( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
+//        std::thread t2( &SimplexSolver::parallelSolve, SimplexSolver(), &model );
+//        t1.join();
+//        t2.join();
     } else {
         SimplexController simplexController;
         simplexController.sequentialSolve(model);
