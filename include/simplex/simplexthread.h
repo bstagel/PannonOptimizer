@@ -6,14 +6,13 @@
 #define SIMPLEXTHREAD_H
 
 #include <globals.h>
-#include <utils/iterationreportprovider.h>
 #include <simplex/primalsimplex.h>
 #include <simplex/dualsimplex.h>
 
 /**
  * @class SimplexThread
  */
-class SimplexThread: public IterationReportProvider{
+class SimplexThread{
 public:
     /**
      * The result of simplex iterations.
@@ -42,21 +41,6 @@ public:
      */
     virtual ~SimplexThread();
 
-    /**
-     * The function returns the iteration report fields of this class.
-     *
-     * @see IterationReportProvider
-     */
-    std::vector<IterationReportField> getIterationReportFields(enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    /**
-     * Getter of one iteration Entry.
-     *
-     * @see IterationReportProvider
-     */
-    Entry getIterationEntry(const std::string & name,
-                            enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
     //API
     /**
      * Getter of the iterationNumber member.
@@ -83,10 +67,16 @@ public:
     Numerical::Double getObjectiveValue()const{return m_objectiveValue;}
 
     /**
+     * Getter of the phase2entered member.
+     * @return SimplexThread::m_phase2Entered
+     */
+    bool getPhase2Entered()const{return m_phase2Entered;}
+
+    /**
      * This function performs simplex iterations, according to the parameter.
      * @param iterationNumber number of iterations to do.
      */
-    void performIterations(int iterationNumber);
+    void performIterations(int mainIterations, int iterationNumber);
 
 private:
 
@@ -113,6 +103,11 @@ private:
     Numerical::Double m_objectiveValue;
 
     /**
+     * True if phase 2 entered.
+     */
+    bool m_phase2Entered;
+
+    /**
      * This points to the current solver algorithm, a Simplex pointer.
      */
     Simplex * m_currentSimplex;
@@ -131,11 +126,6 @@ private:
      * @see SimplexParameterHandler
      */
     const bool & m_enableExport;
-
-    /**
-     * Pointer to the iteration reporter.
-     */
-    IterationReport* m_iterationReport;
 };
 
 #endif // SIMPLEXTHREAD_H

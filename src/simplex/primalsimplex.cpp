@@ -19,8 +19,8 @@ const static char * OBJ_VAL_STRING = "Objective value";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Theta";
 
-PrimalSimplex::PrimalSimplex(SimplexController &simplexController):
-    Simplex(simplexController),
+PrimalSimplex::PrimalSimplex():
+    Simplex(),
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0)
@@ -205,6 +205,7 @@ void PrimalSimplex::computeFeasibility() {
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
         m_referenceObjective = m_objectiveValue;
+        m_phase1Time = SimplexController::getSolveTimer().getCPURunningTime();
     } else if(m_lastFeasible == true && m_feasible == false){
         //Becomes infeasible
         m_fallbacks++;

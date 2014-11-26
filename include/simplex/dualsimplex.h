@@ -32,7 +32,7 @@ private:
      *
      * @constructor
      */
-    DualSimplex(SimplexController& simplexController);
+    DualSimplex();
 
     /**
      * Default destructor of the class.

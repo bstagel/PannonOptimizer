@@ -80,7 +80,7 @@ public:
      *
      * @constructor
      */
-    Simplex(SimplexController& simplexController);
+    Simplex();
 
     /**
      * Default destructor of the class.
@@ -89,7 +89,33 @@ public:
      */
     virtual ~Simplex();
 
+    /**
+     * Setter of the iterationIndex member.
+     * @param interationIndex to be set
+     */
+    void setIterationIndex(int iterationIndex){m_iterationIndex = iterationIndex;}
+
+    /**
+     * Getter of the phase1Iteration member.
+     * @return Simplex::m_phase1Iteration
+     */
+    int getPhase1Iteration()const{return m_phase1Iteration;}
 protected:
+
+    /**
+     * This counts the simplex iterations.
+     */
+    int m_iterationIndex;
+
+    /**
+     * The number of iterations spent in phase 1 before entering phase 2 for the first time.
+     */
+    int m_phase1Iteration;
+
+    /**
+     * Time spent by the solver in phase 1.
+     */
+    Numerical::Double m_phase1Time;
 
     // Interface of the iteration report provider
     /**
@@ -111,11 +137,6 @@ protected:
      * Pointer to the iteration reporter.
      */
     IterationReport * m_iterationReport;
-
-    /**
-     * Rreference to the simplex controller to gain the ability to log some events.
-     */
-    SimplexController & m_simplexController;
 
     /**
      * The simplex model of the LP problem.
@@ -210,11 +231,6 @@ protected:
      * Indicates whether the basis was changed or not.
      */
     bool m_baseChanged;
-
-    /**
-     * Timer object computing the solver's time.
-     */
-    const Timer * m_solveTimer;
 
     /**
      * Computes the time of the basis inversions.
@@ -415,13 +431,6 @@ protected:
      * This function performs one simplex iteration. (pricing, ratiotest, update)
      */
     void iterate();
-
-    /**
-     * Setter for the Timer object.
-     *
-     * @param solveTimer Pointer to the Timer object to be set.
-     */
-    inline void setSolveTimer(const Timer * solveTimer){ m_solveTimer = solveTimer;}
 
     /**
      * Setter for the iteration reporter.

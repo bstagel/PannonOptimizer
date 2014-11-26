@@ -15,13 +15,11 @@
 #include <simplex/basisheadpanopt.h>
 #include <simplex/checker.h>
 #include <lp/presolver.h>
-
 #include <utils/thirdparty/prettyprint.h>
-
-//#include <qd/qd_real.h>
-//#include <qd/fpu.h>
-
 #include <algorithm>
+
+const static char * ITERATION_INDEX_NAME = "Iteration";
+const static char * ITERATION_INVERSION_NAME = "Inv";
 
 const static char * SOLUTION_INVERSION_TIMER_NAME = "Inversion time";
 const static char * SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME = "Compute basic solution time";
@@ -48,8 +46,9 @@ const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_du
 const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
 
-Simplex::Simplex(SimplexController &simplexController):
-    m_simplexController(simplexController),
+Simplex::Simplex():
+    m_iterationIndex(0),
+    m_phase1Iteration(-1),
     m_simplexModel(NULL),
     m_degenerate(false),
     m_variableStates(0,0),
@@ -110,7 +109,14 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         break;
 
     case IterationReportProvider::IRF_ITERATION:
+    {
+        IterationReportField inversionField(ITERATION_INVERSION_NAME, 3, 1, IterationReportField::IRF_CENTER,
+                                            IterationReportField::IRF_STRING, *this);
+        result.push_back(inversionField);
+        IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
+                                            IterationReportField::IRF_INT, *this);
         break;
+    }
 
     case IterationReportProvider::IRF_SOLUTION:
     {
@@ -231,7 +237,18 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
         break;
 
     case IterationReportProvider::IRF_ITERATION:
+    {
+        if (name == ITERATION_INDEX_NAME) {
+            reply.m_integer = m_iterationIndex;
+        }else if (name == ITERATION_INVERSION_NAME) {
+            if( (m_iterationIndex-1) % SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency") == 0 ){
+                reply.m_string = new std::string("*I*");
+            } else {
+                reply.m_string = new std::string("");
+            }
+        }
         break;
+    }
 
     case IterationReportProvider::IRF_SOLUTION:
         if (name == SOLUTION_INVERSION_TIMER_NAME) {
