@@ -311,7 +311,7 @@ public:
 
     bool operator==(const SparseVector& other) const;
 
-    static void checkScattered(int nzr, int length);
+    static void checkScattered(int nzr, unsigned length);
 
     static void checkVector(const SparseVector & vector);
 

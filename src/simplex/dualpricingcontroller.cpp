@@ -50,10 +50,9 @@ int DualPricingController::performPricingPhase1()
     int result1, result2;
     std::thread t1 = std::thread(performPhase1, m_dantzig, &result1);
     std::thread t2 = std::thread(performPhase1, m_devex, &result2);
-
     t1.join();
     t2.join();
-
+    LPINFO("threads joined");
     if (rand() % 2 == 0) {
         m_reducedCost = m_dantzig->getReducedCost();
         return result1;
