@@ -116,7 +116,6 @@
 #define GLOBAL_SWITCH_ALGORITHM_COMMENT R"(	# Algorithm switching switching during the iterations \
 # INACTIVE: inactive \
 # SWITCH_BEFORE_INV: switch algorithm before each inversion \
-# SWITCH_WHEN_ENTER_PH2: switch algorithm immediately when entering phase-2 \
 # SWITCH_BEFORE_INV_PH2: switch algorithm before each inversion in phase-2 \
 # SWITCH_WHEN_NO_IMPR: switch algorithm if the actual (phase-1 of phase-2) objective value is the same between two inversions)"
 

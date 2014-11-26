@@ -204,9 +204,6 @@ void PrimalSimplex::computeFeasibility() {
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_WHEN_ENTER_PH2"){
-            throw SwitchAlgorithmException("phase-2 entered!");
-        }
         m_referenceObjective = m_objectiveValue;
     } else if(m_lastFeasible == true && m_feasible == false){
         //Becomes infeasible

@@ -350,22 +350,6 @@ public:
 };
 
 /**
- * This exception should be thrown when it is desirable to switch between the dual and primal simplex algorithms.
- *
- * @class SwitchAlgorithmException
- */
-class SwitchAlgorithmException: public PanOptException{
-public:
-
-    /**
-     * Constructor of the SwitchAlgorithmException class.
-     *
-     * @param message Custom message describing the circumstances of the exception.
-     */
-    SwitchAlgorithmException(const std::string &message):PanOptException(message){}
-};
-
-/**
  * This exception should be thrown when there is a syntax error in an input file.
  *
  * @class SyntaxErrorException

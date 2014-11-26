@@ -33,6 +33,7 @@ class Simplex : public Method, public IterationReportProvider
     friend class BasisHeadIO;
     friend class Checker;
     friend class SimplexController;
+    friend class SimplexThread;
 public:
 
     /**
@@ -366,9 +367,6 @@ protected:
      */
     int m_degenerateIterations;
 
-    //FPU fix
-//    unsigned int m_old_cw;
-
     //Modules
     /**
      * The starting basis finder modul ensures a starting ponint for the algorithm.
@@ -384,9 +382,6 @@ protected:
      * Pointer to the pricing, object initialized in child classes.
      */
     Pricing * m_pricing;
-
-//    void constraintAdded();
-//    void variableAdded();
 
     /**
      * Parameter reference of run-time parameter "expand",

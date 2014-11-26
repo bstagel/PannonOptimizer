@@ -87,8 +87,6 @@ private:
 
     /**
      * Inherited from the parent Simplex class, computing the measure of primal infeasibility of the basicvariables.
-     *
-     * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void computeFeasibility();
 
