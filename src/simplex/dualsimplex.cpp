@@ -85,7 +85,7 @@ std::vector<IterationReportField> DualSimplex::getIterationReportFields(
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 
-        result.push_back(IterationReportField (PRIMAL_INFEASIBILITY_STRING, 20, 1, IterationReportField::IRF_RIGHT,
+        result.push_back(IterationReportField (PRIMAL_INFEASIBILITY_STRING, 21, 1, IterationReportField::IRF_RIGHT,
                                                IterationReportField::IRF_FLOAT, *this,
                                                10, IterationReportField::IRF_SCIENTIFIC));
 

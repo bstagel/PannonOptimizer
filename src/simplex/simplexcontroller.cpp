@@ -467,7 +467,7 @@ void SimplexController::parallelSolve(const Model &model)
         bool exceptionCought = false;
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (sm_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+             (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);

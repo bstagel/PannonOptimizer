@@ -108,11 +108,12 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField inversionField(ITERATION_INVERSION_NAME, 3, 1, IterationReportField::IRF_CENTER,
+        IterationReportField inversionField(ITERATION_INVERSION_NAME, 4, 1, IterationReportField::IRF_RIGHT,
                                             IterationReportField::IRF_STRING, *this);
         result.push_back(inversionField);
-        IterationReportField iterationField(ITERATION_INDEX_NAME, 9, 1, IterationReportField::IRF_CENTER,
+        IterationReportField iterationField(ITERATION_INDEX_NAME, 10, 1, IterationReportField::IRF_RIGHT,
                                             IterationReportField::IRF_INT, *this);
+        result.push_back(iterationField);
         break;
     }
 
@@ -223,7 +224,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
     default:
         break;
     }
-
     return result;
 }
 
@@ -236,14 +236,14 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        if (name == ITERATION_INDEX_NAME) {
-            reply.m_integer = m_iterationIndex;
-        }else if (name == ITERATION_INVERSION_NAME) {
+        if (name == ITERATION_INVERSION_NAME) {
             if( (m_iterationIndex-1) % SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency") == 0 ){
                 reply.m_string = new std::string("*I*");
             } else {
                 reply.m_string = new std::string("");
             }
+        }else if (name == ITERATION_INDEX_NAME) {
+            reply.m_integer = m_iterationIndex;
         }
         break;
     }
