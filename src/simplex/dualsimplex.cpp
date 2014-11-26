@@ -316,9 +316,6 @@ void DualSimplex::computeFeasibility() {
     }
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_WHEN_ENTER_PH2"){
-            throw SwitchAlgorithmException("phase-2 entered!");
-        }
         m_simplexController.logPhase1Iteration(m_solveTimer->getCPURunningTime());
     } else if(m_lastFeasible == true && m_feasible == false ){
         //Becomes infeasible, count the falback

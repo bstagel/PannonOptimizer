@@ -10,9 +10,6 @@ TARGET = NewPanOpt
 
 LIBS += -pthread
 
-#linux specific...
-#LIBS += -lgmpxx -lgmp
-
 CONFIG(release, debug|release) {
     #message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
@@ -177,7 +174,8 @@ HEADERS += include/debug.h \
     include/utils/parameterfilebuilder.h \
     include/linalg/linalgparametercomments.h \
     include/utils/multiplefloat.h \
-    include/utils/stacktrace.h
+    include/utils/stacktrace.h \
+    include/simplex/simplexthread.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -253,7 +251,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/simplexsolver.cpp \
     src/lp/abstractmodel.cpp \
     src/utils/parameterfilebuilder.cpp \
-    src/utils/stacktrace.cpp
+    src/utils/stacktrace.cpp \
+    src/simplex/simplexthread.cpp
 
 #OBJECTS_DIR = .o
 

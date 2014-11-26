@@ -390,14 +390,6 @@ void Simplex::iterate()
     }
 }
 
-//void Simplex::constraintAdded()
-//{
-//}
-
-//void Simplex::variableAdded()
-//{
-//}
-
 void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
     basisWriter->startWrting(fileName, m_simplexModel->getModel() );
     int variableIndex;

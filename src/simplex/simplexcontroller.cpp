@@ -3,7 +3,10 @@
  */
 #include <simplex/simplexcontroller.h>
 #include <simplex/simplexparameterhandler.h>
+#include <utils/thread.h>
+#include <thread>
 #include <prettyprint.h>
+#include <simplex/simplexthread.h>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";
 const static char * ITERATION_TIME_NAME = "Time";
@@ -255,32 +258,7 @@ void SimplexController::logPhase1Iteration(Numerical::Double phase1Time)
     }
 }
 
-Numerical::Double SimplexController::parallelIterations(int &iterationIndex, unsigned int iterationNumber)
-{
-    Numerical::Double lastObjective = 0.0;
-    unsigned int iterations;
-    for (iterations = 0; iterations < iterationNumber; iterations++) {
-        try{
-            //iterate
-            m_currentSimplex->iterate();
-            if(!m_currentSimplex->m_feasible){
-                lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
-            }else{
-                lastObjective = m_currentSimplex->getObjectiveValue();
-            }
-
-            if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                m_iterationReport->writeIterationReport();
-            }
-        } catch ( const PanOptException & exception ) {
-            throw;
-        }
-        m_freshBasis = false;
-    }
-    return lastObjective;
-}
-
-void SimplexController::solve(const Model &model)
+void SimplexController::sequentialSolve(const Model &model)
 {
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
@@ -336,7 +314,6 @@ void SimplexController::solve(const Model &model)
                 m_currentSimplex->saveBasis(m_iterationIndex);
             }
 
-//            reinversionCounter = reinversionFrequency;
             if((int)reinversionCounter == reinversionFrequency){
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
@@ -360,32 +337,6 @@ void SimplexController::solve(const Model &model)
                     }
                 }
             }
-//            try{
-//                lastObjective = parallelIterations(m_iterationIndex, reinversionFrequency);
-//            } catch(const SwitchAlgorithmException& exception){
-//                LPINFO("Algorithm switched: "<< exception.getMessage());
-//                switchAlgorithm(model);
-//            } catch ( const FallbackException & exception ) {
-//                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
-//                m_currentSimplex->reinvert();
-//                m_iterationIndex--;
-//            } catch ( const OptimizationResultException & exception ) {
-//                m_currentSimplex->reset();
-//                //Check the result with triggering reinversion
-//                if(m_freshBasis){
-//                    throw;
-//                } else {
-//                    m_iterationIndex--;
-//                }
-//            } catch ( const NumericalException & exception ) {
-//                //Check the result with triggering reinversion
-//                if(m_freshBasis){
-//                    throw;
-//                } else {
-//                    LPINFO("Numerical error: "<<exception.getMessage());
-//                    m_iterationIndex--;
-//                }
-//            }
             try{
                 //iterate
                 m_currentSimplex->iterate();
@@ -483,6 +434,190 @@ void SimplexController::solve(const Model &model)
     }
     m_solveTimer.stop();
     writeSolutionReport();
+}
+
+void SimplexController::parallelSolve(const Model &model)
+{
+    ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
+
+    const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
+    const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
+    const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
+
+    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
+        m_currentAlgorithm = Simplex::PRIMAL;
+        m_primalSimplex = new PrimalSimplex(*this);
+        m_currentSimplex = m_primalSimplex;
+    }
+    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
+        m_dualSimplex = new DualSimplex(*this);
+        m_currentSimplex = m_dualSimplex;
+    }
+
+    try{
+        m_currentSimplex->setModel(model);
+
+        m_currentSimplex->setSolveTimer(&m_solveTimer);
+        m_currentSimplex->setIterationReport(m_iterationReport);
+        m_currentSimplex->initModules();
+
+        m_solveTimer.start();
+        if (m_loadBasis){
+            m_currentSimplex->loadBasis();
+        }else{
+            m_currentSimplex->findStartingBasis();
+        }
+
+        m_iterationReport->addProviderForStart(*m_currentSimplex);
+        m_iterationReport->addProviderForIteration(*m_currentSimplex);
+        m_iterationReport->addProviderForSolution(*m_currentSimplex);
+        m_iterationReport->createStartReport();
+        m_iterationReport->writeStartReport();
+
+        Numerical::Double lastObjective = 0;
+        bool exceptionCought = false;
+        //Simplex iterations
+        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
+             (m_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+
+            if(m_saveBasis){
+                m_currentSimplex->saveBasis(m_iterationIndex);
+            }
+
+            //inversion
+            m_currentSimplex->reinvert();
+
+            if (switching == "SWITCH_BEFORE_INV") {
+                if (m_iterationIndex > 1){
+                    switchAlgorithm(model);
+                }
+            } else if (switching == "SWITCH_BEFORE_INV_PH2") {
+                if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
+                    switchAlgorithm(model);
+                }
+            } else if (switching == "SWITCH_WHEN_NO_IMPR") {
+                if(m_iterationIndex > 1){
+                    if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
+                        switchAlgorithm(model);
+                    }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
+                        switchAlgorithm(model);
+                    }
+                }
+            }
+
+            //spawn threads
+            try{
+                SimplexThread simplexThread1(m_currentSimplex);
+                SimplexThread simplexThread2(m_currentSimplex);
+                std::thread thread1(&SimplexThread::performIterations, &simplexThread1, reinversionFrequency);
+                std::thread thread2(&SimplexThread::performIterations, &simplexThread2, reinversionFrequency);
+                //synchronise threads, get results
+                thread1.join();
+                thread2.join();
+                LPINFO("Both threads finished!");
+                //handle exceptions
+                if(simplexThread1.getResult() == SimplexThread::COMPLETE || simplexThread1.getResult() == SimplexThread::TERMINATE){
+                    if(exceptionCought){
+                        throw simplexThread1.getException();
+                    }else{
+                        exceptionCought = true;
+                    }
+                }
+                if(simplexThread2.getResult() == SimplexThread::COMPLETE || simplexThread2.getResult() == SimplexThread::TERMINATE){
+                    if(exceptionCought){
+                        throw simplexThread2.getException();
+                    }else{
+                        exceptionCought = true;
+                    }
+                }
+                //choose better basis
+                //first thread is better
+                if(simplexThread1.getObjectiveValue() > simplexThread2.getObjectiveValue() ){
+                    m_iterationIndex += simplexThread1.getIterationNumber();
+                //second thread is better
+                }else{
+                    m_iterationIndex += simplexThread2.getIterationNumber();
+                }
+            } catch ( const OptimizationResultException & exception ) {
+                m_currentSimplex->reset();
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    m_iterationIndex--;
+                }
+            } catch ( const NumericalException & exception ) {
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    LPINFO("Numerical error: "<<exception.getMessage());
+                    m_iterationIndex--;
+                }
+            }
+        }
+    } catch ( const ParameterException & exception ) {
+        LPERROR("Parameter error: "<<exception.getMessage());
+    } catch ( const OptimalException & exception ) {
+        LPINFO("OPTIMAL SOLUTION found! ");
+        // TODO: postsovle, post scaling
+        // TODO: Save optimal basis if necessary
+    } catch ( const PrimalInfeasibleException & exception ) {
+        LPINFO("The problem is PRIMAL INFEASIBLE.");
+    } catch ( const DualInfeasibleException & exception ) {
+        LPINFO("The problem is DUAL INFEASIBLE.");
+    } catch ( const PrimalUnboundedException & exception ) {
+        LPINFO("The problem is PRIMAL UNBOUNDED.");
+    } catch ( const DualUnboundedException & exception ) {
+        LPINFO("The problem is DUAL UNBOUNDED.");
+    } catch ( const NumericalException & exception ) {
+        LPINFO("Numerical error: "<<exception.getMessage());
+    } catch ( const SyntaxErrorException & exception ) {
+        exception.show();
+    } catch ( const PanOptException & exception ) {
+        LPERROR("PanOpt exception:"<< exception.getMessage() );
+    } catch ( const std::bad_alloc & exception ) {
+        LPERROR("STL bad alloc exception: " << exception.what() );
+    } catch ( const std::bad_cast & exception ) {
+        LPERROR("STL bad cast exception: " << exception.what() );
+    } catch ( const std::bad_exception & exception ) {
+        LPERROR("STL bad exception exception: " << exception.what() );
+    } catch ( const std::bad_typeid & exception ) {
+        LPERROR("STL bad typeid exception: " << exception.what() );
+    } catch (const std::ios_base::failure & exception ) {
+        LPERROR("STL ios_base::failure exception: " << exception.what() );
+    } catch (const std::logic_error & exception ) {
+        LPERROR("STL logic error exception: " << exception.what() );
+    } catch ( const std::range_error & exception ) {
+        LPERROR("STL range error: " << exception.what() );
+    } catch ( const std::overflow_error & exception ) {
+        LPERROR("STL arithmetic overflow error: " << exception.what() );
+    } catch ( const std::underflow_error & exception ) {
+        LPERROR("STL arithmetic underflow error: " << exception.what() );
+#if __cplusplus > 199711L
+    } catch ( const std::system_error & exception ) {
+        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
+        LPERROR("STL system error: " << std::endl);
+        LPERROR("\tError: " << exception.what() << std::endl);
+        LPERROR("\tCode: " << exception.code().value() << std::endl);
+        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
+        LPERROR("\tMessage: " << exception.code().message() << std::endl);
+    } catch ( const std::bad_function_call & exception ) {
+        LPERROR("STL bad function call exception: " << exception.what() );
+#endif
+    } catch (const std::runtime_error & exception ) {
+        LPERROR("STL runtime error: " << exception.what() );
+    }
+    catch (const std::exception & exception) {
+        LPERROR("General STL exception: " << exception.what());
+    } catch (...) {
+        LPERROR("Unknown exception");
+    }
+    m_solveTimer.stop();
+    writeSolutionReport();
+
 }
 
 void SimplexController::switchAlgorithm(const Model &model)

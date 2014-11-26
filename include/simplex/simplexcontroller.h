@@ -31,11 +31,18 @@ public:
     virtual ~SimplexController();
 
     /**
-     * Function that solves the LP problem given by the parameter.
+     * Function that solves the LP problem given by the parameter using a main thread.
      *
      * @param model The LP problem model to be solved.
      */
-    void solve(const Model& model);
+    void sequentialSolve(const Model& model);
+
+    /**
+     * Function that solves the LP problem given by the parameter using different threads.
+     *
+     * @param model The LP problem model to be solved.
+     */
+    void parallelSolve(const Model& model);
 
     /**
      * The function returns the iteration report fields of this class.
@@ -234,8 +241,6 @@ private:
      * @param model The model of the LP problem.
      */
     void switchAlgorithm(const Model &model);
-
-    Numerical::Double parallelIterations(int & iterationIndex, unsigned int iterationNumber);
 };
 
 #endif // SIMPLEXCONTROLLER_H

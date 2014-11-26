@@ -103,8 +103,6 @@ private:
 
     /**
      * Computes the measure of dual infeasibility of the reduced costs.
-     *
-     * @throws SwitchAlgorithmException at entering phase 2 if this option is turned on in the parameter file.
      */
     virtual void computeFeasibility();
 
