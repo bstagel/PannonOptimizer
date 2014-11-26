@@ -156,8 +156,6 @@ public:
 
     virtual void Btran(SparseVector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
-    virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
-
     /**
      * Pure virtual function to print general information about the basis transformation to the output.
      */

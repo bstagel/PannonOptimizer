@@ -60,7 +60,7 @@ void InitPanOpt::init() {
     SimplexParameterHandler::_globalInit();
     LinalgParameterHandler::_globalInit();
     Numerical::_globalInit();
-    Vector::_globalInit();
+    //Vector::_globalInit();
     IndexedDenseVector::_globalInit();
     DenseVector::_globalInit();
     SparseVector::_globalInit();

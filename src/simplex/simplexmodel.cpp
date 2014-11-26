@@ -369,11 +369,12 @@ void SimplexModel::shiftBounds()
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
     //TODO: Ezt mashogy kell lefoglalni, feltolteni
-    Vector epsilonValuesLower;
-    Vector epsilonValuesUpper;
+    int rowCount = getMatrix().rowCount();
+    DenseVector epsilonValuesLower(rowCount);
+    DenseVector epsilonValuesUpper(rowCount);
     for(unsigned i=0;i < getColumnCount();i++){
-        epsilonValuesLower.insertElement(i,distribution(engine));
-        epsilonValuesUpper.insertElement(i,distribution(engine));
+        epsilonValuesLower.set(i,distribution(engine));
+        epsilonValuesUpper.set(i,distribution(engine));
     }
     Numerical::Double lb = 0;
     Numerical::Double ub = 0;

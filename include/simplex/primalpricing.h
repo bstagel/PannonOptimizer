@@ -106,8 +106,8 @@ public:
      */
     virtual void update(int incomingIndex,
                         int outgoingIndex,
-                        const Vector * incomingAlpha,
-                        const Vector * pivotRow) = 0;
+                        const DenseVector * incomingAlpha,
+                        const DenseVector * pivotRow) = 0;
 
     /**
      * Initializing function of the simpri modules.

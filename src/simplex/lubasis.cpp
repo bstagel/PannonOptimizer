@@ -755,7 +755,7 @@ void LuBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const
     }
 
     //FTRANU
-    Vector alpha(vector.length());
+    SparseVector alpha(vector.length());
     alpha.clear();
     for (int i = (int)basisSize-1; i >= 0; i--) {
 
@@ -774,8 +774,8 @@ void LuBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const
         alpha.setNewNonzero(columnindex, newPivotValue);
     }
     vector.clear();
-    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
-    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    SparseVector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    SparseVector::NonzeroIterator alphaItend = alpha.endNonzero();
     for(; alphaIt != alphaItend; ++alphaIt){
         vector.set(alphaIt.getIndex(), *alphaIt);
     }
@@ -821,7 +821,7 @@ void LuBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const
     }
 
     //FTRANU
-    Vector alpha(vector.length());
+    SparseVector alpha(vector.length());
     alpha.clear();
     for (int i = (int)basisSize-1; i >= 0; i--) {
 
@@ -840,8 +840,8 @@ void LuBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const
         alpha.setNewNonzero(columnindex, newPivotValue);
     }
     vector.clear();
-    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
-    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    SparseVector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    SparseVector::NonzeroIterator alphaItend = alpha.endNonzero();
     for(; alphaIt != alphaItend; ++alphaIt){
         vector.set(alphaIt.getIndex(), *alphaIt);
     }
@@ -863,13 +863,6 @@ void LuBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const
         //Set the pivot position
         vector.set(rowindex, pivotValue * pivotMultiplier);
     }
-}
-
-void LuBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode) const {
-    __UNUSED(vector);
-    __UNUSED(checkVector);
-    __UNUSED(mode);
-    LPERROR("NOT IMPLEMENTED YET");
 }
 
 void LuBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const

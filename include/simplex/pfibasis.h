@@ -123,15 +123,6 @@ public:
     virtual void Btran(DenseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
     virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
-    /**
-     * Does the FTRAN operation on a vector.
-     * The function provides numerical error checking with perturbation.
-     *
-     * @param vector the vector to be transformed
-     * @param checkVector the vector to be transformed with perturbations
-     */
-    virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
-
 private:
 
     /**
@@ -191,7 +182,7 @@ private:
      * The MM part is logically reordered after the R and C parts are identified
      * to logically form a standard square matrix.
      */
-    std::vector<Vector>* m_mmRows;
+    std::vector<SparseVector>* m_mmRows;
 
     /**
      * The
@@ -203,7 +194,7 @@ private:
      * The MM part is logically reordered after the R and C parts are identified
      * to logically form a standard square matrix.
      */
-    std::vector<Vector>* m_mmColumns;
+    std::vector<SparseVector>* m_mmColumns;
     std::vector<int>* m_mmColumnIndices;
 
     std::vector<std::vector<int> >* m_mmGraphOut;
