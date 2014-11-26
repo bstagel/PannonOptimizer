@@ -106,7 +106,7 @@ private:
     /**
      * Pointer to the basicvariable values (X_B vector).
      */
-    Vector* m_basicVariableValues;
+    DenseVector* m_basicVariableValues;
 
     /**
      * The used startingbasis finder algorithm possible values at StartingBasisFinder::STARTING_BASIS_STRATEGY.

@@ -44,9 +44,9 @@ PfiBasis::PfiBasis(const SimplexModel& model,
     m_cColumns = new std::vector<const SparseVector*>();
     m_cPivotIndexes = new std::vector<int>();
 
-    m_mmRows = new std::vector<Vector>();
+    m_mmRows = new std::vector<SparseVector>();
     m_mmRowIndices = new std::vector<int>();
-    m_mmColumns = new std::vector<Vector>();
+    m_mmColumns = new std::vector<SparseVector>();
     m_mmColumnIndices = new std::vector<int>();
     m_mmGraphOut = new std::vector<std::vector<int> >();
     m_mmGraphUsed = new std::vector<char>();
@@ -414,132 +414,6 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
     Numerical::Double lost = sum - (Numerical::fabs(a) > Numerical::fabs(b) ? a : b);
     // ezt kivonjuk a kisebb abszolut erteku elem eredeti ertekebol
     return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
-}
-
-void PfiBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode) const
-{
-    __UNUSED(mode);
-    checkVector = vector;
-    //The ftran operation.
-
-    Numerical::Double * denseVector;
-    Numerical::Double * checkDenseVector;
-
-    // 1. lepes: ha kell akkor atvaltjuk dense-re
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        denseVector = vector.m_data;
-        checkDenseVector = checkVector.m_data;
-    } else {
-        Vector::scatter(Vector::sm_fullLengthVector, Vector::sm_fullLengthVectorLength, vector);
-        denseVector = Vector::sm_fullLengthVector;
-    }
-    checkDenseVector = alloc<Numerical::Double, 16>( vector.length() );
-    unsigned int index;
-    for (index = 0; index < vector.length(); index++) {
-        Numerical::Double mul = ((rand() % 10000) / (Numerical::Double)1e15)*pow(1, index);
-        checkDenseVector[index] = mul;
-
-    }
-    //panOptMemcpy(checkDenseVector, denseVector, vector.length() * sizeof(Numerical::Double));
-
-    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
-    std::vector<ETM>::const_iterator iter = m_basis->begin();
-    const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
-
-    Numerical::Double plusMinus = -1.0;
-
-    for (; iter != iterEnd; ++iter) {
-        plusMinus *= -1.0;
-        const Numerical::Double pivotValue = denseVector[ iter->index ];
-        const Numerical::Double checkPivotValue = checkDenseVector[ iter->index ];
-
-        if (pivotValue == 0.0) {
-            continue;
-        }
-
-
-        Numerical::Double * ptrEta = iter->eta->m_data;
-        unsigned int * ptrIndex = iter->eta->m_indices;
-        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
-        const unsigned int pivotPosition = iter->index;
-        while (ptrIndex < ptrIndexEnd) {
-            Numerical::Double & originalValue = denseVector[*ptrIndex];
-            Numerical::Double & originalCheckValue = checkDenseVector[*ptrIndex];
-            if (*ptrEta != 0.0) {
-                Numerical::Double val;
-                Numerical::Double checkVal;
-                if (*ptrIndex != pivotPosition) {
-                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
-                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (Numerical::Double)1e12)*plusMinus;
-                    mul = 1.0;
-                    checkVal = Numerical::stableAddAbs(originalCheckValue, checkPivotValue * *ptrEta * mul);
-                    if (originalValue == 0.0 && val != 0.0) {
-                        vector.m_nonZeros++;
-                    } else if (originalValue != 0.0 && val == 0.0) {
-                        vector.m_nonZeros--;
-                    }
-                } else {
-                    val = pivotValue * *ptrEta;
-                    checkVal = checkPivotValue * *ptrEta;
-                }
-
-                //                    Numerical::Double mul = 1.0 - ((rand() % 10000) / (double)1e11)*plusMinus;
-                //                    mul = 1.0;
-                originalValue = val;
-                originalCheckValue = checkVal + ((rand() % 10000) / (Numerical::Double)1e11)*Numerical::pow(-1, plusMinus);
-
-            }
-            ptrIndex++;
-            ptrEta++;
-        }
-    }
-
-    // 3. elmentjuk az ellenorzo vektort
-    unsigned int checkNonzCounter = 0;
-    for (index = 0; index < vector.length(); index++) {
-        if (checkDenseVector[index] != 0.0) {
-            checkNonzCounter++;
-        }
-    }
-    checkVector.prepareForData(checkNonzCounter, vector.length());
-    for (index = 0; index < vector.length(); index++) {
-        if (checkDenseVector[index] != 0.0) {
-            checkVector.newNonZero(checkDenseVector[index], index);
-        }
-    }
-
-    // 4. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
-
-    Vector::VECTOR_TYPE newType;
-    if (vector.m_nonZeros < vector.m_sparsityThreshold) {
-        newType = Vector::SPARSE_VECTOR;
-    } else {
-        newType = Vector::DENSE_VECTOR;
-    }
-
-    if (vector.m_vectorType == Vector::DENSE_VECTOR) {
-        if (newType == Vector::DENSE_VECTOR) {
-            return;
-        } else {
-            vector.denseToSparse();
-        }
-    } else {
-        vector.prepareForData(vector.m_nonZeros, vector.m_dimension);
-        Numerical::Double * ptrValue = denseVector;
-        const Numerical::Double * ptrValueEnd = denseVector + vector.m_dimension;
-        unsigned int index = 0;
-        while (ptrValue < ptrValueEnd) {
-            if (*ptrValue != 0.0) {
-                vector.newNonZero(*ptrValue, index);
-                *ptrValue = 0.0;
-            }
-            ptrValue++;
-            index++;
-        }
-        if (vector.m_vectorType == Vector::SPARSE_VECTOR) {
-            vector.m_sorted = true;
-        }
-    }
 }
 
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
@@ -1163,8 +1037,8 @@ void PfiBasis::buildMM() {
     //Compute the average size
     m_mNumAverage += (mmSize - m_mNumAverage) / m_inversionCount;
 
-    m_mmRows->resize(mmSize, Vector(mmSize));
-    m_mmColumns->resize(mmSize, Vector(mmSize));
+    m_mmRows->resize(mmSize, SparseVector(mmSize));
+    m_mmColumns->resize(mmSize, SparseVector(mmSize));
     m_rowSwapHash->resize(mmSize);
     m_columnSwapHash->resize(mmSize);
     m_columnSwapLog->resize(mmSize);
@@ -1199,8 +1073,8 @@ void PfiBasis::findTransversal() {
             //Find some with bigger index
             bool nextRow = false;
             DEVINFO(D::PFIMAKER, "Searching for diagonal nonzero at row " << i);
-            Vector::NonzeroIterator vectorIt = (*m_mmColumns)[i].beginNonzero();
-            Vector::NonzeroIterator vectorItend = (*m_mmColumns)[i].endNonzero();
+            SparseVector::NonzeroIterator vectorIt = (*m_mmColumns)[i].beginNonzero();
+            SparseVector::NonzeroIterator vectorItend = (*m_mmColumns)[i].endNonzero();
             for (; vectorIt < vectorItend; ++vectorIt) {
                 if ((int) vectorIt.getIndex() > i) {
                     nextRow = true;
@@ -1247,19 +1121,19 @@ void PfiBasis::swapRows(int rowIndex1, int rowIndex2) {
     int rowHashIndex1 = (*m_rowSwapHash)[rowIndex1];
     int rowHashIndex2 = (*m_rowSwapHash)[rowIndex2];
     //TODO: gyorsitani
-    Vector row1 = (*m_mmRows)[rowIndex1];
-    Vector row2 = (*m_mmRows)[rowIndex2];
+    SparseVector row1 = (*m_mmRows)[rowIndex1];
+    SparseVector row2 = (*m_mmRows)[rowIndex2];
 
-    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex1, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex2, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = row1.beginNonzero(); vectorIt < row1.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex2, *vectorIt);
     }
-    for (Vector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = row2.beginNonzero(); vectorIt < row2.endNonzero(); ++vectorIt) {
         (*m_mmColumns)[vectorIt.getIndex()].set(rowIndex1, *vectorIt);
     }
     //TODO: JOCO Swap fuggveny a vektorba
@@ -1276,19 +1150,19 @@ void PfiBasis::swapColumns(int columnIndex1, int columnIndex2) {
 
     int columnHashIndex1 = (*m_columnSwapHash)[columnIndex1];
     int columnHashIndex2 = (*m_columnSwapHash)[columnIndex2];
-    Vector column1 = (*m_mmColumns)[columnIndex1];
-    Vector column2 = (*m_mmColumns)[columnIndex2];
+    SparseVector column1 = (*m_mmColumns)[columnIndex1];
+    SparseVector column2 = (*m_mmColumns)[columnIndex2];
 
-    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex1, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex2, 0);
     }
-    for (Vector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = column1.beginNonzero(); vectorIt < column1.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex2, *vectorIt);
     }
-    for (Vector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
+    for (SparseVector::NonzeroIterator vectorIt = column2.beginNonzero(); vectorIt < column2.endNonzero(); ++vectorIt) {
         (*m_mmRows)[vectorIt.getIndex()].set(columnIndex1, *vectorIt);
     }
     (*m_mmColumns)[columnIndex1] = column2;
@@ -1304,8 +1178,8 @@ void PfiBasis::swapColumns(int columnIndex1, int columnIndex2) {
 
 int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& searchedRows) {
     DEVINFO(D::PFIMAKER, "Searching column " << columnIndex << " for nonzero with searchindex " << searchIndex);
-    Vector::NonzeroIterator it = (*m_mmColumns)[columnIndex].beginNonzero();
-    Vector::NonzeroIterator itend = (*m_mmColumns)[columnIndex].endNonzero();
+    SparseVector::NonzeroIterator it = (*m_mmColumns)[columnIndex].beginNonzero();
+    SparseVector::NonzeroIterator itend = (*m_mmColumns)[columnIndex].endNonzero();
     for (; it < itend; ++it) {
         if ((int) it.getIndex() >= searchIndex) {
             DEVINFO(D::PFIMAKER, "Nonzero found below index " << searchIndex);
@@ -1319,8 +1193,8 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
             return searchResult;
         }
     }
-    Vector::NonzeroIterator vectorIt = (*m_mmColumns)[columnIndex].beginNonzero();
-    Vector::NonzeroIterator vectorItend = (*m_mmColumns)[columnIndex].endNonzero();
+    SparseVector::NonzeroIterator vectorIt = (*m_mmColumns)[columnIndex].beginNonzero();
+    SparseVector::NonzeroIterator vectorItend = (*m_mmColumns)[columnIndex].endNonzero();
     for (; vectorIt < vectorItend; ++vectorIt) {
         bool contains = false;
         for (std::vector<int>::iterator it = searchedRows.begin(); it < searchedRows.end(); ++it) {
@@ -1352,8 +1226,8 @@ void PfiBasis::createGraph() {
     auto it = m_mmRows->begin();
     auto itend = m_mmRows->end();
     for (int i=0 ; it < itend; ++it, i++) {
-        Vector::NonzeroIterator vectorIt = it->beginNonzero();
-        Vector::NonzeroIterator vectorItend = it->endNonzero();
+        SparseVector::NonzeroIterator vectorIt = it->beginNonzero();
+        SparseVector::NonzeroIterator vectorItend = it->endNonzero();
         for (; vectorIt < vectorItend; ++vectorIt) {
             if ((int) vectorIt.getIndex() != it - m_mmRows->begin()) {
                 (*m_mmGraphOut)[it - m_mmRows->begin()].push_back(vectorIt.getIndex());
@@ -1602,7 +1476,7 @@ void PfiBasis::printCounts() const {
 void PfiBasis::printMM() const {
 #ifndef NDEBUG
     LPWARNING( "MM pattern by rows");
-    for (std::vector<Vector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); ++it) {
+    for (std::vector<SparseVector>::iterator it = m_mmRows->begin(); it < m_mmRows->end(); ++it) {
         std::string s;
         for (int i = 0; i < (int) it->length(); i++) {
             s += Numerical::equals(it->at(i), 0) ? "-" : "X";

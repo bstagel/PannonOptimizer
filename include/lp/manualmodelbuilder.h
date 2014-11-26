@@ -9,6 +9,8 @@
 #include <globals.h>
 
 #include <lp/modelbuilder.h>
+#include <linalg/densevector.h>
+#include <linalg/sparsevector.h>
 #include <list>
 #include <vector>
 
@@ -58,7 +60,7 @@ public:
      */
     void addVariable(const Variable & variable,
         Numerical::Double costCoefficient,
-        const Vector & vector);
+        const SparseVector & vector);
 
     /**
      * 
@@ -99,7 +101,7 @@ public:
      * @param vector
      */
     void addConstraint(const Constraint & constraint,
-        const Vector & vector);
+        const SparseVector & vector);
 
     /**
      * 
@@ -168,7 +170,7 @@ public:
      * @param index
      * @param rowVector
      */
-    void buildRow(unsigned int index, Vector * rowVector, 
+    void buildRow(unsigned int index, SparseVector * rowVector,
         std::vector<unsigned int> * nonzeros) const;
 
     /**
@@ -176,14 +178,14 @@ public:
      * @param index
      * @param columnVector
      */
-    void buildColumn(unsigned int index, Vector * columnVector,
+    void buildColumn(unsigned int index, SparseVector * columnVector,
         std::vector<unsigned int> * nonzeros) const;
 
     /**
      * 
      * @param costVector
      */
-    void buildCostVector(Vector * costVector) const;
+    void buildCostVector(DenseVector * costVector) const;
 
     /**
      * 

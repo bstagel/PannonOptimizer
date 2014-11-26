@@ -70,7 +70,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
 
 void ManualModelBuilder::addVariable(const Variable & variable,
     Numerical::Double costCoefficient,
-    const Vector & vector)
+    const SparseVector &vector)
 {
     m_variables.push_back(variable);
     m_costVector.push_back(costCoefficient);
@@ -81,8 +81,8 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     const unsigned int lastIndex = m_columns.size() - 1;
 
     unsigned int maxIndex = 0;
-    Vector::NonzeroIterator iter = vector.beginNonzero();
-    Vector::NonzeroIterator iterEnd = vector.endNonzero();
+    SparseVector::NonzeroIterator iter = vector.beginNonzero();
+    SparseVector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; ++iter) {
         IndexValuePair pair = {*iter, iter.getIndex()};
         m_columns[lastIndex].push_back(pair);
@@ -218,7 +218,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
 }
 
 void ManualModelBuilder::addConstraint(const Constraint & constraint,
-    const Vector & vector)
+    const SparseVector &vector)
 {
     m_constraints.push_back(constraint);
 
@@ -229,8 +229,8 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int index;
     unsigned int maxIndex = 0;
     unsigned int nonzeros = vector.nonZeros();
-    Vector::NonzeroIterator iter = vector.beginNonzero();
-    Vector::NonzeroIterator iterEnd = vector.endNonzero();
+    SparseVector::NonzeroIterator iter = vector.beginNonzero();
+    SparseVector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; ++iter) {
         IndexValuePair pair = {*iter, iter.getIndex()};
         m_rows[lastIndex].push_back(pair);
@@ -350,7 +350,7 @@ const Constraint & ManualModelBuilder::getConstraint(unsigned int index) const
     return m_constraints[index];
 }
 
-void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector,
+void ManualModelBuilder::buildRow(unsigned int index, SparseVector *rowVector,
     std::vector<unsigned int> *) const
 {
     unsigned int dimension = m_constraints.size();
@@ -362,7 +362,7 @@ void ManualModelBuilder::buildRow(unsigned int index, Vector * rowVector,
     }
 }
 
-void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
+void ManualModelBuilder::buildColumn(unsigned int index, SparseVector *columnVector,
     std::vector<unsigned int> *) const
 {
     unsigned int dimension = m_variables.size();
@@ -374,21 +374,20 @@ void ManualModelBuilder::buildColumn(unsigned int index, Vector * columnVector,
     }
 }
 
-void ManualModelBuilder::buildCostVector(Vector * costVector) const
+void ManualModelBuilder::buildCostVector(DenseVector *costVector) const
 {
     unsigned int dimension = m_variables.size();
     LPINFO(m_costVector.size() << "  " << dimension);
-    costVector->prepareForData(m_costVector.size(), dimension);
     std::vector< Numerical::Double >::const_iterator iter = m_costVector.begin();
     std::vector< Numerical::Double >::const_iterator iterEnd = m_costVector.end();
     unsigned int index;
     if(m_objectiveType == MINIMIZE){
         for (index = 0; iter != iterEnd; ++iter, index++) {
-            costVector->newNonZero(*iter, index);
+            costVector->set(*iter, index);
         }
     } else {
         for (index = 0; iter != iterEnd; ++iter, index++) {
-            costVector->newNonZero(-(*iter), index);
+            costVector->set(-(*iter), index);
         }
     }
 }

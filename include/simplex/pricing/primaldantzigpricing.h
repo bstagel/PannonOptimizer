@@ -31,8 +31,8 @@ public:
 
     void update(int incomingIndex,
                 int outgoingIndex,
-                const Vector * incomingAlpha,
-                const Vector * pivotRow);
+                const DenseVector *incomingAlpha,
+                const DenseVector *pivotRow);
 
 private:
 

@@ -15,7 +15,7 @@ bool Checker::checkBasisWithFtran(const Simplex &simplex) {
     bool success = true;
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
-        Vector resultVector(basisSize);
+        SparseVector resultVector(basisSize);
         resultVector.setNewNonzero(it - simplex.m_basisHead.begin(), 1.0);
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             v = simplex.m_simplexModel->getMatrix().column(*it);

@@ -177,17 +177,9 @@ int PrimalDantzigPricing::performPricingPhase2()
 
 void PrimalDantzigPricing::update(int incomingIndex,
                                   int outgoingIndex,
-                                  const Vector * incomingAlpha,
-                                  const Vector * pivotRow) {
+                                  const DenseVector * incomingAlpha,
+                                  const DenseVector * pivotRow) {
     unsigned int outgoingVariable = m_basisHead[outgoingIndex];
-    /*if (outgoingVariable == 45) {
-        LPINFO("most kimegy a bazisbol");
-        std::cin.get();
-    }
-    if (incomingIndex == 45) {
-        LPINFO("most bemegy a bazisba");
-        std::cin.get();
-    }*/
 
     m_phase1Simpri.removeCandidate(incomingIndex);
     m_phase2Simpri.removeCandidate(incomingIndex);
