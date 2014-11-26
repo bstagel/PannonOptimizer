@@ -76,8 +76,6 @@ public:
     /**
      * Default constructor of the class.
      *
-     * @param simplexController A reference to the controller to reach the controller API.
-     *
      * @constructor
      */
     Simplex();

@@ -281,7 +281,6 @@ void DualSimplex::initModules() {
                                     m_reducedCosts,
                                     m_reducedCostFeasibilities,
                                     m_variableStates);
-
 }
 
 void DualSimplex::releaseModules() {

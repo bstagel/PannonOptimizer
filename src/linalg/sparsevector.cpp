@@ -18,7 +18,7 @@ thread_local SparseVector::SparseToDenseDotProduct SparseVector::sm_sparseToDens
 thread_local SparseVector::SparseToIndexedDenseDotProduct SparseVector::sm_sparseToIndexedDenseDotProduct;
 thread_local SparseVector::SparseToSparseDotProduct SparseVector::sm_sparseToSparseDotProduct;
 
-void SparseVector::checkScattered(int nzr, int length) {
+void SparseVector::checkScattered(int nzr, unsigned length) {
     for(int i = 0; i < nzr; i++) {
         int index = SparseVector::sm_indexVector[i];
         if(SparseVector::sm_fullLengthVector[index] ==  0.0 || SparseVector::sm_indexPointerVector[index] == nullptr) {
@@ -26,19 +26,18 @@ void SparseVector::checkScattered(int nzr, int length) {
             return;
         }
     }
-    for(int i = 0; i < length; i++)
+    for(unsigned i = 0; i < length; i++)
     {
         if(SparseVector::sm_indexPointerVector[i] != nullptr) {
             if(*(SparseVector::sm_indexPointerVector[i]) != i) {
                 LPERROR(SparseVector::sm_indexPointerVector[i] << " " << SparseVector::sm_indexVector);
-                LPERROR("SMIDLA "<<i<<" "<<*(SparseVector::sm_indexPointerVector[i])); exit(-19);
             }
         }
     }
 }
 
 void SparseVector::checkVector(const SparseVector & vector) {
-    for(int i = 0; i < vector.nonZeros(); i++) {
+    for(unsigned i = 0; i < vector.nonZeros(); i++) {
         if(vector.m_data[i] == 0.0 || vector.m_indices[i] >= vector.m_length)
         {
             LPWARNING("error during vector check! nzr index: " << i);

@@ -336,11 +336,11 @@ void SimplexController::sequentialSolve(const Model &model)
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
                 //Check the result with triggering reinversion
+                m_iterationIndex--;
                 if(m_freshBasis){
                     throw;
                 } else {
                     reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
                 }
             } catch ( const NumericalException & exception ) {
                 //Check the result with triggering reinversion
@@ -416,117 +416,97 @@ void SimplexController::sequentialSolve(const Model &model)
 
 void SimplexController::parallelSolve(const Model &model)
 {
-//    int numberOfThreads = 2;
-//    std::vector<SimplexThread> simplexThreadObjects;
-//    std::vector<Simplex *> simplexObjects;
-//    simplexObjects.reserve(numberOfThreads);
-//    simplexThreadObjects.reserve(numberOfThreads);
-//    for(int i=0; i < numberOfThreads; ++i){
-//        Simplex * simplex = new Simplex();
-//        simplexObjects.push_back(simplex);
-//        simplexThreadObjects[i] = new SimplexThread(simplexObjects[i]);
-//    }
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
     const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
-    const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
-        m_primalSimplex = new PrimalSimplex();
-        m_currentSimplex = m_primalSimplex;
     }
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
         m_currentAlgorithm = Simplex::DUAL;
-        m_dualSimplex = new DualSimplex();
-        m_currentSimplex = m_dualSimplex;
     }
 
-    try{
-        m_currentSimplex->setModel(model);
-
-        m_currentSimplex->setIterationReport(m_iterationReport);
-        m_currentSimplex->initModules();
-
-        sm_solveTimer.start();
-        if (m_loadBasis){
-            m_currentSimplex->loadBasis();
+    //prepare simplex objects
+    int numberOfThreads = 2;
+    std::vector<SimplexThread> simplexThreadObjects;
+    std::vector<Simplex *> simplexObjects;
+    simplexObjects.reserve(numberOfThreads);
+    simplexThreadObjects.reserve(numberOfThreads);
+    for(int i=0; i < numberOfThreads; ++i){
+        Simplex * simplex = NULL;
+        simplexObjects.push_back(simplex);
+    }
+    for(int i=0; i < numberOfThreads; ++i){
+        if(m_currentAlgorithm == Simplex::PRIMAL){
+            simplexObjects[i] = new PrimalSimplex();
         }else{
-            m_currentSimplex->findStartingBasis();
+            simplexObjects[i] = new DualSimplex();
         }
+        simplexThreadObjects.push_back(SimplexThread(simplexObjects[i]));
+    }
 
-        m_iterationReport->addProviderForStart(*m_currentSimplex);
-        m_iterationReport->addProviderForIteration(*m_currentSimplex);
-        m_iterationReport->addProviderForSolution(*m_currentSimplex);
-        m_iterationReport->createStartReport();
-        m_iterationReport->writeStartReport();
+    bool exceptionCought = false;
+    sm_solveTimer.start();
+    try{
+        for(int i=0; i < numberOfThreads; ++i){
+            simplexObjects[i]->setModel(model);
 
-        Numerical::Double lastObjective = 0;
-        bool exceptionCought = false;
+            simplexObjects[i]->setIterationReport(m_iterationReport);
+            simplexObjects[i]->initModules();
+
+            if (m_loadBasis){
+                simplexObjects[i]->loadBasis();
+            }else{
+                simplexObjects[i]->findStartingBasis();
+            }
+
+            m_iterationReport->addProviderForStart(*simplexObjects[i]);
+            m_iterationReport->addProviderForIteration(*simplexObjects[i]);
+            m_iterationReport->addProviderForSolution(*simplexObjects[i]);
+            m_iterationReport->createStartReport();
+            m_iterationReport->writeStartReport();
+        }
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
-            if(m_saveBasis){
-                m_currentSimplex->saveBasis(m_iterationIndex);
+            for(int i=0; i < numberOfThreads; ++i){
+                if(m_saveBasis){
+                    simplexObjects[i]->saveBasis(m_iterationIndex);
+                }
             }
 
             //inversion
-            m_currentSimplex->reinvert();
-
-            if (switching == "SWITCH_BEFORE_INV") {
-                if (m_iterationIndex > 1){
-                    switchAlgorithm(model);
-                }
-            } else if (switching == "SWITCH_BEFORE_INV_PH2") {
-                if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
-                    switchAlgorithm(model);
-                }
-            } else if (switching == "SWITCH_WHEN_NO_IMPR") {
-                if(m_iterationIndex > 1){
-                    if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
-                        switchAlgorithm(model);
-                    }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
-                        switchAlgorithm(model);
-                    }
-                }
+            for(int i=0; i < numberOfThreads; ++i){
+                simplexObjects[i]->reinvert();
             }
 
             //spawn threads
             try{
-                SimplexThread simplexThread1(m_currentSimplex);
-                SimplexThread simplexThread2(m_currentSimplex);
-                std::thread thread1(&SimplexThread::performIterations, &simplexThread1, m_iterationIndex, reinversionFrequency);
-                std::thread thread2(&SimplexThread::performIterations, &simplexThread2, m_iterationIndex, reinversionFrequency);
+                std::vector<std::thread> threads;
+                threads.reserve(numberOfThreads);
+                for(int i=0; i < numberOfThreads; ++i){
+                    threads.push_back(std::thread(&SimplexThread::performIterations, simplexThreadObjects[i], m_iterationIndex, reinversionFrequency));
+                }
                 //synchronise threads, get results
-                thread1.join();
-                thread2.join();
-                LPINFO("Both threads finished!");
+                for(int i=0; i < numberOfThreads; ++i){
+                    threads[i].join();
+                }
+                LPINFO("Threads finished!");
                 //handle exceptions
-                if(simplexThread1.getResult() == SimplexThread::COMPLETE || simplexThread1.getResult() == SimplexThread::TERMINATE){
-                    if(exceptionCought){
-                        throw simplexThread1.getException();
-                    }else{
-                        exceptionCought = true;
+                for(int i=0; i < numberOfThreads; ++i){
+                    if(simplexThreadObjects[i].getResult() == SimplexThread::COMPLETE){
+                        if(exceptionCought){
+                            throw OptimalException("optimal");
+                        }else{
+                            exceptionCought = true;
+                        }
                     }
                 }
-                if(simplexThread2.getResult() == SimplexThread::COMPLETE || simplexThread2.getResult() == SimplexThread::TERMINATE){
-                    if(exceptionCought){
-                        throw simplexThread2.getException();
-                    }else{
-                        exceptionCought = true;
-                    }
-                }
-                //choose better basis
-                //first thread is better
-                if(simplexThread1.getObjectiveValue() > simplexThread2.getObjectiveValue() ){
-                    m_iterationIndex += simplexThread1.getIterationNumber();
-                //second thread is better
-                }else{
-                    m_iterationIndex += simplexThread2.getIterationNumber();
-                }
+                //TODO: choose better basis
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
                 //Check the result with triggering reinversion
