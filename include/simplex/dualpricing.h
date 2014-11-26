@@ -35,7 +35,7 @@ public:
      *
      * @constructor
      */
-    DualPricing(const Vector &basicVariableValues,
+    DualPricing(const DenseVector &basicVariableValues,
                 IndexList<> * basicVariableFeasibilities,
                 const IndexList<> & reducedCostFeasibilities,
                 const std::vector<int> & basisHead,
@@ -108,9 +108,9 @@ public:
      */
     virtual void update(int incomingIndex,
                         int outgoingIndex,
-                        const Vector & incomingAlpha,
-                        const Vector & pivotRow,
-                        const Vector & pivotRowOfBasisInverse) = 0;
+                        const DenseVector & incomingAlpha,
+                        const DenseVector & pivotRow,
+                        const DenseVector & pivotRowOfBasisInverse) = 0;
 
     /**
      * Checks the updated data.
@@ -127,7 +127,7 @@ protected:
     /**
      * The X_B vector.
      */
-    const Vector & m_basicVariableValues;
+    const DenseVector & m_basicVariableValues;
 
     /**
      * Pointer of the index list containing the basic variable feasibilities.

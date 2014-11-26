@@ -6,7 +6,7 @@
 #include <simplex/simplexparameterhandler.h>
 #include <mutex>
 
-DualPricing::DualPricing(const Vector & basicVariableValues,
+DualPricing::DualPricing(const DenseVector &basicVariableValues,
                          IndexList<> * basicVariableFeasibilities,
                          const IndexList<> & reducedCostFeasibilities,
                          const std::vector<int> & basisHead,
@@ -87,11 +87,13 @@ void DualPricing::clearPhase1ReducedCostSummarizers() {
 }
 
 void DualPricing::initPhase1() {
+
     const Matrix & matrix = m_simplexModel.getMatrix();
     const unsigned int variableCount = matrix.columnCount();
     clearPhase1ReducedCostSummarizers();
     IndexList<>::Iterator iter, iterEnd;
     m_reducedCostFeasibilities.getIterators(&iter, &iterEnd, Simplex::MINUS);
+
     unsigned int index;
     for (; iter != iterEnd; ++iter) {
         index = iter.getData();
@@ -99,8 +101,8 @@ void DualPricing::initPhase1() {
             m_phase1ReducedCostSummarizers[ index - variableCount ].add(1);
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
-            Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
-            Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
+            SparseVector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
+            SparseVector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; ++columnIter) {
                 m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(*columnIter);
             }
@@ -115,26 +117,29 @@ void DualPricing::initPhase1() {
             m_phase1ReducedCostSummarizers[ index - variableCount ].add(-1);
         } else {
             //TODO: Joco, ezt mert nem addVector-ral csinaltad?
-            Vector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
-            Vector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
+            SparseVector::NonzeroIterator columnIter = matrix.column(index).beginNonzero();
+            SparseVector::NonzeroIterator columnIterEnd = matrix.column(index).endNonzero();
             for (; columnIter < columnIterEnd; ++columnIter) {
                 m_phase1ReducedCostSummarizers[ columnIter.getIndex() ].add(- *columnIter);
             }
         }
     }
+
     unsigned int nonzeros = 0;
     for (index = 0; index < matrix.rowCount(); index++) {
         nonzeros += m_phase1ReducedCosts[index] != 0.0;
     }
 
-    Vector temp(matrix.rowCount(), Vector::DENSE_VECTOR);
+    DenseVector temp(matrix.rowCount());
     for (index = 0; index < matrix.rowCount(); index++) {
         temp.set(index, m_phase1ReducedCostSummarizers[index].getResult(true, false));
     }
+
     m_basis.Ftran(temp);
+
     clearPhase1ReducedCosts();
-    Vector::NonzeroIterator vectorIter = temp.beginNonzero();
-    Vector::NonzeroIterator vectorIterEnd = temp.endNonzero();
+    DenseVector::NonzeroIterator vectorIter = temp.beginNonzero();
+    DenseVector::NonzeroIterator vectorIterEnd = temp.endNonzero();
     for (; vectorIter < vectorIterEnd; ++vectorIter) {
         m_phase1ReducedCosts[ vectorIter.getIndex() ] = *vectorIter;
     }
@@ -146,19 +151,21 @@ void DualPricing::initPhase2() {
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
 
-    Vector::Iterator iter = m_basicVariableValues.begin();
-    Vector::Iterator iterEnd = m_basicVariableValues.end();
+    DenseVector::Iterator iter = m_basicVariableValues.begin();
+    DenseVector::Iterator iterEnd = m_basicVariableValues.end();
+    int index = 0;
     for(; iter < iterEnd ; ++iter){
-        const Variable & variable = m_simplexModel.getVariable(m_basisHead[iter.getIndex()]);
+        const Variable & variable = m_simplexModel.getVariable(m_basisHead[index]);
         if(*iter + m_feasibilityTolerance < variable.getLowerBound()) {
-            m_basicVariableFeasibilities->insert(Simplex::MINUS, iter.getIndex());
+            m_basicVariableFeasibilities->insert(Simplex::MINUS, index);
             m_primalInfeasibility -= (variable.getLowerBound() - *iter);
         } else if(*iter - m_feasibilityTolerance > variable.getUpperBound() ) {
-            m_basicVariableFeasibilities->insert(Simplex::PLUS, iter.getIndex());
+            m_basicVariableFeasibilities->insert(Simplex::PLUS, index);
             m_primalInfeasibility -= (*iter - variable.getUpperBound());
         } /*else {
             m_basicVariableFeasibilities->insert(Simplex::FEASIBLE, iter.getIndex());
         }*/
+        index++;
     }
 }
 

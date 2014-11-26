@@ -88,8 +88,6 @@ Simplex::Simplex():
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
 {
-    m_basicVariableValues.setSparsityRatio(DENSE);
-    m_reducedCosts.setSparsityRatio(DENSE);
 }
 
 Simplex::~Simplex() {
@@ -327,9 +325,6 @@ void Simplex::setModel(const Model &model) {
     m_reducedCostFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
     m_basicVariableValues.reInit(rowCount);
     m_reducedCosts.reInit(rowCount + columnCount);
-    //TODO: Ezt ne kelljen ujra beallitani egy init miatt
-    m_basicVariableValues.setSparsityRatio(DENSE);
-    m_reducedCosts.setSparsityRatio(DENSE);
 
     Timer perturbTimer;
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){
@@ -599,10 +594,10 @@ void Simplex::loadBasis()
     }
 }
 
-const Vector Simplex::getPrimalSolution() const {
+const DenseVector Simplex::getPrimalSolution() const {
     if(!(m_simplexModel->getModel().isPresolved())) {
         unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-        Vector result(totalVariableCount);
+        DenseVector result(totalVariableCount);
         if ( m_simplexModel->getModel().isScaled() ) {
             const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
             for(unsigned int i = 0; i<totalVariableCount; i++) {
@@ -617,12 +612,10 @@ const Vector Simplex::getPrimalSolution() const {
         return result;
     } else {
         unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
-        Vector structuralSolution(m_simplexModel->getColumnCount()+4, Vector::DENSE_VECTOR);
-        structuralSolution.setNewNonzero(m_simplexModel->getColumnCount()+1, 1);
-        Vector logicalSolution(m_simplexModel->getRowCount()+3, Vector::DENSE_VECTOR);
+        DenseVector structuralSolution(m_simplexModel->getColumnCount()+4);
+        structuralSolution.set(m_simplexModel->getColumnCount()+1, 1);
+        DenseVector logicalSolution(m_simplexModel->getRowCount()+3);
         logicalSolution.set(m_simplexModel->getRowCount(), 1);
-        structuralSolution.setSparsityRatio(0);
-        logicalSolution.setSparsityRatio(0);
         if ( m_simplexModel->getModel().isScaled() ) {
             const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
             for(unsigned int i = 0; i<m_simplexModel->getColumnCount(); i++) {
@@ -640,15 +633,15 @@ const Vector Simplex::getPrimalSolution() const {
                 logicalSolution.set(i - m_simplexModel->getColumnCount(), *(m_variableStates.getAttachedData(i)));
             }
         }
-        const std::vector<Vector*> * subsVectors = m_simplexModel->getModel().getSubstituteVectors();
+        const std::vector<DenseVector*> * subsVectors = m_simplexModel->getModel().getSubstituteVectors();
         for(int i = subsVectors->size() - 1; i >= 0; i--) {
-            Vector* currentSubstituteVector = (*subsVectors)[i];
+            DenseVector* currentSubstituteVector = (*subsVectors)[i];
             int index = currentSubstituteVector->at(currentSubstituteVector->length()-2);
             int substituteType = currentSubstituteVector->at(currentSubstituteVector->length()-1);
 
             switch(substituteType) {
             case Presolver::FIXED_VARIABLE:
-                structuralSolution.insertElement(index, structuralSolution.dotProduct(*currentSubstituteVector));
+                structuralSolution.insert(index, structuralSolution.dotProduct(*currentSubstituteVector));
                 totalVariableCount++;
                 break;
             case Presolver::DUPLICATE_VARIABLE:
@@ -668,10 +661,10 @@ const Vector Simplex::getPrimalSolution() const {
         for(unsigned i = structuralSolution.length()-3; i < totalVariableCount; i++) {
             result[i] = logicalSolution.at(i-structuralSolution.length()-1);
         }
-        structuralSolution.removeElement(structuralSolution.length()-1);
-        structuralSolution.removeElement(structuralSolution.length()-1);
-        structuralSolution.removeElement(structuralSolution.length()-1);
-        structuralSolution.removeElement(structuralSolution.length()-1);
+        structuralSolution.remove(structuralSolution.length()-1);
+        structuralSolution.remove(structuralSolution.length()-1);
+        structuralSolution.remove(structuralSolution.length()-1);
+        structuralSolution.remove(structuralSolution.length()-1);
         return structuralSolution;
     }
 }
@@ -733,7 +726,7 @@ void Simplex::computeBasicSolution() {
     for(; it != itend; ++it) {
         if(*(it.getAttached()) != 0){
             if(it.getData() < columnCount){
-                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()), Numerical::ADD_ABS_REL);
+                m_basicVariableValues.addVector(-1 * *(it.getAttached()), m_simplexModel->getMatrix().column(it.getData()));
                 m_objectiveValue += m_simplexModel->getCostVector().at(it.getData()) * *(it.getAttached());
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
@@ -764,12 +757,11 @@ void Simplex::computeReducedCosts() {
     unsigned int columnCount = m_simplexModel->getColumnCount();
 
     //Get the c_B vector
-    Vector simplexMultiplier(rowCount);
-    simplexMultiplier.setSparsityRatio(DENSE);
-    const Vector& costVector = m_simplexModel->getCostVector();
+    DenseVector simplexMultiplier(rowCount);
+    const DenseVector& costVector = m_simplexModel->getCostVector();
     for(unsigned int i = 0; i<m_basisHead.size(); i++){
         if(costVector.at(m_basisHead[i]) != 0.0){
-            simplexMultiplier.setNewNonzero(i, costVector.at(m_basisHead[i]));
+            simplexMultiplier.set(i, costVector.at(m_basisHead[i]));
         }
     }
     //Compute simplex multiplier
@@ -784,13 +776,13 @@ void Simplex::computeReducedCosts() {
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
-            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i),true,true));
+            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
         } else {
             //reducedCost = -1 * simplexMultiplier.at(i - columnCount);
             reducedCost = Numerical::stableAdd(costVector.at(i), -simplexMultiplier.at(i - columnCount));
         }
         if(reducedCost != 0.0){
-            m_reducedCosts.setNewNonzero(i, reducedCost);
+            m_reducedCosts.set(i, reducedCost);
         }
     }
 }
@@ -827,7 +819,7 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
         }
     }
 
-    Vector beta(rowCount, Vector::DENSE_VECTOR);
+    DenseVector beta(rowCount);
     Numerical::Double sumMinLog = 0.0;
     Numerical::Double sumMaxLog = 0.0;
     Numerical::Double sumDiffLog = 0.0;
@@ -836,11 +828,11 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
         upper = Numerical::Infinity;
 
         beta.clear();
-        beta.setNewNonzero(columnIndex, 1.0);
+        beta.set(columnIndex, 1.0);
         m_basis->Ftran(beta);
 
-        Vector::NonzeroIterator betaIter = beta.beginNonzero();
-        Vector::NonzeroIterator betaIterEnd = beta.endNonzero();
+        DenseVector::NonzeroIterator betaIter = beta.beginNonzero();
+        DenseVector::NonzeroIterator betaIterEnd = beta.endNonzero();
         for (; betaIter != betaIterEnd; ++betaIter) {
             const unsigned int rowIndex = betaIter.getIndex();
             Numerical::Double ratio = -lowerBoundDiffs.at(rowIndex) / *betaIter;

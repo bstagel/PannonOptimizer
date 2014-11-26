@@ -43,7 +43,7 @@ public:
      * @constructor
      */
     PrimalRatiotest(const SimplexModel& model,
-                    const Vector& basicVariableValues,
+                    const DenseVector& basicVariableValues,
                     const std::vector<int>& basishead,
                     const IndexList<>& basicVariableFeasibilities,
                     const IndexList<const Numerical::Double*>& variableStates);
@@ -91,7 +91,7 @@ public:
      * @param phaseIReducedCost The phase 1 reduced cost needed to define t > 0 and t < 0 cases.
      * @param phaseIObjectiveValue The current phase 1 objective value.
      */
-    void performRatiotestPhase1(int incomingVariableIndex, const Vector& alpha, Numerical::Double phaseIReducedCost, Numerical::Double phaseIObjectiveValue);
+    void performRatiotestPhase1(int incomingVariableIndex, const DenseVector &alpha, Numerical::Double phaseIReducedCost, Numerical::Double phaseIObjectiveValue);
 
     /**
      * Performs and controls the phase 2 primal ratiotest.
@@ -100,7 +100,7 @@ public:
      * @param alpha The alpha value needed to define ratios.
      * @param reducedCost The reduces cost needed to define t > 0 and t < 0 cases.
      */
-    void performRatiotestPhase2(int incomingVariableIndex, const Vector& alpha, Numerical::Double reducedCost, Numerical::Double workingTolerance);
+    void performRatiotestPhase2(int incomingVariableIndex, const DenseVector &alpha, Numerical::Double reducedCost, Numerical::Double workingTolerance);
 
     /**
      * Getter of the outgoingAtUpperBound member.
@@ -126,7 +126,7 @@ private:
     /**
      * This vector(X_B) stores the basic variable values.
      */
-    const Vector& m_basicVariableValues;
+    const DenseVector& m_basicVariableValues;
 
     /**
      * The basis head holds the variable indices of the basic variables.
@@ -288,7 +288,7 @@ private:
      * @param alpha The alpha values which are the denumerator of the ratios.
      * @param incomingVariableIndex The index of the incoming variable.
      */
-    void generateSignedBreakpointsPhase1(const Vector& alpha, int incomingVariableIndex);
+    void generateSignedBreakpointsPhase1(const DenseVector &alpha, int incomingVariableIndex);
 
     /**
      * This function computes the piecewise linear concave function in primal phase 1.
@@ -297,7 +297,7 @@ private:
      * @param iterationCounter The counter for how many breakpoints are computed.
      * @param functionSlope The value of the objective function's slope.
      */
-    void computeFunctionPhase1(const Vector& alpha, unsigned int &iterationCounter, Numerical::Double functionSlope);
+    void computeFunctionPhase1(const DenseVector &alpha, unsigned int &iterationCounter, Numerical::Double functionSlope);
 
     /**
      * This is the phase 1 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -306,14 +306,14 @@ private:
      * @param alpha The alpha values.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase1(unsigned int iterationCounter, const Vector& alpha, Numerical::Double& functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double& functionSlope);
 
     /**
      * This function generates the ratios in phase 2.
      *
      * @param alpha The alpha values which are the denumerator of the ratios
      */
-    void generateSignedBreakpointsPhase2(const Vector& alpha);
+    void generateSignedBreakpointsPhase2(const DenseVector &alpha);
 
     /**
      * With this function we can define ratios corresponding to the expanding tolerance.
@@ -321,7 +321,7 @@ private:
      * @param alpha The alpha vector.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void generateExpandedBreakpointsPhase2(const Vector& alpha, Numerical::Double workingTolerance);
+    void generateExpandedBreakpointsPhase2(const DenseVector& alpha, Numerical::Double workingTolerance);
 
     /**
      * Converts a string describing a primal ratiotest method to the method describing enum.

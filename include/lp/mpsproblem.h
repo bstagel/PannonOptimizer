@@ -10,6 +10,7 @@
 #include <utils/hashtable.h>
 #include <utils/list.h>
 #include <linalg/vector.h>
+#include <linalg/densevector.h>
 #include <lp/modelbuilder.h>
 #include <lp/variable.h>
 #include <lp/constraint.h>
@@ -59,7 +60,7 @@ public:
      * @param index
      * @param rowVector
      */
-    void buildRow(unsigned int index, Vector * rowVector,
+    void buildRow(unsigned int index, SparseVector * rowVector,
         std::vector<unsigned int> * nonzeros) const;
 
     /**
@@ -67,7 +68,7 @@ public:
      * @param index
      * @param columnVector
      */
-    void buildColumn(unsigned int index, Vector * columnVector,
+    void buildColumn(unsigned int index, SparseVector * columnVector,
         std::vector<unsigned int> * nonzeros) const;
 
     /**
@@ -104,7 +105,7 @@ public:
      *
      * @param costVector
      */
-    void buildCostVector(Vector * costVector) const;
+    void buildCostVector(DenseVector * costVector) const;
 
     /**
      *

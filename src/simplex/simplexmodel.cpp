@@ -13,7 +13,6 @@ SimplexModel::SimplexModel(const Model & model):
     m_perturbedRhs(false),
     m_perturbedBounds(false)
 {
-    m_rhs.setSparsityRatio(DENSE);
     makeComputationalForm();
 }
 
@@ -31,20 +30,18 @@ void SimplexModel::makeComputationalForm()
     const unsigned int columnCount = matrix.columnCount();
     const unsigned int variablesSize = rowCount + columnCount;
 
-    Vector::NonzeroIterator it = m_model.getCostVector().beginNonzero();
-    Vector::NonzeroIterator itEnd = m_model.getCostVector().endNonzero();
+    DenseVector::NonzeroIterator it = m_model.getCostVector().beginNonzero();
+    DenseVector::NonzeroIterator itEnd = m_model.getCostVector().endNonzero();
 
     m_costVector.resize(variablesSize);
-    m_costVector.setSparsityRatio(DENSE);
     for(;it != itEnd; ++it){
-        m_costVector.setNewNonzero(it.getIndex(),*it);
+        m_costVector.set(it.getIndex(),*it);
     }
 
     //Set the variables
     m_variables.resize(variablesSize);
 
     m_rhs.reInit(rowCount);
-    m_rhs.setSparsityRatio(DENSE);
 
 
     //Set the structural variables
@@ -113,16 +110,16 @@ void SimplexModel::makeComputationalForm()
 void SimplexModel::print(std::ostream& out) const
 {
     out << (getObjectiveType()==MINIMIZE?"min":"max");
-    Vector::Iterator it = getCostVector().begin();
-    Vector::Iterator end = getCostVector().end();
+    DenseVector::Iterator it = getCostVector().begin();
+    DenseVector::Iterator end = getCostVector().end();
     for(unsigned int i=0; it<end; i++, ++it){
         out << (i==0?" ":"+ ") << *it << "*x" << i << " \n";
     }
     out << "\n s.t.: \n";
     for (unsigned int i = 0; i<getMatrix().rowCount();i++){
-        const Vector & row=getMatrix().row(i);
-        Vector::Iterator it = row.begin();
-        Vector::Iterator end = row.end();
+        const SparseVector & row=getMatrix().row(i);
+        SparseVector::NonzeroIterator it = row.beginNonzero();
+        SparseVector::NonzeroIterator end = row.endNonzero();
         for(unsigned int j=0; it<end; j++, ++it){
             out << (j==0?" ":"+ ") << *it << "*x" << j << " ";
         }
@@ -155,7 +152,7 @@ void SimplexModel::perturbCostVector()
     const std::string & weighting = SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.weighting");
 
     std::default_random_engine engine;
-    Vector epsilonValues(getColumnCount()+getRowCount(), Vector::DENSE_VECTOR);
+    DenseVector epsilonValues(getColumnCount()+getRowCount());
     LPINFO("Cost vector perturbation with e = " << epsilon <<
            " method: " << perturbMethod << " target: " << perturbTarget << " logical: " << perturbLogical);
 
@@ -351,11 +348,11 @@ void SimplexModel::perturbRHS()
     const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_rhs");
     std::default_random_engine engine;
     std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
-    Vector epsilonValues;
+    DenseVector epsilonValues;
 
     epsilonValues.resize(m_rhs.length());
     for(unsigned i=0;i < m_rhs.length();i++){
-        epsilonValues.insertElement(i,distribution(engine));
+        epsilonValues.insert(i,distribution(engine));
     }
 
     //perturbation

@@ -733,10 +733,6 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseAbsRel(const
 
 void IndexedDenseVector::_globalInit()
 {
-    sm_addIndexedDenseToIndexedDense = &IndexedDenseVector::addIndexedDenseToIndexedDenseFast;
-    sm_addDenseToIndexedDense = &IndexedDenseVector::addDenseToIndexedDenseFast;
-    sm_addSparseToIndexedDense = &IndexedDenseVector::addSparseToIndexedDenseFast;
-    sm_indexedDenseToIndexedDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToIndexedDenseUnstable;
-    sm_indexedDenseToDenseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToDenseUnstable;
-    sm_indexedDenseToSparseDotProduct = &IndexedDenseVector::dotProductIndexedDenseToSparseUnstable;
+    setAddMode(Numerical::ADD_ABS_REL);
+    setDotProductMode(Numerical::DOT_ABS_REL);
 }

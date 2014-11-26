@@ -9,6 +9,7 @@
 #include <globals.h>
 
 #include <linalg/vector.h>
+#include <linalg/sparsevector.h>
 
 /**
  * This pure virtual class is able to build a Matrix.
@@ -41,7 +42,7 @@ public:
      * @param nonzeros A vector of nonzeros to be stored.
      */
     virtual void buildRow(unsigned int index,
-                          Vector * rowVector,
+                          SparseVector * rowVector,
                           std::vector<unsigned int> * nonzeros) const = 0;
 
     /**
@@ -52,7 +53,7 @@ public:
      * @param nonzeros A vector of nonzeros to be stored.
      */
     virtual void buildColumn(unsigned int index,
-                             Vector * columnVector,
+                             SparseVector * columnVector,
                              std::vector<unsigned int> * nonzeros) const = 0;
 
     /**

@@ -29,6 +29,8 @@ public:
         return *m_data;
     }
 
+    ALWAYS_INLINE const DATA_TYPE * operator->() const { return m_data; }
+
     /**
      * Steps the iterator to the following value.
      */
@@ -161,6 +163,8 @@ public:
         return m_data[ *m_index ];
     }
 
+    ALWAYS_INLINE DATA_TYPE * operator->() { return m_data; }
+
     /**
      * Returns with the current index.
      *
@@ -234,6 +238,7 @@ public:
      *
      */
     ALWAYS_INLINE SkipIterator():
+        m_dataStart(nullptr),
         m_data(nullptr),
         m_dataEnd(nullptr) {
 
@@ -245,10 +250,15 @@ public:
      * @param ptr Starting address.
      * @param end Address of the end of the vector.
      */
-    ALWAYS_INLINE SkipIterator(const DATA_TYPE * ptr, const DATA_TYPE * end):
+    ALWAYS_INLINE SkipIterator(const DATA_TYPE * start, const DATA_TYPE * ptr, const DATA_TYPE * end):
+        m_dataStart(start),
         m_data(ptr),
         m_dataEnd(end) {
         SKIP::init(m_data, m_dataEnd);
+    }
+
+    ALWAYS_INLINE unsigned getIndex() const {
+        return m_data - m_dataStart;
     }
 
     /**
@@ -340,6 +350,8 @@ public:
     }
 
 private:
+
+    const DATA_TYPE * m_dataStart;
 
     /**
      * This pointer points to the dense array.

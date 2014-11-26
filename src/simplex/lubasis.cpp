@@ -16,7 +16,7 @@ thread_local int LuBasis::m_inversionCount = 0;
 LuBasis::LuBasis(const SimplexModel& model,
                  std::vector<int>* basisHead,
                  IndexList<const Numerical::Double*>* variableStates,
-                 const Vector& basicVariableValues) :
+                 const DenseVector &basicVariableValues) :
     Basis(model, basisHead, variableStates, basicVariableValues),
     m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold"))
 {
@@ -140,16 +140,16 @@ void LuBasis::invert()
     int basisSize = m_basisHead->size();
     //Create the rowwise representation of L
     for(int i=0; i<basisSize; i++){
-        Vector::NonzeroIterator it = (*m_lower)[i].column->beginNonzero();
-        Vector::NonzeroIterator itend = (*m_lower)[i].column->endNonzero();
+        SparseVector::NonzeroIterator it = (*m_lower)[i].column->beginNonzero();
+        SparseVector::NonzeroIterator itend = (*m_lower)[i].column->endNonzero();
         for(; it != itend; ++it){
             (*m_lower)[it.getIndex()].row->setNewNonzero(i, *it);
         }
     }
     //Create the columnwise representation of U
     for(int i=0; i<basisSize; i++){
-        Vector::NonzeroIterator it = (*m_upper)[i].row->beginNonzero();
-        Vector::NonzeroIterator itend = (*m_upper)[i].row->endNonzero();
+        SparseVector::NonzeroIterator it = (*m_upper)[i].row->beginNonzero();
+        SparseVector::NonzeroIterator itend = (*m_upper)[i].row->endNonzero();
         for(; it != itend; ++it){
             (*m_upper)[it.getIndex()].column->setNewNonzero(i, *it);
         }
@@ -199,7 +199,7 @@ void LuBasis::copyBasis()
             DEVINFO(D::PFIMAKER, "Logical variable found in basis head: y" << *it - columnCount);
             //Ignore logical columns from the inverse
             int basisIndex = it-m_basisHead->begin();
-            m_basicColumnCopies[basisIndex] = new Vector(rowCount);
+            m_basicColumnCopies[basisIndex] = new SparseVector(rowCount);
             m_basicColumnCopies[basisIndex]->setNewNonzero(*it - columnCount, 1);
             m_basicColumns.push_back(m_basicColumnCopies[basisIndex]);
             if(maxColumnCount < 1){
@@ -215,13 +215,13 @@ void LuBasis::copyBasis()
             }
             m_basisNonzeros += m_basicColumns.back()->nonZeros();
         }
-        m_basicRows[it - m_basisHead->begin()] = new Vector(rowCount);
+        m_basicRows[it - m_basisHead->begin()] = new SparseVector(rowCount);
     }
     //Set up row counts, column counts (r_i, c_i) and the corresponding row lists
-    for (std::vector<const Vector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
+    for (std::vector<const SparseVector*>::iterator it = m_basicColumns.begin(); it < m_basicColumns.end(); ++it) {
         int columnIndex = it - m_basicColumns.begin();
-        Vector::NonzeroIterator vectorIt = (*it)->beginNonzero();
-        Vector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
+        SparseVector::NonzeroIterator vectorIt = (*it)->beginNonzero();
+        SparseVector::NonzeroIterator vectorItEnd = (*it)->endNonzero();
         for (; vectorIt < vectorItEnd; ++vectorIt) {
             int rowIndex = vectorIt.getIndex();
             m_basicRows[rowIndex]->setNewNonzero(columnIndex, *vectorIt);
@@ -262,10 +262,10 @@ void LuBasis::invertC()
         while(m_columnCountIndexList.firstElement(1) != -1) {
             int columnindex = m_columnCountIndexList.firstElement(1);
             int rowindex;
-            const Vector * currentColumn = m_basicColumns[columnindex];
+            const SparseVector * currentColumn = m_basicColumns[columnindex];
             //Get the active nonzero from the column
-            Vector::NonzeroIterator it = currentColumn->beginNonzero();
-            Vector::NonzeroIterator itend = currentColumn->endNonzero();
+            SparseVector::NonzeroIterator it = currentColumn->beginNonzero();
+            SparseVector::NonzeroIterator itend = currentColumn->endNonzero();
             unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
             int count = 0;
             for(; it != itend; ++it){
@@ -278,13 +278,13 @@ void LuBasis::invertC()
                 LPERROR("COUNT ERROR");
                 exit(-1);
             }
-            const Vector * currentRow = m_basicRows[rowindex];
+            const SparseVector * currentRow = m_basicRows[rowindex];
 
             int basisSize = m_basisHead->size();
-            Vector* unitColumn = new Vector(basisSize);
+            SparseVector* unitColumn = new SparseVector(basisSize);
             unitColumn->setNewNonzero(rowindex, 1.0);
-            (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), unitColumn);
-            (*m_upper)[rowindex] = DoubleETM(new Vector(*currentRow), new Vector(basisSize));
+            (*m_lower)[columnindex] = DoubleETM(new SparseVector(basisSize), unitColumn);
+            (*m_upper)[rowindex] = DoubleETM(new SparseVector(*currentRow), new SparseVector(basisSize));
             m_pivots.emplace_back(rowindex, columnindex);
             m_pivotIndices[rowindex].rowindex = m_factorizedPart;
             m_pivotIndices[columnindex].columnindex = m_factorizedPart;
@@ -325,10 +325,10 @@ void LuBasis::invertR()
         while(m_rowCountIndexList.firstElement(1) != -1) {
             int rowindex = m_rowCountIndexList.firstElement(1);
             int columnindex;
-            const Vector * currentRow = m_basicRows[rowindex];
+            const SparseVector * currentRow = m_basicRows[rowindex];
             //Get the active nonzero from the column
-            Vector::NonzeroIterator it = currentRow->beginNonzero();
-            Vector::NonzeroIterator itend = currentRow->endNonzero();
+            SparseVector::NonzeroIterator it = currentRow->beginNonzero();
+            SparseVector::NonzeroIterator itend = currentRow->endNonzero();
             unsigned int columnPartitionCount = m_columnCountIndexList.getPartitionCount();
             for(; it != itend; ++it){
                 if(m_columnCountIndexList.where(it.getIndex()) < columnPartitionCount){
@@ -338,8 +338,8 @@ void LuBasis::invertR()
 
 //            LPINFO("PIVOT ELEMENT: rowindex: "<<rowindex<< " - columnindex: "<<columnindex);
             //Create the vector to be transformed into an eta vector
-            const Vector * currentColumn = m_basicColumns[columnindex];
-            Vector transformVector (currentColumn->length());
+            const SparseVector * currentColumn = m_basicColumns[columnindex];
+            SparseVector transformVector (currentColumn->length());
             it = currentColumn->beginNonzero();
             itend = currentColumn->endNonzero();
             unsigned int rowPartitionCount = m_rowCountIndexList.getPartitionCount();
@@ -350,10 +350,10 @@ void LuBasis::invertR()
             }
 
             int basisSize = m_basisHead->size();
-            Vector* unitRow = new Vector(basisSize);
+            SparseVector* unitRow = new SparseVector(basisSize);
             unitRow->setNewNonzero(columnindex, 1.0);
-            (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), createEta(transformVector,rowindex));
-            (*m_upper)[rowindex] = DoubleETM(unitRow, new Vector(basisSize));
+            (*m_lower)[columnindex] = DoubleETM(new SparseVector(basisSize), createEta(transformVector,rowindex));
+            (*m_upper)[rowindex] = DoubleETM(unitRow, new SparseVector(basisSize));
             m_pivots.emplace_back(rowindex, columnindex);
             m_pivotIndices[rowindex].rowindex = m_factorizedPart;
             m_pivotIndices[columnindex].columnindex = m_factorizedPart;
@@ -404,9 +404,9 @@ void LuBasis::invertM()
             //The row is still active
             activeRows.push_back(rowIndex);
             //Collect the active nonzeros
-            Vector* kernelRow = new Vector(basisSize);
-            Vector::NonzeroIterator it = m_basicRows[rowIndex]->beginNonzero();
-            Vector::NonzeroIterator itend = m_basicRows[rowIndex]->endNonzero();
+            SparseVector* kernelRow = new SparseVector(basisSize);
+            SparseVector::NonzeroIterator it = m_basicRows[rowIndex]->beginNonzero();
+            SparseVector::NonzeroIterator itend = m_basicRows[rowIndex]->endNonzero();
             for(; it != itend; ++it){
                 if(m_columnCountIndexList.where(it.getIndex()) < columnPartitionCount){
                     kernelRow->setNewNonzero(it.getIndex(),*it);
@@ -451,8 +451,8 @@ void LuBasis::invertM()
         for(; activeRowIt != activeRowItend; activeRowIt++){
             int rowindex = *activeRowIt;
             int currentMarkowitz;
-            Vector::NonzeroIterator it = m_basicRows[rowindex]->beginNonzero();
-            Vector::NonzeroIterator itend = m_basicRows[rowindex]->endNonzero();
+            SparseVector::NonzeroIterator it = m_basicRows[rowindex]->beginNonzero();
+            SparseVector::NonzeroIterator itend = m_basicRows[rowindex]->endNonzero();
             for(; it != itend; ++it){
                 int columnindex = it.getIndex();
                 //If the column is singleton, set the only possible choice
@@ -481,39 +481,38 @@ void LuBasis::invertM()
         int columnindex;
         findPivot(rowindex, columnindex, rowMarkowitzs, columnMarkowitzs, rowMarkowitzColumnIndices, columnMarkowitzRowIndices);
         //pivotU first
-        Vector * pivotRow = m_basicRows[rowindex];
+        SparseVector * pivotRow = m_basicRows[rowindex];
         m_inverseNonzeros += pivotRow->nonZeros();
-        (*m_upper)[rowindex] = DoubleETM(new Vector(*pivotRow), new Vector(basisSize));
+        (*m_upper)[rowindex] = DoubleETM(new SparseVector(*pivotRow), new SparseVector(basisSize));
         //Compute the eta column for pivotL and do the elimination
-        Vector * etaColumn = new Vector(basisSize);
+        SparseVector * etaColumn = new SparseVector(basisSize);
         //Set the unit element in the eta column
         etaColumn->setNewNonzero(rowindex, 1);
         //Scan the active rows, compute the eta column and do the updates
         activeRowIt = activeRows.begin();
         activeRowItend = activeRows.end();
         //Scatter currentRow here
-        pivotRow->setSparsityRatio(DENSE);
         Numerical::Double pivotElement = pivotRow->at(columnindex);
 //        LPINFO("PIVOT ELEMENT: rowindex: "<<rowindex<< " - columnindex: "<<columnindex);
         for(; activeRowIt != activeRowItend;){
             //Skip the pivot row from updating and reduce the kernel
             if(*activeRowIt == rowindex){
                 //Reduce the kernel here
-                Vector::NonzeroIterator rowIt = pivotRow->beginNonzero();
-                Vector::NonzeroIterator rowItend = pivotRow->endNonzero();
+                SparseVector::NonzeroIterator rowIt = pivotRow->beginNonzero();
+                SparseVector::NonzeroIterator rowItend = pivotRow->endNonzero();
                 for(; rowIt != rowItend; ++rowIt){
                     m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())-1);
                 }
                 activeRows.erase(activeRowIt++);
                 m_rowCountIndexList.remove(rowindex);
             } else {
-                Vector * currentRow = m_basicRows[*activeRowIt];
+                SparseVector * currentRow = m_basicRows[*activeRowIt];
                 Numerical::Double pivotColumnValue = currentRow->at(columnindex);
                 //If the row should be updated
                 if(pivotColumnValue != 0){
                     //Remove the column counts on the active row
-                    Vector::NonzeroIterator rowIt = currentRow->beginNonzero();
-                    Vector::NonzeroIterator rowItend = currentRow->endNonzero();
+                    SparseVector::NonzeroIterator rowIt = currentRow->beginNonzero();
+                    SparseVector::NonzeroIterator rowItend = currentRow->endNonzero();
                     for(; rowIt != rowItend; ++rowIt){
                         m_columnCountIndexList.move(rowIt.getIndex(),m_columnCountIndexList.where(rowIt.getIndex())-1);
                     }
@@ -545,7 +544,7 @@ void LuBasis::invertM()
         m_columnCountIndexList.remove(columnindex);
         //Do the pivotL and update the basis head
         m_inverseNonzeros += etaColumn->nonZeros();
-        (*m_lower)[columnindex] = DoubleETM(new Vector(basisSize), etaColumn);
+        (*m_lower)[columnindex] = DoubleETM(new SparseVector(basisSize), etaColumn);
         m_pivots.emplace_back(rowindex, columnindex);
         m_pivotIndices[rowindex].rowindex = m_factorizedPart;
         m_pivotIndices[columnindex].columnindex = m_factorizedPart;
@@ -568,8 +567,8 @@ void LuBasis::checkIndexListValidities(){
         for(; it != itend; ++it){
             int rowindex = it.getData();
             int activeCounter = 0;
-            Vector::NonzeroIterator rowit = m_basicRows[rowindex]->beginNonzero();
-            Vector::NonzeroIterator rowitend = m_basicRows[rowindex]->endNonzero();
+            SparseVector::NonzeroIterator rowit = m_basicRows[rowindex]->beginNonzero();
+            SparseVector::NonzeroIterator rowitend = m_basicRows[rowindex]->endNonzero();
             for(; rowit != rowitend; ++rowit){
                 if(m_columnCountIndexList.where(rowit.getIndex()) < columnPartitionCount){
                     activeCounter++;
@@ -682,7 +681,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
     throw PanOptException("No acceptable pivot element found during inversion!");
 }
 
-void LuBasis::append(const Vector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState)
+void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState)
 {
     int outgoing = (*m_basisHead)[pivotRow];
     const Variable & outgoingVariable = m_model.getVariable(outgoing);
@@ -734,7 +733,7 @@ void LuBasis::append(const Vector &vector, int pivotRow, int incoming, Simplex::
     m_isFresh = false;
 }
 
-void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
+void LuBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const
 {
     __UNUSED(mode);
     //FTRANL
@@ -778,7 +777,73 @@ void LuBasis::Ftran(Vector &vector, FTRAN_MODE mode) const
     Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
     Vector::NonzeroIterator alphaItend = alpha.endNonzero();
     for(; alphaIt != alphaItend; ++alphaIt){
-        vector.setNewNonzero(alphaIt.getIndex(), *alphaIt);
+        vector.set(alphaIt.getIndex(), *alphaIt);
+    }
+
+    //PFI UPDATE
+    std::vector<ETM>::const_iterator it = m_updateETMs->begin();
+    std::vector<ETM>::const_iterator itend = m_updateETMs->end();
+
+    for (; it != itend; ++it){
+        int rowindex = it->index;
+        const Numerical::Double pivotValue = vector.at(rowindex);
+        if(pivotValue == 0){
+            continue;
+        }
+        //Get the pivot multiplier from the ETM
+        const Numerical::Double pivotMultiplier = it->eta->at(rowindex);
+        //Add the vector
+        vector.addVector(pivotValue, *(it->eta));
+        //Set the pivot position
+        vector.set(rowindex, pivotValue * pivotMultiplier);
+    }
+}
+
+void LuBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const
+{
+    __UNUSED(mode);
+    //FTRANL
+    unsigned int basisSize = m_basisHead->size();
+
+    for (unsigned int i = 0; i < basisSize; i++) {
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
+        const Numerical::Double pivotValue = vector.at(rowindex);
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        //Get the pivot multiplier from the ETM
+        const Numerical::Double pivotMultiplier = (*m_lower)[columnindex].column->at(rowindex);
+        //Add the vector
+        vector.addVector(pivotValue, *((*m_lower)[columnindex].column));
+        //Set the pivot position
+        vector.set(rowindex, pivotValue * pivotMultiplier);
+    }
+
+    //FTRANU
+    Vector alpha(vector.length());
+    alpha.clear();
+    for (int i = (int)basisSize-1; i >= 0; i--) {
+
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
+        const Numerical::Double pivotValue = vector.at(rowindex);
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        //Get the pivot multiplier from the ETM
+        const Numerical::Double pivotMultiplier = (*m_upper)[columnindex].column->at(rowindex);
+        const Numerical::Double newPivotValue = pivotValue / pivotMultiplier;
+        //Add the vector
+        vector.addVector(- newPivotValue, *((*m_upper)[columnindex].column));
+        //Set the pivot position
+        alpha.setNewNonzero(columnindex, newPivotValue);
+    }
+    vector.clear();
+    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    for(; alphaIt != alphaItend; ++alphaIt){
+        vector.set(alphaIt.getIndex(), *alphaIt);
     }
 
     //PFI UPDATE
@@ -807,7 +872,7 @@ void LuBasis::FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode)
     LPERROR("NOT IMPLEMENTED YET");
 }
 
-void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
+void LuBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
 
@@ -818,8 +883,8 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     Numerical::Summarizer summarizer;
     for (; it != itend; ++it){
         int rowindex = it->index;
-        Vector::NonzeroIterator etaIt = it->eta->beginNonzero();
-        Vector::NonzeroIterator etaItend = it->eta->endNonzero();
+        SparseVector::NonzeroIterator etaIt = it->eta->beginNonzero();
+        SparseVector::NonzeroIterator etaItend = it->eta->endNonzero();
         summarizer.clear();
         for(; etaIt != etaItend; ++etaIt){
             summarizer.add(*etaIt * vector.at(etaIt.getIndex()));
@@ -829,7 +894,7 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
 
     //BTRANU
     unsigned int basisSize = m_basisHead->size();
-    Vector alpha(vector.length());
+    SparseVector alpha(vector.length());
     alpha.clear();
     for (unsigned int i = 0; i < basisSize; i++) {
         int rowindex = m_pivots[i].rowindex;
@@ -848,10 +913,10 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
     }
 
     vector.clear();
-    Vector::NonzeroIterator alphaIt = alpha.beginNonzero();
-    Vector::NonzeroIterator alphaItend = alpha.endNonzero();
+    SparseVector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    SparseVector::NonzeroIterator alphaItend = alpha.endNonzero();
     for(; alphaIt != alphaItend; ++alphaIt){
-        vector.setNewNonzero(alphaIt.getIndex(), *alphaIt);
+        vector.set(alphaIt.getIndex(), *alphaIt);
     }
 
     //BTRANL
@@ -866,8 +931,92 @@ void LuBasis::Btran(Vector &vector, BTRAN_MODE mode) const
         const Numerical::Double newPivotValue = Numerical::stableAdd(summarizerVector[columnindex].getResult(), pivotValue * pivotMultiplier);
         //Add the vector
         if(newPivotValue != 0.0){
-            Vector::NonzeroIterator it = (*m_lower)[rowindex].row->beginNonzero();
-            Vector::NonzeroIterator itend = (*m_lower)[rowindex].row->endNonzero();
+            SparseVector::NonzeroIterator it = (*m_lower)[rowindex].row->beginNonzero();
+            SparseVector::NonzeroIterator itend = (*m_lower)[rowindex].row->endNonzero();
+            for(; it != itend; ++it){
+                summarizerVector[it.getIndex()].add(newPivotValue * *it);
+            }
+        }
+        //Set the pivot position
+        vector.set(rowindex, newPivotValue);
+    }
+
+    //Standard BTRAN method
+//    for (int i = (int)basisSize-1; i >= 0; i--) {
+//        int rowindex = m_pivots.at(i).rowindex;
+//        int columnindex = m_pivots.at(i).columnindex;
+//        Numerical::Summarizer summarizer;
+//        Vector::NonzeroIterator it = m_lower->at(columnindex).column->beginNonzero();
+//        Vector::NonzeroIterator itend = m_lower->at(columnindex).column->endNonzero();
+//        for(; it != itend; ++it){
+//            summarizer.add(*it * vector.at(it.getIndex()));
+//        }
+//        vector.set(rowindex, summarizer.getResult());
+//    }
+
+}
+
+void LuBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
+{
+    __UNUSED(mode);
+
+    //PFI UPDATE
+    std::vector<ETM>::const_reverse_iterator it = m_updateETMs->rbegin();
+    std::vector<ETM>::const_reverse_iterator itend = m_updateETMs->rend();
+
+    Numerical::Summarizer summarizer;
+    for (; it != itend; ++it){
+        int rowindex = it->index;
+        SparseVector::NonzeroIterator etaIt = it->eta->beginNonzero();
+        SparseVector::NonzeroIterator etaItend = it->eta->endNonzero();
+        summarizer.clear();
+        for(; etaIt != etaItend; ++etaIt){
+            summarizer.add(*etaIt * vector.at(etaIt.getIndex()));
+        }
+        vector.set(rowindex, summarizer.getResult());
+    }
+
+    //BTRANU
+    unsigned int basisSize = m_basisHead->size();
+    SparseVector alpha(vector.length());
+    alpha.clear();
+    for (unsigned int i = 0; i < basisSize; i++) {
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
+        const Numerical::Double pivotValue = vector.at(columnindex);
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        //Get the pivot multiplier from the ETM
+        const Numerical::Double pivotMultiplier = (*m_upper)[rowindex].row->at(columnindex);
+        const Numerical::Double newPivotValue = pivotValue / pivotMultiplier;
+        //Add the vector
+        vector.addVector(- newPivotValue, *((*m_upper)[rowindex].row));
+        //Set the pivot position
+        alpha.setNewNonzero(rowindex, newPivotValue);
+    }
+
+    vector.clear();
+    SparseVector::NonzeroIterator alphaIt = alpha.beginNonzero();
+    SparseVector::NonzeroIterator alphaItend = alpha.endNonzero();
+    for(; alphaIt != alphaItend; ++alphaIt){
+        vector.set(alphaIt.getIndex(), *alphaIt);
+    }
+
+    //BTRANL
+    //Sparsity expoiting BTRAN
+    std::vector<Numerical::Summarizer> summarizerVector(vector.length());
+    for (int i = (int)basisSize-1; i >= 0; i--) {
+        int rowindex = m_pivots[i].rowindex;
+        int columnindex = m_pivots[i].columnindex;
+        const Numerical::Double pivotValue = vector.at(rowindex);
+        //Get the pivot multiplier from the ETM
+        const Numerical::Double pivotMultiplier = (*m_lower)[rowindex].row->at(columnindex);
+        const Numerical::Double newPivotValue = Numerical::stableAdd(summarizerVector[columnindex].getResult(), pivotValue * pivotMultiplier);
+        //Add the vector
+        if(newPivotValue != 0.0){
+            SparseVector::NonzeroIterator it = (*m_lower)[rowindex].row->beginNonzero();
+            SparseVector::NonzeroIterator itend = (*m_lower)[rowindex].row->endNonzero();
             for(; it != itend; ++it){
                 summarizerVector[it.getIndex()].add(newPivotValue * *it);
             }

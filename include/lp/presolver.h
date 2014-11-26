@@ -14,6 +14,7 @@ class MakeSparserModule;
 #include <utils/indexlist.h>
 #include <utils/exceptions.h>
 #include <utils/timer.h>
+#include <linalg/densevector.h>
 
 /**
  * This class controls the presolving for a specific model.
@@ -127,7 +128,7 @@ public:
      * each row of the model.
      * @see m_rowNonzeros
      */
-    inline Vector * getRowNonzeros() { return m_rowNonzeros; }
+    inline DenseVector * getRowNonzeros() { return m_rowNonzeros; }
 
     /**
      * Returns a pointer to the column nonzeros vector.
@@ -136,7 +137,7 @@ public:
      * each column of the model.
      * @see m_columnNonzeros
      */
-    inline Vector * getColumnNonzeros() { return m_columnNonzeros; }
+    inline DenseVector * getColumnNonzeros() { return m_columnNonzeros; }
 
     /**
      * Returns a pointer to the implied upper bounds vector.
@@ -145,7 +146,7 @@ public:
      * for each primal variable in the model.
      * @see m_impliedUpper
      */
-    inline Vector * getImpliedUpper() { return m_impliedUpper; }
+    inline DenseVector * getImpliedUpper() { return m_impliedUpper; }
 
     /**
      * Returns a pointer to the implied lower bounds vector.
@@ -154,7 +155,7 @@ public:
      * for each primal variable in the model.
      * @see m_impliedLower
      */
-    inline Vector * getImpliedLower() { return m_impliedLower; }
+    inline DenseVector * getImpliedLower() { return m_impliedLower; }
 
     /**
      * Returns a pointer to the implied dual upper bounds vector.
@@ -163,7 +164,7 @@ public:
      * for each dual variable in the model.
      * @see m_impliedDualUpper
      */
-    inline Vector * getImpliedDualUpper() { return m_impliedDualUpper; }
+    inline DenseVector * getImpliedDualUpper() { return m_impliedDualUpper; }
 
     /**
      * Returns a pointer to the implied dual lower bounds vector.
@@ -172,7 +173,7 @@ public:
      * for each dual variable in the model.
      * @see m_impliedDualLower
      */
-    inline Vector * getImpliedDualLower() { return m_impliedDualLower; }
+    inline DenseVector * getImpliedDualLower() { return m_impliedDualLower; }
 
     /**
      * Returns a pointer to the extra dual lower sum vector.
@@ -181,7 +182,7 @@ public:
      * dual variable in the model.
      * @see m_extraDualLowerSum
      */
-    inline Vector * getExtraDualLowerSum() { return m_extraDualLowerSum; }
+    inline DenseVector * getExtraDualLowerSum() { return m_extraDualLowerSum; }
 
     /**
      * Returns a pointer to the extra dual upper sum vector.
@@ -190,7 +191,7 @@ public:
      * dual variable in the model.
      * @see m_extraDualUpperSum
      */
-    inline Vector * getExtraDualUpperSum() { return m_extraDualUpperSum; }
+    inline DenseVector * getExtraDualUpperSum() { return m_extraDualUpperSum; }
 
     /**
      * Returns a pointer to the vector of variables in the model.
@@ -215,7 +216,7 @@ public:
      * of the presolved model.
      * @see m_substituteVectors
      */
-    inline std::vector<Vector*> * getSubstituteVectors() { return m_substituteVectors; }
+    inline std::vector<DenseVector*> * getSubstituteVectors() { return m_substituteVectors; }
 
     /**
      * Returns the value of the cost vector at the specified index.
@@ -363,57 +364,57 @@ private:
      * is added to make the solver able to postsolve the model after calculating an optimal solution for
      * the presolved model, thus retrieving the solution for the original model.
      */
-    std::vector<Vector*> * m_substituteVectors;
+    std::vector<DenseVector*> * m_substituteVectors;
 
     //Vectors storing the rows and columns by nonzero count
     /**
      * Pointer to the vector containing the number of nonzero elements in each row of the coefficient matrix in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_rowNonzeros;
+    DenseVector * m_rowNonzeros;
 
     /**
      * Pointer to the vector containing the number of nonzero elements in each column of the coefficient matrix in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_columnNonzeros;
+    DenseVector * m_columnNonzeros;
 
     //Vectors storing the implied bounds of the variables
     /**
      * Pointer to the vector containing the tightest calculated lower bound of each variable in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_impliedLower;
+    DenseVector * m_impliedLower;
 
     /**
      * Pointer to the vector containing the tightest calculated upper bound of each variable in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_impliedUpper;
+    DenseVector * m_impliedUpper;
 
     /**
      * Pointer to the vector containing the tightest calculated lower bound of each dual variable in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_impliedDualLower;
+    DenseVector * m_impliedDualLower;
 
     /**
      * Pointer to the vector containing the tightest calculated upper bound of each dual variable in the model.
      * This vector is used and updated by several different presolving method.
      */
-    Vector * m_impliedDualUpper;
+    DenseVector * m_impliedDualUpper;
 
     /**
      * Pointer to the vector containing the sum of lower bounds of the extra dual variables in the model.
      * Extra dual variables are created by bounded variables or ranged constraints of the model.
      */
-    Vector * m_extraDualLowerSum;
+    DenseVector * m_extraDualLowerSum;
 
     /**
      * Pointer to the vector containing the sum of upper bounds of the extra dual variables in the model.
      * Extra dual variables are created by bounded variables or ranged constraints of the model.
      */
-    Vector * m_extraDualUpperSum;
+    DenseVector * m_extraDualUpperSum;
 
     /**
      * The number of implied free variables made during the presolving.

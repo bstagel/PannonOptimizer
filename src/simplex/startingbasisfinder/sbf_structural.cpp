@@ -54,7 +54,7 @@ void SbfStructural::run()
     }
 
     case StartingBasisFinder::MIXED: {
-        const Vector & costs = m_model.getCostVector();
+        const DenseVector & costs = m_model.getCostVector();
         //Always minimize
         for (i=last; i<columnCount + rowCount; i++) {
             if (costs.at(i) < 0) {

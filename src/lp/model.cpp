@@ -69,8 +69,8 @@ Model::~Model()
 void Model::print(std::ostream& out) const
 {
     out << (m_objectiveType == MINIMIZE ? "min" : "max");
-    Vector::Iterator it = m_costVector.begin();
-    Vector::Iterator end = m_costVector.end();
+    DenseVector::Iterator it = m_costVector.begin();
+    DenseVector::Iterator end = m_costVector.end();
     // For maximization problems the cost vector is multiplied by -1
     if(m_objectiveType == MINIMIZE){
         for (unsigned int i = 0; it < end; i++, ++it) {
@@ -92,9 +92,9 @@ void Model::print(std::ostream& out) const
     out << "\n s.t.: \n";
     for (unsigned int i = 0; i < m_matrix.rowCount(); i++) {
         out << m_constraints[i].getLowerBound() << " <= ";
-        const Vector & row = m_matrix.row(i);
-        Vector::Iterator it = row.begin();
-        Vector::Iterator end = row.end();
+        const SparseVector & row = m_matrix.row(i);
+        SparseVector::NonzeroIterator it = row.beginNonzero();
+        SparseVector::NonzeroIterator end = row.endNonzero();
         for (unsigned int j = 0; it < end; j++, ++it) {
             out << (j == 0 ? " " : "+ ") << *it << "*x" << j << " ";
         }
@@ -141,13 +141,13 @@ void Model::clear()
 
 }
 
-void Model::addVariable(const Variable & variable, const Vector & column)
+void Model::addVariable(const Variable & variable, const SparseVector & column)
 {
     m_variables.push_back(variable);
     m_matrix.appendColumn(column);
 }
 
-void Model::addConstraint(const Constraint & constraint, const Vector & row)
+void Model::addConstraint(const Constraint & constraint, const SparseVector &row)
 {
     m_constraints.push_back(constraint);
     m_matrix.appendRow(row);
@@ -226,8 +226,8 @@ std::string Model::getHash() const {
     generator.addString( m_objectiveRowName );
     intTemp = m_costVector.nonZeros();
     generator.addBuffer(&intTemp, sizeof(intTemp));
-    Vector::NonzeroIterator nonzIter = m_costVector.beginNonzero();
-    Vector::NonzeroIterator nonzIterEnd = m_costVector.endNonzero();
+    DenseVector::NonzeroIterator nonzIter = m_costVector.beginNonzero();
+    DenseVector::NonzeroIterator nonzIterEnd = m_costVector.endNonzero();
     for (; nonzIter != nonzIterEnd; ++nonzIter) {
         intTemp = nonzIter.getIndex();
         generator.addBuffer(&intTemp, sizeof(intTemp));
@@ -262,15 +262,15 @@ std::string Model::getHash() const {
     // matrix
     unsigned int rowIndex;
     for (rowIndex = 0; rowIndex < m_matrix.rowCount(); rowIndex++) {
-        const Vector & row = m_matrix.row(rowIndex);
+        const SparseVector & row = m_matrix.row(rowIndex);
         intTemp = row.nonZeros();
         generator.addBuffer(&intTemp, sizeof(intTemp));
-        nonzIter = row.beginNonzero();
-        nonzIterEnd = row.endNonzero();
-        for (; nonzIter != nonzIterEnd; ++nonzIter) {
-            intTemp = nonzIter.getIndex();
+        SparseVector::NonzeroIterator nonzIterSparse = row.beginNonzero();
+        SparseVector::NonzeroIterator nonzIterEndSparse = row.endNonzero();
+        for (; nonzIterSparse != nonzIterEndSparse; ++nonzIterSparse) {
+            intTemp = nonzIterSparse.getIndex();
             generator.addBuffer(&intTemp, sizeof(intTemp));
-            doubleTemp = *nonzIter;
+            doubleTemp = *nonzIterSparse;
             generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
         }
     }
@@ -285,7 +285,7 @@ std::string Model::getHash() const {
 
 void Model::removeVariable(unsigned int index) {
     m_matrix.removeColumn(index);
-    m_costVector.removeElement(index);
+    m_costVector.remove(index);
     m_variables.erase( m_variables.begin() + index );
 }
 
@@ -295,7 +295,7 @@ void Model::removeConstraint(unsigned int index) {
 }
 
 void Model::addToConstraint(unsigned int dest, unsigned int source, Numerical::Double lambda) {
-    Vector row = m_matrix.row(dest);
+    SparseVector row = m_matrix.row(dest);
     row.addVector(lambda, m_matrix.row(source));
     unsigned int index;
     for (index = 0; index < m_matrix.columnCount(); index++) {
@@ -315,7 +315,7 @@ void Model::setCostConstant(Numerical::Double value) {
     m_costConstant = value;
 }
 
-void Model::setSubstitueVectors(std::vector<Vector *> * substituteVectors) {
+void Model::setSubstitueVectors(std::vector<DenseVector *> * substituteVectors) {
     m_substituteVectors = substituteVectors;
     m_presolved = true;
 }

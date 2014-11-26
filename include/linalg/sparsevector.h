@@ -21,6 +21,8 @@ class SparseVector {
     friend class DenseVector;
     friend class IndexedDenseVector;
     friend class SparseVectorTestSuite;
+    friend class PfiBasis;
+    friend class LuBasis;
 
     /**
      *
@@ -119,6 +121,8 @@ public:
      */
     SparseVector &operator=(const SparseVector & orig);
 
+    SparseVector &operator=(const DenseVector & orig);
+
     /**
      *
      * @param orig
@@ -202,6 +206,8 @@ public:
      */
     void set(unsigned int index, Numerical::Double value);
 
+    void setNewNonzero(unsigned int index, Numerical::Double value);
+
     /**
      * Returns with the length of the vector.
      *
@@ -235,6 +241,8 @@ public:
      * @return The norm of the vector.
      */
     Numerical::Double l1Norm() const;
+
+    SparseVector &elementaryFtran(const SparseVector & eta, unsigned int pivot);
 
     /**
      * Adds the SparseVector type vector spefified by the arguments to
@@ -296,6 +304,40 @@ public:
      * @param lambda The scale factor.
      */
     void scale(Numerical::Double lambda);
+
+    void scaleByLambdas(const std::vector<Numerical::Double> &lambdas);
+
+    void scaleElementBy(unsigned int index, Numerical::Double lambda);
+
+    bool operator==(const SparseVector& other) const;
+
+    static void checkScattered(int nzr, int length);
+
+    static void checkVector(const SparseVector & vector);
+
+    ALWAYS_INLINE bool operator!=(const SparseVector& other) const
+    {
+        return !(*this == other);
+    }
+
+    ALWAYS_INLINE void prepareForData(const unsigned int nonZeros, const unsigned int length)
+    {
+        ::release(m_data);
+        ::release(m_indices);
+
+        m_length = length;
+        m_capacity = nonZeros + sm_elbowRoom;
+        m_indices = alloc<unsigned int, 16>(nonZeros + sm_elbowRoom);
+        m_data = alloc<Numerical::Double, 32>(nonZeros + sm_elbowRoom);
+        m_nonZeros = 0;
+    }
+
+    ALWAYS_INLINE void newNonZero(const Numerical::Double value, const unsigned int index)
+    {
+        m_data[m_nonZeros] = value;
+        m_indices[m_nonZeros] = index;
+        m_nonZeros++;
+    }
 
     /**
      * Sorts the stored nonzero indices.
@@ -365,7 +407,7 @@ public:
 
     Numerical::Double absMaxElement() const;
 
-    Numerical::Double scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
+    Numerical::Double scaleAndGetResults(const std::vector<Numerical::Double> &multipliers,
                                          Numerical::Double lambda,
                                          Numerical::Double * squareSumPtr,
                                          Numerical::Double * minPtr,
@@ -382,6 +424,8 @@ public:
     void reserve();
 
     void resize(unsigned int length);
+
+    void reInit(unsigned int length);
 
 protected:
 

@@ -19,9 +19,9 @@
 struct DoubleETM
 {
     DoubleETM(): row(NULL), column(NULL) {}
-    DoubleETM(Vector* row, Vector* column): row(row), column(column){}
-    Vector* row;
-    Vector* column;
+    DoubleETM(SparseVector* row, SparseVector* column): row(row), column(column){}
+    SparseVector* row;
+    SparseVector* column;
 };
 
 struct PivotPosition
@@ -37,14 +37,16 @@ public:
     LuBasis(const SimplexModel& model,
             std::vector<int>* basisHead,
             IndexList<const Numerical::Double*>* variableStates,
-            const Vector& basicVariableValues);
+            const DenseVector& basicVariableValues);
     virtual ~LuBasis();
 
     void invert();
-    void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
+    void append(const SparseVector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
 
-    virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
-    virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+    virtual void Ftran(DenseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
+    virtual void Ftran(SparseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
+    virtual void Btran(DenseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+    virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
     virtual void FtranCheck(Vector & vector, Vector & checkVector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 private:
@@ -56,7 +58,7 @@ private:
     std::vector<PivotPosition> m_pivotIndices;
     unsigned int m_factorizedPart;
 
-    std::vector<Vector*> m_basicRows;
+    std::vector<SparseVector*> m_basicRows;
 
     unsigned int m_transformationCount;
     Numerical::Double m_transformationAverage;

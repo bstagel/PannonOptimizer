@@ -174,7 +174,6 @@ void PrimalSimplex::initModules() {
 
     //The alpha vector for the column calculations
     m_pivotColumn.resize(m_simplexModel->getRowCount());
-    m_pivotColumn.setSparsityRatio(DENSE);
 }
 
 void PrimalSimplex::releaseModules() {
@@ -246,9 +245,8 @@ void PrimalSimplex::selectPivot() {
 
         if(m_incomingIndex < (int)columnCount){
             m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
-            m_pivotColumn.setSparsityRatio(DENSE);
         } else {
-            m_pivotColumn.setNewNonzero(m_incomingIndex - columnCount, 1);
+            m_pivotColumn.set(m_incomingIndex - columnCount, 1);
         }
         m_basis->Ftran(m_pivotColumn);
 
@@ -286,13 +284,13 @@ void PrimalSimplex::update() {
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
 //            LPINFO("LB->UB");
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
 //            LPINFO("UB->LB");
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn, Numerical::ADD_ABS);
+            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
         } else {
             throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
@@ -331,12 +329,14 @@ void PrimalSimplex::update() {
 
         m_pricing->update( m_incomingIndex, m_outgoingIndex, 0, 0);
 
-        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn, Numerical::ADD_ABS);
+        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
 
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
-        m_basis->append(m_pivotColumn, m_outgoingIndex, m_incomingIndex, outgoingState);
+        SparseVector gathered;
+        gathered = m_pivotColumn;
+        m_basis->append(gathered, m_outgoingIndex, m_incomingIndex, outgoingState);
 
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
@@ -410,18 +410,18 @@ void PrimalSimplex::updateReducedCosts() {
         return;
     }
     const unsigned int structuralVariableCount = m_simplexModel->getMatrix().columnCount();
-    Vector ro( m_simplexModel->getRowCount(), Vector::DENSE_VECTOR );
-    ro.setNewNonzero( m_outgoingIndex, 1.0 );
+    DenseVector ro( m_simplexModel->getRowCount());
+    ro.set( m_outgoingIndex, 1.0 );
 
     m_basis->Btran(ro);
-    Vector::NonzeroIterator roIter = ro.beginNonzero();
-    Vector::NonzeroIterator roIterEnd = ro.endNonzero();
+    DenseVector::NonzeroIterator roIter = ro.beginNonzero();
+    DenseVector::NonzeroIterator roIterEnd = ro.endNonzero();
     for (; roIter != roIterEnd; ++roIter) {
         const Numerical::Double lambda = *roIter * lastReducedCost;
-        const Vector & row = m_simplexModel->getMatrix().row( roIter.getIndex() );
+        const SparseVector & row = m_simplexModel->getMatrix().row( roIter.getIndex() );
         // structural variables
-        Vector::NonzeroIterator rowIter = row.beginNonzero();
-        Vector::NonzeroIterator rowIterEnd = row.endNonzero();
+        SparseVector::NonzeroIterator rowIter = row.beginNonzero();
+        SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
         for (; rowIter != rowIterEnd; ++rowIter) {
             const unsigned int index = rowIter.getIndex();
             m_reducedCosts.set(index, Numerical::stableAdd( m_reducedCosts.at( index ), - lambda * *rowIter));

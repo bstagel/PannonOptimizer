@@ -90,7 +90,7 @@ public:
      *
      * @return the x primal solution vector.
      */
-    const Vector getPrimalSolution() const;
+    const DenseVector getPrimalSolution() const;
 
     /**
      * This function returns with the dual solution vector y.

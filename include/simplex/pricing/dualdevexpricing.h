@@ -6,7 +6,7 @@
 
 class DualDevexPricing: public DualPricing {
 public:
-    DualDevexPricing(const Vector &basicVariableValues,
+    DualDevexPricing(const DenseVector &basicVariableValues,
                      IndexList<> *basicVariableFeasibilities,
                      const IndexList<> &reducedCostFeasibilities,
                      const std::vector<int> & basisHead,
@@ -20,9 +20,9 @@ public:
 
     void update(int incomingIndex,
                 int outgoingIndex,
-                const Vector & incomingAlpha,
-                const Vector & pivotRow,
-                const Vector & pivotRowOfBasisInverse);
+                const DenseVector &incomingAlpha,
+                const DenseVector &pivotRow,
+                const DenseVector &pivotRowOfBasisInverse);
 
     void checkAndFix();
 

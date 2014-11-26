@@ -10,7 +10,7 @@
 
 bool Checker::checkBasisWithFtran(const Simplex &simplex) {
     unsigned int basisSize = simplex.m_basisHead.size();
-    Vector v(basisSize);
+    SparseVector v(basisSize);
 
     bool success = true;
     std::vector<int>::const_iterator it;
@@ -20,16 +20,16 @@ bool Checker::checkBasisWithFtran(const Simplex &simplex) {
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
             v = simplex.m_simplexModel->getMatrix().column(*it);
         } else {
-            v = Vector(simplex.m_simplexModel->getMatrix().rowCount());
+            v = SparseVector(simplex.m_simplexModel->getMatrix().rowCount());
             v.setNewNonzero((*it) - simplex.m_simplexModel->getMatrix().columnCount(), 1);
         }
         simplex.m_basis->Ftran(v);
         if (!(v.nonZeros() == 1 &&
               v.beginNonzero().getIndex() == resultVector.beginNonzero().getIndex() &&
               Numerical::equals(*v.beginNonzero(), *resultVector.beginNonzero()))) {
-            LPWARNING("FTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
-            LPWARNING("Result vector: "<< v  );
-            LPWARNING("Instead of: "<< resultVector );
+//            LPWARNING("FTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
+//            LPWARNING("Result vector: "<< v  );
+//            LPWARNING("Instead of: "<< resultVector );
             success = false;
         }
     }
@@ -48,11 +48,11 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
     unsigned int basisSize = simplex.m_basisHead.size();
     bool success = true;
     //Copy the basis columns
-    std::vector<Vector> basisCopy;
+    std::vector<SparseVector> basisCopy;
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         if (*it >= (int) simplex.m_simplexModel->getMatrix().columnCount()) {
-            Vector logical = Vector(simplex.m_simplexModel->getMatrix().rowCount());
+            SparseVector logical = SparseVector(simplex.m_simplexModel->getMatrix().rowCount());
             logical.set((*it) - simplex.m_simplexModel->getMatrix().columnCount(), 1);
             basisCopy.push_back(logical);
         } else {
@@ -60,31 +60,31 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
         }
     }
     //Prepare the rows
-    std::vector<Vector> rowbasis;
+    std::vector<SparseVector> rowbasis;
     for (unsigned int i = 0; i < basisSize; i++) {
-        Vector row = Vector(basisSize);
+        SparseVector row = SparseVector(basisSize);
         rowbasis.push_back(row);
     }
-    std::vector<Vector>::iterator basisIt;
+    std::vector<SparseVector>::iterator basisIt;
     for (basisIt = basisCopy.begin(); basisIt < basisCopy.end(); basisIt++) {
-        for (Vector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); ++vectorIt) {
+        for (SparseVector::NonzeroIterator vectorIt = basisIt->beginNonzero(); vectorIt < basisIt->endNonzero(); ++vectorIt) {
             rowbasis[vectorIt.getIndex()].setNewNonzero(basisIt - basisCopy.begin(), *vectorIt);
         }
     }
     //Use BTRAN to check the inverse
     for (basisIt = rowbasis.begin(); basisIt < rowbasis.end(); basisIt++) {
-        Vector resultVector(basisSize);
+        SparseVector resultVector(basisSize);
         resultVector.setNewNonzero(basisIt - rowbasis.begin(), 1.0);
         simplex.m_basis->Btran(*basisIt);
 
         if (!((basisIt->nonZeros() == 1 &&
               basisIt->beginNonzero().getIndex() == resultVector.beginNonzero().getIndex() &&
               Numerical::equals(*basisIt->beginNonzero(), *resultVector.beginNonzero())))) {
-            LPWARNING("BTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
-            LPWARNING("Result vector: "<< *basisIt );
-            LPWARNING("Instead of: "<< resultVector );
+//            LPWARNING("BTRAN check error at basis column "<< it-simplex.m_basisHead.begin());
+//            LPWARNING("Result vector: "<< *basisIt );
+//            LPWARNING("Instead of: "<< resultVector );
             success = false;
-            Vector::NonzeroIterator badIt = basisIt->beginNonzero();
+            SparseVector::NonzeroIterator badIt = basisIt->beginNonzero();
             Numerical::Double max = 0;
             int maxIndex = 0;
             for(;badIt != basisIt->endNonzero(); ++badIt){
@@ -107,7 +107,7 @@ bool Checker::checkBasisWithBtran(const Simplex& simplex) {
 }
 
 bool Checker::checkBasisWithReducedCost(const Simplex& simplex) {
-    Vector pi(simplex.m_simplexModel->getMatrix().rowCount());
+    SparseVector pi(simplex.m_simplexModel->getMatrix().rowCount());
     std::vector<int>::const_iterator it;
     for (it = simplex.m_basisHead.begin(); it < simplex.m_basisHead.end(); ++it) {
         if (*it < (int) simplex.m_simplexModel->getMatrix().columnCount()) {
@@ -143,15 +143,14 @@ bool Checker::checkBasisWithNonbasicReducedCost(const Simplex& simplex) {
     unsigned int columnCount = simplex.m_simplexModel->getColumnCount();
 
     //Get the c_B vector
-    Vector cB(rowCount);
-    cB.setSparsityRatio(DENSE);
-    const Vector& costVector = simplex.m_simplexModel->getCostVector();
+    DenseVector cB(rowCount);
+    const DenseVector& costVector = simplex.m_simplexModel->getCostVector();
     for(unsigned int i = 0; i<simplex.m_basisHead.size(); i++){
         if(simplex.m_basisHead[i] < (int) columnCount && costVector.at(simplex.m_basisHead[i]) != 0.0){
-            cB.setNewNonzero(i, costVector.at(simplex.m_basisHead[i]));
+            cB.set(i, costVector.at(simplex.m_basisHead[i]));
         }
     }
-    Vector simplexMultiplier(cB);
+    DenseVector simplexMultiplier(cB);
     //Compute simplex multiplier
     simplex.m_basis->Btran(simplexMultiplier);
 
@@ -167,14 +166,14 @@ bool Checker::checkBasisWithNonbasicReducedCost(const Simplex& simplex) {
         if(i < columnCount){
             //c_j-(c_B^T*B^-1)*a_j
             btranreducedCost = Numerical::stableAdd(costVector.at(i),
-                               - simplexMultiplier.dotProduct(simplex.m_simplexModel->getMatrix().column(i),true,true));
-            Vector column(simplex.m_simplexModel->getMatrix().column(i));
+                               - simplexMultiplier.dotProduct(simplex.m_simplexModel->getMatrix().column(i)));
+            SparseVector column(simplex.m_simplexModel->getMatrix().column(i));
             simplex.m_basis->Ftran(column);
             //c_j-c_B^T*(B^-1*a_j)
             ftranreducedCost = Numerical::stableAdd(costVector.at(i), - cB.dotProduct(column));
         } else {
             btranreducedCost = -1 * simplexMultiplier.at(i - columnCount);
-            Vector column(rowCount);
+            SparseVector column(rowCount);
             column.setNewNonzero(i-columnCount, 1);
             simplex.m_basis->Ftran(column);
             ftranreducedCost = -1 * cB.dotProduct(column);
@@ -261,11 +260,10 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
                               int rowIndex, int columnIndex, Numerical::Double & columnAlpha, Numerical::Double & rowAlpha){
     unsigned int rowCount = simplex.m_simplexModel->getRowCount();
     unsigned int columnCount = simplex.m_simplexModel->getColumnCount();
-    Vector row(rowCount + columnCount);
+    DenseVector row(rowCount + columnCount);
 
-    Vector rho(rowCount); //Row of the inverse of the basis
-    rho.setSparsityRatio(DENSE);
-    rho.setNewNonzero(rowIndex, 1);
+    DenseVector rho(rowCount); //Row of the inverse of the basis
+    rho.set(rowIndex, 1);
 
     simplex.m_basis->Btran(rho);
     IndexList<const Numerical::Double *>::Iterator it;
@@ -281,12 +279,11 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
         }
     }
 
-    Vector column(rowCount);
-    column.setSparsityRatio(DENSE);
+    DenseVector column(rowCount);
     if(columnIndex < (int)columnCount){
         column = simplex.m_simplexModel->getMatrix().column(columnIndex);
     } else {
-        column.setNewNonzero(columnIndex - columnCount, 1);
+        column.set(columnIndex - columnCount, 1);
     }
     simplex.m_basis->Ftran(column);
 
@@ -476,9 +473,9 @@ bool Checker::checkAllConstraints(const Simplex& simplex, bool print, Numerical:
 {
     bool okay = true;
     for(unsigned int rowIndex=0; rowIndex<simplex.m_simplexModel->getRowCount(); rowIndex++){
-        const Vector & row = simplex.m_simplexModel->getMatrix().row(rowIndex);
-        Vector::NonzeroIterator rowIter = row.beginNonzero();
-        Vector::NonzeroIterator rowIterEnd = row.endNonzero();
+        const SparseVector & row = simplex.m_simplexModel->getMatrix().row(rowIndex);
+        SparseVector::NonzeroIterator rowIter = row.beginNonzero();
+        SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
         Numerical::Double minus = 0, plus = 0;
         for(; rowIter != rowIterEnd; ++rowIter){
             Numerical::Double product = (*rowIter) * (*simplex.m_variableStates.getAttachedData(rowIter.getIndex()));
@@ -640,7 +637,7 @@ bool Checker::checkBasicVariableFeasibilityStates(const Simplex &simplex, bool p
     return okay;
 }
 
-bool Checker::checkPresolvedSolution(const Model &originalModel, const Vector &solution, Numerical::Double objectiveValue) {
+bool Checker::checkPresolvedSolution(const Model &originalModel, const DenseVector &solution, Numerical::Double objectiveValue) {
     Numerical::Double result = originalModel.getCostVector().dotProduct(solution);
     result -= originalModel.getCostConstant();
     if(Numerical::fabs(objectiveValue - result) < Numerical::fabs(objectiveValue * 1e-10)) {

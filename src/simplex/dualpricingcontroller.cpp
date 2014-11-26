@@ -7,7 +7,7 @@
 #include <cstdlib>
 
 
-DualPricingController::DualPricingController(const Vector &basicVariableValues,
+DualPricingController::DualPricingController(const DenseVector &basicVariableValues,
                                              IndexList<> *basicVariableFeasibilities,
                                              const IndexList<> &reducedCostFeasibilities,
                                              const std::vector<int> &basisHead,
@@ -81,9 +81,9 @@ int DualPricingController::performPricingPhase2()
 
 static void update(DualPricing * pricing, int incomingIndex,
                    int outgoingIndex,
-                   const Vector &incomingAlpha,
-                   const Vector &pivotRow,
-                   const Vector &pivotRowOfBasisInverse) {
+                   const DenseVector &incomingAlpha,
+                   const DenseVector &pivotRow,
+                   const DenseVector &pivotRowOfBasisInverse) {
     pricing->update(incomingIndex, outgoingIndex, incomingAlpha,
                     pivotRow, pivotRowOfBasisInverse);
 
@@ -91,9 +91,9 @@ static void update(DualPricing * pricing, int incomingIndex,
 
 void DualPricingController::update(int incomingIndex,
                                    int outgoingIndex,
-                                   const Vector &incomingAlpha,
-                                   const Vector &pivotRow,
-                                   const Vector &pivotRowOfBasisInverse)
+                                   const DenseVector &incomingAlpha,
+                                   const DenseVector &pivotRow,
+                                   const DenseVector &pivotRowOfBasisInverse)
 {
     std::thread t1 = std::thread(::update, m_dantzig, incomingIndex,
                 outgoingIndex, incomingAlpha,

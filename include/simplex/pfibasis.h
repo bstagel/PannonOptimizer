@@ -76,7 +76,7 @@ public:
     PfiBasis(const SimplexModel& model,
              std::vector<int>* basisHead,
              IndexList<const Numerical::Double*>* variableStates,
-             const Vector& basicVariableValues);
+             const DenseVector& basicVariableValues);
     /**
      * Destruct the PfiBasis object and frees up the allocated memory.
      *
@@ -102,7 +102,7 @@ public:
      * @throws NumericalException if the outgoing variable trys to leave the basis
      * with a value different from LB or UB.
      */
-    void append(const Vector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
+    void append(const SparseVector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
 
     /**
      * Does the FTRAN operation on a vector.
@@ -110,7 +110,8 @@ public:
      *
      * @param vector the vector to be transformed.
      */
-    virtual void Ftran(Vector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
+    virtual void Ftran(DenseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
+    virtual void Ftran(SparseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 
 
     /**
@@ -119,7 +120,8 @@ public:
      *
      * @param vector the vector to be transformed.
      */
-    virtual void Btran(Vector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+    virtual void Btran(DenseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+    virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
     /**
      * Does the FTRAN operation on a vector.
@@ -176,7 +178,7 @@ private:
      * of the nontriangular part. The pointers for these sumbatrix columns are
      * collected in this vector.
      */
-    std::vector<const Vector*>* m_cColumns;
+    std::vector<const SparseVector*>* m_cColumns;
 
     /**
      * For each C column the corresponding pivot index (row index) is stored here.
@@ -242,7 +244,7 @@ private:
     void invertM();
     void invertC();
 
-    void pivot(const Vector& column, int pivotRow);
+    void pivot(const SparseVector &column, int pivotRow);
 
     void buildMM();
     void findTransversal();
@@ -254,7 +256,7 @@ private:
     int searchNode();
     void createBlockTriangular();
     void updateColumns(unsigned int rowindex,unsigned int columnindex);
-    bool nontriangularCheck(int& rowindex, const Vector *currentColumn, int blockNum);
+    bool nontriangularCheck(int& rowindex, const SparseVector *currentColumn, int blockNum);
 
     void checkSingularity();
 

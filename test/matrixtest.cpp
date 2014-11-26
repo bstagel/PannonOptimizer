@@ -4605,7 +4605,7 @@ void MatrixTestSuite::reInit()
     ASSERT_EQ(0, v5.at(0));
     ASSERT_EQ(0, v5.at(1));
 
-    m.reInit(2, 3, false);
+    m.reInit(2, 3);
     ASSERT_EQ(2, m.rowCount());
     ASSERT_EQ(3, m.columnCount());
 

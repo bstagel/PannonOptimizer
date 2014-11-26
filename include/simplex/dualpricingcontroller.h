@@ -28,7 +28,7 @@ public:
      *
      * @constructor
      */
-    DualPricingController(const Vector &basicVariableValues,
+    DualPricingController(const DenseVector &basicVariableValues,
                           IndexList<> *basicVariableFeasibilities,
                           const IndexList<> &reducedCostFeasibilities,
                           const std::vector<int> & basisHead,
@@ -69,9 +69,9 @@ public:
      */
     void update(int incomingIndex,
                 int outgoingIndex,
-                const Vector & incomingAlpha,
-                const Vector & pivotRow,
-                const Vector & pivotRowOfBasisInverse);
+                const DenseVector &incomingAlpha,
+                const DenseVector &pivotRow,
+                const DenseVector &pivotRowOfBasisInverse);
 
     /**
      * Returns the reduced cost selected by the pricing.
