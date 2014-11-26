@@ -416,10 +416,22 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
     return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
 }
 
+std::string doubleToHex(double num) {
+    union Num {
+        double m_d;
+        unsigned long long int m_i;
+    } n;
+    n.m_d = num;
+    std::ostringstream str;
+    str << std::hex << n.m_i << std::dec;
+    return str.str();
+}
+
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
-
+    static int _counter = 0;
+    _counter++;
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -462,6 +474,9 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
                     const Numerical::Double value = denseVector[*ptrIndex];
                     if (value != 0.0) {
                         nonZeros--;
+                        if (_counter == 12) {
+                            LPERROR( doubleToHex(value) << " * " << doubleToHex(*ptrValue) );
+                        }
                         summarizer.add(value * *ptrValue);
 
                     }
@@ -474,6 +489,9 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 //                    if (value != 0.0) {
 //                        summarizer.add(value * *ptrValue);
 //                    }
+                    if (_counter == 12) {
+                        LPERROR( denseVector[*ptrIndex] << " * " << doubleToHex(*ptrValue) );
+                    }
                     summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                     ptrIndex++;
                     ptrValue++;
@@ -487,7 +505,14 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         const int pivot = iter->index;
         denseVector[pivot] = dotProduct;
     }
+    for (unsigned int i = 0; i < vector.length(); i++) {
+        if (vector.at(i) == 0.0) {
+            continue;
+        }
 
+        LPINFO(i << ".: " << doubleToHex(vector.at(i)));
+    }
+    cin.get();
 }
 
 void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
@@ -586,7 +611,6 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         ptrValue++;
         index++;
     }
-
 }
 
 
