@@ -19,7 +19,7 @@ CONFIG(release, debug|release) {
 }
 CONFIG(debug, debug|release) {
     #message("NewPanOpt: Debug mode!")
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall #-ffloat-store
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }

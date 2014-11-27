@@ -346,13 +346,14 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         }
     }
 
-    for (unsigned int i = 0; i < vector.length(); i++) {
+    /*for (unsigned int i = 0; i < vector.length(); i++) {
         if (vector.at(i) == 0.0) {
             continue;
         }
 
         LPWARNING("\t" << i << ".: " << doubleToHex(vector.at(i)));
     }
+    LPERROR("\t" << doubleToHex(Numerical::AbsoluteTolerance));*/
 }
 
 void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
@@ -437,7 +438,7 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
-    static int _counter = 0;
+    /*static int _counter = 0;
     _counter++;
 
     for (unsigned int i = 0; i < vector.length(); i++) {
@@ -446,7 +447,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         }
 
         LPWARNING(i << ".: " << doubleToHex(vector.at(i)));
-    }
+    }*/
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -489,9 +490,9 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
                     const Numerical::Double value = denseVector[*ptrIndex];
                     if (value != 0.0) {
                         nonZeros--;
-                        if (_counter >= 0) {
+                        /*if (_counter >= 0) {
                             LPERROR( doubleToHex(value) << " * " << doubleToHex(*ptrValue) );
-                        }
+                        }*/
                         summarizer.add(value * *ptrValue);
 
                     }
@@ -504,9 +505,9 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 //                    if (value != 0.0) {
 //                        summarizer.add(value * *ptrValue);
 //                    }
-                    if (_counter >= 0) {
+                    /*if (_counter >= 0) {
                         LPERROR( denseVector[*ptrIndex] << " * " << doubleToHex(*ptrValue) );
-                    }
+                    }*/
                     summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                     ptrIndex++;
                     ptrValue++;
@@ -520,14 +521,14 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         const int pivot = iter->index;
         denseVector[pivot] = dotProduct;
     }
-    for (unsigned int i = 0; i < vector.length(); i++) {
+    /*for (unsigned int i = 0; i < vector.length(); i++) {
         if (vector.at(i) == 0.0) {
             continue;
         }
 
         LPINFO(i << ".: " << doubleToHex(vector.at(i)));
     }
-    cin.get();
+    cin.get();*/
 }
 
 void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
