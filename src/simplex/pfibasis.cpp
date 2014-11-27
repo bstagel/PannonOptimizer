@@ -290,6 +290,17 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
     m_isFresh = false;
 }
 
+std::string doubleToHex(double num) {
+    union Num {
+        double m_d;
+        unsigned long long int m_i;
+    } n;
+    n.m_d = num;
+    std::ostringstream str;
+    str << std::hex << n.m_i << std::dec;
+    return str.str();
+}
+
 void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
     __UNUSED(mode);
 #ifndef NDEBUG
@@ -335,6 +346,13 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         }
     }
 
+    for (unsigned int i = 0; i < vector.length(); i++) {
+        if (vector.at(i) == 0.0) {
+            continue;
+        }
+
+        LPWARNING("\t" << i << ".: " << doubleToHex(vector.at(i)));
+    }
 }
 
 void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
@@ -416,22 +434,19 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
     return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
 }
 
-std::string doubleToHex(double num) {
-    union Num {
-        double m_d;
-        unsigned long long int m_i;
-    } n;
-    n.m_d = num;
-    std::ostringstream str;
-    str << std::hex << n.m_i << std::dec;
-    return str.str();
-}
-
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
     static int _counter = 0;
     _counter++;
+
+    for (unsigned int i = 0; i < vector.length(); i++) {
+        if (vector.at(i) == 0.0) {
+            continue;
+        }
+
+        LPWARNING(i << ".: " << doubleToHex(vector.at(i)));
+    }
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -474,7 +489,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
                     const Numerical::Double value = denseVector[*ptrIndex];
                     if (value != 0.0) {
                         nonZeros--;
-                        if (_counter == 12) {
+                        if (_counter >= 0) {
                             LPERROR( doubleToHex(value) << " * " << doubleToHex(*ptrValue) );
                         }
                         summarizer.add(value * *ptrValue);
@@ -489,7 +504,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 //                    if (value != 0.0) {
 //                        summarizer.add(value * *ptrValue);
 //                    }
-                    if (_counter == 12) {
+                    if (_counter >= 0) {
                         LPERROR( denseVector[*ptrIndex] << " * " << doubleToHex(*ptrValue) );
                     }
                     summarizer.add(denseVector[*ptrIndex] * *ptrValue);
