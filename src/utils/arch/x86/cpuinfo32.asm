@@ -1,5 +1,56 @@
 
-SECTION .data
+SECTION .code
+
+_fpuControl:
+dw  0x027f
+
+_fpuControl2:
+dw  0x027f
+
+global _setFPUTo64Bit32
+_setFPUTo64Bit32:
+
+push    ebp
+mov     ebp, esp
+
+fldcw   [_fpuControl]
+
+mov     esp, ebp
+pop     ebp
+ret
+
+global _getFPUControlRegister32
+_getFPUControlRegister32:
+
+push    ebp
+mov     ebp, esp
+
+mov     eax, [ebp+8]
+fstcw   [eax]
+
+mov     esp, ebp
+pop     ebp
+
+;fstcw   ax
+ret
+
+global	_setFPUControlRegister32
+_setFPUControlRegister32:
+
+push    ebp
+mov     ebp, esp
+
+mov     eax, [ebp+8]
+fldcw   [eax]
+
+;fstcw   [_fpuControl]
+
+;fldcw   [_fpuControl]
+;fldcw	[ebp-8]
+
+mov     esp, ebp
+pop     ebp
+ret
 
 global _cpuinfo_32
 
