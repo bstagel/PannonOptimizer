@@ -6,7 +6,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
-#include <utils/primitives.h>
 #include <utils/platform.h>
 #include <utils/exceptions.h>
 #include <utils/nodefile.h>

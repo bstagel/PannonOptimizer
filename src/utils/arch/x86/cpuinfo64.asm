@@ -53,3 +53,34 @@ and     rax, 0x06
 mov     rsp, rbp
 pop     rbp
 ret
+
+
+global _getFPUControlRegister64_linux
+
+_getFPUControlRegister64_linux:
+
+push    rbp
+mov     rbp, rsp
+
+fstcw   [rdi]
+
+mov     rsp, rbp
+pop     rbp
+
+;fstcw   ax
+ret
+
+global _setFPUControlRegister64_linux
+
+_setFPUControlRegister64_linux:
+
+push    rbp
+mov     rbp, rsp
+
+fldcw   [rdi]
+
+mov     rsp, rbp
+pop     rbp
+
+;fstcw   ax
+ret
