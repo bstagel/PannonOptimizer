@@ -10,6 +10,7 @@
 #include <utils/architecture.h>
 #include <cstring>
 #include <utils/platform.h>
+#include <utils/primitives.h>
 
 #ifdef PLATFORM_X86
 
