@@ -52,6 +52,9 @@ void InitPanOpt::init() {
 
     MemoryManager::init();
 #endif
+
+    SET_FPU_TO_64();
+
     D::init();
 
     sm_instance = new InitPanOpt();

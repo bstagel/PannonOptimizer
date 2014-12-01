@@ -8,6 +8,10 @@ union Number {
 
 bool __prim_debug = false;
 
+void doNothing_seriously_nothing() {
+    // I've warned you...
+}
+
 Numerical::Double denseToDenseDotProductUnstable(const Numerical::Double * __restrict__ vec1,
                                                  const Numerical::Double * __restrict__ vec2,
                                                  size_t count) {
