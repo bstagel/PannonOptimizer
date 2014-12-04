@@ -131,7 +131,6 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
                                           unsigned int& iterationCounter,
                                           Numerical::Double& functionSlope)
 {
-
     unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
@@ -247,6 +246,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                                           const DenseVector& alpha,
                                           Numerical::Double& functionSlope)
 {
+    LPINFO("useNumericalThresholdPhase1");
     m_stablePivotActivationPhase1++;
     LPINFO("Stable pivot activated in phase 1");
 

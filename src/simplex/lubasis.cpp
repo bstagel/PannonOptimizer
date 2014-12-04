@@ -13,11 +13,8 @@
 
 thread_local int LuBasis::m_inversionCount = 0;
 
-LuBasis::LuBasis(const SimplexModel& model,
-                 std::vector<int>* basisHead,
-                 IndexList<const Numerical::Double*>* variableStates,
-                 const DenseVector &basicVariableValues) :
-    Basis(model, basisHead, variableStates, basicVariableValues),
+LuBasis::LuBasis() :
+    Basis(),
     m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold"))
 {
     m_lower = new std::vector<DoubleETM>();
@@ -60,6 +57,14 @@ LuBasis::~LuBasis()
         delete it->eta;
     }
     delete m_updateETMs;
+}
+
+void LuBasis::registerThread() {
+
+}
+
+void LuBasis::releaseThread() {
+
 }
 
 void LuBasis::invert()
@@ -169,8 +174,8 @@ void LuBasis::invert()
 void LuBasis::copyBasis()
 {
     DEVINFO(D::PFIMAKER, "Copy the basis");
-    unsigned int columnCount = m_model.getColumnCount();
-    unsigned int rowCount = m_model.getRowCount();
+    unsigned int columnCount = m_model->getColumnCount();
+    unsigned int rowCount = m_model->getRowCount();
 
     //Containers to be resized directly
     m_basicColumns.clear();
@@ -208,7 +213,7 @@ void LuBasis::copyBasis()
         } else {
             DEVINFO(D::PFIMAKER, "Structural variable found in basis head: x" << *it);
             //The submatrix is the active submatrix needed for inversion
-            m_basicColumns.push_back(&(m_model.getMatrix().column(*it)));
+            m_basicColumns.push_back(&(m_model->getMatrix().column(*it)));
             //IGNORE//
             if (maxColumnCount < m_basicColumns.back()->nonZeros()) {
                 maxColumnCount = m_basicColumns.back()->nonZeros();
@@ -684,7 +689,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
 void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState)
 {
     int outgoing = (*m_basisHead)[pivotRow];
-    const Variable & outgoingVariable = m_model.getVariable(outgoing);
+    const Variable & outgoingVariable = m_model->getVariable(outgoing);
 
     if (outgoingState == Simplex::NONBASIC_AT_LB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
@@ -1042,7 +1047,7 @@ void LuBasis::checkSingularity() {
         for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); ++it) {
             if (*it == -1) {
                 DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
-                *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
+                *it = it - m_basisNewHead.begin() + m_model->getColumnCount();
                 singularity++;
             }
         }

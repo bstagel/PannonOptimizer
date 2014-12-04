@@ -128,6 +128,11 @@ private:
     Simplex * m_currentSimplex;
 
     /**
+     * Pointer to the nonsingular matrix: the basis.
+     */
+    Basis* m_basis;
+
+    /**
      * This counts the simplex iterations.
      */
     int m_iterationIndex;

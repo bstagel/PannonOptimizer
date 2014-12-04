@@ -38,6 +38,8 @@ const BreakpointHandler::BreakPoint* BreakpointHandler::getBreakpoint(unsigned i
         }
     }
 //    checkHeap();
+//    LPINFO("getbreakpoint: "<<index<< " var: "<<m_breakpoints[m_size-1-index].variableIndex<<
+//           " value: "<< std::setw(19) << std::scientific << std::setprecision(16) <<m_breakpoints[m_size-1-index].value);
     return &m_breakpoints[m_size-1-index];
 }
 

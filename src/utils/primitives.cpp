@@ -34,6 +34,7 @@ Numerical::Double denseToSparseDotProductUnstable(const Numerical::Double * __re
                                                   const Numerical::Double * __restrict__ sparse,
                                                   const unsigned int * __restrict__ indices,
                                                   size_t count) {
+
     Numerical::Double result1 = 0.0;
     Numerical::Double result2 = 0.0;
     unsigned int index;

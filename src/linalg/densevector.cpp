@@ -294,6 +294,25 @@ void DenseVector::reInit(unsigned int length)
     return;
 }
 
+std::ostream & operator<<(std::ostream & os, const DenseVector & vector)
+{
+#ifndef NDEBUG
+    unsigned int index;
+    os << "data members:" << std::endl;
+    os << "\tm_vectorType: " << "DENSE_VECTOR" << std::endl;
+    os << "\tm_size: " << vector.m_length << std::endl;
+    os << "\tm_data: " << vector.m_data << std::endl;
+    os << "m_data: " << std::endl;
+    for (index = 0; index < vector.m_length; index++) {
+        os << vector.m_data[index] << " ";
+    }
+    os << std::endl;
+#else
+    __UNUSED(vector);
+#endif
+    return os;
+}
+
 DenseVector DenseVector::createUnitVector(unsigned int length,
                                           unsigned int index)
 {

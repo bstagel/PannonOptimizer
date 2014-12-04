@@ -20,12 +20,10 @@ double aprExpDiffSum = 0;
 int aprExpCounter = 0;
 
 thread_local int PfiBasis::m_inversionCount = 0;
+thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
 
-PfiBasis::PfiBasis(const SimplexModel& model,
-                   std::vector<int>* basisHead,
-                   IndexList<const Numerical::Double*>* variableStates,
-                   const DenseVector &basicVariableValues) :
-    Basis(model, basisHead, variableStates, basicVariableValues),
+PfiBasis::PfiBasis() :
+    Basis(),
     m_nontriangularMethod(getNontriangularMethod(SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
     //m_nontriangularMethod(static_cast<NONTRIANGULAR_METHOD>
     //                      (SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
@@ -92,10 +90,35 @@ PfiBasis::~PfiBasis() {
     m_basis = nullptr;
 }
 
+
+void PfiBasis::registerThread() {
+    if(m_updates == nullptr){
+        m_updates = new std::vector<ETM>();
+    }
+}
+
+void PfiBasis::releaseThread() {
+    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
+        delete iter->eta;
+    }
+    delete m_updates;
+    m_updates= nullptr;
+}
+
+void PfiBasis::clearUpdates() {
+    if(m_updates == nullptr){
+        throw PanOptException("Thread is not registered to manage basis updates!");
+    }
+    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
+        delete iter->eta;
+    }
+    m_updates->clear();
+}
+
 void PfiBasis::copyBasis(bool buildIndexLists) {
     DEVINFO(D::PFIMAKER, "Copy the basis");
-    unsigned int columnCount = m_model.getColumnCount();
-    unsigned int rowCount = m_model.getRowCount();
+    unsigned int columnCount = m_model->getColumnCount();
+    unsigned int rowCount = m_model->getRowCount();
 
     //Reinit data structures
     m_columnCounts.clear();
@@ -138,7 +161,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
             m_basisNewHead[*it-columnCount] = *it;
         } else {
             //The submatrix is the active submatrix needed for inversion
-            m_basicColumns.push_back(&(m_model.getMatrix().column(*it)));
+            m_basicColumns.push_back(&(m_model->getMatrix().column(*it)));
             m_basicColumnIndices.push_back(*it);
             //IGNORE//
             m_columnCounts.push_back(m_basicColumns.back()->nonZeros());
@@ -212,6 +235,8 @@ void PfiBasis::invert() {
         delete iter->eta;
     }
     m_basis->clear();
+    clearUpdates();
+
     m_basisNewHead.clear();
 
     m_basisNonzeros = 0;
@@ -242,7 +267,6 @@ void PfiBasis::invert() {
     setNewHead();
 
     m_isFresh = true;
-
     //printStatistics();
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
@@ -250,8 +274,12 @@ void PfiBasis::invert() {
 void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
     //If the alpha vector comes in, then ftran is done already
 
+    if(m_updates == nullptr){
+        throw PanOptException("Thread is not registered to manage basis updates!");
+    }
+
     int outgoing = (*m_basisHead)[pivotRow];
-    const Variable & outgoingVariable = m_model.getVariable(outgoing);
+    const Variable & outgoingVariable = m_model->getVariable(outgoing);
     if (outgoingState == Simplex::NONBASIC_AT_LB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
             LPERROR("Outgoing variable is rounded to its lower bound! "<<outgoing);
@@ -260,7 +288,7 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
             LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
             cerr.unsetf(ios_base::floatfield);
         }
-        pivot(vector, pivotRow);
+        pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
     } else if (outgoingState == Simplex::NONBASIC_AT_UB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound(),1.0e-4)){
@@ -270,7 +298,7 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
             LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
             cerr.unsetf(ios_base::floatfield);
         }
-        pivot(vector, pivotRow);
+        pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
     } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
@@ -279,7 +307,7 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
             LPERROR("Bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
             cerr.unsetf(ios_base::floatfield);
         }
-        pivot(vector, pivotRow);
+        pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_FIXED, &(outgoingVariable.getLowerBound()));
     } else {
         LPERROR("Invalid outgoing variable state!");
@@ -319,7 +347,7 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
-    const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
+    std::vector<ETM>::const_iterator iterEnd = m_basis->end();
 
     for (; iter != iterEnd; ++iter) {
         const Numerical::Double pivotValue = denseVector[ iter->index ];
@@ -346,14 +374,34 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         }
     }
 
-    /*for (unsigned int i = 0; i < vector.length(); i++) {
-        if (vector.at(i) == 0.0) {
+    // 3. lepes: vegigmegyunk minden update eta vektoron es elvegezzuk a hozzaadast
+    iter = m_updates->begin();
+    iterEnd = m_updates->end();
+
+    for (; iter != iterEnd; ++iter) {
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        if (pivotValue == 0.0) {
             continue;
         }
-
-        LPWARNING("\t" << i << ".: " << doubleToHex(vector.at(i)));
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                } else {
+                    val = pivotValue * *ptrEta;
+                }
+                originalValue = val;
+            }
+            ptrIndex++;
+            ptrEta++;
+        }
     }
-    LPERROR("\t" << doubleToHex(Numerical::AbsoluteTolerance));*/
 }
 
 void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
@@ -378,7 +426,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
-    const std::vector<ETM>::const_iterator iterEnd = m_basis->end();
+    std::vector<ETM>::const_iterator iterEnd = m_basis->end();
 
     for (; iter != iterEnd; ++iter) {
         const Numerical::Double pivotValue = denseVector[ iter->index ];
@@ -411,7 +459,42 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
         }
     }
 
-    // 3. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
+    // 3. lepes: vegigmegyunk minden update eta vektoron es elvegezzuk a hozzaadast
+    iter = m_updates->begin();
+    iterEnd = m_updates->end();
+
+    for (; iter != iterEnd; ++iter) {
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        if (pivotValue == 0.0) {
+            continue;
+        }
+
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                    if (originalValue == 0.0 && val != 0.0) {
+                        vector.m_nonZeros++;
+                    } else if (originalValue != 0.0 && val == 0.0) {
+                        vector.m_nonZeros--;
+                    }
+                } else {
+                    val = pivotValue * *ptrEta;
+                }
+                originalValue = val;
+            }
+            ptrIndex++;
+            ptrEta++;
+        }
+    }
+
+    // 4. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
 
     vector.prepareForData(vector.m_nonZeros, vector.m_length);
     Numerical::Double * ptrValue = denseVector;
@@ -438,16 +521,6 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
-    /*static int _counter = 0;
-    _counter++;
-
-    for (unsigned int i = 0; i < vector.length(); i++) {
-        if (vector.at(i) == 0.0) {
-            continue;
-        }
-
-        LPWARNING(i << ".: " << doubleToHex(vector.at(i)));
-    }*/
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -465,11 +538,9 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 
     denseVector = vector.m_data;
 
-    // 2. perform the dot products
-    //std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
-    //const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
-    ETM * iterEnd = m_basis->data() - 1;
-    ETM * iter = iterEnd + m_basis->size();
+    // 2. perform the dot products on the update vectors
+    ETM * iterEnd = m_updates->data() - 1;
+    ETM * iter = iterEnd + m_updates->size();
 
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
@@ -478,63 +549,83 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
 
-        //All eta vectors are sparse!
-//        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
-            Numerical::Double * ptrValue = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_indices;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
-            // if the input vector has less nonzeros than the eta vector,
-            // this implementation can be faster
-            if (nonZeros < iter->eta->m_length) {
-                while (ptrIndex < ptrIndexEnd && nonZeros) {
-                    const Numerical::Double value = denseVector[*ptrIndex];
-                    if (value != 0.0) {
-                        nonZeros--;
-                        /*if (_counter >= 0) {
-                            LPERROR( doubleToHex(value) << " * " << doubleToHex(*ptrValue) );
-                        }*/
-                        summarizer.add(value * *ptrValue);
+        Numerical::Double * ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        // if the input vector has less nonzeros than the eta vector,
+        // this implementation can be faster
+        if (nonZeros < iter->eta->m_length) {
+            while (ptrIndex < ptrIndexEnd && nonZeros) {
+                const Numerical::Double value = denseVector[*ptrIndex];
+                if (value != 0.0) {
+                    nonZeros--;
+                    summarizer.add(value * *ptrValue);
 
-                    }
-                    ptrIndex++;
-                    ptrValue++;
                 }
-            } else {
-                while (ptrIndex < ptrIndexEnd) {
-//                    const Numerical::Double value = denseVector[*ptrIndex];
-//                    if (value != 0.0) {
-//                        summarizer.add(value * *ptrValue);
-//                    }
-                    /*if (_counter >= 0) {
-                        LPERROR( denseVector[*ptrIndex] << " * " << doubleToHex(*ptrValue) );
-                    }*/
-                    summarizer.add(denseVector[*ptrIndex] * *ptrValue);
-                    ptrIndex++;
-                    ptrValue++;
-                }
+                ptrIndex++;
+                ptrValue++;
             }
+        } else {
+            while (ptrIndex < ptrIndexEnd) {
+                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+                ptrIndex++;
+                ptrValue++;
+            }
+        }
 
-            dotProduct = summarizer.getResult();
-//        }
+        dotProduct = summarizer.getResult();
 
         // store the dot product, and update the nonzero counter
         const int pivot = iter->index;
         denseVector[pivot] = dotProduct;
     }
-    /*for (unsigned int i = 0; i < vector.length(); i++) {
-        if (vector.at(i) == 0.0) {
-            continue;
+
+    // 3. perform the dot products on the basic vectors
+    iterEnd = m_basis->data() - 1;
+    iter = iterEnd + m_basis->size();
+
+    etaIndex = 0;
+    for (; iter != iterEnd; iter--, etaIndex++) {
+        unsigned int nonZeros = vector.nonZeros();
+
+        Numerical::Summarizer summarizer;
+        Numerical::Double dotProduct = 0;
+
+        Numerical::Double * ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        // if the input vector has less nonzeros than the eta vector,
+        // this implementation can be faster
+        if (nonZeros < iter->eta->m_length) {
+            while (ptrIndex < ptrIndexEnd && nonZeros) {
+                const Numerical::Double value = denseVector[*ptrIndex];
+                if (value != 0.0) {
+                    nonZeros--;
+                    summarizer.add(value * *ptrValue);
+
+                }
+                ptrIndex++;
+                ptrValue++;
+            }
+        } else {
+            while (ptrIndex < ptrIndexEnd) {
+                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+                ptrIndex++;
+                ptrValue++;
+            }
         }
 
-        LPINFO(i << ".: " << doubleToHex(vector.at(i)));
+        dotProduct = summarizer.getResult();
+
+        // store the dot product, and update the nonzero counter
+        const int pivot = iter->index;
+        denseVector[pivot] = dotProduct;
     }
-    cin.get();*/
 }
 
 void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 {
     __UNUSED(mode);
-
 
 #ifndef NDEBUG
     //In debug mode the dimensions of the basis and the given vector v are compared.
@@ -554,13 +645,60 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
     vector.scatter();
     denseVector = SparseVector::sm_fullLengthVector;
 
-    // 2. perform the dot products
-    //std::vector<ETM>::const_reverse_iterator iter = m_basis->rbegin();
-    //const std::vector<ETM>::const_reverse_iterator iterEnd = m_basis->rend();
-    ETM * iterEnd = m_basis->data() - 1;
-    ETM * iter = iterEnd + m_basis->size();
+    // 2. perform the dot products on the update vectors
+    ETM * iterEnd = m_updates->data() - 1;
+    ETM * iter = iterEnd + m_updates->size();
 
     unsigned int etaIndex = 0;
+    for (; iter != iterEnd; iter--, etaIndex++) {
+        unsigned int nonZeros = vector.nonZeros();
+
+        Numerical::Summarizer summarizer;
+        Numerical::Double dotProduct = 0;
+
+        //All eta vectors are sparse!
+        Numerical::Double * ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        // if the input vector has less nonzeros than the eta vector,
+        // this implementation can be faster
+        if (nonZeros < iter->eta->m_length) {
+            while (ptrIndex < ptrIndexEnd && nonZeros) {
+                const Numerical::Double value = denseVector[*ptrIndex];
+                if (value != 0.0) {
+                    nonZeros--;
+                    summarizer.add(value * *ptrValue);
+
+                }
+                ptrIndex++;
+                ptrValue++;
+            }
+        } else {
+            while (ptrIndex < ptrIndexEnd) {
+                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+                ptrIndex++;
+                ptrValue++;
+            }
+        }
+
+        dotProduct = summarizer.getResult();
+
+        // store the dot product, and update the nonzero counter
+        const int pivot = iter->index;
+        if (denseVector[pivot] != 0.0 && dotProduct == 0.0) {
+            vector.m_nonZeros--;
+        }
+        if (denseVector[pivot] == 0.0 && dotProduct != 0.0) {
+            vector.m_nonZeros++;
+        }
+        denseVector[pivot] = dotProduct;
+    }
+
+    // 3. perform the dot products on the basic vectors
+    iterEnd = m_basis->data() - 1;
+    iter = iterEnd + m_basis->size();
+
+    etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
         unsigned int nonZeros = vector.nonZeros();
 
@@ -611,7 +749,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         denseVector[pivot] = dotProduct;
     }
 
-    // 3. store the result in the output vector
+    // 4. store the result in the output vector
     // operating vector and output are the same
 
     // build the result vector, if the original vector was sparse
@@ -629,14 +767,13 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
     }
 }
 
-
 void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator it = m_rowNonzeroIndices[rowindex].begin();
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
     //TODO This thread_local leads to memory error
     static thread_local std::vector<int> updatehelper;
-    updatehelper.resize(m_model.getRowCount(), 0);
+    updatehelper.resize(m_model->getRowCount(), 0);
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
 
@@ -691,12 +828,12 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
 
 }
 
-void PfiBasis::pivot(const SparseVector& column, int pivotRow) {
+void PfiBasis::pivot(const SparseVector& column, int pivotRow, std::vector<ETM>* etaFile) {
     ETM newETM;
     newETM.eta = createEta(column, pivotRow);
     newETM.index = pivotRow;
     m_inverseNonzeros += newETM.eta->nonZeros();
-    m_basis->emplace_back(newETM);
+    etaFile->emplace_back(newETM);
 }
 
 void PfiBasis::invertR() {
@@ -715,7 +852,7 @@ void PfiBasis::invertR() {
             //Invert the chosen R column
             DEVINFO(D::PFIMAKER, "Inverting R column " << columnindex << " with pivot row " << rowindex);
 
-            pivot(*currentColumn, rowindex);
+            pivot(*currentColumn, rowindex, m_basis);
             m_basisNewHead[rowindex] = m_basicColumnIndices[columnindex];
 
             //Update the row lists and row counts
@@ -814,7 +951,7 @@ void PfiBasis::invertM() {
                     if (nontriangularCheck(rowindex, currentColumn, -1)) {
                         //Invert the chosen M column
                         DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
-                        pivot(*currentColumn, rowindex);
+                        pivot(*currentColumn, rowindex, m_basis);
                         containsOne = true;
                         m_basisNewHead[rowindex] = m_basicColumnIndices[columnindex];
                         //Update the remaining columns
@@ -885,7 +1022,7 @@ void PfiBasis::invertM() {
                     DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
                     //Invert the chosen M column
 
-                    pivot(*currentColumn, rowindex);
+                    pivot(*currentColumn, rowindex, m_basis);
                     m_basisNewHead[rowindex] = m_basicColumnIndices[columnindex];
                     //Update the remaining columns
                     updateColumns(rowindex, columnindex);
@@ -964,7 +1101,7 @@ void PfiBasis::invertM() {
                         DEVINFO(D::PFIMAKER, "Inverting M column " << columnindex << " with pivot row " << rowindex);
                         //Invert the chosen M column
 
-                        pivot(*currentColumn, rowindex);
+                        pivot(*currentColumn, rowindex, m_basis);
                         m_basisNewHead[rowindex] = m_basicColumnIndices[columnindex];
                         //Update the remaining columns
                         updateColumns(rowindex, columnindex);
@@ -1033,7 +1170,7 @@ void PfiBasis::invertC() {
     for (std::vector<const SparseVector*>::reverse_iterator it = m_cColumns->rbegin(); it < m_cColumns->rend(); ++it) {
         DEVINFO(D::PFIMAKER, "Inverting C column " << m_cColumns->rend() - 1 - it <<
                 " with pivot row " << (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
-        pivot(*(*it), (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it]);
+        pivot(*(*it), (*m_cPivotIndexes)[m_cColumns->rend() - 1 - it], m_basis);
     }
     return;
 }
@@ -1489,7 +1626,7 @@ void PfiBasis::checkSingularity() {
     for (std::vector<int>::iterator it = m_basisNewHead.begin(); it < m_basisNewHead.end(); ++it) {
         if (*it == -1) {
             DEVINFO(D::PFIMAKER, "Given basis column " << it - m_basisNewHead.begin() << " is singular, replacing with unit vector");
-            *it = it - m_basisNewHead.begin() + m_model.getColumnCount();
+            *it = it - m_basisNewHead.begin() + m_model->getColumnCount();
             singularity++;
         }
     }

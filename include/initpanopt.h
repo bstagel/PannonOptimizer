@@ -15,9 +15,9 @@ public:
 
     const ArchitectureInterface & getArchitecture() const;
 private:
-    static ArchitectureInterface * sm_architecture;
+    static thread_local ArchitectureInterface * sm_architecture;
 
-    static InitPanOpt * sm_instance;
+    static thread_local InitPanOpt * sm_instance;
 
     InitPanOpt();
     InitPanOpt(const InitPanOpt & orig);

@@ -35,6 +35,7 @@ void SimplexSolver::parallelSolve(const Model * model)
     MemoryManager::startParallel();
 #endif
     ThreadSupervisor::registerMyThread();
+    InitPanOpt::init();
 
     SimplexController simplexController;
     simplexController.sequentialSolve(*model);

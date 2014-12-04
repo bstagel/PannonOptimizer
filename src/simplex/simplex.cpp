@@ -46,7 +46,7 @@ const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_du
 const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
 
-Simplex::Simplex():
+Simplex::Simplex(Basis* basis):
     m_iterationIndex(0),
     m_phase1Iteration(-1),
     m_simplexModel(NULL),
@@ -83,7 +83,7 @@ Simplex::Simplex():
     m_degenerateIterations(0),
     //Modules
     m_startingBasisFinder(NULL),
-    m_basis(NULL),
+    m_basis(basis),
     m_pricing(NULL),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
@@ -395,7 +395,7 @@ void Simplex::iterate()
     update();
     m_updateTimer.stop();
 
-    computeWorkingTolerance();
+        computeWorkingTolerance();
 
     if(!m_feasible){
         m_recomputeReducedCosts = true;
@@ -474,9 +474,12 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
 
     IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
     m_variableStates.getIterators(&iter, &iterEnd, BASIC);
-    for (; iter != iterEnd; ++iter) {
-        iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
+    for(unsigned int i=0; i<m_basicVariableValues.length(); i++){
+        m_variableStates.setAttachedData(m_basisHead[i], &m_basicVariableValues.at(i));
     }
+//    for (; iter != iterEnd; ++iter) {
+//        iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
+//    }
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
     for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
@@ -529,15 +532,6 @@ void Simplex::findStartingBasis()
 
 void Simplex::initModules() {
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
-    std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
-    if (factorizationType == "PFI"){
-        m_basis = new PfiBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
-    } else if (factorizationType == "LU"){
-        m_basis = new LuBasis(*m_simplexModel, &m_basisHead, &m_variableStates, m_basicVariableValues);
-    } else {
-        LPERROR("Wrong parameter: factorization_type");
-        throw ParameterException("Wrong factorization type parameter");
-    }
 
     if(m_enableExport){
         m_iterationReport->addProviderForExport(*this);
@@ -550,10 +544,6 @@ void Simplex::releaseModules() {
     if(m_startingBasisFinder){
         delete m_startingBasisFinder;
         m_startingBasisFinder = 0;
-    }
-    if(m_basis){
-        delete m_basis;
-        m_basis = 0;
     }
 }
 
@@ -583,6 +573,7 @@ void Simplex::loadBasis()
     std::string loadFormat = m_loadFormat;
     std::string filename = m_loadFilename;
     filename.append(".").append(m_loadFormat);
+
     //TODO: Exception when file does not exit
     std::transform(loadFormat.begin(),loadFormat.end(),loadFormat.begin(),::toupper);
     if(loadFormat.compare("BAS") == 0){
@@ -777,6 +768,7 @@ void Simplex::computeReducedCosts() {
         Numerical::Double reducedCost;
         if(i < columnCount){
             reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
+
         } else {
             //reducedCost = -1 * simplexMultiplier.at(i - columnCount);
             reducedCost = Numerical::stableAdd(costVector.at(i), -simplexMultiplier.at(i - columnCount));

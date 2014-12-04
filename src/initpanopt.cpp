@@ -24,8 +24,8 @@ using namespace std;
 
 //static const InitPanOpt & instance = InitPanOpt::getInstance();
 
-InitPanOpt * InitPanOpt::sm_instance;
-ArchitectureInterface * InitPanOpt::sm_architecture;
+thread_local InitPanOpt * InitPanOpt::sm_instance;
+thread_local ArchitectureInterface * InitPanOpt::sm_architecture;
 
 InitPanOpt::InitPanOpt() {
 
@@ -63,7 +63,6 @@ void InitPanOpt::init() {
     SimplexParameterHandler::_globalInit();
     LinalgParameterHandler::_globalInit();
     Numerical::_globalInit();
-    //Vector::_globalInit();
     IndexedDenseVector::_globalInit();
     DenseVector::_globalInit();
     SparseVector::_globalInit();

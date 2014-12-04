@@ -161,6 +161,16 @@ public:
         return m_min;
     }
 
+    /**
+     * Returns the circumstances of the exception.
+     *
+     * @return The circumstances of the exception.
+     */
+    inline std::string getMessage() const {return m_message
+                + std::string(" min: ")+ std::to_string(m_min)
+                + std::string(" max: ")+ std::to_string(m_max)
+                + std::string(" value: ")+ std::to_string(m_value);}
+
 protected:
 
     /**

@@ -19,8 +19,8 @@ const static char * OBJ_VAL_STRING = "Objective value";
 const static char * PRIMAL_REDUCED_COST_STRING = "Reduced cost";
 const static char * PRIMAL_THETA_STRING = "Theta";
 
-PrimalSimplex::PrimalSimplex():
-    Simplex(),
+PrimalSimplex::PrimalSimplex(Basis *basis):
+    Simplex(basis),
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0)

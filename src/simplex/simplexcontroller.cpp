@@ -3,6 +3,8 @@
  */
 #include <simplex/simplexcontroller.h>
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/pfibasis.h>
+#include <simplex/lubasis.h>
 #include <utils/thread.h>
 #include <thread>
 #include <prettyprint.h>
@@ -51,6 +53,17 @@ SimplexController::SimplexController():
     if(m_enableExport){
         m_iterationReport->addProviderForExport(*this);
     }
+
+    std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
+    if (factorizationType == "PFI"){
+        m_basis = new PfiBasis();
+    } else if (factorizationType == "LU"){
+        m_basis = new LuBasis();
+    } else {
+        LPERROR("Wrong parameter: factorization_type");
+        throw ParameterException("Wrong factorization type parameter");
+    }
+
 }
 
 SimplexController::~SimplexController()
@@ -69,6 +82,10 @@ SimplexController::~SimplexController()
     }
     if (m_currentSimplex){
         m_currentSimplex = NULL;
+    }
+    if(m_basis){
+        delete m_basis;
+        m_basis = 0;
     }
 }
 
@@ -254,10 +271,10 @@ void SimplexController::sequentialSolve(const Model &model)
 
 
     if (m_currentAlgorithm == Simplex::PRIMAL){
-        m_primalSimplex = new PrimalSimplex();
+        m_primalSimplex = new PrimalSimplex(m_basis);
         m_currentSimplex = m_primalSimplex;
     }else{
-        m_dualSimplex = new DualSimplex();
+        m_dualSimplex = new DualSimplex(m_basis);
         m_currentSimplex = m_dualSimplex;
     }
 
@@ -266,6 +283,8 @@ void SimplexController::sequentialSolve(const Model &model)
 
         m_currentSimplex->setIterationReport(m_iterationReport);
         m_currentSimplex->initModules();
+        m_basis->registerThread();
+        m_basis->setSimplexState(m_currentSimplex);
 
         sm_solveTimer.start();
         if (m_loadBasis){
@@ -371,6 +390,8 @@ void SimplexController::sequentialSolve(const Model &model)
         LPINFO("Numerical error: "<<exception.getMessage());
     } catch ( const SyntaxErrorException & exception ) {
         exception.show();
+    } catch ( const InvalidIndexException & exception ) {
+        LPERROR("InvalidIndexException exception:"<< exception.getMessage() );
     } catch ( const PanOptException & exception ) {
         LPERROR("PanOpt exception:"<< exception.getMessage() );
     } catch ( const std::bad_alloc & exception ) {
@@ -412,6 +433,8 @@ void SimplexController::sequentialSolve(const Model &model)
     }
     sm_solveTimer.stop();
     writeSolutionReport();
+
+    m_basis->releaseThread();
 }
 
 void SimplexController::parallelSolve(const Model &model)
@@ -424,9 +447,15 @@ void SimplexController::parallelSolve(const Model &model)
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
+
+        m_primalSimplex = new PrimalSimplex(m_basis);
+        m_currentSimplex = m_primalSimplex;
     }
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
         m_currentAlgorithm = Simplex::DUAL;
+
+        m_dualSimplex = new DualSimplex(m_basis);
+        m_currentSimplex = m_dualSimplex;
     }
 
     //prepare simplex objects
@@ -441,9 +470,9 @@ void SimplexController::parallelSolve(const Model &model)
     }
     for(int i=0; i < numberOfThreads; ++i){
         if(m_currentAlgorithm == Simplex::PRIMAL){
-            simplexObjects[i] = new PrimalSimplex();
+            simplexObjects[i] = new PrimalSimplex(m_basis);
         }else{
-            simplexObjects[i] = new DualSimplex();
+            simplexObjects[i] = new DualSimplex(m_basis);
         }
         simplexThreadObjects.push_back(SimplexThread(simplexObjects[i]));
     }
@@ -543,6 +572,8 @@ void SimplexController::parallelSolve(const Model &model)
         LPINFO("Numerical error: "<<exception.getMessage());
     } catch ( const SyntaxErrorException & exception ) {
         exception.show();
+    } catch ( const InvalidIndexException & exception ) {
+        LPERROR("InvalidIndexException exception:"<< exception.getMessage() );
     } catch ( const PanOptException & exception ) {
         LPERROR("PanOpt exception:"<< exception.getMessage() );
     } catch ( const std::bad_alloc & exception ) {
@@ -591,13 +622,13 @@ void SimplexController::switchAlgorithm(const Model &model)
 {
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
-        m_primalSimplex = new PrimalSimplex();
+        m_primalSimplex = new PrimalSimplex(m_basis);
         m_primalSimplex->setModel(model);
         m_primalSimplex->setIterationReport(m_iterationReport);
         m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
-        m_dualSimplex = new DualSimplex();
+        m_dualSimplex = new DualSimplex(m_basis);
         m_dualSimplex->setModel(model);
         m_dualSimplex->setIterationReport(m_iterationReport);
         m_dualSimplex->initModules();
