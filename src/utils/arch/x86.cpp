@@ -27,7 +27,7 @@ void ArchitectureX86::detect() {
         setFeatureList();
         setCPUTopologyData();
     } else {
-        std::cout << "asdCPUID not supported" << std::endl;
+        std::cout << "CPUID not supported" << std::endl;
     }
     setMemoryData();
     setPrimitives();

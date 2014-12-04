@@ -30,6 +30,7 @@ class BasisHeadIO;
  */
 class Simplex : public Method, public IterationReportProvider
 {
+    friend class Basis;
     friend class BasisHeadIO;
     friend class Checker;
     friend class SimplexController;
@@ -78,7 +79,7 @@ public:
      *
      * @constructor
      */
-    Simplex();
+    Simplex(Basis* basis);
 
     /**
      * Default destructor of the class.

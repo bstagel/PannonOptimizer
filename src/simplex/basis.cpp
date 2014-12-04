@@ -12,14 +12,11 @@ int etaExpSum = 0;
 double etaExpSquareSum = 0;
 int etaExpCount = 0;
 
-Basis::Basis(const SimplexModel& model,
-             std::vector<int>* basisHead,
-             IndexList<const Numerical::Double*>* variableStates,
-             const DenseVector &basicVariableValues) :
-    m_model(model),
-    m_basisHead(basisHead),
-    m_variableStates(variableStates),
-    m_basicVariableValues(basicVariableValues),
+Basis::Basis() :
+    m_model(nullptr),
+    m_basisHead(nullptr),
+    m_variableStates(nullptr),
+    m_basicVariableValues(nullptr),
     m_isFresh(false),
     m_basisNonzeros(0),
     m_inverseNonzeros(0),
@@ -33,9 +30,17 @@ Basis::~Basis()
 
 }
 
+void Basis::setSimplexState(Simplex* simplex)
+{
+    m_model = simplex->m_simplexModel;
+    m_basisHead = &(simplex->m_basisHead);
+    m_variableStates = &(simplex->m_variableStates);
+    m_basicVariableValues = &(simplex->m_basicVariableValues);
+}
+
 void Basis::setNewHead() {
     //This vector indicates the pattern of the basis columns
-    std::vector<char> nonbasic(m_model.getColumnCount() + m_model.getRowCount(), false);
+    std::vector<char> nonbasic(m_model->getColumnCount() + m_model->getRowCount(), false);
     //First mark the positions of the given basis head
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         nonbasic[*it] = true;
@@ -46,16 +51,16 @@ void Basis::setNewHead() {
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         nonbasic[*it] = false;
         if(m_variableStates->where(*it) != Simplex::BASIC) {
-            m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues.at(it - m_basisHead->begin())));
+            m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues->at(it - m_basisHead->begin())));
         } else {
-            m_variableStates->setAttachedData(*it, &(m_basicVariableValues.at(it - m_basisHead->begin())));
+            m_variableStates->setAttachedData(*it, &(m_basicVariableValues->at(it - m_basisHead->begin())));
         }
     }
     //If the pattern vector still contains true values then the basis head is modified, thus some variables
     //are out of the basis, these must be marked as nonbasic and their states must be updated too.
     for (std::vector<char>::iterator it = nonbasic.begin(); it < nonbasic.end(); ++it) {
         if (*it == true) {
-            const Variable& variable = m_model.getVariable(*it);
+            const Variable& variable = m_model->getVariable(*it);
             if (variable.getType() == Variable::FREE) {
                 m_variableStates->move(*it, Simplex::NONBASIC_FREE, &ZERO);
             } else if (variable.getType() == Variable::MINUS) {

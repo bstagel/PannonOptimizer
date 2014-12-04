@@ -73,10 +73,7 @@ public:
      * @construtor
      * @param model The assigned model.
      */
-    PfiBasis(const SimplexModel& model,
-             std::vector<int>* basisHead,
-             IndexList<const Numerical::Double*>* variableStates,
-             const DenseVector& basicVariableValues);
+    PfiBasis();
     /**
      * Destruct the PfiBasis object and frees up the allocated memory.
      *
@@ -123,6 +120,13 @@ public:
     virtual void Btran(DenseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
     virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
+    /**
+     * Thread handling
+     */
+    void registerThread();
+    void releaseThread();
+    void clearUpdates();
+
 private:
 
     /**
@@ -138,6 +142,11 @@ private:
      * Stores the basis inverse in the PFI form (as a vector of ETMs).
      */
     std::vector<ETM>* m_basis;
+
+    /**
+     * Stores the basis inverse in the PFI form (as a vector of ETMs).
+     */
+    static thread_local std::vector<ETM>* m_updates;
 
     /**
      * Stores the original variable indices for each column in the submatrix.
@@ -235,7 +244,7 @@ private:
     void invertM();
     void invertC();
 
-    void pivot(const SparseVector &column, int pivotRow);
+    void pivot(const SparseVector &column, int pivotRow, std::vector<ETM>* etaFile);
 
     void buildMM();
     void findTransversal();

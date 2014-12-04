@@ -34,10 +34,7 @@ struct PivotPosition
 
 class LuBasis : public Basis{
 public:
-    LuBasis(const SimplexModel& model,
-            std::vector<int>* basisHead,
-            IndexList<const Numerical::Double*>* variableStates,
-            const DenseVector& basicVariableValues);
+    LuBasis();
     virtual ~LuBasis();
 
     void invert();
@@ -47,6 +44,12 @@ public:
     virtual void Ftran(SparseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
     virtual void Btran(DenseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
     virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
+
+    /**
+     * Thread handling
+     */
+    void registerThread();
+    void releaseThread();
 
 private:
 

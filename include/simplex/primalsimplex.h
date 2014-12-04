@@ -30,7 +30,7 @@ private:
      *
      * @constructor
      */
-    PrimalSimplex();
+    PrimalSimplex(Basis* basis);
 
     /**
      * Default destructor of the class.

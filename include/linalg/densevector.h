@@ -5,6 +5,7 @@
 #include <utils/numerical.h>
 #include <utils/iterator.h>
 #include <utils/exceptions.h>
+#include <utils/stacktrace.h>
 
 class IndexedDenseVector;
 class SparseVector;
@@ -18,7 +19,10 @@ class DenseVector {
     friend class SparseVector;
     friend class PfiBasis;
     friend class LuBasis;
+
+    //TODO remove, debug only
     friend class DualSimplex;
+    friend class SimplexSolver;
 private:
 
     template<class ADD>
@@ -368,6 +372,8 @@ public:
     void resize(unsigned int length, Numerical::Double value);
 
     void reInit(unsigned int length);
+
+    friend std::ostream & operator<<(std::ostream & os, const DenseVector & vector);
 
 protected:
 

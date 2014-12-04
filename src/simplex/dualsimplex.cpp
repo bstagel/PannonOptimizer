@@ -35,8 +35,8 @@ const static char * EXPORT_FAKE_FEASIBILITY_ACTIVATION_PHASE2 = "export_fake_fea
 const static char * EXPORT_FAKE_FEASIBILITY_COUNTER_PHASE2 = "export_fake_feasibility_counter_phase2";
 const static char * EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER = "export_ask_for_another_row";
 
-DualSimplex::DualSimplex():
-    Simplex(),
+DualSimplex::DualSimplex(Basis *basis):
+    Simplex(basis),
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0),

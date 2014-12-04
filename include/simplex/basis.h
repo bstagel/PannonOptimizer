@@ -97,10 +97,7 @@ public:
      * @param variableStates Index list containing variable states (being at lower or upper bound)
      * @param basicVariableValues The X_B vector.
      */
-    Basis(const SimplexModel& model,
-          std::vector<int>* basisHead,
-          IndexList<const Numerical::Double*>* variableStates,
-          const DenseVector &basicVariableValues);
+    Basis();
 
     /**
      * Default destructor.
@@ -166,11 +163,25 @@ public:
      * @return Basis::m_singularityCounter
      */
     int getSingularityCount() {return m_singularityCounter;}
+
+    /**
+     * Setting the actual inversion parameters (simplex state) to be used for inversion.
+     * This must be called before inversion.
+     */
+    void setSimplexState(Simplex *simplex);
+
+
+    /**
+     * Thread handling
+     */
+    virtual void registerThread() = 0;
+    virtual void releaseThread() = 0;
+
 protected:
     /**
      * The model if the LP problem.
      */
-    const SimplexModel& m_model;
+    const SimplexModel* m_model;
 
     /**
      * Vector containing the basic variable indices.
@@ -185,7 +196,7 @@ protected:
     /**
      * The X_B vector.
      */
-    const DenseVector& m_basicVariableValues;
+    const DenseVector* m_basicVariableValues;
 
     /**
      * The new basis head needed in the Basis::setNewHead() function.
