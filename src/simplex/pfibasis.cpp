@@ -544,7 +544,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        unsigned int nonZeros = vector.nonZeros();
+        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -554,24 +554,24 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         // if the input vector has less nonzeros than the eta vector,
         // this implementation can be faster
-        if (nonZeros < iter->eta->m_length) {
-            while (ptrIndex < ptrIndexEnd && nonZeros) {
+        /*if (nonZeros < iter->eta->m_length) {
+            while (ptrIndex < ptrIndexEnd) {
                 const Numerical::Double value = denseVector[*ptrIndex];
                 if (value != 0.0) {
-                    nonZeros--;
+                 //   nonZeros--;
                     summarizer.add(value * *ptrValue);
 
                 }
                 ptrIndex++;
                 ptrValue++;
             }
-        } else {
+        } else {*/
             while (ptrIndex < ptrIndexEnd) {
                 summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                 ptrIndex++;
                 ptrValue++;
             }
-        }
+       // }
 
         dotProduct = summarizer.getResult();
 
@@ -586,7 +586,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 
     etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        unsigned int nonZeros = vector.nonZeros();
+        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -596,7 +596,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         // if the input vector has less nonzeros than the eta vector,
         // this implementation can be faster
-        if (nonZeros < iter->eta->m_length) {
+        /*if (nonZeros < iter->eta->m_length) {
             while (ptrIndex < ptrIndexEnd && nonZeros) {
                 const Numerical::Double value = denseVector[*ptrIndex];
                 if (value != 0.0) {
@@ -606,14 +606,14 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
                 }
                 ptrIndex++;
                 ptrValue++;
-            }
-        } else {
+            }*/
+        //} else {
             while (ptrIndex < ptrIndexEnd) {
                 summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                 ptrIndex++;
                 ptrValue++;
             }
-        }
+        //}
 
         dotProduct = summarizer.getResult();
 
@@ -651,7 +651,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        unsigned int nonZeros = vector.nonZeros();
+        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -662,7 +662,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
         // if the input vector has less nonzeros than the eta vector,
         // this implementation can be faster
-        if (nonZeros < iter->eta->m_length) {
+        /*if (nonZeros < iter->eta->m_length) {
             while (ptrIndex < ptrIndexEnd && nonZeros) {
                 const Numerical::Double value = denseVector[*ptrIndex];
                 if (value != 0.0) {
@@ -673,13 +673,13 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
                 ptrIndex++;
                 ptrValue++;
             }
-        } else {
+        } else {*/
             while (ptrIndex < ptrIndexEnd) {
                 summarizer.add(denseVector[*ptrIndex] * *ptrValue);
                 ptrIndex++;
                 ptrValue++;
             }
-        }
+        //}
 
         dotProduct = summarizer.getResult();
 
@@ -700,7 +700,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
     etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        unsigned int nonZeros = vector.nonZeros();
+        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -712,7 +712,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
             const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
             // if the input vector has less nonzeros than the eta vector,
             // this implementation can be faster
-            if (nonZeros < iter->eta->m_length) {
+            /*if (nonZeros < iter->eta->m_length) {
                 while (ptrIndex < ptrIndexEnd && nonZeros) {
                     const Numerical::Double value = denseVector[*ptrIndex];
                     if (value != 0.0) {
@@ -723,7 +723,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
                     ptrIndex++;
                     ptrValue++;
                 }
-            } else {
+            } else {*/
                 while (ptrIndex < ptrIndexEnd) {
 //                    const Numerical::Double value = denseVector[*ptrIndex];
 //                    if (value != 0.0) {
@@ -733,7 +733,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
                     ptrIndex++;
                     ptrValue++;
                 }
-            }
+           // }
 
             dotProduct = summarizer.getResult();
 //        }

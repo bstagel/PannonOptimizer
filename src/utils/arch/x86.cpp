@@ -80,7 +80,7 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 }
 
 bool ArchitectureX86::cpuidSupported()
-{return true;
+{
 #ifndef CACHE_LINE_ALIGNMENT
     return false;
 #endif
