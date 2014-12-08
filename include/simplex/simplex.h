@@ -517,10 +517,11 @@ protected:
      * given in the simplex parameter file or the current iteration is to be saved (also from simplex parameterfile).
      *
      * @param iteratonIndex Index of the current iteration.
+     * @param threadIndex Index of the current thread (-1 in sequential mode).
      *
      * @throws ParameterException at invalid save basis format (read from parameterfile).
      */
-    void saveBasis(int iterationIndex);
+    void saveBasis(int iterationIndex, int threadIndex = -1);
 
     /**
      * Calls the loadBasisFromFile() function, if needed.

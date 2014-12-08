@@ -238,7 +238,7 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
     case IterationReportProvider::IRF_ITERATION:
     {
         if (name == ITERATION_INVERSION_NAME) {
-            if( (m_iterationIndex-1) % m_reinversionFrequency ){
+            if( ((m_iterationIndex-1) % m_reinversionFrequency) == 0){
                 reply.m_string = new std::string("*I*");
             } else {
                 reply.m_string = new std::string("");
@@ -350,35 +350,67 @@ void Simplex::setSimplexState(const Simplex & simplex)
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
 
+    //TODO: Eliminate workaround with a proper (fast) solution
+    //Workaround to keep order
+    std::vector<int> temp;
+    temp.reserve(m_simplexModel->getColumnCount());
+
     //NONBASIC_AT_LB
     simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_LB);
     for(;it != endit; ++it){
-        m_variableStates.insert(NONBASIC_AT_LB,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+        temp.push_back(it.getData());
     }
+    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+        m_variableStates.insert(NONBASIC_AT_LB,*it,&m_simplexModel->getVariable(*it).getLowerBound());
+    }
+    temp.clear();
     //NONBASIC_AT_UB
     simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_UB);
     for(;it != endit; ++it){
-        m_variableStates.insert(NONBASIC_AT_UB,it.getData(), &m_simplexModel->getVariable(it.getData()).getUpperBound());
+        temp.push_back(it.getData());
     }
+    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+        m_variableStates.insert(NONBASIC_AT_UB,*it,&m_simplexModel->getVariable(*it).getUpperBound());
+    }
+    temp.clear();
     //NONBASIC_AT_FIXED
     simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_FIXED);
     for(;it != endit; ++it){
-        m_variableStates.insert(NONBASIC_FIXED,it.getData(), &m_simplexModel->getVariable(it.getData()).getLowerBound());
+        temp.push_back(it.getData());
     }
+    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+        m_variableStates.insert(NONBASIC_FIXED,*it,&m_simplexModel->getVariable(*it).getLowerBound());
+    }
+    temp.clear();
     //NONBASIC_AT_FREE
-    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_FREE);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_UB);
     for(;it != endit; ++it){
-        m_variableStates.insert(NONBASIC_FREE,it.getData(), &ZERO);
+        temp.push_back(it.getData());
     }
+    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+        m_variableStates.insert(NONBASIC_FREE,*it, &ZERO);
+    }
+    temp.clear();
     //BASIC
-    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
-    for(;it != endit; ++it){
-        m_variableStates.insert(BASIC,it.getData(),&ZERO);
+//    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
+//    for(;it != endit; ++it){
+//        temp.push_back(it.getData());
+//    }
+//    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+//        m_variableStates.insert(BASIC,it.getData(),&ZERO);
+//    }
+
+    for(auto it = m_basisHead.begin(); it != m_basisHead.end(); ++it){
+        m_variableStates.insert(BASIC, *it, &(m_basicVariableValues.at(it - m_basisHead.begin())));
     }
 
-    //TODO: Is this necessary here?
     m_basicVariableValues = simplex.m_basicVariableValues;
 
+    m_reducedCosts = simplex.m_reducedCosts;
+
+    computeFeasibility();
+
+    m_objectiveValue = simplex.m_objectiveValue;
 }
 
 void Simplex::iterate(int iterationIndex)
@@ -403,6 +435,9 @@ void Simplex::iterate(int iterationIndex)
     if(!m_feasible){
         m_recomputeReducedCosts = true;
     }
+
+    //The iteration is complete, count it in the iteration number
+    m_iterationIndex++;
 }
 
 void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
@@ -550,7 +585,7 @@ void Simplex::releaseModules() {
     }
 }
 
-void Simplex::saveBasis(int iterationIndex)
+void Simplex::saveBasis(int iterationIndex, int threadIndex)
 {
     if ((iterationIndex == m_saveIteration) ||
             (m_savePeriodically != 0 && ((iterationIndex % m_savePeriodically) == 0) )){
@@ -559,6 +594,9 @@ void Simplex::saveBasis(int iterationIndex)
         numStream << iterationIndex;
         std::string saveFormat = m_saveFormat;
         std::string filename = m_saveFilename;
+        if(threadIndex != -1){
+            filename.append("_").append(std::to_string(threadIndex));
+        }
         filename.append("_").append(numStream.str()).append(".").append(m_saveFormat);
         std::transform(saveFormat.begin(),saveFormat.end(),saveFormat.begin(),::toupper);
         if(saveFormat.compare("BAS") == 0){

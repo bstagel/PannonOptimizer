@@ -417,7 +417,6 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
     }
 #endif //!NDEBUG
     //The ftran operation.
-    LPINFO("ftran2");
 
     Numerical::Double * denseVector;
 
@@ -509,7 +508,6 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
         ptrValue++;
         index++;
     }
-    LPINFO("ftran2");
 }
 
 Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {

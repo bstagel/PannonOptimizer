@@ -313,8 +313,8 @@ void SimplexController::sequentialSolve(const Model &model)
 
         Numerical::Double lastObjective = 0;
         //Simplex iterations
-        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
-             (sm_solveTimer.getCPURunningTime()) < timeLimit; m_iterationIndex++) {
+        for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
+             (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
@@ -355,10 +355,11 @@ void SimplexController::sequentialSolve(const Model &model)
                 }
                 reinversionCounter++;
 
+                m_freshBasis = false;
+                m_iterationIndex++;
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     iterationReport->writeIterationReport();
                 }
-                m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
                 m_currentSimplex->reinvert();
@@ -515,21 +516,23 @@ void SimplexController::parallelSolve(const Model &model)
             simplexes[i]->setIterationReport(iterationReports[i]);
             simplexes[i]->initModules();
 
-            //TODO: Egy kezdobazis kereses legyen
-            if (m_loadBasis){
-                simplexes[i]->loadBasis();
-            }else{
-                simplexes[i]->findStartingBasis();
-            }
-
             iterationReports[i]->addProviderForStart(*simplexes[i]);
             iterationReports[i]->addProviderForIteration(*simplexes[i]);
             iterationReports[i]->addProviderForSolution(*simplexes[i]);
-            iterationReports[i]->createStartReport();
-            iterationReports[i]->writeStartReport();
+
+            iterationReports[masterIndex]->createStartReport();
+            iterationReports[masterIndex]->writeStartReport();
         }
+
+        //Only one starting basis finding
+        if (m_loadBasis){
+            simplexes[masterIndex]->loadBasis();
+        }else{
+            simplexes[masterIndex]->findStartingBasis();
+        }
+
         //Simplex iterations
-        for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
+        for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
             //invert and set the simplex states to follow the master simplex
@@ -540,7 +543,6 @@ void SimplexController::parallelSolve(const Model &model)
                     simplexes[i]->setSimplexState(*(simplexes[masterIndex]));
                 }
             }
-
             std::vector<std::thread*> threads(m_numberOfThreads, nullptr);
             //spawn threads
             for(int i=0; i < m_numberOfThreads; ++i){
@@ -683,7 +685,7 @@ void SimplexController::parallelSolve(const Model &model)
                     masterIndex = maxPhase2Index;
                 }
             }
-            LPINFO("master: "<<masterIndex);
+//            LPINFO("master: "<<masterIndex);
             m_iterationIndex = simplexThreads[masterIndex].getIterationNumber();
         }
     } catch ( const ParameterException & exception ) {
@@ -747,13 +749,16 @@ void SimplexController::parallelSolve(const Model &model)
     }
     sm_solveTimer.stop();
 
+    iterationReports[masterIndex]->createSolutionReport();
+    iterationReports[masterIndex]->writeSolutionReport();
+
+    //TODO: Export should follow the master simplex every time
+    if(m_enableExport){
+        iterationReports[masterIndex]->createExportReport();
+        iterationReports[masterIndex]->writeExportReport(m_exportFilename);
+    }
+
     for(int i=0; i<m_numberOfThreads; i++){
-        iterationReports[i]->createSolutionReport();
-        iterationReports[i]->writeSolutionReport();
-        if(m_enableExport){
-            iterationReports[i]->createExportReport();
-            iterationReports[i]->writeExportReport(m_exportFilename);
-        }
         delete iterationReports[i];
         iterationReports[i] = nullptr;
     }
