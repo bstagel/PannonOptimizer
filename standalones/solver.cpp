@@ -15,7 +15,6 @@
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexcontroller.h>
-#include <simplex/simplexsolver.h>
 
 #include <utils/tokenizer.h>
 #include <simplex/checker.h>
@@ -26,8 +25,6 @@ void solve(std::string filename) {
     builder->loadFromFile(filename.c_str());
     model.build(*builder);
     delete builder;
-
-
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
         Presolver presolver(&model);
@@ -46,10 +43,8 @@ void solve(std::string filename) {
     }
 
     //init simplexController
-    //SimplexController simplexController;
-    //simplexController.solve(model);
-    SimplexSolver solver;
-    solver.solve(model);
+    SimplexController simplexController;
+    simplexController.solve(model);
 }
 
 void printHelp() {

@@ -77,6 +77,16 @@ void InitPanOpt::init() {
 
 }
 
+void InitPanOpt::threadInit() {
+
+    SET_FPU_TO_64();
+
+    IndexedDenseVector::_globalInit();
+    DenseVector::_globalInit();
+    SparseVector::_globalInit();
+
+}
+
 void InitPanOpt::release()
 {
     ThreadSupervisor::_globalRelease();
@@ -97,6 +107,16 @@ void InitPanOpt::release()
 #ifndef CLASSIC_NEW_DELETE
     MemoryManager::release();
 #endif
+}
+
+void InitPanOpt::threadRelease() {
+
+    SET_FPU_TO_64();
+
+    IndexedDenseVector::_globalInit();
+    DenseVector::_globalInit();
+    SparseVector::_globalInit();
+
 }
 
 const ArchitectureInterface & InitPanOpt::getArchitecture() const {

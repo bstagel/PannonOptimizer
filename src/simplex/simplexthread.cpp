@@ -2,59 +2,93 @@
 #include <simplex/simplexparameterhandler.h>
 
 SimplexThread::SimplexThread(Simplex *currentSimplex)
-    : m_exception(""),
+    : m_result(SimplexThread::FINISHED),
+      m_exception(""),
+      m_exceptionType(SimplexThread::OPTIMAL),
       m_iterationNumber(0),
-      m_objectiveValue(0),
       m_currentSimplex(currentSimplex),
-      m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
-      m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable"))
+      m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.SaveBasis.basis")),
+      m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level"))
 {}
 
 SimplexThread::~SimplexThread()
 {}
 
-void SimplexThread::performIterations(int mainIterations, int iterationNumber)
+void SimplexThread::performIterations(Basis* basis, IterationReport* iterationReport, int mainIterations, int iterationNumber)
 {
     ThreadSupervisor::registerMyThread();
-    m_result = ITERATE;
-    int iterations = 0;
-    for (; iterations < iterationNumber; iterations++) {
+    InitPanOpt::threadInit();
+    basis->registerThread();
+    basis->setSimplexState(m_currentSimplex);
+
+    m_result = ITERATED;
+    for (m_iterationNumber = mainIterations;
+         m_iterationNumber < mainIterations + iterationNumber;) {
         try{
             //iterate
-            m_currentSimplex->setIterationIndex(iterations + mainIterations);
-            m_currentSimplex->iterate();
-            if(!m_currentSimplex->m_feasible){
-                m_objectiveValue = m_currentSimplex->getPhaseIObjectiveValue();
-            }else{
-                m_objectiveValue = m_currentSimplex->getObjectiveValue();
+            if(m_saveBasis){
+                m_currentSimplex->saveBasis(m_iterationNumber);
             }
+
+            m_currentSimplex->iterate(m_iterationNumber);
+
+            if(m_debugLevel>1 || (m_debugLevel==1 && m_iterationNumber == mainIterations)){
+                iterationReport->writeIterationReport();
+            }
+//            LPINFO("m_iterationNumber "<<m_iterationNumber<<" - "<<ThreadSupervisor::getThreadId());
+
+            ++m_iterationNumber;
+
         } catch ( const OptimalException & exception ) {
-            m_result = COMPLETE;
-            m_exception = OptimalException("Optimal solution");
+            m_result = FINISHED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::OPTIMAL;
+            LPINFO("OPTIMAL "<<ThreadSupervisor::getThreadId());
+            break;
         } catch ( const PrimalInfeasibleException & exception ) {
-            m_result = COMPLETE;
-            m_exception = PrimalInfeasibleException("Primal infeasible");
+            m_result = FINISHED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::PRIMAL_INFEASIBLE;
+            LPINFO("PRIMAL_INFEASIBLE "<<ThreadSupervisor::getThreadId());
+            break;
         } catch ( const DualInfeasibleException & exception ) {
-            m_result = COMPLETE;
-            m_exception = DualInfeasibleException("Dual infeasible");
+            m_result = FINISHED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::DUAL_INFEASIBLE;
+            LPINFO("DUAL_INFEASIBLE "<<ThreadSupervisor::getThreadId());
+            break;
         } catch ( const PrimalUnboundedException & exception ) {
-            m_result = COMPLETE;
-            m_exception = PrimalUnboundedException("Primal unbounded");
+            m_result = FINISHED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::PRIMAL_UNBOUNDED;
+            LPINFO("PRIMAL_UNBOUNDED "<<ThreadSupervisor::getThreadId());
+            break;
         } catch ( const DualUnboundedException & exception ) {
-            m_result = COMPLETE;
-            m_exception = DualUnboundedException("Dual unbounded");
+            m_result = FINISHED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::DUAL_UNBOUNDED;
+            LPINFO("DUAL_UNBOUNDED "<<ThreadSupervisor::getThreadId());
+            break;
         } catch ( const NumericalException & exception ) {
-            m_result = TERMINATE;
-            m_exception = NumericalException("Numerical problem");
-            --iterations;
+            m_result = TERMINATED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::NUMERICAL;
+            LPINFO("NUMERICAL "<<ThreadSupervisor::getThreadId());
+            --m_iterationNumber;
             break;
         } catch ( const FallbackException& exception) {
-            m_result = TERMINATE;
-            m_exception = FallbackException("Fallback detected");
-            --iterations;
+            m_result = TERMINATED;
+            m_exception = exception;
+            m_exceptionType = SimplexThread::FALLBACK;
+            LPINFO("FALLBACK "<<ThreadSupervisor::getThreadId());
+            --m_iterationNumber;
             break;
+        } catch (...){
+            LPINFO("Something wrong "<<ThreadSupervisor::getThreadId());
         }
     }
-    m_iterationNumber = iterations;
+    LPINFO("thread end: "<<ThreadSupervisor::getThreadId());
+    basis->releaseThread();
+    InitPanOpt::threadRelease();
     ThreadSupervisor::unregisterMyThread();
 }

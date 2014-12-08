@@ -1,8 +1,9 @@
 #include <utils/thread.h>
+#include <utils/thirdparty/prettyprint.h>
 
 std::mutex ThreadSupervisor::sm_mutex;
 
-std::set<unsigned int> * ThreadSupervisor::sm_threadIds;
+std::set<unsigned int> * ThreadSupervisor::sm_threadIds = nullptr;
 
 thread_local unsigned int ThreadSupervisor::sm_myThreadId = 0;
 

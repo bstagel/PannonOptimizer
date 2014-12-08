@@ -417,6 +417,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
     }
 #endif //!NDEBUG
     //The ftran operation.
+    LPINFO("ftran2");
 
     Numerical::Double * denseVector;
 
@@ -508,6 +509,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
         ptrValue++;
         index++;
     }
+    LPINFO("ftran2");
 }
 
 Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
@@ -544,7 +546,6 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -552,26 +553,12 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         Numerical::Double * ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
-        // if the input vector has less nonzeros than the eta vector,
-        // this implementation can be faster
-        /*if (nonZeros < iter->eta->m_length) {
-            while (ptrIndex < ptrIndexEnd) {
-                const Numerical::Double value = denseVector[*ptrIndex];
-                if (value != 0.0) {
-                 //   nonZeros--;
-                    summarizer.add(value * *ptrValue);
 
-                }
-                ptrIndex++;
-                ptrValue++;
-            }
-        } else {*/
-            while (ptrIndex < ptrIndexEnd) {
-                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
-                ptrIndex++;
-                ptrValue++;
-            }
-       // }
+        while (ptrIndex < ptrIndexEnd) {
+            summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
 
         dotProduct = summarizer.getResult();
 
@@ -594,26 +581,12 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         Numerical::Double * ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
-        // if the input vector has less nonzeros than the eta vector,
-        // this implementation can be faster
-        /*if (nonZeros < iter->eta->m_length) {
-            while (ptrIndex < ptrIndexEnd && nonZeros) {
-                const Numerical::Double value = denseVector[*ptrIndex];
-                if (value != 0.0) {
-                    nonZeros--;
-                    summarizer.add(value * *ptrValue);
 
-                }
-                ptrIndex++;
-                ptrValue++;
-            }*/
-        //} else {
-            while (ptrIndex < ptrIndexEnd) {
-                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
-                ptrIndex++;
-                ptrValue++;
-            }
-        //}
+        while (ptrIndex < ptrIndexEnd) {
+            summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
 
         dotProduct = summarizer.getResult();
 
@@ -651,7 +624,6 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
     unsigned int etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
@@ -660,26 +632,12 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         Numerical::Double * ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
-        // if the input vector has less nonzeros than the eta vector,
-        // this implementation can be faster
-        /*if (nonZeros < iter->eta->m_length) {
-            while (ptrIndex < ptrIndexEnd && nonZeros) {
-                const Numerical::Double value = denseVector[*ptrIndex];
-                if (value != 0.0) {
-                    nonZeros--;
-                    summarizer.add(value * *ptrValue);
 
-                }
-                ptrIndex++;
-                ptrValue++;
-            }
-        } else {*/
-            while (ptrIndex < ptrIndexEnd) {
-                summarizer.add(denseVector[*ptrIndex] * *ptrValue);
-                ptrIndex++;
-                ptrValue++;
-            }
-        //}
+        while (ptrIndex < ptrIndexEnd) {
+            summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
 
         dotProduct = summarizer.getResult();
 
@@ -700,43 +658,20 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
     etaIndex = 0;
     for (; iter != iterEnd; iter--, etaIndex++) {
-        //unsigned int nonZeros = vector.nonZeros();
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
+        Numerical::Double * ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
 
-        //All eta vectors are sparse!
-//        if (iter->eta->m_vectorType == Vector::SPARSE_VECTOR) {
-            Numerical::Double * ptrValue = iter->eta->m_data;
-            unsigned int * ptrIndex = iter->eta->m_indices;
-            const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
-            // if the input vector has less nonzeros than the eta vector,
-            // this implementation can be faster
-            /*if (nonZeros < iter->eta->m_length) {
-                while (ptrIndex < ptrIndexEnd && nonZeros) {
-                    const Numerical::Double value = denseVector[*ptrIndex];
-                    if (value != 0.0) {
-                        nonZeros--;
-                        summarizer.add(value * *ptrValue);
+        while (ptrIndex < ptrIndexEnd) {
+            summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
 
-                    }
-                    ptrIndex++;
-                    ptrValue++;
-                }
-            } else {*/
-                while (ptrIndex < ptrIndexEnd) {
-//                    const Numerical::Double value = denseVector[*ptrIndex];
-//                    if (value != 0.0) {
-//                        summarizer.add(value * *ptrValue);
-//                    }
-                    summarizer.add(denseVector[*ptrIndex] * *ptrValue);
-                    ptrIndex++;
-                    ptrValue++;
-                }
-           // }
-
-            dotProduct = summarizer.getResult();
-//        }
+        dotProduct = summarizer.getResult();
 
         // store the dot product, and update the nonzero counter
         const int pivot = iter->index;

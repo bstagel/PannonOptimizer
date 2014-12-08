@@ -21,9 +21,19 @@ public:
      * COMPLETE: if an OptimizationResultException is cought.
      */
     enum RESULT{
-        ITERATE = 0,
-        TERMINATE,
-        COMPLETE
+        ITERATED = 0,
+        TERMINATED,
+        FINISHED
+    };
+
+    enum EXCEPTION_TYPE{
+        OPTIMAL = 0,
+        PRIMAL_INFEASIBLE,
+        PRIMAL_UNBOUNDED,
+        DUAL_INFEASIBLE,
+        DUAL_UNBOUNDED,
+        NUMERICAL,
+        FALLBACK
     };
 
     /**
@@ -58,25 +68,23 @@ public:
      * Getter of the exception member
      * @return SimplexThread::m_exception
      */
-    PanOptException getException()const{return m_exception;}
+    PanOptException* getException(){return &m_exception;}
 
-    /**
-     * Getter of the objectiveValue member.
-     * @return SimplexThread::m_objectiveValue
-     */
-    Numerical::Double getObjectiveValue()const{return m_objectiveValue;}
-
-    /**
-     * Getter of the phase2entered member.
-     * @return SimplexThread::m_phase2Entered
-     */
-    bool getPhase2Entered()const{return m_phase2Entered;}
-
+    EXCEPTION_TYPE getExceptionType()const{return m_exceptionType;}
     /**
      * This function performs simplex iterations, according to the parameter.
+     * @param mainIterations The number of iterations at the last inversion.
      * @param iterationNumber number of iterations to do.
      */
-    void performIterations(int mainIterations, int iterationNumber);
+    void performIterations(Basis* basis,
+                           IterationReport* iterationreport,
+                           int mainIterations,
+                           int iterationNumber);
+
+    /**
+     * Sets the actual simplex object, necessary for primal-dual switching
+     */
+    void setCurrentSimplex(Simplex * currentSimplex);
 
 private:
 
@@ -92,27 +100,26 @@ private:
      */
     PanOptException m_exception;
 
+    EXCEPTION_TYPE m_exceptionType;
+
     /**
      * Describes the number of iterations done.
      */
     int m_iterationNumber;
 
     /**
-     * The current objective value.
-     */
-    Numerical::Double m_objectiveValue;
-
-    /**
-     * True if phase 2 entered.
-     */
-    bool m_phase2Entered;
-
-    /**
      * This points to the current solver algorithm, a Simplex pointer.
      */
     Simplex * m_currentSimplex;
 
-    //Parameter references
+    //Parameter values
+    /**
+     * Parameter reference for "save_basis" run-time parameter.
+     *
+     * @see SimplexParameterHandler
+     */
+    const bool & m_saveBasis;
+
     /**
      * Parameter reference for "debug_level" run-time parameter.
      *
@@ -120,12 +127,6 @@ private:
      */
     const int & m_debugLevel;
 
-    /**
-     * Parameter reference for "enable_export" run-time parameter.
-     *
-     * @see SimplexParameterHandler
-     */
-    const bool & m_enableExport;
 };
 
 #endif // SIMPLEXTHREAD_H

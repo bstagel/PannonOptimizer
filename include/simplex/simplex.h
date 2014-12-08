@@ -89,12 +89,6 @@ public:
     virtual ~Simplex();
 
     /**
-     * Setter of the iterationIndex member.
-     * @param interationIndex to be set
-     */
-    void setIterationIndex(int iterationIndex){m_iterationIndex = iterationIndex;}
-
-    /**
      * Getter of the phase1Iteration member.
      * @return Simplex::m_phase1Iteration
      */
@@ -268,6 +262,13 @@ protected:
 
     //Parameter variables
     /**
+     * Parameter reference of the run-time parameter "reinversion_frequency".
+     *
+     * @see SimplexParameterHandler
+     */
+    const int & m_reinversionFrequency;
+
+    /**
      * Parameter reference of the run-time parameter "enable_export".
      *
      * @see SimplexParameterHandler
@@ -428,8 +429,9 @@ protected:
 
     /**
      * This function performs one simplex iteration. (pricing, ratiotest, update)
+     * @param iterationIndex The index of the actual iteration. Important for reporting
      */
-    void iterate();
+    void iterate(int iterationIndex);
 
     /**
      * Setter for the iteration reporter.

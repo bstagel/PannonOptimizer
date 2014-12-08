@@ -11,6 +11,10 @@ const double DefaultParameters::SPARSITY_RATIO = 0.45;
 const int DefaultParameters::ELBOWROOM = 5;
 
 //Simplex Parameters
+//Parallel
+const bool DefaultParameters::Parallel::ENABLE_PARALLELIZATION = false;
+const bool DefaultParameters::Parallel::ENABLE_THREAD_SYNCHRONIZATION = true;
+const int DefaultParameters::Parallel::NUMBER_OF_THREADS = 2;
 //Tolerances
 const double DefaultParameters::Tolerances::E_PIVOT = 1.0E-06;
 const double DefaultParameters::Tolerances::E_FEASIBILITY = 1.0E-08;
@@ -81,6 +85,3 @@ const char * DefaultParameters::Global::Export::TYPE = "RATIOTEST_STUDY";
 
 const bool DefaultParameters::Global::BATCH_OUTPUT = false;
 const int DefaultParameters::Global::BATCH_SIZE = 10;
-
-//Parallelization
-const bool DefaultParameters::ENABLE_PARALLELIZATION = false;

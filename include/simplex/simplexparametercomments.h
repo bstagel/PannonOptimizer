@@ -164,7 +164,9 @@
 #define GLOBAL_BATCH_OUTPUT_COMMENT "# The output can be set to batch mode."
 #define GLOBAL_BATCH_SIZE_COMMENT "# The size of the output batch."
 
-#define ENABLE_PARALLELIZATION_COMMENT ""
+#define ENABLE_PARALLELIZATION_COMMENT "# This flag can enables parallel solution, each thread can be parameterized."
+#define ENABLE_THREAD_SYNCHRONIZATION_COMMENT "# The number of worker threads during solution (0 means the number of CPU cores)"
+#define NUMBER_OF_THREADS_COMMENT "# The number of worker threads during solution (0 means the number of CPU cores)"
 
 /********************************************
  * BLOCK COMMENTS
@@ -209,6 +211,7 @@ const char * SIMPLEX_PARAMETERS_GLOBAL_EXPORT_COMMENT =
 # PARAMETER_STUDY = Parameter study (reporting numerical problems, tolerances and the solution)
 # RATIOTEST_STUDY = Ratiotest study (reporting measures of the ratio tests))";
 
+const char * SIMPLEX_PARAMETERS_PARALLEL_COMMENT = "# Parallel #";
 const char * SIMPLEX_PARAMETERS_TOLERANCES_COMMENT = "# Tolerances #";
 const char * SIMPLEX_PARAMETERS_STARTING_COMMENT = "# Starting procedures";
 const char * SIMPLEX_PARAMETERS_STARTING_PRESOLVE_COMMENT = "# Presolve";

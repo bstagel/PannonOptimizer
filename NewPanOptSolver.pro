@@ -17,7 +17,7 @@ CONFIG(release, debug|release) {
     #message("NewPanOptSolver: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -lgcc_eh
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt -L../panopt/lib/# -lqd
     DESTDIR = ../build-NewPanOptSolver/release
@@ -26,7 +26,7 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
     #message("NewPanOptSolver: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11
-    QMAKE_LFLAGS = -static-libgcc -static-libstdc++
+    QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -lgcc_eh
     POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt -L../panopt/lib/# -lqd
     DESTDIR = ../build-NewPanOptSolver/debug

@@ -31,18 +31,11 @@ public:
     virtual ~SimplexController();
 
     /**
-     * Function that solves the LP problem given by the parameter using a main thread.
+     * Function that solves the LP problem according to the parameterization.
      *
      * @param model The LP problem model to be solved.
      */
-    void sequentialSolve(const Model& model);
-
-    /**
-     * Function that solves the LP problem given by the parameter using different threads.
-     *
-     * @param model The LP problem model to be solved.
-     */
-    void parallelSolve(const Model& model);
+    void solve(const Model & model);
 
     /**
      * The function returns the iteration report fields of this class.
@@ -58,11 +51,6 @@ public:
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    /**
-     * Function that writes the solution report, the result of the algorithm, the objective value etc.
-     */
-    void writeSolutionReport();
 
     /**
      * Getter of the phase 2 objective value according to the current algorithm.
@@ -166,6 +154,27 @@ private:
     const int & m_debugLevel;
 
     /**
+     * Parameter reference for "enable_parallelization" run-time parameter.
+     *
+     * @see SimplexParameterHandler
+     */
+    const bool & m_enableParallelization;
+
+    /**
+     * Parameter reference for "enable_thread_synchronization" run-time parameter.
+     *
+     * @see SimplexParameterHandler
+     */
+    const bool & m_enableThreadSynchronization;
+
+    /**
+     * Parameter reference for "number_of_threads" run-time parameter.
+     *
+     * @see SimplexParameterHandler
+     */
+    const int & m_numberOfThreads;
+
+    /**
      * Parameter reference for "save_basis" run-time parameter.
      *
      * @see SimplexParameterHandler
@@ -234,16 +243,32 @@ private:
     int m_triggeredReinversion;
 
     /**
-     * Pointer to the iteration reporter.
+     * Function that solves the LP problem given by the parameter using a main thread.
+     *
+     * @param model The LP problem model to be solved.
      */
-    IterationReport* m_iterationReport;
+    void sequentialSolve(const Model& model);
+
+    /**
+     * Function that solves the LP problem given by the parameter using synchronized threads.
+     *
+     * @param model The LP problem model to be solved.
+     */
+    void parallelSolve(const Model& model);
+
+    /**
+     * Function that solves the LP problem given by the parameter using unsychronized threads.
+     *
+     * @param model The LP problem model to be solved.
+     */
+    void parallelSequentialSolve(const Model* model);
 
     /**
      * This function can perform a switching among the solver algorithms (Simplex::ALGORITHM)
      *
      * @param model The model of the LP problem.
      */
-    void switchAlgorithm(const Model &model);
+    void switchAlgorithm(const Model &model, IterationReport *iterationReport);
 };
 
 #endif // SIMPLEXCONTROLLER_H

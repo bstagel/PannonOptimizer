@@ -248,11 +248,6 @@ private:
     mutable int m_actualBatch;
 
     /**
-     * A mutex to lock the output.
-     */
-    static std::mutex sm_outputMutex;
-
-    /**
      * The string stream of one output batch.
      */
     mutable std::ostringstream m_outputStream;

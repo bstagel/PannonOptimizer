@@ -181,22 +181,22 @@ protected:
     /**
      * The model if the LP problem.
      */
-    const SimplexModel* m_model;
+    static thread_local const SimplexModel* m_model;
 
     /**
      * Vector containing the basic variable indices.
      */
-    std::vector<int>* m_basisHead;
+    static thread_local std::vector<int>* m_basisHead;
 
     /**
      * Index list containing the variable states (being at lower upper bound).
      */
-    IndexList<const Numerical::Double*>* m_variableStates;
+    static thread_local IndexList<const Numerical::Double*>* m_variableStates;
 
     /**
      * The X_B vector.
      */
-    const DenseVector* m_basicVariableValues;
+    static thread_local const DenseVector* m_basicVariableValues;
 
     /**
      * The new basis head needed in the Basis::setNewHead() function.

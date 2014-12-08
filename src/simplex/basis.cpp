@@ -8,15 +8,16 @@
 #include <utils/thirdparty/prettyprint.h>
 #include <fstream>
 
+thread_local const SimplexModel* Basis::m_model = nullptr;
+thread_local std::vector<int>* Basis::m_basisHead = nullptr;
+thread_local IndexList<const Numerical::Double*>* Basis::m_variableStates = nullptr;
+thread_local const DenseVector* Basis::m_basicVariableValues = nullptr;
+
 int etaExpSum = 0;
 double etaExpSquareSum = 0;
 int etaExpCount = 0;
 
 Basis::Basis() :
-    m_model(nullptr),
-    m_basisHead(nullptr),
-    m_variableStates(nullptr),
-    m_basicVariableValues(nullptr),
     m_isFresh(false),
     m_basisNonzeros(0),
     m_inverseNonzeros(0),

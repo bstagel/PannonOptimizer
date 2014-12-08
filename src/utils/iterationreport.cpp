@@ -8,14 +8,12 @@
 #include <algorithm>
 #include <simplex/simplexparameterhandler.h>
 
-std::mutex IterationReport::sm_outputMutex;
-
 IterationReport::IterationReport():
     m_providerChanged(false),
     m_refreshHeader(true),
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
     m_lastDebugLevel(m_debugLevel),
-    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization")),
+    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization")),
     m_batchMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.batch_output")),
     m_batchSize(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.batch_size")),
     m_actualBatch(0)
@@ -25,7 +23,7 @@ IterationReport::IterationReport():
 
 IterationReport::IterationReport(const IterationReport & orig):
     m_debugLevel(orig.m_debugLevel),
-    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("enable_parallelization")),
+    m_parallelMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization")),
     m_batchMode(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.batch_output")),
     m_batchSize(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.batch_size"))
 {
@@ -366,9 +364,9 @@ void IterationReport::writeExportReport(std::string filename) const {
 }
 
 void IterationReport::flushBatch() const {
-    sm_outputMutex.lock();
+    GeneralMessageHandler::getMutex().lock();
     std::cerr << m_outputStream.str();
-    sm_outputMutex.unlock();
+    GeneralMessageHandler::getMutex().unlock();
     m_outputStream.str("");
     m_actualBatch = 0;
 }
