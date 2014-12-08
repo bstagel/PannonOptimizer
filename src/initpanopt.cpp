@@ -113,9 +113,7 @@ void InitPanOpt::threadRelease() {
 
     SET_FPU_TO_64();
 
-    IndexedDenseVector::_globalInit();
-    DenseVector::_globalInit();
-    SparseVector::_globalInit();
+    SparseVector::_globalRelease();
 
 }
 
