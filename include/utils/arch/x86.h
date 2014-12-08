@@ -35,8 +35,16 @@ extern "C" int _avx_enabled_by_64();
 extern "C" int _avx_enabled_by_32();
 extern "C" int avx_enabled_by_32();
 
+/***********************************************
+ * Memcpy
+ **********************************************/
+
 extern "C" void * _memcpy_sse2_64_linux_cread_cwrite(void * dest, const void * src, unsigned long count);
 extern "C" void * _memcpy_sse4_1_64_linux_ntread_ntwrite(void * dest, const void * src, unsigned long count);
+
+/***********************************************
+ * Dot product
+ **********************************************/
 
 extern "C" double _denseToDenseDotProduct_unstable_SSE2_64_linux(const double * vec1,
                                                                  const double * vec2,
@@ -67,6 +75,57 @@ extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * de
                                                                size_t count,
                                                                double * negPtr);
 
+/***********************************************
+ * Dense to dense add
+ **********************************************/
+
+extern "C" void _denseToDenseAddAbsRelSSE2_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance,
+        double relTolerance);
+
+extern "C" void _denseToDenseAddAbsRelSSE2_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance,
+        double relTolerance);
+
+extern "C" void _denseToDenseAddAbsSSE2_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance);
+
+extern "C" void _denseToDenseAddAbsSSE2_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance);
+
+extern "C" void _denseToDenseAddSSE2_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda);
+
+extern "C" void _denseToDenseAddSSE2_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda);
 
 // TODO: lehet hogy 32 bit alatt ugyanugy nez majd ki linux es windows alatt
 // ezt meg ellenorizni kell, ha igaz, akkor egyszerubbe valik a kod kicsit
@@ -101,6 +160,13 @@ extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * de
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 ::denseToSparseDotProductStable
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX ::denseToSparseDotProductStable
 
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_SSE2_CACHE ::denseToDenseAdd
+#define DENSE_TO_DENSE_ADD_SSE2_NOCACHE ::denseToDenseAdd
+
 #else
 #ifdef UNIX
 
@@ -123,6 +189,13 @@ extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * de
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 _denseToSparseDotProduct_stable_SSE2_64_linux
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX _denseToSparseDotProduct_stable_AVX_64_linux
+
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE ::_denseToDenseAddAbsRelSSE2_cache_64_linux
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE ::_denseToDenseAddAbsRelSSE2_nocache_64_linux
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE ::_denseToDenseAddAbsSSE2_cache_64_linux
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE ::_denseToDenseAddAbsSSE2_nocache_64_linux
+#define DENSE_TO_DENSE_ADD_SSE2_CACHE ::_denseToDenseAddSSE2_cache_64_linux
+#define DENSE_TO_DENSE_ADD_SSE2_NOCACHE ::_denseToDenseAddSSE2_nocache_64_linux
 
 #else
 /*****************************************
@@ -150,6 +223,14 @@ extern "C" double _denseToSparseDotProduct_stable_AVX_64_linux(const double * de
 
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 ::denseToSparseDotProductStable
 #define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX ::denseToSparseDotProductStable
+
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_SSE2_CACHE ::denseToDenseAdd
+#define DENSE_TO_DENSE_ADD_SSE2_NOCACHE ::denseToDenseAdd
+
 
 #endif
 #endif

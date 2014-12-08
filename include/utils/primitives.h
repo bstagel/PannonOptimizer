@@ -38,4 +38,26 @@ extern Numerical::Double indexedDenseToIndexedDenseDotProductStable(const Numeri
                                                                     const unsigned int * __restrict__ indices,
                                                                     size_t nonZeroCount,
                                                                     Numerical::Double * __restrict__ negPtr);
+
+extern void denseToDenseAddAbsRel(const Numerical::Double * __restrict__ a,
+                                  const Numerical::Double * __restrict__ b,
+                                  Numerical::Double * __restrict__ c,
+                                  size_t count,
+                                  Numerical::Double lambda,
+                                  Numerical::Double absTolerance,
+                                  Numerical::Double relTolerance);
+
+extern void denseToDenseAddAbs(const Numerical::Double * __restrict__ a,
+                               const Numerical::Double * __restrict__ b,
+                               Numerical::Double * __restrict__ c,
+                               size_t count,
+                               Numerical::Double lambda,
+                               Numerical::Double absTolerance);
+
+extern void denseToDenseAdd(const Numerical::Double * __restrict__ a,
+                            const Numerical::Double * __restrict__ b,
+                            Numerical::Double * __restrict__ c,
+                            size_t count,
+                            Numerical::Double lambda);
+
 #endif // PRIMITIVES_H

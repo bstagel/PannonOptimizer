@@ -8,7 +8,7 @@
 //#include <framework/tester.h>
 //#include <framework/unittest.h>
 
-#include <variabletest.h>
+/*#include <variabletest.h>
 #include <constrainttest.h>
 #include <matrixtest.h>
 #include <manualmodelbuildertest.h>
@@ -21,7 +21,7 @@
 #include <linalgparameterhandlertest.h>
 #include <simplexparameterhandlertest.h>
 #include <dualratiotesttest.h>
-#include <presolvertest.h>
+#include <presolvertest.h>*/
 #include <coretest.h>
 #include <sparsevectortest.h>
 
@@ -33,8 +33,8 @@ using namespace std;
 int main(int, char** )
 {
     setbuf(stdout, 0);
-    Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
-//    Tester::addUnitTest(new CoreTestSuite("Core Test"));
+    //Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
+    Tester::addUnitTest(new CoreTestSuite("Core Test"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));

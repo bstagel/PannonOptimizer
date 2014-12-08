@@ -5,6 +5,7 @@
 #include <cmath>
 #include <utils/arch/x86.h>
 #include <utils/primitives.h>
+#include <limits>
 
 #define MEMCPY_TESTBUFFER_MAX_SIZE      1024*10
 #define MEMCPY_FIX_BORDER               10
@@ -22,7 +23,8 @@ CoreTestSuite::CoreTestSuite(const char *name): UnitTest(name) {
     //ADD_TEST(CoreTestSuite::memcpy);
     //ADD_TEST(CoreTestSuite::memset);
     //ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
-    ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
+    //ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
+    ADD_TEST(CoreTestSuite::denseToDenseAdd);
 }
 
 void CoreTestSuite::memcpy() {
@@ -113,6 +115,7 @@ void CoreTestSuite::memcpy() {
                         }
                         for (index = start; index < end; index++) {
                             if (testBufferA[index] != testBufferB[index]) {
+                                LPERROR( testBufferA[index] << " != " << testBufferB[index] );
                                 TEST_ASSERT(testBufferA[index] == testBufferB[index]);
                                 return;
                             }
@@ -279,10 +282,10 @@ void CoreTestSuite::denseToSparseDotProduct() {
                                                          10);
     LPINFO("res = " << res);
 
-    int aSize = 1000000;
-    int bSize = 10;
-    int indexSize = bSize;
-    int repeat = 10000000;
+    unsigned int aSize = 1000000;
+    unsigned int bSize = 10;
+    unsigned int indexSize = bSize;
+    unsigned int repeat = 10000000;
     unsigned int repIndex;
 
     double * a = alloc<double, 32>(aSize);
@@ -326,5 +329,169 @@ void CoreTestSuite::denseToSparseDotProduct() {
     end = clock();
     LPINFO("time = " << ( end - start ) / (double)CLOCKS_PER_SEC );
     LPINFO("res = " << res);
+
+}
+
+extern "C" void _denseToDenseAddAbsRelAVX_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance,
+        double relTolerance);
+
+extern "C" void _denseToDenseAddAbsRelAVX_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance,
+        double relTolerance);
+
+extern "C" void _denseToDenseAddAbsAVX_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance);
+
+extern "C" void _denseToDenseAddAbsAVX_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda,
+        double absTolerance);
+
+extern "C" void _denseToDenseAddAVX_cache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda);
+
+extern "C" void _denseToDenseAddAVX_nocache_64_linux(
+        const double * a,
+        const double * b,
+        const double * c,
+        unsigned int count,
+        double lambda);
+
+void CoreTestSuite::denseToDenseAdd()
+{
+    unsigned int i;
+    unsigned int size;
+
+    double * a = alloc<double, 32>(11);
+    double * b = alloc<double, 32>(11);
+    double * c = alloc<double, 32>(11);
+
+    a[0] = 1;   b[0] = -1.1;
+    a[1] = 0.001;   b[1] = -0.0011;
+    a[2] = 10000;   b[2] = -10000.1;
+    a[3] = 4;   b[3] = 4;
+    a[4] = 5;   b[4] = 5;
+    a[5] = 6;   b[5] = 6;
+    a[6] = 7;   b[6] = -7.5;
+    a[7] = 8;   b[7] = 8;
+    a[8] = 9;   b[8] = 9;
+    a[9] = 10;  b[9] = 10;
+    a[10] = 11; b[10] = 11;
+
+    Numerical::Double oldAbsTolerance = Numerical::AbsoluteTolerance;
+    Numerical::Double oldRelTolerance = Numerical::RelativeTolerance;
+
+    double lambda = 1.0;
+    double absTolerance = 0.01;
+    double relTolerance = 0.04;
+
+    Numerical::AbsoluteTolerance = absTolerance;
+    Numerical::RelativeTolerance = relTolerance;
+
+    double nan = std::numeric_limits<double>::quiet_NaN();
+
+    for (size = 0; size <= 11; size++) {
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        _denseToDenseAddAbsRelAVX_nocache_64_linux(a, b, c, size, lambda, absTolerance, relTolerance);
+        //DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE(a, b, c, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE(a, b, c, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        _denseToDenseAddAbsAVX_nocache_64_linux(a, b, c, size, lambda, absTolerance);
+        //DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE(a, b, c, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAddAbs(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE(a, b, c, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAddAbs(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        _denseToDenseAddAVX_nocache_64_linux(a, b, c, size, lambda);
+        //DENSE_TO_DENSE_ADD_SSE2_CACHE(a, b, c, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
+            if (c[i] != a[i] + b[i] * lambda) {
+                LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_SSE2_NOCACHE(a, b, c, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
+            if (c[i] != a[i] + b[i] * lambda) {
+                LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
+            }
+        }
+
+    }
+
+    Numerical::AbsoluteTolerance = oldAbsTolerance;
+    Numerical::RelativeTolerance = oldRelTolerance;
 
 }

@@ -12,7 +12,7 @@ SparseVectorTestSuite::SparseVectorTestSuite(const char *name):
     ADD_TEST(SparseVectorTestSuite::createUnitVector);
     ADD_TEST(SparseVectorTestSuite::createVectorFromDenseArray);
     ADD_TEST(SparseVectorTestSuite::createVectorFromSparseArray);
-    ADD_TEST(SparseVectorTestSuite::createEtaByPivotValue);
+    ADD_TEST(SparseVectorTestSuite::createEtaVector);
     ADD_TEST(SparseVectorTestSuite::createEtaByPivotIndex);
     ADD_TEST(SparseVectorTestSuite::at);
     ADD_TEST(SparseVectorTestSuite::arrayOperator);
@@ -1416,7 +1416,7 @@ void SparseVectorTestSuite::createVectorFromSparseArray()
     SparseVector::_globalRelease();
 }
 
-void SparseVectorTestSuite::createEtaByPivotValue()
+void SparseVectorTestSuite::createEtaVector()
 {
     SparseVector::_globalRelease();
     SparseVector::_globalInit();
@@ -1425,9 +1425,9 @@ void SparseVectorTestSuite::createEtaByPivotValue()
 
     SparseVector vec = SparseVector::createVectorFromDenseArray(data1, 6);
 
-    SparseVector * eta1 = SparseVector::createEtaByPivotValue(vec,
-                                                              4.0,
-                                                              3);
+    SparseVector * eta1 = SparseVector::createEtaVector(vec,
+                                                        4.0,
+                                                        3);
     TEST_ASSERT(eta1->m_length == 6);
     TEST_ASSERT(eta1->m_nonZeros == 5);
     TEST_ASSERT(eta1->m_data != nullptr);

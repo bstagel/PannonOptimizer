@@ -42,7 +42,7 @@ Numerical::Double denseToSparseDotProductUnstable(const Numerical::Double * __re
     //count -= one;
     for (index = 0; index < count; index += 1) {
         result1 += dense[ indices[index] ] * sparse[index];
-       // result2 += dense[ indices[index + 1] ] * sparse[index + 1];
+        // result2 += dense[ indices[index + 1] ] * sparse[index + 1];
     }
     /*if (one == 1) {
         result1 += dense[ indices[count] ] * sparse[count];
@@ -122,7 +122,7 @@ Numerical::Double denseToSparseDotProductStable(const Numerical::Double * __rest
     }
 
     if (one == 1) {
-    /*    if (__prim_debug == true) {
+        /*    if (__prim_debug == true) {
             LPINFO(count);
         }*/
         num1.m_num = dense[ indices[count] ] * sparse[count];
@@ -179,10 +179,10 @@ Numerical::Double indexedDenseToIndexedDenseDotProductUnstable(const Numerical::
 }
 
 Numerical::Double indexedDenseToIndexedDenseDotProductStable(const Numerical::Double * __restrict__ dense1,
-                                                                    const Numerical::Double * __restrict__ dense2,
-                                                                    const unsigned int * __restrict__ indices,
-                                                                    size_t nonZeroCount,
-                                                                    Numerical::Double * __restrict__ negPtr) {
+                                                             const Numerical::Double * __restrict__ dense2,
+                                                             const unsigned int * __restrict__ indices,
+                                                             size_t nonZeroCount,
+                                                             Numerical::Double * __restrict__ negPtr) {
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
     double negpos[2] = {0.0, 0.0};
     Number num1, num2;
@@ -223,4 +223,48 @@ Numerical::Double indexedDenseToIndexedDenseDotProductStable(const Numerical::Do
     *negPtr = neg;
     return pos;
 #endif
+}
+
+
+void denseToDenseAddAbsRel(const Numerical::Double *a,
+                           const Numerical::Double *b,
+                           Numerical::Double *c,
+                           size_t count,
+                           Numerical::Double lambda,
+                           Numerical::Double absTolerance,
+                           Numerical::Double relTolerance)
+{
+    __UNUSED(absTolerance);
+    __UNUSED(relTolerance);
+    unsigned int index;
+    for (index = 0; index < count; index++) {
+        c[index] = Numerical::stableAdd(a[index], b[index] * lambda);
+    }
+}
+
+void denseToDenseAddAbs(const Numerical::Double *a,
+                        const Numerical::Double *b,
+                        Numerical::Double *c,
+                        size_t count,
+                        Numerical::Double lambda,
+                        Numerical::Double absTolerance)
+{
+    __UNUSED(absTolerance);
+    unsigned int index;
+    for (index = 0; index < count; index++) {
+        c[index] = Numerical::stableAddAbs(a[index], b[index] * lambda);
+    }
+}
+
+
+void denseToDenseAdd(const Numerical::Double *a,
+                     const Numerical::Double *b,
+                     Numerical::Double *c,
+                     size_t count,
+                     Numerical::Double lambda)
+{
+    unsigned int index;
+    for (index = 0; index < count; index++) {
+        c[index] = a[index] + b[index] * lambda;
+    }
 }

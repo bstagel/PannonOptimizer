@@ -304,11 +304,12 @@ union Pointer {
 
 template <class T, unsigned alignment>
 T * alloc(int size) {
-    size *= sizeof(T);
 
 #ifndef CACHE_LINE_ALIGNMENT
-    return new char[size];
+    return new T[size];
 #endif
+
+    size *= sizeof(T);
 
 #ifdef CLASSIC_NEW_DELETE
     char * originalPtr = new char[size + alignment + sizeof(void*)];

@@ -17,7 +17,7 @@ private:
     void createUnitVector();
     void createVectorFromDenseArray();
     void createVectorFromSparseArray();
-    void createEtaByPivotValue();
+    void createEtaVector();
     void createEtaByPivotIndex();
     void at();
     void arrayOperator();
