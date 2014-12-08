@@ -41,7 +41,6 @@ HEADERS += test/framework/tester.h \
            test/constrainttest.h \
            test/indexlisttest.h \
            test/manualmodelbuildertest.h \
-           test/matrixtest.h \
            test/modeltest.h \
            test/mpsproblemtest.h \
            test/testmacros.h \
@@ -58,14 +57,9 @@ HEADERS += test/framework/tester.h \
 #Sources
 SOURCES += test/framework/tester.cpp \
            test/test.cpp \
-           test/constrainttest.cpp \
            test/indexlisttest.cpp \
-           test/manualmodelbuildertest.cpp \
-           test/matrixtest.cpp \
            test/modeltest.cpp \
            test/mpsproblemtest.cpp \
-           test/variabletest.cpp \
-           test/vectortest.cpp \
            test/timertest.cpp \
            test/linalgparameterhandlertest.cpp \
            test/simplexparameterhandlertest.cpp \

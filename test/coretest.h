@@ -14,6 +14,8 @@ private:
 
     void denseToDenseDotProduct();
     void denseToSparseDotProduct();
+
+    void denseToDenseAdd();
 };
 
 #endif // CORETEST_H
