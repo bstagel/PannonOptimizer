@@ -64,6 +64,7 @@ Simplex::Simplex(Basis* basis):
     m_feasibleIteration(false),
     m_baseChanged(false),
     //Parameter references
+    m_reinversionFrequency(SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_exportType(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.type")),
@@ -237,7 +238,7 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
     case IterationReportProvider::IRF_ITERATION:
     {
         if (name == ITERATION_INVERSION_NAME) {
-            if( (m_iterationIndex-1) % SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency") == 0 ){
+            if( (m_iterationIndex-1) % m_reinversionFrequency ){
                 reply.m_string = new std::string("*I*");
             } else {
                 reply.m_string = new std::string("");
@@ -375,12 +376,14 @@ void Simplex::setSimplexState(const Simplex & simplex)
         m_variableStates.insert(BASIC,it.getData(),&ZERO);
     }
 
+    //TODO: Is this necessary here?
     m_basicVariableValues = simplex.m_basicVariableValues;
 
 }
 
-void Simplex::iterate()
+void Simplex::iterate(int iterationIndex)
 {
+    m_iterationIndex = iterationIndex;
     m_feasibleIteration = m_feasible;
 
     m_priceTimer.start();
@@ -395,7 +398,7 @@ void Simplex::iterate()
     update();
     m_updateTimer.stop();
 
-        computeWorkingTolerance();
+    computeWorkingTolerance();
 
     if(!m_feasible){
         m_recomputeReducedCosts = true;

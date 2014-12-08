@@ -22,7 +22,6 @@ class DenseVector {
 
     //TODO remove, debug only
     friend class DualSimplex;
-    friend class SimplexSolver;
 private:
 
     template<class ADD>

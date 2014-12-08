@@ -171,7 +171,6 @@ HEADERS += include/debug.h \
     include/utils/iterator.h \
     include/linalg/sparsevector.h \
     include/simplex/simplexparametercomments.h \
-    include/simplex/simplexsolver.h \
     include/utils/parameterfilebuilder.h \
     include/linalg/linalgparametercomments.h \
     include/utils/multiplefloat.h \
@@ -249,7 +248,6 @@ SOURCES += src/linalg/matrix.cpp \
     src/linalg/densevector.cpp \
     src/linalg/sparsevector.cpp \
     src/utils/thread.cpp \
-    src/simplex/simplexsolver.cpp \
     src/lp/abstractmodel.cpp \
     src/utils/parameterfilebuilder.cpp \
     src/utils/stacktrace.cpp \

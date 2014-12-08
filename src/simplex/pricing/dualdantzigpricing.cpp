@@ -27,7 +27,6 @@ DualDantzigPricing::~DualDantzigPricing()
 }
 
 int DualDantzigPricing::performPricingPhase1() {
-
     initPhase1();
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
 //    const unsigned int variableCount = m_simplexModel.getMatrix().rowCount();

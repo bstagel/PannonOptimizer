@@ -16,6 +16,14 @@ public:
     static const int ELBOWROOM;
 
     //Simplex Parameters
+    //Parallel
+    class Parallel {
+    public:
+        static const bool ENABLE_PARALLELIZATION;
+        static const bool ENABLE_THREAD_SYNCHRONIZATION;
+        static const int NUMBER_OF_THREADS;
+    };
+
     //Tolerances
     class Tolerances {
     public:

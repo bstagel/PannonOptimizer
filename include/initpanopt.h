@@ -11,7 +11,11 @@ public:
 
     static void init();
 
+    static void threadInit();
+
     static void release();
+
+    static void threadRelease();
 
     const ArchitectureInterface & getArchitecture() const;
 private:

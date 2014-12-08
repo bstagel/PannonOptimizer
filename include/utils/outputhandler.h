@@ -8,6 +8,7 @@
 
 #include <globals.h>
 #include <sstream>
+#include <mutex>
 
 /**
  * @brief The GeneralMessageHandler class Declares the interface of the concrete message handler classes.
@@ -59,6 +60,29 @@ public:
      * @return True if coloring is enabled.
      */
     bool isColored() const;
+
+    /**
+     * A getter for the output locking mutex.
+     *
+     * @return A mutex to provide output locking
+     */
+    static std::mutex& getMutex(){return sm_outputMutex;}
+
+protected:
+
+    //Parameter variables
+    /**
+     * Parameter reference of the run-time parameter "enable_parallelization".
+     *
+     * @see SimplexParameterHandler
+     */
+    const bool & m_enableParallelization;
+
+private:
+    /**
+     * A mutex to lock the output.
+     */
+    static std::mutex sm_outputMutex;
 };
 
 /**
@@ -83,6 +107,7 @@ public:
      * @param ss The string stream.
      */
     void addMessage(const std::string & message , std::ostringstream & stringstream);
+
 };
 
 /**

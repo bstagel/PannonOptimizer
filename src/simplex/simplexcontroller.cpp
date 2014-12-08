@@ -33,6 +33,9 @@ SimplexController::SimplexController():
     m_freshBasis(false),
     //Parameter references
     m_debugLevel(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level")),
+    m_enableParallelization(SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization")),
+    m_enableThreadSynchronization(SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_thread_synchronization")),
+    m_numberOfThreads(SimplexParameterHandler::getInstance().getIntegerParameterValue("Parallel.number_of_threads")),
     m_saveBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.SaveBasis.basis")),
     m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.SaveBasis.filename")),
     m_saveLastBasis(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.SaveBasis.last_basis")),
@@ -44,16 +47,6 @@ SimplexController::SimplexController():
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0)
 {
-    m_iterationReport = new IterationReport();
-
-    m_iterationReport->addProviderForStart(*this);
-    m_iterationReport->addProviderForIteration(*this);
-    m_iterationReport->addProviderForSolution(*this);
-
-    if(m_enableExport){
-        m_iterationReport->addProviderForExport(*this);
-    }
-
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
         m_basis = new PfiBasis();
@@ -68,10 +61,6 @@ SimplexController::SimplexController():
 
 SimplexController::~SimplexController()
 {
-    if(m_iterationReport){
-        delete m_iterationReport;
-        m_iterationReport = NULL;
-    }
     if (m_primalSimplex){
         delete m_primalSimplex;
         m_primalSimplex = NULL;
@@ -212,16 +201,6 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
     return reply;
 }
 
-void SimplexController::writeSolutionReport()
-{
-    m_iterationReport->createSolutionReport();
-    m_iterationReport->writeSolutionReport();
-    if(m_enableExport){
-        m_iterationReport->createExportReport();
-        m_iterationReport->writeExportReport(m_exportFilename);
-    }
-}
-
 const Numerical::Double &SimplexController::getObjectiveValue() const
 {
     return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getObjectiveValue() :
@@ -252,8 +231,47 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
                                                    m_dualSimplex->getDualSolution();
 }
 
+void SimplexController::solve(const Model &model) {
+    if (m_enableParallelization) {
+        if(m_enableThreadSynchronization){
+            parallelSolve(model);
+        }else{
+            ThreadSupervisor::registerMyThread();
+            std::vector<std::thread*> threads(m_numberOfThreads, nullptr);
+            //spawn threads
+            for(int i=0; i < m_numberOfThreads; ++i){
+                threads[i] = new std::thread(&SimplexController::parallelSequentialSolve,
+                                             this,
+                                             &model);
+            }
+            LPINFO("Threads spawned!");
+            //synchronise threads
+            for(int i=0; i < m_numberOfThreads; ++i){
+                threads[i]->join();
+            }
+            LPINFO("Threads finished!");
+            for(int i=0; i < m_numberOfThreads; ++i){
+                delete threads[i];
+            }
+            ThreadSupervisor::unregisterMyThread();
+        }
+    } else {
+        sequentialSolve(model);
+    }
+}
+
 void SimplexController::sequentialSolve(const Model &model)
 {
+    IterationReport* iterationReport = new IterationReport();
+
+    iterationReport->addProviderForStart(*this);
+    iterationReport->addProviderForIteration(*this);
+    iterationReport->addProviderForSolution(*this);
+
+    if(m_enableExport){
+        iterationReport->addProviderForExport(*this);
+    }
+
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
@@ -264,16 +282,10 @@ void SimplexController::sequentialSolve(const Model &model)
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
-    }
-    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
-        m_currentAlgorithm = Simplex::DUAL;
-    }
-
-
-    if (m_currentAlgorithm == Simplex::PRIMAL){
         m_primalSimplex = new PrimalSimplex(m_basis);
         m_currentSimplex = m_primalSimplex;
-    }else{
+    } else if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
         m_dualSimplex = new DualSimplex(m_basis);
         m_currentSimplex = m_dualSimplex;
     }
@@ -281,7 +293,7 @@ void SimplexController::sequentialSolve(const Model &model)
     try{
         m_currentSimplex->setModel(model);
 
-        m_currentSimplex->setIterationReport(m_iterationReport);
+        m_currentSimplex->setIterationReport(iterationReport);
         m_currentSimplex->initModules();
         m_basis->registerThread();
         m_basis->setSimplexState(m_currentSimplex);
@@ -293,11 +305,11 @@ void SimplexController::sequentialSolve(const Model &model)
             m_currentSimplex->findStartingBasis();
         }
 
-        m_iterationReport->addProviderForStart(*m_currentSimplex);
-        m_iterationReport->addProviderForIteration(*m_currentSimplex);
-        m_iterationReport->addProviderForSolution(*m_currentSimplex);
-        m_iterationReport->createStartReport();
-        m_iterationReport->writeStartReport();
+        iterationReport->addProviderForStart(*m_currentSimplex);
+        iterationReport->addProviderForIteration(*m_currentSimplex);
+        iterationReport->addProviderForSolution(*m_currentSimplex);
+        iterationReport->createStartReport();
+        iterationReport->writeStartReport();
 
         Numerical::Double lastObjective = 0;
         //Simplex iterations
@@ -316,26 +328,25 @@ void SimplexController::sequentialSolve(const Model &model)
 
                 if (switching == "SWITCH_BEFORE_INV") {
                     if (m_iterationIndex > 1){
-                        switchAlgorithm(model);
+                        switchAlgorithm(model, iterationReport);
                     }
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
-                        switchAlgorithm(model);
+                        switchAlgorithm(model, iterationReport);
                     }
                 } else if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
-                            switchAlgorithm(model);
+                            switchAlgorithm(model, iterationReport);
                         }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
-                            switchAlgorithm(model);
+                            switchAlgorithm(model, iterationReport);
                         }
                     }
                 }
             }
             try{
                 //iterate
-                m_currentSimplex->setIterationIndex(m_iterationIndex);
-                m_currentSimplex->iterate();
+                m_currentSimplex->iterate(m_iterationIndex);
 
                 if(!m_currentSimplex->m_feasible){
                     lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
@@ -345,7 +356,7 @@ void SimplexController::sequentialSolve(const Model &model)
                 reinversionCounter++;
 
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
-                    m_iterationReport->writeIterationReport();
+                    iterationReport->writeIterationReport();
                 }
                 m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
@@ -432,14 +443,31 @@ void SimplexController::sequentialSolve(const Model &model)
         LPERROR("Unknown exception");
     }
     sm_solveTimer.stop();
-    writeSolutionReport();
+
+    iterationReport->createSolutionReport();
+    iterationReport->writeSolutionReport();
+
+    if(m_enableExport){
+        iterationReport->createExportReport();
+        iterationReport->writeExportReport(m_exportFilename);
+    }
 
     m_basis->releaseThread();
+
+    if(iterationReport){
+        delete iterationReport;
+        iterationReport = NULL;
+    }
 }
 
 void SimplexController::parallelSolve(const Model &model)
 {
+    ThreadSupervisor::registerMyThread();
+
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
+
+    //The master thread guides the inversion
+    int masterIndex=0;
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
     const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
@@ -447,112 +475,216 @@ void SimplexController::parallelSolve(const Model &model)
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
-
-        m_primalSimplex = new PrimalSimplex(m_basis);
-        m_currentSimplex = m_primalSimplex;
-    }
-    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+    } else if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
         m_currentAlgorithm = Simplex::DUAL;
-
-        m_dualSimplex = new DualSimplex(m_basis);
-        m_currentSimplex = m_dualSimplex;
     }
 
     //prepare simplex objects
-    int numberOfThreads = 2;
-    std::vector<SimplexThread> simplexThreadObjects;
-    std::vector<Simplex *> simplexObjects;
-    simplexObjects.reserve(numberOfThreads);
-    simplexThreadObjects.reserve(numberOfThreads);
-    for(int i=0; i < numberOfThreads; ++i){
-        Simplex * simplex = NULL;
-        simplexObjects.push_back(simplex);
-    }
-    for(int i=0; i < numberOfThreads; ++i){
+    std::vector<SimplexThread> simplexThreads;
+    std::vector<Simplex *> simplexes;
+    simplexes.reserve(m_numberOfThreads);
+    simplexThreads.reserve(m_numberOfThreads);
+    for(int i=0; i < m_numberOfThreads; ++i){
         if(m_currentAlgorithm == Simplex::PRIMAL){
-            simplexObjects[i] = new PrimalSimplex(m_basis);
+            simplexes.push_back(new PrimalSimplex(m_basis));
         }else{
-            simplexObjects[i] = new DualSimplex(m_basis);
+            simplexes.push_back(new DualSimplex(m_basis));
         }
-        simplexThreadObjects.push_back(SimplexThread(simplexObjects[i]));
+        simplexThreads.emplace_back(simplexes[i]);
     }
 
-    bool exceptionCought = false;
+    m_basis->registerThread();
+
     sm_solveTimer.start();
+
+    std::vector<IterationReport*> iterationReports(m_numberOfThreads, nullptr);
     try{
-        for(int i=0; i < numberOfThreads; ++i){
-            simplexObjects[i]->setModel(model);
+        for(int i=0; i < m_numberOfThreads; ++i){
+            iterationReports[i] = new IterationReport();
 
-            simplexObjects[i]->setIterationReport(m_iterationReport);
-            simplexObjects[i]->initModules();
+            iterationReports[i]->addProviderForStart(*this);
+            iterationReports[i]->addProviderForIteration(*this);
+            iterationReports[i]->addProviderForSolution(*this);
 
-            if (m_loadBasis){
-                simplexObjects[i]->loadBasis();
-            }else{
-                simplexObjects[i]->findStartingBasis();
+            if(m_enableExport){
+                iterationReports[i]->addProviderForExport(*this);
             }
 
-            m_iterationReport->addProviderForStart(*simplexObjects[i]);
-            m_iterationReport->addProviderForIteration(*simplexObjects[i]);
-            m_iterationReport->addProviderForSolution(*simplexObjects[i]);
-            m_iterationReport->createStartReport();
-            m_iterationReport->writeStartReport();
+            simplexes[i]->setModel(model);
+
+            simplexes[i]->setIterationReport(iterationReports[i]);
+            simplexes[i]->initModules();
+
+            //TODO: Egy kezdobazis kereses legyen
+            if (m_loadBasis){
+                simplexes[i]->loadBasis();
+            }else{
+                simplexes[i]->findStartingBasis();
+            }
+
+            iterationReports[i]->addProviderForStart(*simplexes[i]);
+            iterationReports[i]->addProviderForIteration(*simplexes[i]);
+            iterationReports[i]->addProviderForSolution(*simplexes[i]);
+            iterationReports[i]->createStartReport();
+            iterationReports[i]->writeStartReport();
         }
         //Simplex iterations
         for (m_iterationIndex = 1; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
-            for(int i=0; i < numberOfThreads; ++i){
-                if(m_saveBasis){
-                    simplexObjects[i]->saveBasis(m_iterationIndex);
+            //invert and set the simplex states to follow the master simplex
+            m_basis->setSimplexState(simplexes[masterIndex]);
+            simplexes[masterIndex]->reinvert();
+            for(int i=0; i<m_numberOfThreads; i++){
+                if(i != masterIndex){
+                    simplexes[i]->setSimplexState(*(simplexes[masterIndex]));
                 }
             }
 
-            //inversion
-            for(int i=0; i < numberOfThreads; ++i){
-                simplexObjects[i]->reinvert();
-            }
-
+            std::vector<std::thread*> threads(m_numberOfThreads, nullptr);
             //spawn threads
-            try{
-                std::vector<std::thread> threads;
-                threads.reserve(numberOfThreads);
-                for(int i=0; i < numberOfThreads; ++i){
-                    threads.push_back(std::thread(&SimplexThread::performIterations, simplexThreadObjects[i], m_iterationIndex, reinversionFrequency));
-                }
-                //synchronise threads, get results
-                for(int i=0; i < numberOfThreads; ++i){
-                    threads[i].join();
-                }
-                LPINFO("Threads finished!");
-                //handle exceptions
-                for(int i=0; i < numberOfThreads; ++i){
-                    if(simplexThreadObjects[i].getResult() == SimplexThread::COMPLETE){
-                        if(exceptionCought){
-                            throw OptimalException("optimal");
-                        }else{
-                            exceptionCought = true;
+            for(int i=0; i < m_numberOfThreads; ++i){
+                threads[i] = new std::thread(&SimplexThread::performIterations,
+                                 &simplexThreads[i],
+                                 m_basis, iterationReports[i], m_iterationIndex, reinversionFrequency);
+            }
+//            LPINFO("Threads spawned!");
+            //synchronise threads
+            for(int i=0; i < m_numberOfThreads; ++i){
+                threads[i]->join();
+            }
+            LPINFO("Threads finished!");
+            for(int i=0; i < m_numberOfThreads; ++i){
+                delete threads[i];
+            }
+
+            //Select the master simplex
+            //If all simplexes are iterated normally, choose the best one
+            //If at least one has reached the optimum, choose that one and reset model
+            //If all are terminated, choose one with the maximal iteration number
+            int maxPhase1Index = -1;
+            Numerical::Double maxPhase1 = -Numerical::Infinity;
+            int maxPhase2Index = -1;
+            Numerical::Double maxPhase2;
+            if(m_currentAlgorithm == Simplex::PRIMAL) {
+                maxPhase2 = Numerical::Infinity;
+            } else {
+                maxPhase2 = -Numerical::Infinity;
+            }
+            bool terminatedNumber = 0;
+            bool terminatedMaxIndex = -1;
+            bool terminatedMaxIterations = -1;
+            int finishedIndex = -1;
+            for(int i=0; i<m_numberOfThreads; i++){
+                switch (simplexThreads[i].getResult()){
+                case SimplexThread::ITERATED:
+                    if(!simplexes[i]->isFeasible()){
+                        //In phase 1 max is better
+                        if(simplexes[i]->getPhaseIObjectiveValue() > maxPhase1){
+                            maxPhase1Index = i;
+                            maxPhase1 = simplexes[i]->getPhaseIObjectiveValue();
+                        }
+                    } else {
+                        if(m_currentAlgorithm == Simplex::PRIMAL){
+                            //In phase 2 PRIMAL - min is better
+                            if(simplexes[i]->getObjectiveValue() < maxPhase2){
+                                maxPhase2Index = i;
+                                maxPhase2 = simplexes[i]->getObjectiveValue();
+                            }
+                        } else {
+                            //In phase 2 DUAL - max is better
+                            if(simplexes[i]->getObjectiveValue() > maxPhase2){
+                                maxPhase2Index = i;
+                                maxPhase2 = simplexes[i]->getObjectiveValue();
+                            }
                         }
                     }
-                }
-                //TODO: choose better basis
-            } catch ( const OptimizationResultException & exception ) {
-                m_currentSimplex->reset();
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    throw;
-                } else {
-                    m_iterationIndex--;
-                }
-            } catch ( const NumericalException & exception ) {
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    throw;
-                } else {
-                    LPINFO("Numerical error: "<<exception.getMessage());
-                    m_iterationIndex--;
+                    break;
+
+                case SimplexThread::FINISHED:
+                    finishedIndex = i;
+                    i=m_numberOfThreads;
+                    break;
+
+                case SimplexThread::TERMINATED:
+                    terminatedNumber++;
+                    if(simplexThreads[i].getIterationNumber() > terminatedMaxIterations){
+                        terminatedMaxIndex = i;
+                        terminatedMaxIterations = simplexThreads[i].getIterationNumber();
+                    }
+                    break;
                 }
             }
+            if(finishedIndex != -1){
+                masterIndex = finishedIndex;
+                for(int i=0; i<m_numberOfThreads; i++){
+                    simplexes[i]->reset();
+                }
+                //Throw the finished exception if the basis was fresh
+                if(m_iterationIndex == simplexThreads[masterIndex].getIterationNumber()){
+                    switch (simplexThreads[masterIndex].getExceptionType()){
+                    case SimplexThread::OPTIMAL:
+                        throw *(static_cast<OptimalException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::PRIMAL_INFEASIBLE:
+                        throw *(static_cast<PrimalInfeasibleException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::PRIMAL_UNBOUNDED:
+                        throw *(static_cast<PrimalUnboundedException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::DUAL_INFEASIBLE:
+                        throw *(static_cast<DualInfeasibleException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::DUAL_UNBOUNDED:
+                        throw *(static_cast<DualUnboundedException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::NUMERICAL:
+                        throw *(static_cast<NumericalException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::FALLBACK:
+                        throw *(static_cast<FallbackException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    }
+                }
+            } else if (terminatedNumber == m_numberOfThreads){
+                masterIndex = terminatedMaxIndex;
+                //Throw the error exception if the basis was fresh
+                if(m_iterationIndex == simplexThreads[masterIndex].getIterationNumber()){
+                    switch (simplexThreads[masterIndex].getExceptionType()){
+                    case SimplexThread::OPTIMAL:
+                        throw *(static_cast<OptimalException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::PRIMAL_INFEASIBLE:
+                        throw *(static_cast<PrimalInfeasibleException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::PRIMAL_UNBOUNDED:
+                        throw *(static_cast<PrimalUnboundedException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::DUAL_INFEASIBLE:
+                        throw *(static_cast<DualInfeasibleException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::DUAL_UNBOUNDED:
+                        throw *(static_cast<DualUnboundedException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::NUMERICAL:
+                        throw *(static_cast<NumericalException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    case SimplexThread::FALLBACK:
+                        throw *(static_cast<FallbackException*>(simplexThreads[masterIndex].getException()));
+                        break;
+                    }
+                }
+            } else {
+                if(maxPhase2Index == -1){
+                    //All threads are in phase 1
+                    masterIndex = maxPhase1Index;
+                } else {
+                    //At least on thread is in phase 2
+                    masterIndex = maxPhase2Index;
+                }
+            }
+            LPINFO("master: "<<masterIndex);
+            m_iterationIndex = simplexThreads[masterIndex].getIterationNumber();
         }
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
@@ -614,37 +746,64 @@ void SimplexController::parallelSolve(const Model &model)
         LPERROR("Unknown exception");
     }
     sm_solveTimer.stop();
-    writeSolutionReport();
 
+    for(int i=0; i<m_numberOfThreads; i++){
+        iterationReports[i]->createSolutionReport();
+        iterationReports[i]->writeSolutionReport();
+        if(m_enableExport){
+            iterationReports[i]->createExportReport();
+            iterationReports[i]->writeExportReport(m_exportFilename);
+        }
+        delete iterationReports[i];
+        iterationReports[i] = nullptr;
+    }
+
+    m_basis->releaseThread();
+    ThreadSupervisor::unregisterMyThread();
 }
 
-void SimplexController::switchAlgorithm(const Model &model)
+void SimplexController::parallelSequentialSolve(const Model *model) {
+#ifndef CLASSIC_NEW_DELETE
+    MemoryManager::startParallel();
+#endif
+    SimplexController* wrapper = new SimplexController();
+    ThreadSupervisor::registerMyThread();
+    InitPanOpt::threadInit();
+
+    wrapper->sequentialSolve(*model);
+
+    InitPanOpt::threadRelease();
+    ThreadSupervisor::unregisterMyThread();
+    delete wrapper;
+}
+
+void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)
 {
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
         m_primalSimplex = new PrimalSimplex(m_basis);
         m_primalSimplex->setModel(model);
-        m_primalSimplex->setIterationReport(m_iterationReport);
+        m_primalSimplex->setIterationReport(iterationReport);
         m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
         m_dualSimplex = new DualSimplex(m_basis);
         m_dualSimplex->setModel(model);
-        m_dualSimplex->setIterationReport(m_iterationReport);
+        m_dualSimplex->setIterationReport(iterationReport);
         m_dualSimplex->initModules();
     }
     //Primal->Dual
     if (m_currentAlgorithm == Simplex::PRIMAL){
-        m_iterationReport->removeIterationProvider(*m_currentSimplex);
+        iterationReport->removeIterationProvider(*m_currentSimplex);
         m_currentSimplex = m_dualSimplex;
-        m_iterationReport->addProviderForIteration(*m_currentSimplex);
+        iterationReport->addProviderForIteration(*m_currentSimplex);
         m_currentSimplex->setSimplexState(*m_primalSimplex);
         m_currentAlgorithm = Simplex::DUAL;
         //Dual->Primal
     }else{
-        m_iterationReport->removeIterationProvider(*m_currentSimplex);
+        iterationReport->removeIterationProvider(*m_currentSimplex);
         m_currentSimplex = m_primalSimplex;
-        m_iterationReport->addProviderForIteration(*m_currentSimplex);
+        iterationReport->addProviderForIteration(*m_currentSimplex);
         m_currentSimplex->setSimplexState(*m_dualSimplex);
         m_currentAlgorithm = Simplex::PRIMAL;
     }

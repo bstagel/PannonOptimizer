@@ -342,7 +342,7 @@ void SparseVector::set(unsigned int index, Numerical::Double value)
     }
     if (nonZeroIndex < m_nonZeros) {
         if (value == 0.0) {
-            m_data[nonZeroIndex] = m_data[m_nonZeros];
+            m_data[nonZeroIndex] = m_data[m_nonZeros-1];
             m_nonZeros--;
         } else {
             m_data[nonZeroIndex] = value;
