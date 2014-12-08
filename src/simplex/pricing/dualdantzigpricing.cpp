@@ -34,7 +34,6 @@ int DualDantzigPricing::performPricingPhase1() {
     m_outgoingIndex = -1;
     unsigned int index;
     m_phase1Simpri.start();
-
     while (m_phase1Simpri.getCandidateIndex(&index) ) {
         if ( m_used[index] == true ) {
             continue;

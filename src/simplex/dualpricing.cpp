@@ -136,7 +136,6 @@ void DualPricing::initPhase1() {
     }
 
     m_basis.Ftran(temp);
-
     clearPhase1ReducedCosts();
     DenseVector::NonzeroIterator vectorIter = temp.beginNonzero();
     DenseVector::NonzeroIterator vectorIterEnd = temp.endNonzero();

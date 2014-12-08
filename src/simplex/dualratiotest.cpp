@@ -19,7 +19,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_reducedCosts(reducedCosts),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_variableStates(variableStates),
-    m_sigma(1),
+    m_sigma(0),
     m_incomingVariableIndex(-1),
     m_variableAge(model.getColumnCount() + model.getRowCount(),1),
     m_dualSteplength(0),
@@ -714,7 +714,6 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
     }else{
         generateSignedBreakpointsPhase2(alpha);
     }
-
     //Slope check should be enabled in debug mode
 #ifndef NDEBUG
     if (functionSlope < 0) {

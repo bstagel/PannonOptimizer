@@ -328,7 +328,6 @@ void DualSimplex::computeFeasibility() {
 void DualSimplex::price() {
 
     if(!m_feasible){
-
         m_outgoingIndex = m_pricing ? m_pricing->performPricingPhase1() : m_pricingController->performPricingPhase1() ;
         if(m_outgoingIndex == -1){
             throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
@@ -343,7 +342,6 @@ void DualSimplex::price() {
             }
         }
     }
-
 }
 
 void DualSimplex::selectPivot() {
