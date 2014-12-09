@@ -132,6 +132,18 @@ public:
 
     static IndexedDenseToIndexedDenseDotProductStable getIndexedDenseToIndexedDenseDotProductStable();
 
+    static AddDenseToDenseAbsRel getAddDenseToDenseAbsRelCache();
+
+    static AddDenseToDenseAbsRel getAddDenseToDenseAbsRelNoCache();
+
+    static AddDenseToDenseAbs getAddDenseToDenseAbsCache();
+
+    static AddDenseToDenseAbs getAddDenseToDenseAbsNoCache();
+
+    static AddDenseToDense getAddDenseToDenseCache();
+
+    static AddDenseToDense getAddDenseToDenseNoCache();
+
     static size_t getLargestCacheSize();
 
 protected:
@@ -151,6 +163,18 @@ protected:
     static IndexedDenseToIndexedDenseDotProductUnstable sm_indexedDenseToIndexedDenseDotProductUnstablePtr;
 
     static IndexedDenseToIndexedDenseDotProductStable sm_indexedDenseToIndexedDenseDotProductStablePtr;
+
+    static AddDenseToDenseAbsRel sm_addDenseToDenseAbsRelCachePtr;
+
+    static AddDenseToDenseAbsRel sm_addDenseToDenseAbsRelNoCachePtr;
+
+    static AddDenseToDenseAbs sm_addDenseToDenseAbsCachePtr;
+
+    static AddDenseToDenseAbs sm_addDenseToDenseAbsNoCachePtr;
+
+    static AddDenseToDense sm_addDenseToDenseCachePtr;
+
+    static AddDenseToDense sm_addDenseToDenseNoCachePtr;
 
     static size_t sm_largestCacheSize;
 

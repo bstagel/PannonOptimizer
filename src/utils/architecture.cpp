@@ -11,6 +11,12 @@ Architecture::DenseToSparseDotProductUnstable Architecture::sm_denseToSparseDotP
 Architecture::DenseToSparseDotProductStable Architecture::sm_denseToSparseDotProductStablePtr;
 Architecture::IndexedDenseToIndexedDenseDotProductUnstable Architecture::sm_indexedDenseToIndexedDenseDotProductUnstablePtr;
 Architecture::IndexedDenseToIndexedDenseDotProductStable Architecture::sm_indexedDenseToIndexedDenseDotProductStablePtr;
+Architecture::AddDenseToDenseAbsRel Architecture::sm_addDenseToDenseAbsRelCachePtr;
+Architecture::AddDenseToDenseAbsRel Architecture::sm_addDenseToDenseAbsRelNoCachePtr;
+Architecture::AddDenseToDenseAbs Architecture::sm_addDenseToDenseAbsCachePtr;
+Architecture::AddDenseToDenseAbs Architecture::sm_addDenseToDenseAbsNoCachePtr;
+Architecture::AddDenseToDense Architecture::sm_addDenseToDenseCachePtr;
+Architecture::AddDenseToDense Architecture::sm_addDenseToDenseNoCachePtr;
 
 size_t Architecture::sm_largestCacheSize;
 
@@ -22,12 +28,19 @@ Architecture::Architecture():
     sm_memCpyCachePtr = memcpy;
     sm_memCpyNoCachePtr = memcpy;
 
-    sm_denseToDenseDotProductUnstablePtr = denseToDenseDotProductUnstable;
-    sm_denseToSparseDotProductUnstablePtr = denseToSparseDotProductUnstable;
-    sm_denseToDenseDotProductStablePtr = denseToDenseDotProductStable;
-    sm_denseToSparseDotProductStablePtr = denseToSparseDotProductStable;
-    sm_indexedDenseToIndexedDenseDotProductUnstablePtr = indexedDenseToIndexedDenseDotProductUnstable;
-    sm_indexedDenseToIndexedDenseDotProductStablePtr = indexedDenseToIndexedDenseDotProductStable;
+    sm_denseToDenseDotProductUnstablePtr = ::denseToDenseDotProductUnstable;
+    sm_denseToSparseDotProductUnstablePtr = ::denseToSparseDotProductUnstable;
+    sm_denseToDenseDotProductStablePtr = ::denseToDenseDotProductStable;
+    sm_denseToSparseDotProductStablePtr = ::denseToSparseDotProductStable;
+    sm_indexedDenseToIndexedDenseDotProductUnstablePtr = ::indexedDenseToIndexedDenseDotProductUnstable;
+    sm_indexedDenseToIndexedDenseDotProductStablePtr = ::indexedDenseToIndexedDenseDotProductStable;
+
+    sm_addDenseToDenseAbsRelCachePtr = ::denseToDenseAddAbsRel;
+    sm_addDenseToDenseAbsRelNoCachePtr = ::denseToDenseAddAbsRel;
+    sm_addDenseToDenseAbsCachePtr = ::denseToDenseAddAbs;
+    sm_addDenseToDenseAbsNoCachePtr = ::denseToDenseAddAbs;
+    sm_addDenseToDenseCachePtr = ::denseToDenseAdd;
+    sm_addDenseToDenseNoCachePtr = ::denseToDenseAdd;
 }
 
 Architecture::~Architecture()
@@ -103,6 +116,36 @@ Architecture::IndexedDenseToIndexedDenseDotProductUnstable Architecture::getInde
 ArchitectureInterface::IndexedDenseToIndexedDenseDotProductStable Architecture::getIndexedDenseToIndexedDenseDotProductStable()
 {
     return sm_indexedDenseToIndexedDenseDotProductStablePtr;
+}
+
+ArchitectureInterface::AddDenseToDenseAbsRel Architecture::getAddDenseToDenseAbsRelCache()
+{
+    return sm_addDenseToDenseAbsRelCachePtr;
+}
+
+ArchitectureInterface::AddDenseToDenseAbsRel Architecture::getAddDenseToDenseAbsRelNoCache()
+{
+    return sm_addDenseToDenseAbsRelNoCachePtr;
+}
+
+ArchitectureInterface::AddDenseToDenseAbs Architecture::getAddDenseToDenseAbsCache()
+{
+    return sm_addDenseToDenseAbsCachePtr;
+}
+
+ArchitectureInterface::AddDenseToDenseAbs Architecture::getAddDenseToDenseAbsNoCache()
+{
+    return sm_addDenseToDenseAbsNoCachePtr;
+}
+
+ArchitectureInterface::AddDenseToDense Architecture::getAddDenseToDenseCache()
+{
+    return sm_addDenseToDenseCachePtr;
+}
+
+ArchitectureInterface::AddDenseToDense Architecture::getAddDenseToDenseNoCache()
+{
+    return sm_addDenseToDenseNoCachePtr;
 }
 
 size_t Architecture::getLargestCacheSize() {

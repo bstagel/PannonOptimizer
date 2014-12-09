@@ -57,7 +57,7 @@ void MessageHandler::addMessage(const std::string & message) {
         }
         std::cerr<<"] ";
     } else {
-        std::cerr<<DC_EMB DC_BGB "[" DC_EMW "INFO   ";
+        std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   ");
         if(m_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }

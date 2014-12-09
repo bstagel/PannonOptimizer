@@ -133,6 +133,26 @@ public:
                                        unsigned int nonzeros2,
                                        unsigned int tolerances);
 
+    typedef void (*AddDenseToDenseAbsRel)(const Numerical::Double * vec1,
+                                          const Numerical::Double * vec2,
+                                          Numerical::Double * result,
+                                          size_t count,
+                                          Numerical::Double lambda,
+                                          Numerical::Double absTolerance,
+                                          Numerical::Double relTolerance);
+
+    typedef void (*AddDenseToDenseAbs)(const Numerical::Double * vec1,
+                                       const Numerical::Double * vec2,
+                                       Numerical::Double * result,
+                                       size_t count,
+                                       Numerical::Double lambda,
+                                       Numerical::Double absTolerance);
+
+    typedef void (*AddDenseToDense)(const Numerical::Double * vec1,
+                                    const Numerical::Double * vec2,
+                                    Numerical::Double * result,
+                                    size_t count,
+                                    Numerical::Double lambda);
 
     /**
      * This type describes the type of a system cache.

@@ -11,7 +11,6 @@
 #include <simplex/dualpricing.h>
 #include <simplex/dualratiotest.h>
 #include <simplex/dualfeasibilitychecker.h>
-#include <simplex/dualpricingcontroller.h>
 
 /**
  * Describes a general dual simplex object, containing all members of the algorithm.
@@ -45,11 +44,6 @@ private:
      * The dual pricing determines an improving candidate (an outgoing variable, row).
      */
     DualPricing * m_pricing;
-
-    /**
-     * The dual pricing controller is needed for the parallel pricing framework.
-     */
-    DualPricingController * m_pricingController;
 
     /**
      * The dual feasibility checker can check the feasibility of the reduced costs.
