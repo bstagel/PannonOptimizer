@@ -338,6 +338,7 @@ void CoreTestSuite::denseToDenseAdd()
     unsigned int size;
 
     double * a = alloc<double, 32>(11);
+    double * a2 = alloc<double, 32>(11);
     double * b = alloc<double, 32>(11);
     double * c = alloc<double, 32>(11);
 
@@ -511,6 +512,243 @@ void CoreTestSuite::denseToDenseAdd()
         }
 
 
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        ::denseToDenseAddAbsRel(a, b, c, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        ::denseToDenseAddAbs(a, b, c, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAddAbs(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        ::denseToDenseAdd(a, b, c, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
+            if (c[i] != a[i] + b[i] * lambda) {
+                LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
+            }
+        }
+    }
+
+    a2[0] = 1; a2[1] = 0.001; a2[2] = 10000;
+    a2[3] = 4; a2[4] = 5; a2[5] = 6;
+    a2[6] = 7; a2[7] = 8; a2[8] = 9;
+    a2[9] = 10; a2[10] = 11;
+
+    for (size = 0; size <= 11; size++) {
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE(a, b, a, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAdd(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAdd(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAdd(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE(a, b, a, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAdd(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAdd(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAdd(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE(a, b, a, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAddAbs(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE(a, b, a, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAddAbs(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_SSE2_CACHE(a, b, a, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == a2[i] + b[i] * lambda);
+            if (a[i] != a2[i] + b[i] * lambda) {
+                LPERROR(a[i] << " != " << a2[i] + b[i] * lambda);
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_SSE2_NOCACHE(a, b, a, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == a2[i] + b[i] * lambda);
+            if (a[i] != a2[i] + b[i] * lambda) {
+                LPERROR(a[i] << " != " << a2[i] + b[i] * lambda);
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_CACHE(a, b, a, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAdd(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAdd(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAdd(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_NOCACHE(a, b, a, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAdd(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAdd(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAdd(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_AVX_CACHE(a, b, a, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAddAbs(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_ABS_AVX_NOCACHE(a, b, a, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAddAbs(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_AVX_CACHE(a, b, a, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == a2[i] + b[i] * lambda);
+            if (a[i] != a2[i] + b[i] * lambda) {
+                LPERROR(a[i] << " != " << a2[i] + b[i] * lambda);
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        DENSE_TO_DENSE_ADD_AVX_NOCACHE(a, b, a, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == a2[i] + b[i] * lambda);
+            if (a[i] != a2[i] + b[i] * lambda) {
+                LPERROR(a[i] << " != " << a2[i] + b[i] * lambda);
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        ::denseToDenseAddAbsRel(a, b, a, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAdd(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAdd(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAdd(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        ::denseToDenseAddAbs(a, b, a, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            if (a[i] != Numerical::stableAddAbs(a2[i], b[i] * lambda)) {
+                LPERROR(a[i] << " != " << Numerical::stableAddAbs(a2[i], b[i] * lambda));
+            }
+        }
+
+        a[0] = 1; a[1] = 0.001; a[2] = 10000;
+        a[3] = 4; a[4] = 5; a[5] = 6;
+        a[6] = 7; a[7] = 8; a[8] = 9;
+        a[9] = 10; a[10] = 11;
+
+        ::denseToDenseAdd(a, b, a, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(a[i] == a2[i] + b[i] * lambda);
+            if (a[i] != a2[i] + b[i] * lambda) {
+                LPERROR(a[i] << " != " << a2[i] + b[i] * lambda);
+            }
+        }
     }
 
     Numerical::AbsoluteTolerance = oldAbsTolerance;

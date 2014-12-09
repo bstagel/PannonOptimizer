@@ -371,27 +371,46 @@ void DenseVector::release()
 void DenseVector::addDenseToDenseFast(Numerical::Double lambda,
                                       const DenseVector &vector)
 {
-    unsigned int index;
+    /*unsigned int index;
     for (index = 0; index < vector.m_length; index++) {
         m_data[index] += vector.m_data[index] * lambda;
+    }*/
+    if (likely(m_length * sizeof(Numerical::Double) < Architecture::getLargestCacheSize() )) {
+        Architecture::getAddDenseToDenseCache()(m_data, vector.m_data, m_data, m_length, lambda);
+    } else {
+        Architecture::getAddDenseToDenseNoCache()(m_data, vector.m_data, m_data, m_length, lambda);
     }
 }
 
 void DenseVector::addDenseToDenseAbs(Numerical::Double lambda,
                                      const DenseVector &vector)
 {
-    unsigned int index;
+/*    unsigned int index;
     for (index = 0; index < vector.m_length; index++) {
         m_data[index] = Numerical::stableAddAbs(m_data[index], vector.m_data[index] * lambda);
+    }*/
+    if (likely(m_length * sizeof(Numerical::Double) < Architecture::getLargestCacheSize() )) {
+        Architecture::getAddDenseToDenseAbsCache()(m_data, vector.m_data, m_data, m_length, lambda,
+                                                   Numerical::AbsoluteTolerance);
+    } else {
+        Architecture::getAddDenseToDenseAbsNoCache()(m_data, vector.m_data, m_data, m_length, lambda,
+                                                     Numerical::AbsoluteTolerance);
     }
 }
 
 void DenseVector::addDenseToDenseAbsRel(Numerical::Double lambda,
                                         const DenseVector &vector)
 {
-    unsigned int index;
+/*    unsigned int index;
     for (index = 0; index < vector.m_length; index++) {
         m_data[index] = Numerical::stableAdd(m_data[index], vector.m_data[index] * lambda);
+    }*/
+    if (likely(m_length * sizeof(Numerical::Double) < Architecture::getLargestCacheSize() )) {
+        Architecture::getAddDenseToDenseAbsRelCache()(m_data, vector.m_data, m_data, m_length, lambda,
+                                                      Numerical::AbsoluteTolerance, Numerical::RelativeTolerance);
+    } else {
+        Architecture::getAddDenseToDenseAbsRelNoCache()(m_data, vector.m_data, m_data, m_length, lambda,
+                                                        Numerical::AbsoluteTolerance, Numerical::RelativeTolerance);
     }
 
 }
