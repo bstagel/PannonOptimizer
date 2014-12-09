@@ -158,7 +158,6 @@ HEADERS += include/debug.h \
     include/simplex/pricing.h \
     include/simplex/simplexcontroller.h \  
 	include/simplex/lubasis.h \
-    include/simplex/dualpricingcontroller.h \
     include/simplex/startingbasisfinder/sbf_structural.h \
     include/initpanopt.h \
     include/utils/primitives.h \
@@ -236,7 +235,6 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/pricing/dualsteepestedgepricing.cpp \
     src/simplex/simplexcontroller.cpp \
     src/simplex/lubasis.cpp \
-    src/simplex/dualpricingcontroller.cpp \
     src/simplex/startingbasisfinder/sbf_structural.cpp \
     src/initpanopt.cpp \
     src/utils/architecture.cpp \

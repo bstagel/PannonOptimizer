@@ -232,7 +232,6 @@ void DualSimplex::initModules() {
     Simplex::initModules();
 
     m_pricing = 0;
-    m_pricingController = 0;
     std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
     if (pricingType == "DANTZIG") {
         m_pricing = new DualDantzigPricing (m_basicVariableValues,
@@ -328,12 +327,12 @@ void DualSimplex::computeFeasibility() {
 void DualSimplex::price() {
 
     if(!m_feasible){
-        m_outgoingIndex = m_pricing ? m_pricing->performPricingPhase1() : m_pricingController->performPricingPhase1() ;
+        m_outgoingIndex = m_pricing->performPricingPhase1();
         if(m_outgoingIndex == -1){
             throw DualInfeasibleException("The problem is DUAL INFEASIBLE!");
         }
     } else {
-        m_outgoingIndex = m_pricing ? m_pricing->performPricingPhase2() : m_pricingController->performPricingPhase2();
+        m_outgoingIndex = m_pricing->performPricingPhase2();
         if(m_outgoingIndex == -1){
             if(m_pricing->hasLockedVariable()){
                 throw DualUnboundedException("The problem is DUAL UNBOUNDED!");
@@ -350,7 +349,7 @@ void DualSimplex::selectPivot() {
         computeTransformedRow();
 
         if(!m_feasible){
-            Numerical::Double reducedCost = m_pricing ? m_pricing->getReducedCost() : m_pricingController->getReducedCost();
+            Numerical::Double reducedCost = m_pricing->getReducedCost();
             m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue);
         } else {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_workingTolerance);
@@ -366,12 +365,8 @@ void DualSimplex::selectPivot() {
         if(m_incomingIndex == -1){
             //Ask for another row
             LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
-            if (m_pricing) {
-                m_askForAnotherRowCounter ++;
-                m_pricing->lockLastIndex();
-            } else {
-                m_pricingController->lockLastIndex();
-            }
+            m_askForAnotherRowCounter ++;
+            m_pricing->lockLastIndex();
             price();
         }
     }
@@ -405,7 +400,7 @@ void DualSimplex::update() {
 
     it = m_ratiotest->getBoundflips().begin();
     for(; it < itend; ++it){
-//                LPWARNING("BOUNDFLIPPING at: "<<*it);
+        //                LPWARNING("BOUNDFLIPPING at: "<<*it);
         DenseVector alpha(rowCount);
         if(*it < columnCount){
             alpha = m_simplexModel->getMatrix().column(*it);
@@ -523,15 +518,9 @@ void DualSimplex::update() {
 
         //Do some updates before the basis change
         //Update the pricing
-        if (m_pricing) {
-            m_pricing->update(m_incomingIndex, m_outgoingIndex,
-                              m_pivotColumn, m_pivotRow,
-                              m_pivotRowOfBasisInverse);
-        } else {
-            m_pricingController->update(m_incomingIndex, m_outgoingIndex,
-                                        m_pivotColumn, m_pivotRow,
-                                        m_pivotRowOfBasisInverse);
-        }
+        m_pricing->update(m_incomingIndex, m_outgoingIndex,
+                          m_pivotColumn, m_pivotRow,
+                          m_pivotRowOfBasisInverse);
 
         //Update the reduced costs
         updateReducedCosts();
@@ -563,9 +552,9 @@ void DualSimplex::update() {
     //Update the feasibility sets in phase I
     if(!m_feasible){
         computeFeasibility();
-//        m_feasibilityChecker->updateFeasibilities(m_ratiotest->getUpdateFeasibilitySets(),
-//                                                  m_ratiotest->getBecomesFeasible());
-//        Checker::checkFeasibilitySets(*this,true,m_workingTolerance);
+        //        m_feasibilityChecker->updateFeasibilities(m_ratiotest->getUpdateFeasibilitySets(),
+        //                                                  m_ratiotest->getBecomesFeasible());
+        //        Checker::checkFeasibilitySets(*this,true,m_workingTolerance);
     }
 
     checkReferenceObjective(secondPhase);
@@ -616,11 +605,7 @@ void DualSimplex::computeWorkingTolerance() {
 
 
 void DualSimplex::releaseLocks(){
-    if (m_pricing) {
-        m_pricing->releaseUsed();
-    } else {
-        m_pricingController->releaseUsed();
-    }
+    m_pricing->releaseUsed();
 }
 
 void DualSimplex::computeTransformedRow() {
@@ -649,24 +634,24 @@ void DualSimplex::computeTransformedRow() {
     LPINFO(diff.absMaxElement() << " " << otherRow.euclidNorm() << "  " << m_pivotRowOfBasisInverse.euclidNorm());
     cin.get();*/
 
-//    IndexList<const Numerical::Double *>::Iterator it;
-//    IndexList<const Numerical::Double *>::Iterator itEnd;
+    //    IndexList<const Numerical::Double *>::Iterator it;
+    //    IndexList<const Numerical::Double *>::Iterator itEnd;
 
-//    // columnwise version
-//    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
-//    for(; it != itEnd ; ++it){
-//        unsigned int columnIndex = it.getData();
-//        if(columnIndex < columnCount){
-//            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
-//            //Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
-//            Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
-//            //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
-//            m_pivotRow.set(columnIndex, dotProd);
-//        } else {
-//            m_pivotRow.set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
-//        }
-//    }
-//    m_pivotRow.set( m_basisHead[ m_outgoingIndex ], 1.0 );
+    //    // columnwise version
+    //    m_variableStates.getIterators(&it, &itEnd, Simplex::NONBASIC_AT_LB, Simplex::VARIABLE_STATE_ENUM_LENGTH-1);
+    //    for(; it != itEnd ; ++it){
+    //        unsigned int columnIndex = it.getData();
+    //        if(columnIndex < columnCount){
+    //            //LPINFO(m_pivotRowOfBasisInverse << "  " << m_simplexModel->getMatrix().column(columnIndex));
+    //            //Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+    //            Numerical::Double dotProd = m_pivotRowOfBasisInverse.dotProduct(m_simplexModel->getMatrix().column(columnIndex));
+    //            //Numerical::Double dotProd = m_simplexModel->getMatrix().column(columnIndex).dotProduct(m_pivotRowOfBasisInverse);
+    //            m_pivotRow.set(columnIndex, dotProd);
+    //        } else {
+    //            m_pivotRow.set(columnIndex, m_pivotRowOfBasisInverse.at(columnIndex - columnCount));
+    //        }
+    //    }
+    //    m_pivotRow.set( m_basisHead[ m_outgoingIndex ], 1.0 );
 
     /////////////////////////////////////////
     /*Vector otherAlpha(rowCount + columnCount);
@@ -720,7 +705,7 @@ void DualSimplex::computeTransformedRow() {
             m_pivotRow.set(index, result);
         }
     }
-//    m_pivotRow->set( m_basisHead[ m_outgoingIndex ], 1.0 );
+    //    m_pivotRow->set( m_basisHead[ m_outgoingIndex ], 1.0 );
 }
 
 void DualSimplex::updateReducedCosts() {
@@ -733,7 +718,7 @@ void DualSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
     if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-//        LPINFO("Resetting EXPAND tolerance!");
+        //        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

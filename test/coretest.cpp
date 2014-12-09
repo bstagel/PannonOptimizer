@@ -332,54 +332,6 @@ void CoreTestSuite::denseToSparseDotProduct() {
 
 }
 
-extern "C" void _denseToDenseAddAbsRelAVX_cache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda,
-        double absTolerance,
-        double relTolerance);
-
-extern "C" void _denseToDenseAddAbsRelAVX_nocache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda,
-        double absTolerance,
-        double relTolerance);
-
-extern "C" void _denseToDenseAddAbsAVX_cache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda,
-        double absTolerance);
-
-extern "C" void _denseToDenseAddAbsAVX_nocache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda,
-        double absTolerance);
-
-extern "C" void _denseToDenseAddAVX_cache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda);
-
-extern "C" void _denseToDenseAddAVX_nocache_64_linux(
-        const double * a,
-        const double * b,
-        const double * c,
-        unsigned int count,
-        double lambda);
-
 void CoreTestSuite::denseToDenseAdd()
 {
     unsigned int i;
@@ -418,8 +370,7 @@ void CoreTestSuite::denseToDenseAdd()
             c[i] = nan;
         }
 
-        _denseToDenseAddAbsRelAVX_nocache_64_linux(a, b, c, size, lambda, absTolerance, relTolerance);
-        //DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE(a, b, c, size, lambda, absTolerance, relTolerance);
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE(a, b, c, size, lambda, absTolerance, relTolerance);
         for (i = 0; i < size; i++) {
             TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
             if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
@@ -443,8 +394,7 @@ void CoreTestSuite::denseToDenseAdd()
             c[i] = nan;
         }
 
-        _denseToDenseAddAbsAVX_nocache_64_linux(a, b, c, size, lambda, absTolerance);
-        //DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE(a, b, c, size, lambda, absTolerance);
+        DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE(a, b, c, size, lambda, absTolerance);
         for (i = 0; i < size; i++) {
             TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
             if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
@@ -468,8 +418,7 @@ void CoreTestSuite::denseToDenseAdd()
             c[i] = nan;
         }
 
-        _denseToDenseAddAVX_nocache_64_linux(a, b, c, size, lambda);
-        //DENSE_TO_DENSE_ADD_SSE2_CACHE(a, b, c, size, lambda);
+        DENSE_TO_DENSE_ADD_SSE2_CACHE(a, b, c, size, lambda);
         for (i = 0; i < size; i++) {
             TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
             if (c[i] != a[i] + b[i] * lambda) {
@@ -488,6 +437,79 @@ void CoreTestSuite::denseToDenseAdd()
                 LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
             }
         }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_CACHE(a, b, c, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_NOCACHE(a, b, c, size, lambda, absTolerance, relTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_AVX_CACHE(a, b, c, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAddAbs(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_ABS_AVX_NOCACHE(a, b, c, size, lambda, absTolerance);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == Numerical::stableAddAbs(a[i], b[i] * lambda));
+            if (c[i] != Numerical::stableAddAbs(a[i], b[i] * lambda)) {
+                LPERROR(c[i] << " != " << Numerical::stableAddAbs(a[i], b[i] * lambda));
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_AVX_CACHE(a, b, c, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
+            if (c[i] != a[i] + b[i] * lambda) {
+                LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
+            }
+        }
+
+        for (i = 0; i < 11; i++) {
+            c[i] = nan;
+        }
+
+        DENSE_TO_DENSE_ADD_AVX_NOCACHE(a, b, c, size, lambda);
+        for (i = 0; i < size; i++) {
+            TEST_ASSERT(c[i] == a[i] + b[i] * lambda);
+            if (c[i] != a[i] + b[i] * lambda) {
+                LPERROR(c[i] << " != " << a[i] + b[i] * lambda);
+            }
+        }
+
 
     }
 

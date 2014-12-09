@@ -36,6 +36,7 @@ void ArchitectureX86::detect() {
 void ArchitectureX86::setPrimitives() {
     setMemcpy();
     setDotProduct();
+    setAdd();
 }
 
 void ArchitectureX86::setMemcpy() {
@@ -63,6 +64,26 @@ void ArchitectureX86::setDotProduct() {
         sm_denseToDenseDotProductUnstablePtr = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2;
         sm_denseToSparseDotProductUnstablePtr = DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2;
         sm_denseToSparseDotProductStablePtr = DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2;
+    }
+#endif
+}
+
+void ArchitectureX86::setAdd() {
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+    if (featureExists("AVX")) {
+        sm_addDenseToDenseAbsRelCachePtr = DENSE_TO_DENSE_ADD_ABS_REL_AVX_CACHE;
+        sm_addDenseToDenseAbsRelNoCachePtr = DENSE_TO_DENSE_ADD_ABS_REL_AVX_NOCACHE;
+        sm_addDenseToDenseAbsCachePtr = DENSE_TO_DENSE_ADD_ABS_AVX_CACHE;
+        sm_addDenseToDenseAbsNoCachePtr = DENSE_TO_DENSE_ADD_ABS_AVX_NOCACHE;
+        sm_addDenseToDenseCachePtr = DENSE_TO_DENSE_ADD_AVX_CACHE;
+        sm_addDenseToDenseNoCachePtr = DENSE_TO_DENSE_ADD_AVX_NOCACHE;
+    } else if (featureExists("SSE2")) {
+        sm_addDenseToDenseAbsRelCachePtr = DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE;
+        sm_addDenseToDenseAbsRelNoCachePtr = DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE;
+        sm_addDenseToDenseAbsCachePtr = DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE;
+        sm_addDenseToDenseAbsNoCachePtr = DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE;
+        sm_addDenseToDenseCachePtr = DENSE_TO_DENSE_ADD_SSE2_CACHE;
+        sm_addDenseToDenseNoCachePtr = DENSE_TO_DENSE_ADD_SSE2_NOCACHE;
     }
 #endif
 }
