@@ -164,13 +164,17 @@ void DualSteepestEdgePricing::update(int incomingIndex,
         for (index = 0; index < rowCount; index++) {
             if (m_shadowBasisHead[index] != m_basisHead[index]) {
                 unsigned int variableIndex = m_basisHead[index];
-                newWeights[index] = m_weights[ m_basisPositions[variableIndex] ];
+                if (m_isBasicVariable[variableIndex] != 1) {
+                    m_recomuteIndices.push_back(index);
+                } else {
+                    newWeights[index] = m_weights[ m_basisPositions[variableIndex] ];
+                }
                 m_basisPositions[variableIndex] = index;
             }
         }
         m_weights = newWeights;
         m_shadowBasisHead = m_basisHead;
-
+        checkAndFix();
     }
 
     unsigned int index;
@@ -210,6 +214,11 @@ void DualSteepestEdgePricing::update(int incomingIndex,
     m_basisPositions[incomingIndex] = outgoingIndex;
     m_shadowBasisHead[outgoingIndex] = incomingIndex;
 
+    // this variable leaves the basis
+    m_isBasicVariable[ m_basisHead[outgoingIndex] ] = 0;
+    // this variable enters the basis
+    m_isBasicVariable[ incomingIndex ] = 1;
+
 }
 
 void DualSteepestEdgePricing::checkAndFix()
@@ -238,6 +247,7 @@ void DualSteepestEdgePricing::initWeights() {
     m_shadowBasisHead = m_basisHead;
     m_basisPositions.resize(rowCount + columnCount);
     m_updateCounters.resize(rowCount + columnCount, 0);
+    m_isBasicVariable.resize(rowCount + columnCount, 0);
     unsigned int index;
     DenseVector row(rowCount);
     for (index = 0; index < rowCount; index++) {
@@ -249,6 +259,7 @@ void DualSteepestEdgePricing::initWeights() {
 
         unsigned int variableIndex = m_basisHead[index];
         m_basisPositions[variableIndex] = index;
+        m_isBasicVariable[variableIndex] = 1;
 
     }
     m_weightsReady = true;
