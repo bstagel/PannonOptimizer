@@ -516,6 +516,7 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 void DualRatiotest::generateExpandedBreakpointsPhase2(const DenseVector &alpha,
                                                       Numerical::Double workingTolerance)
 {
+
     //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
