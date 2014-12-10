@@ -1056,3 +1056,130 @@ end_denseToDenseAddAVX_nocache_64_linux:
 mov     rsp, rbp
 pop     rbp
 ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sparse to dense
+;; Uses cache
+;; SSE2
+;; Absolute and relative tolerances
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+global _sparseToDenseAddAbsRelSSE2_cache_64_linux
+_sparseToDenseAddAbsRelSSE2_cache_64_linux:
+
+push    rbp
+mov     rbp, rsp
+push    rbx
+push    r9
+
+mov     rbx, 0
+
+; rdi: address1 (dense)
+; rsi: address2 (sparse)
+; rdx: result address (dense)
+; rcx: sparse count
+; r8:  sparse index address
+; xmm0: lambda
+; xmm1: absTolerance
+; xmm2: relTolerance
+
+mov     rax, rcx
+shr     rcx, 1
+and     rax, 0x01
+
+movupd  xmm5, [abs_mask]
+shufpd  xmm1, xmm1, 00b
+shufpd  xmm2, xmm2, 00b
+movupd  xmm4, xmm2
+movupd  xmm6, xmm1
+shufpd  xmm0, xmm0, 00b
+movupd  xmm7, xmm0
+
+cmp     rcx, 0
+je      after_loop_sparseToDenseAddAbsRelSSE2_cache_64_linux
+
+start_sparseToDenseAddAbsRelSSE2_cache_64_linux:
+
+;movapd  xmm0, [rdi] ; a
+
+mov     ebx,  [r8]
+movlpd  xmm0, [rdi + rbx * 8]
+mov     r9,   rbx
+mov     ebx,  [r8 + 4]
+movhpd  xmm0, [rdi + rbx * 8]
+
+movapd  xmm1, [rsi] ; b
+mulpd   xmm1, xmm7  ; b = lambda * b
+movapd  xmm2, xmm0
+addpd   xmm2, xmm1  ; xmm2 = c = a + b
+movapd  xmm3, xmm2  ; xmm3 = c
+andpd   xmm3, xmm5  ; xmm3 = |c|
+andpd   xmm0, xmm5  ; xmm0 = |a|
+andpd   xmm1, xmm5  ; xmm1 = |b|
+addpd   xmm0, xmm1  ; xmm0 = |a| + |b|
+mulpd   xmm0, xmm4
+cmppd   xmm0, xmm3, 1
+; |a| + |b| * mul < |c|
+;    c is unchanged
+; else
+;    c = 0.0
+andpd   xmm2, xmm0
+; abs tolerance
+movapd  xmm0, xmm2  ; result in xmm2
+andpd   xmm0, xmm5  ; absolute value of the result in xmm0
+cmppd   xmm0, xmm6, 0xD ; absolute tolerance
+andpd   xmm2, xmm0
+
+movhpd  [rdx + rbx * 8], xmm0
+mov     rbx, r9
+movlpd  [rdx + rbx * 8], xmm0
+
+;movapd  [rdx], xmm2
+
+add     rdi, 16
+add     rsi, 16
+add     rdx, 16
+add     r8, 8
+
+loop    start_sparseToDenseAddAbsRelSSE2_cache_64_linux
+
+after_loop_sparseToDenseAddAbsRelSSE2_cache_64_linux:
+
+cmp     rax, 0
+je      end_sparseToDenseAddAbsRelSSE2_cache_64_linux
+
+;movlpd  xmm0, [rdi] ; a
+mov     ebx,  [r8]
+movlpd  xmm0, [rdi + rbx * 8]
+
+movlpd  xmm1, [rsi] ; b
+mulsd   xmm1, xmm7  ; b = lambda * b
+movapd  xmm2, xmm0
+addsd   xmm2, xmm1  ; xmm2 = c = a + b
+movapd  xmm3, xmm2  ; xmm3 = c
+andpd   xmm3, xmm5  ; xmm3 = |c|
+andpd   xmm0, xmm5  ; xmm0 = |a|
+andpd   xmm1, xmm5  ; xmm1 = |b|
+addsd   xmm0, xmm1  ; xmm0 = |a| + |b|
+mulsd   xmm0, xmm4
+cmpsd   xmm0, xmm3, 1
+; |a| + |b| * mul < |c|
+;    c is unchanged
+; else
+;    c = 0.0
+andpd   xmm2, xmm0
+; abs tolerance
+movapd  xmm0, xmm2  ; result in xmm2
+andpd   xmm0, xmm5  ; absolute value of the result in xmm0
+cmpsd   xmm0, xmm6, 0xD ; absolute tolerance
+andpd   xmm2, xmm0
+;movlpd  [rdx], xmm2
+movlpd  [rdx + rbx * 8], xmm0
+
+end_sparseToDenseAddAbsRelSSE2_cache_64_linux:
+
+pop     r9
+pop     rbx
+mov     rsp, rbp
+pop     rbp
+ret
