@@ -355,11 +355,11 @@ void SimplexController::sequentialSolve(const Model &model)
                 }
                 reinversionCounter++;
 
-                m_freshBasis = false;
                 m_iterationIndex++;
                 if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
                     iterationReport->writeIterationReport();
                 }
+                m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
                 m_currentSimplex->reinvert();
@@ -682,7 +682,7 @@ void SimplexController::parallelSolve(const Model &model)
                     masterIndex = maxPhase2Index;
                 }
             }
-//            LPINFO("master: "<<masterIndex);
+            LPINFO("master: "<<masterIndex);
             m_iterationIndex = simplexThreads[masterIndex].getIterationNumber();
         }
     } catch ( const ParameterException & exception ) {

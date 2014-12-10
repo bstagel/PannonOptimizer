@@ -37,7 +37,7 @@ const static char * EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER = "export_ask_for_another
 
 DualSimplex::DualSimplex(Basis *basis):
     Simplex(basis),
-    m_pricing(0),
+    m_pricing(nullptr),
     m_feasibilityChecker(0),
     m_ratiotest(0),
     m_askForAnotherRowCounter(0)
@@ -231,45 +231,6 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
 void DualSimplex::initModules() {
     Simplex::initModules();
 
-    m_pricing = 0;
-    std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
-    if (pricingType == "DANTZIG") {
-        m_pricing = new DualDantzigPricing (m_basicVariableValues,
-                                            &m_basicVariableFeasibilities,
-                                            m_reducedCostFeasibilities,
-                                            m_basisHead,
-                                            *m_simplexModel,
-                                            *m_basis);
-
-    }
-    if (pricingType == "DEVEX") {
-        m_pricing = new DualDevexPricing (m_basicVariableValues,
-                                          &m_basicVariableFeasibilities,
-                                          m_reducedCostFeasibilities,
-                                          m_basisHead,
-                                          *m_simplexModel,
-                                          *m_basis);
-    }
-    if (pricingType == "STEEPEST_EDGE") {
-        m_pricing = new DualSteepestEdgePricing (m_basicVariableValues,
-                                                 &m_basicVariableFeasibilities,
-                                                 m_reducedCostFeasibilities,
-                                                 m_basisHead,
-                                                 *m_simplexModel,
-                                                 *m_basis);
-    }
-    /*case 10:
-        m_pricingController = new DualPricingController (m_basicVariableValues,
-                                                         &m_basicVariableFeasibilities,
-                                                         m_reducedCostFeasibilities,
-                                                         m_basisHead,
-                                                         *m_simplexModel,
-                                                         *m_basis);
-        break;
-    }*/
-
-    Simplex::m_pricing = m_pricing;
-
     m_feasibilityChecker = new DualFeasibilityChecker(*m_simplexModel,
                                                       &m_variableStates,
                                                       &m_reducedCostFeasibilities,
@@ -325,6 +286,38 @@ void DualSimplex::computeFeasibility() {
 }
 
 void DualSimplex::price() {
+    if(m_pricing == nullptr){
+        LPINFO("INIT PRICING");
+        std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
+
+        if (pricingType == "DANTZIG") {
+            m_pricing = new DualDantzigPricing (m_basicVariableValues,
+                                                &m_basicVariableFeasibilities,
+                                                m_reducedCostFeasibilities,
+                                                m_basisHead,
+                                                *m_simplexModel,
+                                                *m_basis);
+
+        }
+        if (pricingType == "DEVEX") {
+            m_pricing = new DualDevexPricing (m_basicVariableValues,
+                                              &m_basicVariableFeasibilities,
+                                              m_reducedCostFeasibilities,
+                                              m_basisHead,
+                                              *m_simplexModel,
+                                              *m_basis);
+        }
+        if (pricingType == "STEEPEST_EDGE") {
+            m_pricing = new DualSteepestEdgePricing (m_basicVariableValues,
+                                                     &m_basicVariableFeasibilities,
+                                                     m_reducedCostFeasibilities,
+                                                     m_basisHead,
+                                                     *m_simplexModel,
+                                                     *m_basis);
+        }
+
+        Simplex::m_pricing = m_pricing;
+    }
 
     if(!m_feasible){
         m_outgoingIndex = m_pricing->performPricingPhase1();
@@ -603,7 +596,9 @@ void DualSimplex::computeWorkingTolerance() {
 
 
 void DualSimplex::releaseLocks(){
-    m_pricing->releaseUsed();
+    if(m_pricing != nullptr){
+        m_pricing->releaseUsed();
+    }
 }
 
 void DualSimplex::computeTransformedRow() {

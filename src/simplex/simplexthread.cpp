@@ -34,7 +34,7 @@ void SimplexThread::performIterations(Basis* basis, IterationReport* iterationRe
 
             ++m_iterationNumber;
 
-            if(m_debugLevel>1 || (m_debugLevel==1 && m_iterationNumber == mainIterations)){
+            if(m_debugLevel>1 || (m_debugLevel==1 && m_iterationNumber-1 == mainIterations)){
                 iterationReport->writeIterationReport();
             }
 //            LPINFO("m_iterationNumber "<<m_iterationNumber<<" - "<<ThreadSupervisor::getThreadId());

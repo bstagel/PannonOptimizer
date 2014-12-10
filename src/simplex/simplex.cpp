@@ -563,8 +563,6 @@ void Simplex::findStartingBasis()
     }
     if (m_pricing) {
         m_pricing->init();
-    } else {
-        // TODO: pricingcontroller!!!!!!
     }
 }
 
