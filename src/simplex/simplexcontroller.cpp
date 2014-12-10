@@ -363,11 +363,9 @@ void SimplexController::sequentialSolve(const Model &model)
             } catch ( const FallbackException & exception ) {
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
                 m_currentSimplex->reinvert();
-                m_iterationIndex--;
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
                 //Check the result with triggering reinversion
-                m_iterationIndex--;
                 if(m_freshBasis){
                     throw;
                 } else {
@@ -380,7 +378,6 @@ void SimplexController::sequentialSolve(const Model &model)
                 } else {
                     LPINFO("Numerical error: "<<exception.getMessage());
                     reinversionCounter = reinversionFrequency;
-                    m_iterationIndex--;
                 }
             }
         }
@@ -759,6 +756,8 @@ void SimplexController::parallelSolve(const Model &model)
     }
 
     for(int i=0; i<m_numberOfThreads; i++){
+        delete simplexes[i];
+        simplexes[i] = nullptr;
         delete iterationReports[i];
         iterationReports[i] = nullptr;
     }

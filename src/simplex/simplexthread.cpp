@@ -84,9 +84,10 @@ void SimplexThread::performIterations(Basis* basis, IterationReport* iterationRe
 //            LPINFO("FALLBACK "<<ThreadSupervisor::getThreadId());
             --m_iterationNumber;
             break;
-        } catch (...){
+        } /*catch (...){
             LPINFO("Something wrong at thread: "<<ThreadSupervisor::getThreadId());
-        }
+            break;
+        }*/
     }
     basis->releaseThread();
     InitPanOpt::threadRelease();

@@ -383,7 +383,7 @@ void Simplex::setSimplexState(const Simplex & simplex)
     }
     temp.clear();
     //NONBASIC_AT_FREE
-    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_AT_UB);
+    simplex.m_variableStates.getIterators(&it,&endit,NONBASIC_FREE);
     for(;it != endit; ++it){
         temp.push_back(it.getData());
     }
@@ -587,7 +587,11 @@ void Simplex::releaseModules() {
 
 void Simplex::saveBasis(int iterationIndex, int threadIndex)
 {
-    if ((iterationIndex == m_saveIteration) ||
+    //Iteration index is incremented if an iteration is successful
+    //Basis is saved at the beginning of an iteration
+    //This correction shifts the first index to iteration index 1
+    iterationIndex++;
+    if ((iterationIndex  == m_saveIteration) ||
             (m_savePeriodically != 0 && ((iterationIndex % m_savePeriodically) == 0) )){
         LPERROR("Saving basis "<<iterationIndex);
         stringstream numStream;

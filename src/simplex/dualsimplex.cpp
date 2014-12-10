@@ -347,7 +347,6 @@ void DualSimplex::selectPivot() {
     m_incomingIndex = -1;
     while(m_incomingIndex == -1 ){
         computeTransformedRow();
-
         if(!m_feasible){
             Numerical::Double reducedCost = m_pricing->getReducedCost();
             m_ratiotest->performRatiotestPhase1(m_pivotRow, reducedCost, m_phaseIObjectiveValue);
@@ -355,7 +354,6 @@ void DualSimplex::selectPivot() {
             m_ratiotest->performRatiotestPhase2(m_basisHead[m_outgoingIndex], m_pivotRow, m_workingTolerance);
         }
         m_incomingIndex = m_ratiotest->getIncomingVariableIndex();
-
         //If a boundflip is found, perform it
         if(m_feasible && !m_ratiotest->getBoundflips().empty()){
             break;
