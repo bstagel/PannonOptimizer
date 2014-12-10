@@ -524,9 +524,9 @@ const Parameter &SimplexParameterHandler::getParameter(const std::string &name) 
 {
     if (m_enableParallelization && m_threadParameters.size()>0) {
         unsigned int threadId = ThreadSupervisor::getThreadId();
-        if(m_threadParameters.size() < threadId){
-            auto iter = m_threadParameters[threadId].find(name);
-            if (iter != m_threadParameters[threadId].end()) {
+        if(m_threadParameters.size() > threadId-1 && threadId > 0){
+            auto iter = m_threadParameters[threadId-1].find(name);
+            if (iter != m_threadParameters[threadId-1].end()) {
                 return iter->second;
             }
         }
@@ -542,9 +542,9 @@ Parameter &SimplexParameterHandler::getParameter(const std::string & name)
 {
     if (m_enableParallelization && m_threadParameters.size()>0) {
         unsigned int threadId = ThreadSupervisor::getThreadId();
-        if(m_threadParameters.size() < threadId){
-            auto iter = m_threadParameters[threadId].find(name);
-            if (iter != m_threadParameters[threadId].end()) {
+        if(m_threadParameters.size() > threadId-1 && threadId > 0){
+            auto iter = m_threadParameters[threadId-1].find(name);
+            if (iter != m_threadParameters[threadId-1].end()) {
                 return iter->second;
             }
         }

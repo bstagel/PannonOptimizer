@@ -9,12 +9,17 @@
 #include <cstdlib>
 
 std::mutex GeneralMessageHandler::sm_outputMutex;
+bool GeneralMessageHandler::sm_enableParallelization = false;
 
 GeneralMessageHandler::GeneralMessageHandler():
-    m_colors(true),
-    m_enableParallelization(SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization"))
+    m_colors(true)
 {
 
+}
+
+void GeneralMessageHandler::_globalInit()
+{
+    sm_enableParallelization = SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization");
 }
 
 void GeneralMessageHandler::enableColors() {
@@ -31,7 +36,7 @@ bool GeneralMessageHandler::isColored() const {
 
 void ReportHandler::addMessage(const std::string & message) {
     GeneralMessageHandler::getMutex().lock();
-    if(m_enableParallelization){
+    if(sm_enableParallelization){
         std::cerr << "[REPORT  <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">] " << message << std::endl;
     } else {
         std::cerr << "[REPORT ] " << message << std::endl;
@@ -40,7 +45,7 @@ void ReportHandler::addMessage(const std::string & message) {
 }
 
 void ReportHandler::addMessage(const std::string & message, std::ostringstream & stringstream) {
-    if(m_enableParallelization){
+    if(sm_enableParallelization){
         stringstream << "[REPORT  <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">] " << message << std::endl;
     } else {
         stringstream << "[REPORT ] " << message << std::endl;
@@ -52,13 +57,13 @@ void MessageHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[INFO   ";
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<"] ";
     } else {
         std::cerr<<(DC_EMB DC_BGB "[" DC_EMW "INFO   ");
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<( DC_EMB "]" DC_D );
@@ -66,7 +71,7 @@ void MessageHandler::addMessage(const std::string & message) {
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
     if ( getenv("ECLIPSE") || m_colors == false) {
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << "[INFO    <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">]" << message << std::endl;
         } else {
             std::cerr << "[INFO   ] " << message << std::endl;
@@ -77,7 +82,7 @@ void MessageHandler::addMessage(const std::string & message) {
             std::cerr << "[";
             SetConsoleTextAttribute(hConsole, 31);
             std::cerr << "INFO   ";
-            if(m_enableParallelization){
+            if(sm_enableParallelization){
                 std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
             }
             SetConsoleTextAttribute(hConsole, 25);
@@ -95,13 +100,13 @@ void WarningHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[WARNING";
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<"] ";
     } else {
         std::cerr<<(DC_EMY DC_BGY "[" DC_EMW "WARNING");
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<(DC_EMY "]" DC_D);
@@ -109,7 +114,7 @@ void WarningHandler::addMessage(const std::string & message) {
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << "[WARNING <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">] " << message << std::endl;
         } else {
             std::cerr << "[WARNING] " << message << std::endl;
@@ -119,7 +124,7 @@ void WarningHandler::addMessage(const std::string & message) {
         std::cerr << "[";
         SetConsoleTextAttribute(hConsole, 111);
         std::cerr << "WARNING";
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         SetConsoleTextAttribute(hConsole, 110);
@@ -136,13 +141,13 @@ void ErrorHandler::addMessage(const std::string & message) {
 #if COLORFLAGS != WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
         std::cerr<<"[ERROR  ";
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<"] ";
     } else {
         std::cerr<<(DC_EMR DC_BGR "[" DC_EMW "ERROR  ");
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         std::cerr<<( DC_EMR "]" DC_D );
@@ -150,7 +155,7 @@ void ErrorHandler::addMessage(const std::string & message) {
     std::cerr << message << std::endl;
 #else // WINDOWSCOLOR
     if (getenv("ECLIPSE") || m_colors == false) {
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << "[ERROR   <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">]" << message << std::endl;
         } else {
             std::cerr << "[ERROR  ] " << message << std::endl;
@@ -160,7 +165,7 @@ void ErrorHandler::addMessage(const std::string & message) {
         std::cerr << "[";
         SetConsoleTextAttribute(hConsole, 79);
         std::cerr << "ERROR  ";
-        if(m_enableParallelization){
+        if(sm_enableParallelization){
             std::cerr << " <" << std::setw(2) << ThreadSupervisor::getThreadId() << ">";
         }
         SetConsoleTextAttribute(hConsole, 76);

@@ -56,7 +56,6 @@ void InitPanOpt::init() {
     SET_FPU_TO_64();
 
     D::init();
-
     sm_instance = new InitPanOpt();
 
     ThreadSupervisor::_globalInit();
@@ -66,6 +65,7 @@ void InitPanOpt::init() {
     IndexedDenseVector::_globalInit();
     DenseVector::_globalInit();
     SparseVector::_globalInit();
+    GeneralMessageHandler::_globalInit();
 
 #ifdef PLATFORM_X86
     sm_architecture = new ArchitectureX86;

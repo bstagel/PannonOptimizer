@@ -68,15 +68,18 @@ public:
      */
     static std::mutex& getMutex(){return sm_outputMutex;}
 
+    static void _globalInit();
+
 protected:
 
     //Parameter variables
     /**
      * Parameter reference of the run-time parameter "enable_parallelization".
+     * Note that this member cannot be a const reference, since it is static.
      *
      * @see SimplexParameterHandler
      */
-    const bool & m_enableParallelization;
+    static bool sm_enableParallelization;
 
 private:
     /**

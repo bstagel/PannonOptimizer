@@ -44,6 +44,7 @@ void solve(std::string filename) {
 
     //init simplexController
     SimplexController simplexController;
+
     simplexController.solve(model);
 }
 
