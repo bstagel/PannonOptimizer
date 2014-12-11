@@ -13,7 +13,7 @@ LIBS += -pthread
 CONFIG(release, debug|release) {
     message("NewPanOptTester: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
     POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
     LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt

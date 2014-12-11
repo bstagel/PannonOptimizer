@@ -6,6 +6,7 @@
 #include <utils/arch/x86.h>
 #include <utils/primitives.h>
 #include <limits>
+#include <ctime>
 
 #define MEMCPY_TESTBUFFER_MAX_SIZE      1024*10
 #define MEMCPY_FIX_BORDER               10
@@ -25,6 +26,7 @@ CoreTestSuite::CoreTestSuite(const char *name): UnitTest(name) {
     //ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
     //ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
     ADD_TEST(CoreTestSuite::denseToDenseAdd);
+    ADD_TEST(CoreTestSuite::denseToDenseAddPerformance);
 }
 
 void CoreTestSuite::memcpy() {
@@ -754,4 +756,169 @@ void CoreTestSuite::denseToDenseAdd()
     Numerical::AbsoluteTolerance = oldAbsTolerance;
     Numerical::RelativeTolerance = oldRelTolerance;
 
+    ::release(a);
+    ::release(a2);
+    ::release(b);
+    ::release(c);
+}
+
+void CoreTestSuite::generateAddVectorInput(double * a,
+                                           double * b,
+                                           unsigned int count) {
+    srand(0);
+    unsigned int index;
+    for (index = 0; index < count; index++) {
+        a[index] = (rand() % 1000000) / 10000.0;
+        if (rand() % 2 == 0) {
+            b[index] = (rand() % 1000000) / 10000.0;
+        } else {
+            b[index] = a[index] * -1.000001;
+        }
+    }
+}
+
+void CoreTestSuite::denseToDenseAddPerformance()
+{
+    int n = 1000;
+    int m = 1000000;
+    double * a = alloc<double, 32>(n);
+    double * b = alloc<double, 32>(n);
+    double * c = alloc<double, 32>(n);
+
+    generateAddVectorInput(a, b, n);
+
+    Numerical::Double oldAbsTolerance = Numerical::AbsoluteTolerance;
+    Numerical::Double oldRelTolerance = Numerical::RelativeTolerance;
+
+    double lambda = 1.0;
+    double absTolerance = 0.00001;
+    double relTolerance = 0.004;
+
+    Numerical::AbsoluteTolerance = absTolerance;
+    Numerical::RelativeTolerance = relTolerance;
+
+    clock_t startTime, endTime;
+
+    int repeat;
+
+    LPINFO("Benchmarks for dense + dense");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        ::denseToDenseAdd(a, b, a, n, lambda);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense fast add, C-style: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+         DENSE_TO_DENSE_ADD_SSE2_CACHE(a, b, a, n, lambda);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense fast add, SSE2, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+         DENSE_TO_DENSE_ADD_SSE2_NOCACHE(a, b, a, n, lambda);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense fast add, SSE2, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+         DENSE_TO_DENSE_ADD_AVX_CACHE(a, b, a, n, lambda);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense fast add, AVX, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+         DENSE_TO_DENSE_ADD_AVX_NOCACHE(a, b, a, n, lambda);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense fast add, AVX, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+////////////////////////////////////////////////
+    LPINFO("--------------------------------------");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        ::denseToDenseAddAbs(a, b, a, n, lambda, absTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs add, C-style: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE(a, b, a, n, lambda, absTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs add, SSE2, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE(a, b, a, n, lambda, absTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs add, SSE2, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_AVX_CACHE(a, b, a, n, lambda, absTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs add, AVX, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_AVX_NOCACHE(a, b, a, n, lambda, absTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs add, AVX, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+////////////////////////////////////////////////
+    LPINFO("--------------------------------------");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        ::denseToDenseAddAbsRel(a, b, a, n, lambda, absTolerance, relTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs-rel add, C-style: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE(a, b, a, n, lambda, absTolerance, relTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs-rel add, SSE2, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE(a, b, a, n, lambda, absTolerance, relTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs-rel add, SSE2, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_CACHE(a, b, a, n, lambda, absTolerance, relTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs-rel add, AVX, cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+    startTime = clock();
+    for (repeat = 0; repeat < m; repeat++) {
+        DENSE_TO_DENSE_ADD_ABS_REL_AVX_NOCACHE(a, b, a, n, lambda, absTolerance, relTolerance);
+    }
+    endTime = clock();
+    LPINFO("Dense + dense abs-rel add, AVX, without cache: " << (endTime - startTime) / (double)CLOCKS_PER_SEC << " sec");
+
+
+    Numerical::AbsoluteTolerance = oldAbsTolerance;
+    Numerical::RelativeTolerance = oldRelTolerance;
+
+    ::release(a);
+    ::release(b);
+    ::release(c);
 }

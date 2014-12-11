@@ -516,6 +516,8 @@ mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
 
+vzeroupper
+
 vmovupd  ymm5, [abs_mask]
 
 sub     rsp, 24 ; make space for 3 doubles
@@ -638,6 +640,8 @@ mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
 
+vzeroupper
+
 vmovupd  ymm5, [abs_mask]
 
 sub     rsp, 24 ; make space for 3 doubles
@@ -755,6 +759,8 @@ mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
 
+vzeroupper
+
 vmovupd  ymm5, [abs_mask]
 
 sub     rsp, 16
@@ -841,6 +847,8 @@ mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
 
+vzeroupper
+
 vmovupd  ymm5, [abs_mask]
 
 sub     rsp, 16
@@ -926,6 +934,8 @@ mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
 
+vzeroupper
+
 vmovupd  ymm5, [abs_mask]
 
 sub     rsp, 8
@@ -1002,6 +1012,8 @@ mov     rbp, rsp
 mov     rax, rcx
 shr     rcx, 2
 and     rax, 0x03
+
+vzeroupper
 
 vmovupd  ymm5, [abs_mask]
 

@@ -13,7 +13,7 @@ LIBS += -pthread
 CONFIG(release, debug|release) {
     #message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
     DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }

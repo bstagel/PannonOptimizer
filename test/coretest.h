@@ -16,6 +16,14 @@ private:
     void denseToSparseDotProduct();
 
     void denseToDenseAdd();
+    void denseToDenseAddPerformance();
+
+
+
+
+    void generateAddVectorInput(double * a,
+                                double * b,
+                                unsigned int count);
 };
 
 #endif // CORETEST_H
