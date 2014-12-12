@@ -85,17 +85,6 @@ private:
     int m_askForAnotherRowCounter;
 
     /**
-     * Initializes the dual simplex modules.
-     * The pricing is initialized according to the simplex parameter file.
-     */
-    void initModules();
-
-    /**
-     * Releases the dual simplex modules reserved in DualSimplex::initModules().
-     */
-    void releaseModules();
-
-    /**
      * Computes the measure of dual infeasibility of the reduced costs.
      */
     virtual void computeFeasibility();

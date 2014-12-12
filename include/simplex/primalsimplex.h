@@ -75,17 +75,6 @@ private:
     Numerical::Double m_dualTheta;
 
     /**
-     * Function that initializes the primal simplex modules.
-     * The modules are the primal pricing , the ratiotest and the primal feasibility checker.
-     */
-    void initModules();
-
-    /**
-     * The function releases the primal simplex modules reserved in PrimalSimplex::initModules().
-     */
-    void releaseModules();
-
-    /**
      * Inherited from the parent Simplex class, computing the measure of primal infeasibility of the basicvariables.
      */
     virtual void computeFeasibility();

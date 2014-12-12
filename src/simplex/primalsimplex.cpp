@@ -25,14 +25,25 @@ PrimalSimplex::PrimalSimplex(Basis *basis):
     m_feasibilityChecker(0),
     m_ratiotest(0)
 {
-    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
+
 }
 
 PrimalSimplex::~PrimalSimplex()
 {
-    releaseModules();
+    if (m_pricing) {
+        delete m_pricing;
+        m_pricing = 0;
+    }
+
+    if (m_feasibilityChecker){
+        delete m_feasibilityChecker;
+        m_feasibilityChecker = 0;
+    }
+
+    if (m_ratiotest) {
+        delete m_ratiotest;
+        m_ratiotest = 0;
+    }
 }
 
 
@@ -143,60 +154,18 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
     return Simplex::getIterationEntry(name, type);
 }
 
-void PrimalSimplex::initModules() {
-    Simplex::initModules();
-
-    // TODO: ezt majd egy switch-case donti el, amit lehetne
-    // kulon fuggvenybe is tenni akar
-    m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
-                                         m_basicVariableFeasibilities,
-                                         &m_reducedCostFeasibilities,
-                                         m_variableStates,
-                                         m_basisHead,
-                                         *m_simplexModel,
-                                         *m_basis,
-                                         m_reducedCosts);
-
-    Simplex::m_pricing = m_pricing;
-
-    m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
-                                                        &m_variableStates,
-                                                        &m_basicVariableFeasibilities,
-                                                        m_basisHead);
-
-    //Todo: Add the updater to the ratiotest
-    m_ratiotest = new PrimalRatiotest(*m_simplexModel,
-                                      m_basicVariableValues,
-                                      m_basisHead,
-                                      m_basicVariableFeasibilities,
-                                      m_variableStates);
-
-
-    //The alpha vector for the column calculations
-    m_pivotColumn.resize(m_simplexModel->getRowCount());
-}
-
-void PrimalSimplex::releaseModules() {
-    Simplex::releaseModules();
-
-    if (m_pricing) {
-        delete m_pricing;
-        m_pricing = 0;
-    }
-
-    if (m_feasibilityChecker){
-        delete m_feasibilityChecker;
-        m_feasibilityChecker = 0;
-    }
-
-    if (m_ratiotest) {
-        delete m_ratiotest;
-        m_ratiotest = 0;
-    }
-
-}
-
 void PrimalSimplex::computeFeasibility() {
+    if(m_feasibilityChecker == nullptr){
+        m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
+                                                            &m_variableStates,
+                                                            &m_basicVariableFeasibilities,
+                                                            m_basisHead);
+        m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
+        m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
+        m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
+
+        initWorkingTolerance();
+    }
     m_lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
 
@@ -212,6 +181,19 @@ void PrimalSimplex::computeFeasibility() {
 }
 
 void PrimalSimplex::price() {
+    if(m_pricing == nullptr){
+        m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
+                                             m_basicVariableFeasibilities,
+                                             &m_reducedCostFeasibilities,
+                                             m_variableStates,
+                                             m_basisHead,
+                                             *m_simplexModel,
+                                             *m_basis,
+                                             m_reducedCosts);
+
+        Simplex::m_pricing = m_pricing;
+    }
+
     if(!m_feasible){
         m_incomingIndex = m_pricing->performPricingPhase1();
         if(m_incomingIndex == -1){
@@ -236,12 +218,21 @@ void PrimalSimplex::price() {
 }
 
 void PrimalSimplex::selectPivot() {
+    if(m_ratiotest == nullptr){
+        m_ratiotest = new PrimalRatiotest(*m_simplexModel,
+                                          m_basicVariableValues,
+                                          m_basisHead,
+                                          m_basicVariableFeasibilities,
+                                          m_variableStates);
+
+    }
     m_outgoingIndex = -1;
 
     unsigned int columnCount = m_simplexModel->getColumnCount();
+    unsigned int rowCount = m_simplexModel->getRowCount();
 
     while(m_outgoingIndex == -1){
-        m_pivotColumn.clear();
+        m_pivotColumn.reInit(rowCount);
 
         if(m_incomingIndex < (int)columnCount){
             m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);

@@ -21,6 +21,8 @@ void SimplexThread::performIterations(Basis* basis, IterationReport* iterationRe
     basis->registerThread();
     basis->setSimplexState(m_currentSimplex);
 
+    m_currentSimplex->computeFeasibility();
+
     m_result = ITERATED;
     for (m_iterationNumber = mainIterations;
          m_iterationNumber < mainIterations + iterationNumber;) {
@@ -75,14 +77,12 @@ void SimplexThread::performIterations(Basis* basis, IterationReport* iterationRe
             m_exception = exception;
             m_exceptionType = SimplexThread::NUMERICAL;
 //            LPINFO("NUMERICAL "<<ThreadSupervisor::getThreadId());
-            --m_iterationNumber;
             break;
         } catch ( const FallbackException& exception) {
             m_result = TERMINATED;
             m_exception = exception;
             m_exceptionType = SimplexThread::FALLBACK;
-//            LPINFO("FALLBACK "<<ThreadSupervisor::getThreadId());
-            --m_iterationNumber;
+            LPINFO("FALLBACK "<<ThreadSupervisor::getThreadId());
             break;
         } /*catch (...){
             LPINFO("Something wrong at thread: "<<ThreadSupervisor::getThreadId());

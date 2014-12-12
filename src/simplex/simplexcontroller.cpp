@@ -294,7 +294,6 @@ void SimplexController::sequentialSolve(const Model &model)
         m_currentSimplex->setModel(model);
 
         m_currentSimplex->setIterationReport(iterationReport);
-        m_currentSimplex->initModules();
         m_basis->registerThread();
         m_basis->setSimplexState(m_currentSimplex);
 
@@ -343,6 +342,8 @@ void SimplexController::sequentialSolve(const Model &model)
                         }
                     }
                 }
+
+                m_currentSimplex->computeFeasibility();
             }
             try{
                 //iterate
@@ -511,7 +512,6 @@ void SimplexController::parallelSolve(const Model &model)
             simplexes[i]->setModel(model);
 
             simplexes[i]->setIterationReport(iterationReports[i]);
-            simplexes[i]->initModules();
 
             iterationReports[i]->addProviderForStart(*simplexes[i]);
             iterationReports[i]->addProviderForIteration(*simplexes[i]);
@@ -570,9 +570,9 @@ void SimplexController::parallelSolve(const Model &model)
             } else {
                 maxPhase2 = -Numerical::Infinity;
             }
-            bool terminatedNumber = 0;
-            bool terminatedMaxIndex = -1;
-            bool terminatedMaxIterations = -1;
+            int terminatedNumber = 0;
+            int terminatedMaxIndex = -1;
+            int terminatedMaxIterations = -1;
             int finishedIndex = -1;
             for(int i=0; i<m_numberOfThreads; i++){
                 switch (simplexThreads[i].getResult()){
@@ -602,7 +602,7 @@ void SimplexController::parallelSolve(const Model &model)
 
                 case SimplexThread::FINISHED:
                     finishedIndex = i;
-                    i=m_numberOfThreads;
+//                    i=m_numberOfThreads;
                     break;
 
                 case SimplexThread::TERMINATED:
@@ -682,7 +682,7 @@ void SimplexController::parallelSolve(const Model &model)
                     masterIndex = maxPhase2Index;
                 }
             }
-            LPINFO("master: "<<masterIndex);
+            LPINFO("master: "<<masterIndex+1);
             m_iterationIndex = simplexThreads[masterIndex].getIterationNumber();
         }
     } catch ( const ParameterException & exception ) {
@@ -788,13 +788,11 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
         m_primalSimplex = new PrimalSimplex(m_basis);
         m_primalSimplex->setModel(model);
         m_primalSimplex->setIterationReport(iterationReport);
-        m_primalSimplex->initModules();
     }
     if (m_dualSimplex == NULL){
         m_dualSimplex = new DualSimplex(m_basis);
         m_dualSimplex->setModel(model);
         m_dualSimplex->setIterationReport(iterationReport);
-        m_dualSimplex->initModules();
     }
     //Primal->Dual
     if (m_currentAlgorithm == Simplex::PRIMAL){
@@ -812,6 +810,8 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
         m_currentAlgorithm = Simplex::PRIMAL;
     }
     //reinvert
+    //TODO: It is not appropriate to reinvert here!
+    //Use setSimplexState of the basis instead (probably)
     m_currentSimplex->reinvert();
     m_freshBasis = true;
     LPINFO("Algorithm switched!");
