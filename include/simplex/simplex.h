@@ -241,11 +241,6 @@ protected:
     Timer m_computeReducedCostsTimer;
 
     /**
-     * Measures the time of computing the feasibility sets M,F,P.
-     */
-    Timer m_computeFeasibilityTimer;
-
-    /**
      * Computes the time that the pricing takes.
      */
     Timer m_priceTimer;
@@ -409,18 +404,6 @@ protected:
      * Trigger for recomputation of the reduced costs at the next reinversion
      */
     bool m_recomputeReducedCosts;
-
-    /**
-     * Initializes the basis, starting basis finder modules.
-     *
-     * @throws ParameterException if wrong factorisation type in the parameter file is specified
-     */
-    virtual void initModules();
-
-    /**
-     * Releases the basis and the starting basis finder modules.
-     */
-    virtual void releaseModules();
 
     /**
      * Performs the starting basis finding according to the strategy given in the simplex parameter file.

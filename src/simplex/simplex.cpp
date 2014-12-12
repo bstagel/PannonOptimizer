@@ -24,8 +24,6 @@ const static char * ITERATION_INVERSION_NAME = "Inv";
 const static char * SOLUTION_INVERSION_TIMER_NAME = "Inversion time";
 const static char * SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME = "Compute basic solution time";
 const static char * SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME = "Compute reduced costs time";
-const static char * SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME = "Compute feasibility time";
-const static char * SOLUTION_CHECK_FEASIBILITY_TIMER_NAME = "Check feasibility time";
 const static char * SOLUTION_PRICE_TIMER_NAME = "Pricing time";
 const static char * SOLUTION_SELECT_PIVOT_TIMER_NAME = "Pivot selection time";
 const static char * SOLUTION_UPDATE_TIMER_NAME = "Update time";
@@ -89,6 +87,7 @@ Simplex::Simplex(Basis* basis):
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
 {
+
 }
 
 Simplex::~Simplex() {
@@ -96,6 +95,11 @@ Simplex::~Simplex() {
     if(m_simplexModel){
         delete m_simplexModel;
         m_simplexModel = 0;
+    }
+
+    if(m_startingBasisFinder){
+        delete m_startingBasisFinder;
+        m_startingBasisFinder = 0;
     }
 }
 
@@ -132,14 +136,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
                                                       IterationReportField::IRF_FLOAT, *this,
                                                       4, IterationReportField::IRF_FIXED);
         result.push_back(computeReducedCostsField);
-        IterationReportField computeFeasibilityTimerField(SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                                          IterationReportField::IRF_FLOAT, *this,
-                                                          4, IterationReportField::IRF_FIXED);
-        result.push_back(computeFeasibilityTimerField);
-        IterationReportField checkFeasibilityTimerField(SOLUTION_CHECK_FEASIBILITY_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                                        IterationReportField::IRF_FLOAT, *this,
-                                                        4, IterationReportField::IRF_FIXED);
-        result.push_back(checkFeasibilityTimerField);
         IterationReportField priceTimerField(SOLUTION_PRICE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
                                              IterationReportField::IRF_FLOAT, *this,
                                              4, IterationReportField::IRF_FIXED);
@@ -256,8 +252,6 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
             reply.m_double = m_computeBasicSolutionTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME) {
             reply.m_double = m_computeReducedCostsTimer.getCPUTotalElapsed();
-        } else if (name == SOLUTION_COMPUTE_FEASIBILITY_TIMER_NAME) {
-            reply.m_double = m_computeFeasibilityTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_PRICE_TIMER_NAME) {
             reply.m_double = m_priceTimer.getCPUTotalElapsed();
         } else if (name == SOLUTION_SELECT_PIVOT_TIMER_NAME) {
@@ -326,6 +320,11 @@ void Simplex::setModel(const Model &model) {
     m_reducedCostFeasibilities.init(rowCount + columnCount, FEASIBILITY_ENUM_LENGTH);
     m_basicVariableValues.reInit(rowCount);
     m_reducedCosts.reInit(rowCount + columnCount);
+
+    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
+    if(m_enableExport){
+        m_iterationReport->addProviderForExport(*this);
+    }
 
     Timer perturbTimer;
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){
@@ -407,8 +406,6 @@ void Simplex::setSimplexState(const Simplex & simplex)
     m_basicVariableValues = simplex.m_basicVariableValues;
 
     m_reducedCosts = simplex.m_reducedCosts;
-
-    computeFeasibility();
 
     m_objectiveValue = simplex.m_objectiveValue;
 }
@@ -563,23 +560,6 @@ void Simplex::findStartingBasis()
     }
     if (m_pricing) {
         m_pricing->init();
-    }
-}
-
-void Simplex::initModules() {
-    m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
-
-    if(m_enableExport){
-        m_iterationReport->addProviderForExport(*this);
-    }
-
-    initWorkingTolerance();
-}
-
-void Simplex::releaseModules() {
-    if(m_startingBasisFinder){
-        delete m_startingBasisFinder;
-        m_startingBasisFinder = 0;
     }
 }
 
@@ -741,9 +721,6 @@ void Simplex::reinvert() {
     }
     //No need to update in an else, since the update() function already did the update
     m_computeReducedCostsTimer.stop();
-    m_computeFeasibilityTimer.start();
-    computeFeasibility();
-    m_computeFeasibilityTimer.stop();
 }
 
 void Simplex::computeBasicSolution() {

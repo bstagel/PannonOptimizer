@@ -38,18 +38,29 @@ const static char * EXPORT_ASK_FOR_ANOTHER_ROW_COUNTER = "export_ask_for_another
 DualSimplex::DualSimplex(Basis *basis):
     Simplex(basis),
     m_pricing(nullptr),
-    m_feasibilityChecker(0),
-    m_ratiotest(0),
+    m_feasibilityChecker(nullptr),
+    m_ratiotest(nullptr),
     m_askForAnotherRowCounter(0)
 {
-    m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
-    m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
-    m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
+
 }
 
 DualSimplex::~DualSimplex()
 {
-    releaseModules();
+    if(m_pricing){
+        delete m_pricing;
+        m_pricing = 0;
+    }
+
+    if(m_feasibilityChecker){
+        delete m_feasibilityChecker;
+        m_feasibilityChecker = 0;
+    }
+
+    if(m_ratiotest){
+        delete m_ratiotest;
+        m_ratiotest = 0;
+    }
 }
 
 // Interface of the iteration report provider:
@@ -227,43 +238,20 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
     return Simplex::getIterationEntry(name, type);
 }
 
-
-void DualSimplex::initModules() {
-    Simplex::initModules();
-
-    m_feasibilityChecker = new DualFeasibilityChecker(*m_simplexModel,
-                                                      &m_variableStates,
-                                                      &m_reducedCostFeasibilities,
-                                                      m_reducedCosts,
-                                                      *m_basis);
-
-    m_ratiotest = new DualRatiotest(*m_simplexModel,
-                                    m_reducedCosts,
-                                    m_reducedCostFeasibilities,
-                                    m_variableStates);
-}
-
-void DualSimplex::releaseModules() {
-    Simplex::releaseModules();
-
-    if(m_pricing){
-        delete m_pricing;
-        m_pricing = 0;
-    }
-
-    if(m_feasibilityChecker){
-        delete m_feasibilityChecker;
-        m_feasibilityChecker = 0;
-    }
-
-    if(m_ratiotest){
-        delete m_ratiotest;
-        m_ratiotest = 0;
-    }
-}
-
-
 void DualSimplex::computeFeasibility() {
+    if(m_feasibilityChecker == nullptr){
+        m_feasibilityChecker = new DualFeasibilityChecker(*m_simplexModel,
+                                                          &m_variableStates,
+                                                          &m_reducedCostFeasibilities,
+                                                          m_reducedCosts,
+                                                          *m_basis);
+        m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+        m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
+        m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
+
+        initWorkingTolerance();
+    }
+
     m_lastFeasible = m_feasible;
     m_feasible = m_feasibilityChecker->computeFeasibility(m_workingTolerance);
 
@@ -287,7 +275,6 @@ void DualSimplex::computeFeasibility() {
 
 void DualSimplex::price() {
     if(m_pricing == nullptr){
-        LPINFO("INIT PRICING");
         std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
 
         if (pricingType == "DANTZIG") {
@@ -337,6 +324,13 @@ void DualSimplex::price() {
 }
 
 void DualSimplex::selectPivot() {
+    if(m_ratiotest == nullptr){
+        m_ratiotest = new DualRatiotest(*m_simplexModel,
+                                        m_reducedCosts,
+                                        m_reducedCostFeasibilities,
+                                        m_variableStates);
+    }
+
     m_incomingIndex = -1;
     while(m_incomingIndex == -1 ){
         computeTransformedRow();
