@@ -779,8 +779,8 @@ void CoreTestSuite::generateAddVectorInput(double * a,
 
 void CoreTestSuite::denseToDenseAddPerformance()
 {
-    int n = 1000;
-    int m = 1000000;
+    int n = 5000000;
+    int m = 1000;
     double * a = alloc<double, 32>(n);
     double * b = alloc<double, 32>(n);
     double * c = alloc<double, 32>(n);
