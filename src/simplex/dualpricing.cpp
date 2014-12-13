@@ -35,6 +35,8 @@ DualPricing::DualPricing(const DenseVector &basicVariableValues,
     m_used.clear();
     m_used.resize( m_basisHead.size(), false );
 
+
+//    LPINFO("m_phaseIClusters "<<m_phaseIClusters);
     m_phase1Simpri.init(m_phaseIClusters,
                         m_phaseIVisitClusters,
                         m_phaseIImprovingCandidates,

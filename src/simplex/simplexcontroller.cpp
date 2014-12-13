@@ -363,7 +363,7 @@ void SimplexController::sequentialSolve(const Model &model)
                 m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
-                m_currentSimplex->reinvert();
+                reinversionCounter = reinversionFrequency;
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
                 //Check the result with triggering reinversion
