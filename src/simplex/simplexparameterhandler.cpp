@@ -468,6 +468,7 @@ void SimplexParameterHandler::processParallelNode(const NodeFile::Node &node,
     std::set<std::string> valueNames = node.getValueNames();
     auto valueIter = valueNames.begin();
     auto valueIterEnd = valueNames.end();
+    //LPINFO("value count: " << valueNames.size());
     for (; valueIter != valueIterEnd; valueIter++) {
         std::string parameterName = name + *valueIter;
         std::string value = node.getValue(*valueIter);
@@ -509,12 +510,16 @@ void SimplexParameterHandler::processParallelNode(const NodeFile::Node &node,
     auto nameIter = names.begin();
     auto nameIterEnd = names.end();
     for (; nameIter != nameIterEnd; nameIter++) {
-        //LPINFO(*nameIter);
+        //LPINFO("nameIter = " << *nameIter << ";" << name << ";");
         std::vector<NodeFile::Node>::const_iterator nodeIter;
         std::vector<NodeFile::Node>::const_iterator nodeIterEnd;
         node.getNodes(*nameIter, &nodeIter, &nodeIterEnd);
         for (; nodeIter != nodeIterEnd; nodeIter++) {
-            processParallelNode(*nodeIter, *nameIter + ".", threadParameters);
+            if (name == "") {
+                processParallelNode(*nodeIter, *nameIter + ".", threadParameters);
+            } else {
+                processParallelNode(*nodeIter, name + *nameIter + ".", threadParameters);
+            }
         }
 
     }
@@ -578,7 +583,6 @@ void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
             std::vector<NodeFile::Node>::const_iterator threadIterEnd;
             nodeIter->getNodes("Thread", &threadIter, &threadIterEnd);
             for (; threadIter != threadIterEnd; threadIter++) {
-                //LPWARNING(threadIter->getName());
                 std::map<std::string, Parameter> threadParameters;
                 processParallelNode(*threadIter, "", &threadParameters);
                 m_threadParameters.push_back(threadParameters);
@@ -586,8 +590,7 @@ void SimplexParameterHandler::loadValuesFromFile(std::ifstream &in)
         }
     } catch (const PanOptException & exception){
         LPERROR("PanOpt exception:"<< exception.getMessage() );
-    } catch (...) {}
-
+    }
 }
 
 void SimplexParameterHandler::enableParallelOptions(bool value)

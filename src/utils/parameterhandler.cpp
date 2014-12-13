@@ -106,7 +106,7 @@ void ParameterHandler::processNode(const NodeFile::Node & node,
             parameterName = parameterName + ".";
         }
         parameterName = parameterName + *valueIter;
-        //LPINFO(parameterName);
+        //LPINFO("name: " << parameterName);
         std::string value = node.getValue(*valueIter);
         try {
             Parameter& parameter = m_values.at( parameterName );
@@ -139,7 +139,7 @@ void ParameterHandler::processNode(const NodeFile::Node & node,
                 break;
             }
         } catch (const std::out_of_range & ex) {
-
+            //LPERROR(parameterName);
         }
     }
 
