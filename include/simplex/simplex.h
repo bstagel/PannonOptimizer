@@ -406,6 +406,11 @@ protected:
     bool m_recomputeReducedCosts;
 
     /**
+     * Counter for the repeated solutions.
+     */
+    static thread_local int sm_repeatSolution;
+
+    /**
      * Performs the starting basis finding according to the strategy given in the simplex parameter file.
      */
     void findStartingBasis();

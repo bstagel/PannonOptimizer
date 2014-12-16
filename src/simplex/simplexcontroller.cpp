@@ -256,7 +256,10 @@ void SimplexController::solve(const Model &model) {
             ThreadSupervisor::unregisterMyThread();
         }
     } else {
-        sequentialSolve(model);
+        const int & repeatSolution = SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.repeat_solution");
+        for(int i=0; i <= repeatSolution; ++i){
+            sequentialSolve(model);
+        }
     }
 }
 

@@ -137,7 +137,7 @@ void SimplexModel::print(std::ostream& out) const
     }
 }
 
-void SimplexModel::perturbCostVector()
+void SimplexModel::perturbCostVector(int initializeEngine)
 {
     m_originalCostVector = m_costVector;
     //parameter references
@@ -153,8 +153,8 @@ void SimplexModel::perturbCostVector()
 
     std::default_random_engine engine;
     DenseVector epsilonValues(getColumnCount()+getRowCount());
-    LPINFO("Cost vector perturbation with e = " << epsilon <<
-           " method: " << perturbMethod << " target: " << perturbTarget << " logical: " << perturbLogical);
+    LPINFO("Cost vector perturbation method: " << perturbMethod <<
+           " target: " << perturbTarget << " logical: " << perturbLogical);
 
     unsigned numberOfPerturbations = 0;
     if(perturbLogical){
@@ -178,48 +178,47 @@ void SimplexModel::perturbCostVector()
 
     //in feasible direction
     }else if(perturbMethod == "FEASIBLE"){
-        std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
-        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
+        std::uniform_real_distribution<double> negDistribution(-1,-0.5);
+        std::uniform_real_distribution<double> posDistribution(0.5,1);
         std::uniform_int_distribution<int> signDistribution(0,1);
+        for(int i=0; i < 2 * initializeEngine; i++){
+            posDistribution(engine);
+            negDistribution(engine);
+            signDistribution(engine);
+        }
+        Numerical::Double fix = 100 * tolerance;
         for(unsigned i=0;i < numberOfPerturbations;i++){
             Variable::VARIABLE_TYPE variableType = getVariable(i).getType();
             switch(variableType){
             //PLUS in positive direction (thus d_j >= 0 is feasible)
             case Variable::PLUS:{
                 if(perturbTarget == "ALL"){
-                    epsilonValues.set(i,posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi);
+                    epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                 }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
-                    epsilonValues.set(i,posDistribution(engine));
+                    epsilonValues.set(i,posDistribution(engine) * fix);
                 }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
-                    epsilonValues.set(i,posDistribution(engine));
+                    epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                 }
                 break;
             }
             //MINUS in negative direction (thus d_j <= 0 is feasible)
             case Variable::MINUS:{
                 if(perturbTarget == "ALL"){
-                    epsilonValues.set(i,negDistribution(engine) - Numerical::fabs(m_costVector.at(i)) * psi);
+                    epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                 }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
-                    epsilonValues.set(i,negDistribution(engine));
+                    epsilonValues.set(i,negDistribution(engine) * fix);
                 }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
-                    epsilonValues.set(i,negDistribution(engine));
+                    epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                 }
                 break;
             }
             case Variable::BOUNDED:{
-//                if(perturbTarget == "ALL"){
-//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
-//                }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
-//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
-//                }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
-//                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
-//                }
                 if( m_costVector.at(i) < 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
-                    epsilonValues.set(i,negDistribution(engine) - Numerical::fabs(m_costVector.at(i)) * psi);
+                    epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                 }else if(m_costVector.at(i) > 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
-                    epsilonValues.set(i,posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi);
+                    epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
                }else if(m_costVector.at(i) == 0 && (perturbTarget == "ALL" || perturbTarget == "ZEROS")){
-                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*(posDistribution(engine) + Numerical::fabs(m_costVector.at(i)) * psi));
+                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*(posDistribution(engine) *fix));
                 }
                 break;
             }
@@ -231,16 +230,56 @@ void SimplexModel::perturbCostVector()
 
     //with sign of c_j
     }else if(perturbMethod == "SIGN"){
-        std::uniform_real_distribution<double> negDistribution(-epsilon,-0.5*epsilon);
-        std::uniform_real_distribution<double> posDistribution(0.5*epsilon,epsilon);
+        std::uniform_real_distribution<double> posDistribution(0.5,1);
+        std::uniform_real_distribution<double> negDistribution(-1,-0.5);
         std::uniform_int_distribution<int> signDistribution(0,1);
+        for(int i=0; i < 2 * initializeEngine; i++){
+            posDistribution(engine);
+            negDistribution(engine);
+            signDistribution(engine);
+        }
+        Numerical::Double fix = 100 * tolerance;
+        LPINFO("pos: "<<posDistribution(engine));
         for(unsigned i=0;i < numberOfPerturbations;i++){
             if( m_costVector.at(i) < 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
-                epsilonValues.set(i,negDistribution(engine));
+                epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
             }else if(m_costVector.at(i) > 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
-                epsilonValues.set(i,posDistribution(engine));
+                epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
             }else if(m_costVector.at(i) == 0 && (perturbTarget == "ALL" || perturbTarget == "ZEROS")){
-                epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine));
+//                epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                Variable::VARIABLE_TYPE variableType = getVariable(i).getType();
+                switch(variableType){
+                //PLUS in positive direction (thus d_j >= 0 is feasible)
+                case Variable::PLUS:{
+                    if(perturbTarget == "ALL"){
+                        epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                    }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
+                        epsilonValues.set(i,posDistribution(engine) * fix);
+                    }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
+                        epsilonValues.set(i,posDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                    }
+                    break;
+                }
+                //MINUS in negative direction (thus d_j <= 0 is feasible)
+                case Variable::MINUS:{
+                    if(perturbTarget == "ALL"){
+                        epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                    }else if(perturbTarget == "ZEROS" && m_costVector.at(i) == 0){
+                        epsilonValues.set(i,negDistribution(engine) * fix);
+                    }else if(perturbTarget == "NONZEROS" && m_costVector.at(i) != 0){
+                        epsilonValues.set(i,negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                    }
+                    break;
+                }
+                case Variable::BOUNDED:{
+                    epsilonValues.set(i,(signDistribution(engine)-0.5)*2*posDistribution(engine) *
+                                      (fix + Numerical::fabs(m_costVector.at(i)) * psi));
+                    break;
+                }
+                default:{
+                    break;
+                }
+                }
             }
         }
     //Koberstein
@@ -252,6 +291,9 @@ void SimplexModel::perturbCostVector()
 
         //considering types of variables
         std::uniform_real_distribution<double> distribution(0.5,1);
+        for(int i=0; i < 2 * initializeEngine; i++){
+            distribution(engine);
+        }
         for(unsigned i=0; i < numberOfPerturbations; i++){
             //those with finite upper bound
             if(getVariable(i).getUpperBound() != Numerical::Infinity){
@@ -264,40 +306,42 @@ void SimplexModel::perturbCostVector()
 
     //considering number of nonzeros (alpha column)
     if(weighting == "WEIGHT" || weighting == "SET_TO_INTERVAL"){
-        std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
-
-//        int maxNonzero = 0;
-//        for(unsigned i=0; i < getColumnCount(); ++i){
-//            unsigned nonzeros = getMatrix().column(i).nonZeros();
-//            if(nonzeros > maxNonzero){
-//                maxNonzero = nonzeros;
-//            }
-//        }
-//        std::vector<Numerical::Double> weightVector;
-//        weightVector.resize(maxNonzero);
-//        for(unsigned i=0; i < weightVector.size(); ++i){
-////            weightVector[i] = log2(i+2);
-//            weightVector[i] = i+1;
-//        }
-//        for(unsigned i=0; i < getColumnCount(); ++i){
-//            unsigned nonzeros = getMatrix().column(i).nonZeros();
-//            epsilonValues.set(i,weightVector[nonzeros-1] * epsilonValues.at(i));
-//        }
-
-        for(unsigned i=0; i < getColumnCount(); ++i){
-            unsigned nonzeros = getMatrix().column(i).nonZeros();
-            if(nonzeros > 9){
-                epsilonValues.set(i,weightVector[9] * epsilonValues.at(i));
-            }else{
-                epsilonValues.set(i,weightVector[nonzeros] * epsilonValues.at(i));
+        bool staticVector = true;
+        if(staticVector){
+            std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
+            for(unsigned i=0; i < getColumnCount(); ++i){
+                unsigned nonzeros = getMatrix().column(i).nonZeros();
+                if(nonzeros >= 9){
+                    epsilonValues.set(i,weightVector[9] * epsilonValues.at(i));
+                }else{
+                    epsilonValues.set(i,weightVector[nonzeros] * epsilonValues.at(i));
+                }
+            }
+        }else{
+            int maxNonzero = 0;
+            for(unsigned i=0; i < getColumnCount(); ++i){
+                int nonzeros = getMatrix().column(i).nonZeros();
+                if(nonzeros > maxNonzero){
+                    maxNonzero = nonzeros;
+                }
+            }
+            std::vector<Numerical::Double> weightVector;
+            weightVector.resize(maxNonzero);
+            for(int i=0; i < weightVector.size(); ++i){
+                weightVector[i] = log2(i+2);
+            }
+            for(unsigned i=0; i < getColumnCount(); ++i){
+                int nonzeros = getMatrix().column(i).nonZeros();
+                epsilonValues.set(i,weightVector[nonzeros-1] * epsilonValues.at(i));
             }
         }
+
         //logical alpha vectors have one nonzero element
-        if(perturbLogical){
-           for(unsigned i=getColumnCount(); i < getColumnCount()+getRowCount(); ++i) {
-               epsilonValues.set(i,weightVector[1] * epsilonValues.at(i));
-           }
-        }
+//        if(perturbLogical){
+//           for(unsigned i=getColumnCount(); i < getColumnCount()+getRowCount(); ++i) {
+//               epsilonValues.set(i,weightVector[1] * epsilonValues.at(i));
+//           }
+//        }
     }
 
     //checking the interval

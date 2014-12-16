@@ -41,6 +41,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
     m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility")),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
+    m_avoidThetaMin(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.Expand.avoidthetamin")),
     m_toleranceStep(m_optimalityTolerance * (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier")) /
                     SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
     m_degenerate(false)
@@ -49,10 +50,6 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
 }
 
 void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
-    #ifndef NDEBUG
-    //if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
-    #endif
-
 //computing ratios
     IndexList<>::PartitionIterator it;
     IndexList<>::PartitionIterator endit;
@@ -69,11 +66,9 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
         Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
         if (signedAlpha < -epsilon) {
             m_ratioDirections[variableIndex] = 1;
-            m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                 m_reducedCosts.at(variableIndex) / signedAlpha);
+            m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             }
         }
     }
@@ -85,11 +80,9 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
         Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
         if (signedAlpha > epsilon){
             m_ratioDirections[variableIndex] = 0;
-            m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                 m_reducedCosts.at(variableIndex) / signedAlpha);
+            m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             if (m_model.getVariable(variableIndex).getType() == Variable::FREE) {
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             }
          }
     }
@@ -104,17 +97,14 @@ void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
 
             if (typeOfIthVariable == Variable::PLUS && signedAlpha > epsilon) {
                 m_ratioDirections[variableIndex] = 0;
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             } else
             if (typeOfIthVariable == Variable::MINUS && signedAlpha < -epsilon) {
                 m_ratioDirections[variableIndex] = 1;
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
             } else
             if (typeOfIthVariable == Variable::FREE) {
-                m_breakpointHandler.insertBreakpoint(variableIndex,
-                                                     m_reducedCosts.at(variableIndex) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
                 if(signedAlpha > epsilon){
                     m_ratioDirections[variableIndex] = 0;
                 }else{
@@ -840,34 +830,33 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     if(m_expand == "EXPANDING"){
                         thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
                     }
-                    //maxAlphaId holds the biggest |alpha| index
-                    //HARRIS: if no positive ratio is present, maxAlphaId is the incoming variable
-                    //EXPAND: if no bigger than theta_min is present, maxAlphaId is the incoming variable
-                    bool original = true;
-                    if(!original){
-                        int candidateAlphaId = secondPassRatios[0]->variableIndex;
-                        int candidateBreakpointId = -1;
-                        double limit = (m_expand == "HARRIS") ? 0 : thetaMin;
-                        //choosing best pivot candidate with positive ratio value
-                        for(unsigned i=1; i < secondPassRatios.size(); i++){
-                            variableIndex = secondPassRatios[i]->variableIndex;
-                            if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(candidateAlphaId)) &&
-                                    (secondPassRatios[i]->value > limit)){
-                                candidateAlphaId = variableIndex;
-                                candidateBreakpointId = i;
-                            }
-                        }
-                        if(candidateBreakpointId != -1){
-//                            LPINFO("t: "<<secondPassRatios[candidateBreakpointId]->value<<" vs "<<
-//                                   secondPassRatios[maxBreakpointId]->value<<" thetamin: "<<thetaMin);
-                            maxBreakpointId = candidateBreakpointId;
-                            maxAlphaId = candidateAlphaId;
-                        }
-                    }
-                    //theta remains zero if the choosen breakpoint value is smaller than thetaMin
                     //Harris, expand
                     if(secondPassRatios[maxBreakpointId]->value <= thetaMin){
-//                        LPINFO("ThetaMin selected: "<<m_thetaMin);
+                        if(m_avoidThetaMin){
+                            int candidateBreakpointId = -1;
+                            Numerical::Double maxAlpha = 0;
+                            double limit = (m_expand == "HARRIS") ? 0 : thetaMin;
+                            //choosing best pivot candidate with ratio value > thetamin
+                            for(unsigned i=0; i < secondPassRatios.size(); i++){
+                                variableIndex = secondPassRatios[i]->variableIndex;
+                                if((secondPassRatios[i]->value > limit) &&
+                                        Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(maxAlpha)){
+                                    maxAlpha = alpha.at(variableIndex);
+                                    candidateBreakpointId = i;
+                                }
+                            }
+                            if(maxAlpha != 0){
+//                                LPINFO("Alternative maximal pivot element!");
+//                                LPINFO("t: "<<secondPassRatios[candidateBreakpointId]->value<<" alpha: "<<alpha.at(candidateAlphaId)<<
+//                                       " vs "<<secondPassRatios[maxBreakpointId]->value<<" alpha: "<<alpha.at(maxAlphaId)<<
+//                                       " thetamin: "<<thetaMin);
+                                m_degenerate = false;
+                                m_dualSteplength = m_sigma * secondPassRatios[candidateBreakpointId]->value;
+                                m_incomingVariableIndex = secondPassRatios[candidateBreakpointId]->variableIndex;
+                                return;
+                            }
+                        }
+//                       LPINFO("ThetaMin selected: "<<m_thetaMin);
                         m_degenerate = true;
                         m_dualSteplength = m_sigma * thetaMin;
                     } else {

@@ -343,6 +343,12 @@ private:
     const std::string & m_expand;
 
     /**
+     * Parameter reference of run-time parameter "avoidthetamin",
+     * see SimplexParameterHandler for details.
+     */
+     const bool & m_avoidThetaMin;
+
+    /**
      * This is the value of the tolerance increment in the expand procedure.
      */
     double m_toleranceStep;

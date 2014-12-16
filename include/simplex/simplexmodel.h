@@ -139,8 +139,9 @@ public:
      * This function perturbs the cost vector with random epislon values and so prevents degeneracy.
      * Thanks to the perturbation of the cost vector the reduced costs are also perturbed. This is
      * an efficenty strategy for the dual algorithm.
+     * @param initializeEngine number of times random engine should be initialized
      */
-    void perturbCostVector();
+    void perturbCostVector(int initializeEngine);
 
     /**
      * The perturbation of the RHS vector with small epsilon values leads to antidegeneracy in the primal algorithm.
