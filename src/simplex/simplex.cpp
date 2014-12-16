@@ -43,6 +43,7 @@ const static char * EXPORT_PIVOT_THRESHOLD = "export_pivot_threshold";
 const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_dual_phaseI_function";
 const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
+thread_local int Simplex::sm_repeatSolution = 0;
 
 Simplex::Simplex(Basis* basis):
     m_iterationIndex(0),
@@ -329,7 +330,7 @@ void Simplex::setModel(const Model &model) {
     Timer perturbTimer;
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){
         perturbTimer.start();
-        m_simplexModel->perturbCostVector();
+        m_simplexModel->perturbCostVector(sm_repeatSolution);
         perturbTimer.stop();
         LPINFO("Perturbation time: " << std::setprecision(6) << perturbTimer.getCPUTotalElapsed());
     }
@@ -339,6 +340,7 @@ void Simplex::setModel(const Model &model) {
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.shift_bounds") != false){
         m_simplexModel->shiftBounds();
     }
+    ++sm_repeatSolution;
 }
 
 void Simplex::setSimplexState(const Simplex & simplex)

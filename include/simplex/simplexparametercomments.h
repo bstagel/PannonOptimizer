@@ -75,6 +75,7 @@
 #define RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT "# Enable fake feasibility handling in Primal / Dual Phase I and II"
 #define RATIOTEST_EXPAND_MULTIPLIER_COMMENT "# EXPAND multiplier initializing value"
 #define RATIOTEST_EXPAND_DIVIDER_COMMENT "# EXPAND divider initializing value"
+#define RATIOTEST_EXPAND_AVOIDTHETAMIN_COMMENT "# Choosing alternative pivot to avoid the selection of thetamin"
 #define RATIOTEST_EXPAND_TYPE_COMMENT R"(		# EXPAND procedure \
 # INACTIVE: Inactive \
 # HARRIS: Harris ratiotest \
@@ -118,6 +119,8 @@
 # SWITCH_BEFORE_INV: switch algorithm before each inversion \
 # SWITCH_BEFORE_INV_PH2: switch algorithm before each inversion in phase-2 \
 # SWITCH_WHEN_NO_IMPR: switch algorithm if the actual (phase-1 of phase-2) objective value is the same between two inversions)"
+
+#define GLOBAL_REPEAT_SOLUTION_COMMENT "# Repeating solution the given times"
 
 #define GLOBAL_DEBUG_LEVEL_COMMENT R"(	# Level of iteration report \
 # 0 = brief problem report    & solution only                   & only solution time \

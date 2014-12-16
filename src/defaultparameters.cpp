@@ -49,6 +49,7 @@ const bool DefaultParameters::Ratiotest::ENABLE_FAKE_FEASIBILITY = false;
 const double DefaultParameters::Ratiotest::Expand::MULTIPLIER = 0.01;
 const int DefaultParameters::Ratiotest::Expand::DIVIDER = 10000;
 const char * DefaultParameters::Ratiotest::Expand::TYPE = "EXPANDING";
+const bool DefaultParameters::Ratiotest::Expand::AVOIDTHETAMIN = false;
 //Perturbation
 const char * DefaultParameters::Perturbation::PERTURB_COST_VECTOR = "INACTIVE";
 const char * DefaultParameters::Perturbation::PERTURB_TARGET = "ALL";
@@ -64,6 +65,7 @@ const double DefaultParameters::Perturbation::E_BOUNDS = 1.e-6;
 //Global
 const char * DefaultParameters::Global::STARTING_ALGORITHM = "DUAL";
 const char * DefaultParameters::Global::SWITCH_ALGORITHM = "INACTIVE";
+const int DefaultParameters::Global::REPEAT_SOLUTION = 0;
 const int DefaultParameters::Global::DEBUG_LEVEL = 1;
 const int DefaultParameters::Global::ITERATION_LIMIT = 200000;
 const double DefaultParameters::Global::TIME_LIMIT = 3600.0;

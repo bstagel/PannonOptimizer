@@ -272,6 +272,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Ratiotest.Expand.divider",
                       DefaultParameters::Ratiotest::Expand::DIVIDER);
 
+    createParameter("Ratiotest.Expand.avoidthetamin",
+                    Entry::BOOL,
+                    RATIOTEST_EXPAND_AVOIDTHETAMIN_COMMENT);
+    setParameterValue("Ratiotest.Expand.avoidthetamin",
+                      DefaultParameters::Ratiotest::Expand::AVOIDTHETAMIN);
+
     createParameter("Ratiotest.Expand.type",
                     Entry::STRING,
                     RATIOTEST_EXPAND_TYPE_COMMENT);
@@ -357,6 +363,12 @@ void SimplexParameterHandler::initParameters()
                     GLOBAL_SWITCH_ALGORITHM_COMMENT);
     setParameterValue("Global.switch_algorithm",
                       DefaultParameters::Global::SWITCH_ALGORITHM);
+
+    createParameter("Global.repeat_solution",
+                    Entry::INTEGER,
+                    GLOBAL_REPEAT_SOLUTION_COMMENT);
+    setParameterValue("Global.repeat_solution",
+                      DefaultParameters::Global::REPEAT_SOLUTION);
 
     createParameter("Global.debug_level",
                     Entry::INTEGER,

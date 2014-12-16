@@ -97,6 +97,7 @@ public:
             static const char* TYPE;
             static const double MULTIPLIER;
             static const int DIVIDER;
+            static const bool AVOIDTHETAMIN;
         };
     };
 
@@ -122,6 +123,7 @@ public:
         //Switch algorithm
         static const char* STARTING_ALGORITHM;
         static const char* SWITCH_ALGORITHM;
+        static const int REPEAT_SOLUTION;
 
         static const int DEBUG_LEVEL;
         static const int ITERATION_LIMIT;

@@ -1566,6 +1566,7 @@ void PfiBasis::checkSingularity() {
     if (singularity != 0) {
         m_singularityCounter += singularity;
         LPWARNING("The given basis is singular, the measure of singularity is " << singularity);
+        throw NumericalException("The basis is singular.");
     }
 }
 
