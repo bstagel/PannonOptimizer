@@ -144,7 +144,6 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
         (*m_constraints)[constraintIdx].setBounds(Numerical::stableAdd(m_model->getConstraint(constraintIdx).getLowerBound(), -1 * (*it) * value),
                                                    Numerical::stableAdd(m_model->getConstraint(constraintIdx).getUpperBound(), -1 * (*it) * value));
         m_rowNonzeros->set(constraintIdx, m_rowNonzeros->at(constraintIdx) - 1);
-
     }
     //substitute the variable
     DenseVector * substituteVector = new DenseVector(m_model->variableCount() + 3);
@@ -257,7 +256,7 @@ LPINFO("nzr count: " << nzr);
         clearModules();
     if(m_mode == DEFAULT) {
         clearModules();
-        //addModule( new DualBoundsModule(this));
+        addModule( new DualBoundsModule(this));
         addModule( new ImpliedBoundsModule(this));
         addModule( new SingletonRowsModule(this));
         addModule( new SingletonColumnsModule(this));

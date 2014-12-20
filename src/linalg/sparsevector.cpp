@@ -56,6 +56,7 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
 
     for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
         const unsigned int index = vector2.m_indices[nonZeroIndex];
+
         const Numerical::Double sum = ADD::add(SparseVector::sm_fullLengthVector[index],
                                                vector2.m_data[nonZeroIndex] * lambda);
 
@@ -343,6 +344,7 @@ void SparseVector::set(unsigned int index, Numerical::Double value)
     if (nonZeroIndex < m_nonZeros) {
         if (value == 0.0) {
             m_data[nonZeroIndex] = m_data[m_nonZeros-1];
+            m_indices[nonZeroIndex] = m_indices[m_nonZeros-1];
             m_nonZeros--;
         } else {
             m_data[nonZeroIndex] = value;
@@ -571,12 +573,17 @@ void SparseVector::remove(unsigned int index)
 {
     unsigned int pos = 0;
     while (pos < m_nonZeros && m_indices[pos] != index) {
+        if(m_indices[pos]>index) m_indices[pos]--;
         pos++;
     }
     if (pos < m_nonZeros) {
         m_indices[pos] = m_indices[m_nonZeros - 1];
         m_data[pos] = m_data[m_nonZeros - 1];
         m_nonZeros--;
+    }
+    while(pos < m_nonZeros) {
+        if(m_indices[pos]>index) m_indices[pos]--;
+        pos++;
     }
 
     m_length--;
