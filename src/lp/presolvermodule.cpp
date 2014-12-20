@@ -34,7 +34,7 @@ void SingletonRowsModule::executeMethod() {
     int eliminatedVariableCount;
     const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
     for(unsigned i = 0; i < m_parent->getModel()->constraintCount();i++) {
-         m_parent->getRowNonzeros()->set(i, (*m_parent->getConstraints())[i].getVector()->nonZeros());
+        m_parent->getRowNonzeros()->set(i, (*m_parent->getConstraints())[i].getVector()->nonZeros());
     }
     int rowCount = m_parent->getModel()->constraintCount();
 
@@ -1183,7 +1183,9 @@ void MakeSparserModule::executeMethod() {
                     if(pivotIt == pivotItEnd) {
                         pivotIt = pivotRow.getVector()->beginNonzero();
                         Numerical::Double lambda = *beginColumn / *pivotIt;
+
                         m_parent->getModel()->addToConstraint(secondIndex, index, -lambda);
+
                         Numerical::Double newLowerBound;
                         Numerical::Double newUpperBound;
                         if(lambda > 0) {
@@ -1193,6 +1195,7 @@ void MakeSparserModule::executeMethod() {
                             newLowerBound = curRow.getLowerBound() - lambda * pivotRow.getUpperBound();
                             newUpperBound = curRow.getUpperBound() - lambda * pivotRow.getLowerBound();
                         }
+
                         curRow.setBounds(newLowerBound, newUpperBound);
                         if(nonzeros - (int)curRow.getVector()->nonZeros() < 0) LPERROR("Make sparser module error: vector substraction created extra " << (nonzeros - (int)curRow.getVector()->nonZeros()) << " nonzeros");
                         int curNzrDiff = nonzeros - (int)curRow.getVector()->nonZeros();
