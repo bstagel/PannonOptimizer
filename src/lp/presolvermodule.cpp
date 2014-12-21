@@ -1136,7 +1136,7 @@ void MakeSparserModule::executeMethod() {
 
     //Index list to sort the rows by nonzero count
     IndexList<> sortedRows(rowCount, columnCount+1);
-    SparseVector usedPartitions(rowCount);
+    SparseVector usedPartitions(columnCount+1);
 
     //Set up the sorted list
     for(int i = 0; i < rowCount; i++) {
@@ -1148,10 +1148,9 @@ void MakeSparserModule::executeMethod() {
         }
     }
     IndexList<>::PartitionIterator it, itEnd;
-
     SparseVector::NonzeroIterator begin = usedPartitions.beginNonzero();
     SparseVector::NonzeroIterator end = usedPartitions.endNonzero();
-    if(begin.getIndex() == 0) ++begin;
+    if(begin < end && begin.getIndex() == 0) ++begin;
     while(begin < end) {
         sortedRows.getIterators(&it, &itEnd, begin.getIndex());
         while(it != itEnd) {
