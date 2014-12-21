@@ -136,7 +136,6 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
         matrix->scaleOnlyColumnwise(index, multiplier);
         m_columnMultipliers[index] *= multiplier;
     }
-
     for (index = 0; index < rowCount; index++) {
         matrix->scaleOnlyRowwiseLambdas(index, columnMultipliers);
     }

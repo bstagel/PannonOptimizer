@@ -451,8 +451,8 @@ void SparseVector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas
     // TODO: lekezelni azt, mikor 0-val szorzunk be
     Numerical::Double * dataPtr = m_data;
     unsigned int * indexPtr = m_indices;
-    Numerical::Double * lastData = m_data + m_length - 1;
-    unsigned int * lastIndex = m_indices + m_length - 1;
+    Numerical::Double * lastData = m_data + m_nonZeros - 1;
+    unsigned int * lastIndex = m_indices + m_nonZeros - 1;
 
     while (dataPtr <= lastData) {
         *dataPtr *= lambdas[*indexPtr];
