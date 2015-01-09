@@ -13,6 +13,8 @@
 class DenseVector;
 class IndexedDenseVector;
 
+extern bool DEBUG_MODE;
+
 /**
  *
  */
@@ -524,6 +526,8 @@ protected:
 
     void scatter() const;
 
+    void scatterData() const;
+
     void addSparseToSparseFast(Numerical::Double lambda, const SparseVector & vector);
     void addSparseToSparseAbs(Numerical::Double lambda, const SparseVector & vector);
     void addSparseToSparseAbsRel(Numerical::Double lambda, const SparseVector & vector);
@@ -551,6 +555,8 @@ protected:
     Numerical::Double dotProductSparseToSparseAbs(const SparseVector & vector1,const SparseVector & vector2) const;
     Numerical::Double dotProductSparseToSparseAbsRel(const SparseVector & vector1,const SparseVector & vector2) const;
 
+    void convertFromDenseArray(const Numerical::Double *source,
+                               unsigned int length);
 };
 
 #endif // SPARSEVECTOR_H

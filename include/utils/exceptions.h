@@ -158,7 +158,7 @@ public:
      * @return Real value of the index.
      */
     long long int getValue() const {
-        return m_min;
+        return m_value;
     }
 
     /**

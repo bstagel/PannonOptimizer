@@ -72,10 +72,29 @@ void IndexedDenseVector::set(unsigned int index, Numerical::Double value)
         m_nonzeroIndices[m_nonZeros] = index;
         m_nonZeros++;
     } else if (old != 0.0 && value == 0.0) {
+        if (DEBUG_MODE) {
+            std::cout << "lenullazom ezt: " << *(m_indexIndices[index]) << std::endl;
+        }
         *(m_indexIndices[index]) = m_nonzeroIndices[m_nonZeros - 1];
         m_indexIndices[index] = nullptr;
         m_nonZeros--;
     }
+
+    if (DEBUG_MODE) {
+        int i;
+        std::cout << "SET (" << index << ", " << value << ")" << std::endl;
+        std::cout << "nonzeros: " << m_nonZeros << std::endl;
+        std::cout << "nonzero indices: ";
+        for (i = 0; i < m_nonZeros; i++) {
+            std::cout << m_nonzeroIndices[i] << " ";
+        }
+        std::cout << std::endl;
+        for (i = 0; i < m_length; i++) {
+            std::cout << m_data[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
 }
 
 Numerical::Double IndexedDenseVector::euclidNorm() const
@@ -399,10 +418,18 @@ IndexedDenseVector IndexedDenseVector::createVectorFromDenseArray(const Numerica
     result.m_nonzeroIndices = alloc<unsigned int, 16>(size);
     result.m_indexIndices = alloc<unsigned int *, 16>(size);
     panOptMemset(result.m_indexIndices, 0, sizeof( unsigned int * ) * size);
+    result.m_nonZeros = 0;
 
     unsigned int index = 0;
     for (index = 0; index < size; index++) {
-        result.set(index, source[index]);
+        if (source[index] != 0.0) {
+            result.m_data[index] = source[index];
+            result.m_indexIndices[index] = result.m_nonzeroIndices + result.m_nonZeros;
+            result.m_nonzeroIndices[result.m_nonZeros] = index;
+            result.m_nonZeros++;
+        } else {
+            result.m_indexIndices[index] = nullptr;
+        }
     }
     return result;
 }
@@ -421,9 +448,52 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
     CLEAR_DOUBLES(result.m_data, length);
     panOptMemset(result.m_indexIndices, 0, sizeof( unsigned int * ) * count);
 
-    unsigned int index;
-    for (index = 0; index < count; index++) {
-        result.set( indices[index], data[index] );
+    if (DEBUG_MODE) {
+        int i;
+        std::cout << "input nonzero indices: ";
+        for (i = 0; i < count; i++) {
+            std::cout << indices[i] << " ";
+        }
+        std::cout << "input nonzeros: ";
+        for (i = 0; i < count; i++) {
+            std::cout << data[i] << " ";
+        }
+
+        std::cout << std::endl;
+    }
+
+    unsigned int nonZeroIndex;
+    for (nonZeroIndex = 0; nonZeroIndex < count; nonZeroIndex++) {
+        unsigned int index = indices[nonZeroIndex];
+        if (DEBUG_MODE) {
+            std::cout << "next index: " << index << " -> " << data[nonZeroIndex] << std::endl;
+
+        }
+        if (data[nonZeroIndex] != 0.0) {
+            result.m_data[index] = data[nonZeroIndex];
+            result.m_indexIndices[index] = result.m_nonzeroIndices + nonZeroIndex;
+            result.m_nonzeroIndices[nonZeroIndex] = index;
+        } else {
+            result.m_indexIndices[index] = nullptr;
+        }
+
+    }
+
+    if (DEBUG_MODE) {
+        int i;
+        std::cout << "nonzeros: " << result.m_nonZeros << std::endl;
+        std::cout << "nonzero indices: ";
+        for (i = 0; i < result.m_nonZeros; i++) {
+            std::cout << result.m_nonzeroIndices[i] << " ";
+        }
+        std::cout << std::endl;
+        for (i = 0; i < result.m_length; i++) {
+            std::cout << result.m_data[i] << " ";
+        }
+        for (i = 0; i < result.m_nonZeros; i++) {
+            std::cout << *result.m_indexIndices[ i ] << " ";
+        }
+        std::cout << std::endl << "---------------------------" << std::endl;
     }
 
     return result;
@@ -698,10 +768,10 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseFast(const I
     Numerical::Double pos;
     Numerical::Double neg;
     pos = Architecture::getDenseToSparseDotProductStable()(vector1.m_data,
-                                                     vector2.m_data,
-                                                     vector2.m_indices,
-                                                     vector2.m_nonZeros,
-                                                     &neg);
+                                                           vector2.m_data,
+                                                           vector2.m_indices,
+                                                           vector2.m_nonZeros,
+                                                           &neg);
     return pos + neg;
 }
 
@@ -711,10 +781,10 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseAbs(const In
     Numerical::Double pos;
     Numerical::Double neg;
     pos = Architecture::getDenseToSparseDotProductStable()(vector1.m_data,
-                                                     vector2.m_data,
-                                                     vector2.m_indices,
-                                                     vector2.m_nonZeros,
-                                                     &neg);
+                                                           vector2.m_data,
+                                                           vector2.m_indices,
+                                                           vector2.m_nonZeros,
+                                                           &neg);
     return Numerical::stableAddAbs(pos, neg);
 }
 
@@ -724,10 +794,10 @@ Numerical::Double IndexedDenseVector::dotProductIndexedDenseToSparseAbsRel(const
     Numerical::Double pos;
     Numerical::Double neg;
     pos = Architecture::getDenseToSparseDotProductStable()(vector1.m_data,
-                                                     vector2.m_data,
-                                                     vector2.m_indices,
-                                                     vector2.m_nonZeros,
-                                                     &neg);
+                                                           vector2.m_data,
+                                                           vector2.m_indices,
+                                                           vector2.m_nonZeros,
+                                                           &neg);
     return Numerical::stableAdd(pos, neg);
 }
 
