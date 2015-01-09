@@ -13,22 +13,24 @@ private:
     void copy();
     void move();
     void assign();
+    void assignDense();
     void moveAssign();
     void createUnitVector();
     void createVectorFromDenseArray();
     void createVectorFromSparseArray();
     void createEtaVector();
-    void createEtaByPivotIndex();
     void at();
     void arrayOperator();
     void set();
+    void setNewNonzero();
     void length();
+    void nonZeros();
     void euclidNorm();
     void l1Norm();
+    void elementaryFtran();
     void addSparseVector();
     void addDenseVector();
     void addIndexedDenseVector();
-    void nonZeros();
     void scale();
     void sortIndices();
     void clear();
@@ -37,6 +39,7 @@ private:
     void beginNonzero();
     void endNonzero();
     void iterator();
+
 
 };
 

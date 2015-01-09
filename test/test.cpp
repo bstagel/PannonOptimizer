@@ -33,8 +33,8 @@ using namespace std;
 int main(int, char** )
 {
     setbuf(stdout, 0);
-    //Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
-    Tester::addUnitTest(new CoreTestSuite("Core Test"));
+    Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
+    //Tester::addUnitTest(new CoreTestSuite("Core Test"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
@@ -55,6 +55,9 @@ int main(int, char** )
     //Tester::addUnitTest(new PresolverTestSuite("Presolver Test"));
 
     Tester::run();
+
+    Tester::setReportTitle("Pannon Optimizer unit test results");
+    Tester::generateHtmlOutput("report");
     return EXIT_SUCCESS;
 }
 

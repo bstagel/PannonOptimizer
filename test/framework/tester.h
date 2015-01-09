@@ -12,6 +12,8 @@
 #include <list>
 #include <map>
 #include <string>
+#include <vector>
+#include <ctime>
 
 #include <utils/thirdparty/prettyprint.h>
 
@@ -37,7 +39,20 @@ public:
 
     static void run();
 
+    static void generateHtmlOutput(const char * directory);
+
+    static void generateLatexOutput(const char * directory);
+
+    static void setReportTitle(const char * title);
+
 private:
+
+    struct ReportCell {
+        std::string m_value;
+        std::string m_attributes;
+        bool m_headCell;
+    };
+
     static std::list<UnitTest*> sm_tests;
     static unsigned int sm_totalCounter;
     static unsigned int sm_subCounter;
@@ -45,6 +60,12 @@ private:
     static bool sm_actualIsGood;
     static unsigned int sm_totalErrorCounter;
     static std::string sm_extraInfo;
+    static std::string sm_title;
+    static tm sm_startTime;
+
+    static double sm_executionTime;
+    static unsigned int sm_failedUnitTests;
+
 
     // key: name of the test unit
     static std::map<std::string, std::map< std::string, std::list<TestResult> > > sm_results;
@@ -54,43 +75,42 @@ private:
         std::map<std::string, std::map< std::string, std::list<TestResult> > >::iterator iter = sm_results.find(unit);
         std::map<std::string, std::map< std::string, std::list<TestResult> > >::iterator iterEnd = sm_results.end();
         if (iter == iterEnd) {
-            if (!sm_firstTest) {
+            /*if (!sm_firstTest) {
                 if (sm_actualIsGood) {
                     std::cout << " PASSED" << std::endl;
                 } else {
                     sm_totalErrorCounter++;
                     std::cout << " FAILED" << std::endl;
                 }
-            }
+            }*/
             sm_totalCounter++;
             sm_firstTest = false;
             sm_actualIsGood = true;
-            std::cout << "Unit test: " << unit << std::endl;
             sm_subCounter = 1;
-            std::cout << "\t" << sm_subCounter << ": " << test;
+            //std::cout << "\t" << sm_subCounter << ": " << test;
 
         } else {
             std::map< std::string, std::list<TestResult> >::iterator iter2 = (*iter).second.find(test);
             std::map< std::string, std::list<TestResult> >::iterator iterEnd2 = (*iter).second.end();
             if (iter2 == iterEnd2) { // new test case
-                if (sm_actualIsGood) {
+                /*if (sm_actualIsGood) {
                     std::cout << " PASSED" << std::endl;
                 } else {
                     sm_totalErrorCounter++;
                     std::cout << " FAILED" << std::endl;
-                }
+                }*/
 
                 sm_totalCounter++;
                 sm_subCounter++;
                 sm_actualIsGood = true;
-                std::cout << "\t" << sm_subCounter << ": " << test;
+                //std::cout << "\t" << sm_subCounter << ": " << test;
             }
         }
         if (result.m_result == false) {
             std::cout << std::endl << std::endl << "\tFile: " << result.m_file << std::endl;
             std::cout << "\tFunction: " << test << std::endl;
             std::cout << "\tLine: " << result.m_line << std::endl;
-            std::cout << "\tSource:" << result.m_source << std::endl;
+            std::cout << "\t" << result.m_source << std::endl;
             if (sm_extraInfo.length() > 0) {
                 std::cout << "\t Extra info: " << sm_extraInfo << std::endl;
             }
@@ -100,15 +120,21 @@ private:
         sm_results[unit][test].push_back(result);
     }
 
-    static void generateHtmlOutput(std::ostream &)
-    {
-
-    }
-
     static void setExtraInfo(const std::string & info)
     {
         sm_extraInfo = info;
     }
+
+    static void generateHtmlHead(std::ostream & os);
+
+    static void generateHtmlBody(std::ostream & os);
+
+    static void generateHtmlSummary(std::ostream & os);
+
+    static void generateUnitTestSummary(std::ostream & os);
+
+    static void generateTable(std::ostream & os,
+                              const std::vector<std::vector<ReportCell>> & table);
 };
 
 #endif	/* TESTER_H */
