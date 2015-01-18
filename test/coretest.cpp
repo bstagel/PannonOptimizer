@@ -21,12 +21,12 @@ enum MEMCPY_SIZE_CASES {
 };
 
 CoreTestSuite::CoreTestSuite(const char *name): UnitTest(name) {
-    //ADD_TEST(CoreTestSuite::memcpy);
+    ADD_TEST(CoreTestSuite::memcpy);
     //ADD_TEST(CoreTestSuite::memset);
     //ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
     //ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
-    ADD_TEST(CoreTestSuite::denseToDenseAdd);
-    ADD_TEST(CoreTestSuite::denseToDenseAddPerformance);
+    //ADD_TEST(CoreTestSuite::denseToDenseAdd);
+    //ADD_TEST(CoreTestSuite::denseToDenseAddPerformance);
 }
 
 void CoreTestSuite::memcpy() {

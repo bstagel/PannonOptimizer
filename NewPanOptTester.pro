@@ -51,7 +51,16 @@ HEADERS += test/framework/tester.h \
            test/simplexparameterhandlertest.h \
     test/outputhandlertest.h \ #\
     test/coretest.h \
-    test/sparsevectortest.h
+    test/sparsevectortest.h \
+    test/framework/report.h \
+    test/framework/reportgenerator.h \
+    test/framework/htmlreportgenerator.h \
+    test/framework/latexreportgenerator.h \
+    test/framework/mysqlreportgenerator.h \
+    test/framework/sqlitereportgenerator.h \
+    test/framework/xmlreportgenerator.h \
+    test/framework/sqlreportgenerator.h \
+    test/framework/filereportgenerator.h
    # test/dualratiotesttest.h
 
 #Sources
@@ -65,7 +74,15 @@ SOURCES += test/framework/tester.cpp \
            test/simplexparameterhandlertest.cpp \
     test/outputhandlertest.cpp \
     test/coretest.cpp \
-    test/sparsevectortest.cpp
+    test/sparsevectortest.cpp \
+    test/framework/report.cpp \
+    test/framework/htmlreportgenerator.cpp \
+    test/framework/latexreportgenerator.cpp \
+    test/framework/mysqlreportgenerator.cpp \
+    test/framework/sqlitereportgenerator.cpp \
+    test/framework/sqlreportgenerator.cpp \
+    test/framework/xmlreportgenerator.cpp \
+    test/framework/filereportgenerator.cpp
   #  test/dualratiotesttest.cpp
 
 OBJECTS_DIR = .o
