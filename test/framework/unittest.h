@@ -14,8 +14,10 @@
 #include <sstream>
 #include <functional>
 #include <algorithm>
+#include <map>
 
 #include <framework/tester.h>
+#include <framework/unittest.h>
 
 static std::basic_ostream<char> & operator<<(std::basic_ostream<char> & str, const std::nullptr_t &) {
     str << "nullptr";
@@ -39,6 +41,8 @@ private:
 public:
 
     virtual ~UnitTest() {}
+
+    enum class STATUS {PASSED, FAILED, FLAWLESS};
 
     class DefaultTester
     {
@@ -79,12 +83,22 @@ protected:
         std::string m_name;
         TestFunction m_function;
         DefaultTester * m_tester;
+        double m_initTime;
+        double m_executionTime;
+        STATUS m_status;
+        unsigned long long int m_asserts;
+        unsigned long long int m_failedAsserts;
     };
 
 public:
 
     UnitTest(const char * name) : m_name(name),
-        m_errorCounter(0)
+        m_errorCounter(0),
+        m_failedTestFunctions(0),
+        m_unimplementedTestFunctions(0),
+        m_asserts(0),
+        m_failedAsserts(0),
+        m_executionTime(0)
     {
     }
 
@@ -96,30 +110,206 @@ public:
         Tester::setExtraInfo(info);
     }
     
-    virtual unsigned int run(double * timePtr)
+    virtual unsigned int run()
     {
         clock_t startTime, endTime;
+        clock_t functionStartTime, functionEndTime;
         unsigned int errorCount = 0;
+        m_failedTestFunctions = 0;
+        m_asserts = 0;
+        m_failedAsserts = 0;
+        m_unimplementedTestFunctions = 0;
         unsigned int index;
         std::vector<TestCase>::iterator iter = m_testCases.begin();
         std::vector<TestCase>::iterator iterEnd = m_testCases.end();
         startTime = clock();
         for (index = 1; iter != iterEnd; iter++, index++) {
             m_errorCounter = 0;
+            auto oldAsserts = m_asserts;
             std::cout << "\t" << index << ": " << iter->m_name << " ";
+            functionStartTime = clock();
             iter->m_tester->init(this, iter->m_function);
+            functionEndTime = clock();
+            iter->m_initTime = (double)(functionEndTime - functionStartTime) / CLOCKS_PER_SEC;
+
+            functionStartTime = clock();
             errorCount += iter->m_tester->test();
+            functionEndTime = clock();
+            iter->m_executionTime = (double)(functionEndTime - functionStartTime) / CLOCKS_PER_SEC;
+
             if (errorCount == 0) {
                 std::cout << " PASSED" << std::endl;
+                if (m_asserts == oldAsserts) {
+                    iter->m_status = STATUS::PASSED;
+                } else {
+                    iter->m_status = STATUS::FLAWLESS;
+                }
             } else {
+                m_failedTestFunctions++;
                 std::cout << " FAILED: " << errorCount << " errors" << std::endl;
+                iter->m_status = STATUS::FAILED;
             }
+            if (m_asserts == oldAsserts) {
+                m_unimplementedTestFunctions++;
+            }
+            iter->m_asserts = m_asserts - oldAsserts;
+            iter->m_failedAsserts = m_errorCounter;
             delete iter->m_tester;
         }
         endTime = clock();
-        *timePtr = (double) (endTime - startTime) / CLOCKS_PER_SEC;
+        m_executionTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;
+        m_failedAsserts += m_errorCounter;
         return errorCount;
     }
+
+    unsigned long long int getTestFunctions() const {
+        return m_testCases.size();
+    }
+
+    unsigned long long int getFailedTestFunctions() const {
+        return m_failedTestFunctions;
+    }
+
+    unsigned long long int getAsserts() const {
+        return m_asserts;
+    }
+
+    unsigned long long int getFailedAsserts() const {
+        return m_failedAsserts;
+    }
+
+    std::string getStatusString() const {
+        if (m_failedAsserts == 0) {
+            return "PASSED";
+        }
+        return "FAILED";
+    }
+
+    unsigned long long getUnimplementedTestFunctions() const {
+        return m_unimplementedTestFunctions;
+    }
+
+    double getExecutionTime() const {
+        return m_executionTime;
+    }
+
+    void addExtraInfo(const std::string & key, const std::string & value) {
+        m_extraInfos.insert( {key, value} );
+    }
+
+    const std::map<std::string, std::string> & getExtraInfos() const {
+        return m_extraInfos;
+    }
+
+    ReportModule * getReportModule() const
+    {
+        ReportModule * module = new ReportModule;
+
+
+
+        generateSummaryReport(module);
+        generateFunctionSummaryReport(module);
+
+        return module;
+    }
+
+    void generateSummaryReport(ReportModule * module) const {
+        ReportTable table(2);
+        table.setTitle("Summary");
+
+        std::string executionTime = std::to_string((int)m_executionTime) + "." + std::to_string((int)(m_executionTime*100) % 100) + " seconds";
+        std::string testFunctions = std::to_string(getTestFunctions());
+        std::string failedTestFunctions = std::to_string(getFailedTestFunctions());
+        std::string unimplementedTestFunctions = std::to_string(getUnimplementedTestFunctions());
+        std::string asserts = std::to_string(getAsserts());
+        std::string failedAsserts = std::to_string(getFailedAsserts());
+        std::string status = getStatusString();
+
+        ReportTable::ALIGNMENT left = ReportTable::ALIGNMENT::LEFT;
+        ReportTable::ALIGNMENT right = ReportTable::ALIGNMENT::RIGHT;
+
+        table.setCell(0, 0, {"Execution time", left, nullptr, false });
+        table.setCell(0, 1, {executionTime, right, nullptr, false });
+
+        table.setCell(1, 0, {"Test functions", left, nullptr, false });
+        table.setCell(1, 1, {testFunctions, right, nullptr, false });
+
+        table.setCell(2, 0, {"Failed test functions", left, nullptr, false });
+        table.setCell(2, 1, {failedTestFunctions, right, nullptr, false });
+
+        table.setCell(3, 0, {"Unimplemented test functions", left, nullptr, false });
+        table.setCell(3, 1, {unimplementedTestFunctions, right, nullptr, false });
+
+        table.setCell(4, 0, {"Asserts", left, nullptr, false });
+        table.setCell(4, 1, {asserts, right, nullptr, false });
+
+        table.setCell(5, 0, {"Failed asserts", left, nullptr, false });
+        table.setCell(5, 1, {failedAsserts, right, nullptr, false });
+
+        table.setCell(6, 0, {"Status", left, nullptr, false });
+        table.setCell(6, 1, {status, right, nullptr, false });
+
+        module->addTable(table);
+
+    }
+
+    void generateFunctionSummaryReport(ReportModule * module) const {
+        ReportTable table(7);
+
+        ReportTable::ALIGNMENT left = ReportTable::ALIGNMENT::LEFT;
+        ReportTable::ALIGNMENT right = ReportTable::ALIGNMENT::RIGHT;
+        ReportTable::ALIGNMENT center = ReportTable::ALIGNMENT::CENTER;
+
+        table.setTitle("Test function summary");
+        table.setCell(0, 0, {"Name", center, nullptr, true});
+        table.setCell(0, 1, {"Initialization time", center, nullptr, true});
+        table.setCell(0, 2, {"Execution time", center, nullptr, true});
+        table.setCell(0, 3, {"Status", center, nullptr, true});
+        table.setCell(0, 4, {"Asserts", center, nullptr, true});
+        table.setCell(0, 5, {"Failed asserts", center, nullptr, true});
+        table.setCell(0, 6, {"Details", center, nullptr, true});
+
+        table.setColumn(0, {true, ReportTable::TYPE::STRING});
+        table.setColumn(1, {true, ReportTable::TYPE::FLOAT});
+        table.setColumn(2, {true, ReportTable::TYPE::FLOAT});
+        table.setColumn(3, {true, ReportTable::TYPE::STRING});
+        table.setColumn(4, {true, ReportTable::TYPE::INTEGER});
+        table.setColumn(5, {true, ReportTable::TYPE::INTEGER});
+        table.setColumn(6, {false, ReportTable::TYPE::STRING});
+
+        unsigned int functionIndex = 1;
+        for (auto & function: m_testCases) {
+
+            std::string initTime = std::to_string((int)function.m_initTime) + "." + std::to_string((int)(function.m_initTime*100) % 100) + " seconds";
+            std::string executionTime = std::to_string((int)function.m_executionTime) + "." + std::to_string((int)(function.m_executionTime*100) % 100) + " seconds";
+            std::string status;
+            switch (function.m_status) {
+            case STATUS::FAILED:
+                status = "FAILED";
+                break;
+            case STATUS::PASSED:
+                status = "PASSED";
+                break;
+            case STATUS::FLAWLESS:
+                status = "FLAWLESS";
+                break;
+            }
+            std::string asserts = std::to_string(function.m_asserts);
+            std::string failedAsserts = std::to_string(function.m_failedAsserts);
+
+            table.setCell(functionIndex, 0, { function.m_name, left, nullptr, false });
+            table.setCell(functionIndex, 1, { initTime, right, nullptr, false });
+            table.setCell(functionIndex, 2, { executionTime, right, nullptr, false });
+            table.setCell(functionIndex, 3, { status, right, nullptr, false});
+            table.setCell(functionIndex, 4, { asserts, right, nullptr, false});
+            table.setCell(functionIndex, 5, { failedAsserts, right, nullptr, false});
+
+            functionIndex++;
+        }
+
+        module->addTable(table);
+    }
+
 
 protected:
 
@@ -186,6 +376,7 @@ protected:
         newResult.m_result = result;
         newResult.m_source = std::string("Source: ") + source;
         m_errorCounter += result == false;
+        m_asserts++;
         Tester::addNewResult(m_name, function, newResult);
         //Tester::m_results[m_name][function].push_back(newResult);
     }
@@ -210,6 +401,7 @@ protected:
         } else {
             newResult.m_source = std::string("[EQUALITY] ") + std::string(source);
         }
+        m_asserts++;
         Tester::addNewResult(m_name, function, newResult);
     }
 
@@ -233,6 +425,7 @@ protected:
         } else {
             newResult.m_source = std::string("[INEQUALITY] ") + std::string(source);
         }
+        m_asserts++;
         Tester::addNewResult(m_name, function, newResult);
     }
 
@@ -255,6 +448,7 @@ protected:
         } else {
             newResult.m_source = std::string("[INEQUALITY] ") + std::string(source);
         }
+        m_asserts++;
         Tester::addNewResult(m_name, function, newResult);
     }
 
@@ -263,6 +457,18 @@ private:
     std::string m_name;
 
     unsigned int m_errorCounter;
+
+    unsigned long long int m_failedTestFunctions;
+
+    unsigned long long int m_unimplementedTestFunctions;
+
+    unsigned long long int m_asserts;
+
+    unsigned long long int m_failedAsserts;
+
+    double m_executionTime;
+
+    std::map<std::string, std::string> m_extraInfos;
 };
 
 #define EMIT_ERROR(expr)                                                \
@@ -300,7 +506,7 @@ private:
     testCase.m_name = #function;                                        \
     std::string::size_type lastScopeIndex = testCase.m_name.find_last_of(":");    \
     if (lastScopeIndex != std::string::npos) {                          \
-        testCase.m_name = testCase.m_name.substr(lastScopeIndex + 1);   \
+    testCase.m_name = testCase.m_name.substr(lastScopeIndex + 1);   \
     }                                                                   \
     testCase.m_function = static_cast<TestFunction>(&function);          \
     testCase.m_tester = new DefaultTester;                               \

@@ -25,8 +25,8 @@
 #include <coretest.h>
 #include <sparsevectortest.h>
 
-using namespace std;
 
+#include <iomanip>
 // Main test program
 //
 
@@ -34,7 +34,7 @@ int main(int, char** )
 {
     setbuf(stdout, 0);
     Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
-    //Tester::addUnitTest(new CoreTestSuite("Core Test"));
+    Tester::addUnitTest(new CoreTestSuite("Core Test"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
