@@ -652,10 +652,8 @@ void SimplexController::parallelSolve(const Model &model)
                 }
             } else if (terminatedNumber == m_numberOfThreads){
                 masterIndex = terminatedMaxIndex;
-                LPINFO("ALLLL ERROR "<<masterIndex);
                 //Throw the error exception if the basis was fresh
                 if(m_iterationIndex == simplexThreads[masterIndex].getIterationNumber()){
-                    LPINFO("THROWINF");
                     switch (simplexThreads[masterIndex].getExceptionType()){
                     case SimplexThread::OPTIMAL:
                         throw *(static_cast<OptimalException*>(simplexThreads[masterIndex].getException()));
