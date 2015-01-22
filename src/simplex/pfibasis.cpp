@@ -22,6 +22,9 @@ int aprExpCounter = 0;
 thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
 
+//TODO This thread_local leads to memory error
+thread_local std::vector<int>* PfiBasis::m_updateHelper = nullptr;
+
 PfiBasis::PfiBasis() :
     Basis(),
     m_nontriangularMethod(getNontriangularMethod(SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
@@ -95,6 +98,10 @@ void PfiBasis::registerThread() {
     if(m_updates == nullptr){
         m_updates = new std::vector<ETM>();
     }
+
+    if(m_updateHelper == nullptr){
+        m_updateHelper = new std::vector<int>();
+    }
 }
 
 void PfiBasis::releaseThread() {
@@ -102,7 +109,10 @@ void PfiBasis::releaseThread() {
         delete iter->eta;
     }
     delete m_updates;
-    m_updates= nullptr;
+    m_updates = nullptr;
+
+    delete m_updateHelper;
+    m_updateHelper = nullptr;
 }
 
 void PfiBasis::clearUpdates() {
@@ -704,9 +714,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator it = m_rowNonzeroIndices[rowindex].begin();
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
-    //TODO This thread_local leads to memory error
-    static thread_local std::vector<int> updatehelper;
-    updatehelper.resize(m_model->getRowCount(), 0);
+    m_updateHelper->resize(m_model->getRowCount(), 0);
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
 
@@ -721,7 +729,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             SparseVector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    updatehelper[columnIt.getIndex()]--;
+                    (*m_updateHelper)[columnIt.getIndex()]--;
                 }
             }
 
@@ -735,7 +743,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
                 if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    updatehelper[columnIt.getIndex()]++;
+                    (*m_updateHelper)[columnIt.getIndex()]++;
                     newColumnCount++;
                 }
             }
@@ -743,8 +751,8 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             //Update the column count
             m_columnCounts[*it] = newColumnCount;
 
-            std::vector<int>::iterator helperIt = updatehelper.begin();
-            std::vector<int>::iterator helperItend = updatehelper.end();
+            std::vector<int>::iterator helperIt = m_updateHelper->begin();
+            std::vector<int>::iterator helperItend = m_updateHelper->end();
             for(int columnIndex = 0; helperIt != helperItend; helperIt++, columnIndex++){
                 if(*helperIt == -1){
                     *helperIt = 0;

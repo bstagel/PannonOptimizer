@@ -226,6 +226,8 @@ private:
     Numerical::Double m_mNumAverage;
     static thread_local int m_inversionCount;
 
+    static thread_local std::vector<int>* m_updateHelper;
+
     //Run parameters
     //Non-triangular method parameter
     NONTRIANGULAR_METHOD m_nontriangularMethod;
