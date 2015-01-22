@@ -346,6 +346,12 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
                                            Numerical::Double phaseIReducedCost,
                                            Numerical::Double phaseIObjectiveValue)
 {
+    //VERY IMPORTANT to have here this boundflip clear (if any)
+    //If a fallback occurs when the boundflips is not empty than it will lead to undefined behaviour
+    //In parallel case this can cause serious errors (because of the basis resetting)
+    m_boundflips.clear();
+
+
     m_becomesFeasible.clear();
     m_updateFeasibilitySets.clear();
     m_updateFeasibilitySets.reserve(2*alpha.nonZeros());

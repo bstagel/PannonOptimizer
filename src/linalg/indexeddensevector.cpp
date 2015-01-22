@@ -81,7 +81,7 @@ void IndexedDenseVector::set(unsigned int index, Numerical::Double value)
     }
 
     if (DEBUG_MODE) {
-        int i;
+        unsigned int i;
         std::cout << "SET (" << index << ", " << value << ")" << std::endl;
         std::cout << "nonzeros: " << m_nonZeros << std::endl;
         std::cout << "nonzero indices: ";
@@ -449,7 +449,7 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
     panOptMemset(result.m_indexIndices, 0, sizeof( unsigned int * ) * count);
 
     if (DEBUG_MODE) {
-        int i;
+        unsigned int i;
         std::cout << "input nonzero indices: ";
         for (i = 0; i < count; i++) {
             std::cout << indices[i] << " ";
@@ -480,7 +480,7 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
     }
 
     if (DEBUG_MODE) {
-        int i;
+        unsigned int i;
         std::cout << "nonzeros: " << result.m_nonZeros << std::endl;
         std::cout << "nonzero indices: ";
         for (i = 0; i < result.m_nonZeros; i++) {

@@ -33,6 +33,30 @@ Timer::Timer():
 #endif
 }
 
+void Timer::reset()
+{
+#ifdef WIN32
+    QueryPerformanceFrequency(&m_frequency);
+    m_start.QuadPart = 0;
+    m_end.QuadPart = 0;
+    m_lastElapsed.QuadPart = 0;
+    m_totalElapsed.QuadPart = 0;
+    m_averageElapsed.QuadPart = 0;
+    m_clockLastElapsed = 0;
+    m_clockTotalElapsed = 0;
+    m_clockAverageElapsed = 0;
+#else
+    m_start.tv_sec = m_start.tv_usec = 0;
+    m_end.tv_sec = m_end.tv_usec = 0;
+    m_lastElapsed.tv_sec = m_lastElapsed.tv_usec = 0;
+    m_totalElapsed.tv_sec = m_totalElapsed.tv_usec = 0;
+    m_averageElapsed.tv_sec = m_averageElapsed.tv_usec = 0;
+    m_clockLastElapsed = 0;
+    m_clockTotalElapsed = 0;
+    m_clockAverageElapsed = 0;
+#endif
+}
+
 void Timer::start()
 {
     if(m_started){

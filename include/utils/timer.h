@@ -36,6 +36,8 @@ public:
      */
     void start();
 
+    void reset();
+
     /**
      * Stops the measurement of elapsed time.
      */

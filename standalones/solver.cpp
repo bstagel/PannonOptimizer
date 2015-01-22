@@ -20,6 +20,7 @@
 #include <simplex/checker.h>
 
 void solve(std::string filename) {
+
     Model model;
     MpsModelBuilder* builder = new MpsModelBuilder();
     builder->loadFromFile(filename.c_str());
