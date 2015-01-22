@@ -244,12 +244,12 @@ void SimplexController::solve(const Model &model) {
                                              this,
                                              &model);
             }
-            LPINFO("Threads spawned!");
+//            LPINFO("Threads spawned!");
             //synchronise threads
             for(int i=0; i < m_numberOfThreads; ++i){
                 threads[i]->join();
             }
-            LPINFO("Threads finished!");
+//            LPINFO("Threads finished!");
             for(int i=0; i < m_numberOfThreads; ++i){
                 delete threads[i];
             }
@@ -300,7 +300,9 @@ void SimplexController::sequentialSolve(const Model &model)
         m_basis->registerThread();
         m_basis->setSimplexState(m_currentSimplex);
 
+        sm_solveTimer.reset();
         sm_solveTimer.start();
+        LPINFO("START: ")
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
@@ -497,6 +499,7 @@ void SimplexController::parallelSolve(const Model &model)
 
     m_basis->registerThread();
 
+    sm_solveTimer.reset();
     sm_solveTimer.start();
 
     std::vector<IterationReport*> iterationReports(m_numberOfThreads, nullptr);
@@ -543,22 +546,21 @@ void SimplexController::parallelSolve(const Model &model)
                     simplexes[i]->setSimplexState(*(simplexes[masterIndex]));
                 }
             }
-            std::vector<std::thread*> threads(m_numberOfThreads, nullptr);
+
+            std::thread* threads = new std::thread [m_numberOfThreads];
             //spawn threads
             for(int i=0; i < m_numberOfThreads; ++i){
-                threads[i] = new std::thread(&SimplexThread::performIterations,
+                threads[i] = std::thread(&SimplexThread::performIterations,
                                  &simplexThreads[i],
                                  m_basis, iterationReports[i], m_iterationIndex, reinversionFrequency);
             }
 //            LPINFO("Threads spawned!");
             //synchronise threads
             for(int i=0; i < m_numberOfThreads; ++i){
-                threads[i]->join();
+                threads[i].join();
             }
-            LPINFO("Threads finished!");
-            for(int i=0; i < m_numberOfThreads; ++i){
-                delete threads[i];
-            }
+//            LPINFO("Threads finished!");
+            delete [] threads;
 
             //Select the master simplex
             //If all simplexes are iterated normally, choose the best one
@@ -650,8 +652,10 @@ void SimplexController::parallelSolve(const Model &model)
                 }
             } else if (terminatedNumber == m_numberOfThreads){
                 masterIndex = terminatedMaxIndex;
+                LPINFO("ALLLL ERROR "<<masterIndex);
                 //Throw the error exception if the basis was fresh
                 if(m_iterationIndex == simplexThreads[masterIndex].getIterationNumber()){
+                    LPINFO("THROWINF");
                     switch (simplexThreads[masterIndex].getExceptionType()){
                     case SimplexThread::OPTIMAL:
                         throw *(static_cast<OptimalException*>(simplexThreads[masterIndex].getException()));
@@ -685,7 +689,7 @@ void SimplexController::parallelSolve(const Model &model)
                     masterIndex = maxPhase2Index;
                 }
             }
-            LPINFO("master: "<<masterIndex+1);
+//            LPINFO("master: "<<masterIndex+1);
             m_iterationIndex = simplexThreads[masterIndex].getIterationNumber();
         }
     } catch ( const ParameterException & exception ) {
@@ -704,6 +708,8 @@ void SimplexController::parallelSolve(const Model &model)
         LPINFO("The problem is DUAL UNBOUNDED.");
     } catch ( const NumericalException & exception ) {
         LPINFO("Numerical error: "<<exception.getMessage());
+    } catch ( const FallbackException & exception ) {
+        LPINFO("Fallback error: "<<exception.getMessage());
     } catch ( const SyntaxErrorException & exception ) {
         exception.show();
     } catch ( const InvalidIndexException & exception ) {

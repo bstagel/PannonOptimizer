@@ -327,7 +327,7 @@ void SimplexModel::perturbCostVector(int initializeEngine)
             }
             std::vector<Numerical::Double> weightVector;
             weightVector.resize(maxNonzero);
-            for(int i=0; i < weightVector.size(); ++i){
+            for(unsigned int i=0; i < weightVector.size(); ++i){
                 weightVector[i] = log2(i+2);
             }
             for(unsigned i=0; i < getColumnCount(); ++i){

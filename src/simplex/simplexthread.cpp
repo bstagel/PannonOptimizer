@@ -1,5 +1,6 @@
 #include <simplex/simplexthread.h>
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/checker.h>
 
 SimplexThread::SimplexThread(Simplex *currentSimplex)
     : m_result(SimplexThread::FINISHED),
@@ -84,7 +85,12 @@ void SimplexThread::performIterations(Basis* basis, IterationReport* iterationRe
             m_exceptionType = SimplexThread::FALLBACK;
             LPINFO("FALLBACK "<<ThreadSupervisor::getThreadId());
             break;
-        } /*catch (...){
+        } catch ( const PanOptException& exception) {
+            LPINFO("Something wrong at thread: "<<ThreadSupervisor::getThreadId());
+            LPINFO(exception.getMessage());LPINFO("Something wrong at thread: "<<ThreadSupervisor::getThreadId());
+
+            break;
+        }/* catch (...){
             LPINFO("Something wrong at thread: "<<ThreadSupervisor::getThreadId());
             break;
         }*/

@@ -410,6 +410,7 @@ void Simplex::setSimplexState(const Simplex & simplex)
     m_reducedCosts = simplex.m_reducedCosts;
 
     m_objectiveValue = simplex.m_objectiveValue;
+
 }
 
 void Simplex::iterate(int iterationIndex)
