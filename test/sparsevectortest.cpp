@@ -1514,6 +1514,10 @@ void SparseVectorTestSuite::at()
         for (index = 0; index < 10; index++) {
             if (index < size) {
                 TEST_ASSERT_EQUALITY(v1.at(index), 0.0);
+
+
+      //          TEST_ASSERT_EQUALITY(v1.at(index), 1.0);
+      //          TEST_ASSERT_INEQUALITY(v1.at(index), 0.0);
             } else {
                 try {
                     v1.at(index);

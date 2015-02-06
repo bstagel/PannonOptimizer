@@ -24,6 +24,25 @@ static std::basic_ostream<char> & operator<<(std::basic_ostream<char> & str, con
     return str;
 }
 
+struct TestResult
+{
+    enum class TYPE {
+        SIMPLE,
+        EQUALITY,
+        INEQUALITY,
+        GREATER_OR_EQUAL,
+        EMITTED,
+        REGULAR_EXPRESSION
+    };
+    std::string m_file;
+    unsigned int m_line;
+    bool m_result;
+    std::string m_source;
+    std::string m_function;
+    std::string m_comment;
+    TYPE m_type;
+};
+
 class UnitTest
 {
 public:
@@ -36,7 +55,7 @@ private:
         os << nullptr;
 
         (this->*function)();
-        return m_errorCounter;
+        return m_failedAsserts;
     }
 public:
 
@@ -88,17 +107,18 @@ protected:
         STATUS m_status;
         unsigned long long int m_asserts;
         unsigned long long int m_failedAsserts;
+        std::vector<TestResult> m_results;
     };
 
 public:
 
     UnitTest(const char * name) : m_name(name),
-        m_errorCounter(0),
         m_failedTestFunctions(0),
         m_unimplementedTestFunctions(0),
         m_asserts(0),
         m_failedAsserts(0),
-        m_executionTime(0)
+        m_executionTime(0),
+        m_actualTestCase(nullptr)
     {
     }
 
@@ -124,7 +144,7 @@ public:
         std::vector<TestCase>::iterator iterEnd = m_testCases.end();
         startTime = clock();
         for (index = 1; iter != iterEnd; iter++, index++) {
-            m_errorCounter = 0;
+            m_actualTestCase = &(*iter);
             auto oldAsserts = m_asserts;
             std::cout << "\t" << index << ": " << iter->m_name << " ";
             functionStartTime = clock();
@@ -137,7 +157,8 @@ public:
             functionEndTime = clock();
             iter->m_executionTime = (double)(functionEndTime - functionStartTime) / CLOCKS_PER_SEC;
 
-            if (errorCount == 0) {
+            unsigned int failedAsserts = iter->m_results.size();
+            if (failedAsserts == 0) {
                 std::cout << " PASSED" << std::endl;
                 if (m_asserts == oldAsserts) {
                     iter->m_status = STATUS::PASSED;
@@ -153,12 +174,13 @@ public:
                 m_unimplementedTestFunctions++;
             }
             iter->m_asserts = m_asserts - oldAsserts;
-            iter->m_failedAsserts = m_errorCounter;
+            iter->m_failedAsserts = iter->m_results.size();
+            m_failedAsserts += iter->m_results.size();
             delete iter->m_tester;
         }
         endTime = clock();
         m_executionTime = (double) (endTime - startTime) / CLOCKS_PER_SEC;
-        m_failedAsserts += m_errorCounter;
+
         return errorCount;
     }
 
@@ -204,8 +226,6 @@ public:
     ReportModule * getReportModule() const
     {
         ReportModule * module = new ReportModule;
-
-
 
         generateSummaryReport(module);
         generateFunctionSummaryReport(module);
@@ -304,14 +324,108 @@ public:
             table.setCell(functionIndex, 4, { asserts, right, nullptr, false});
             table.setCell(functionIndex, 5, { failedAsserts, right, nullptr, false});
 
+            // generate module for the current function
+
+            if ( function.m_results.size() > 0) {
+                ReportModule * newModule = generateFunctionModule(function);
+                table.setCell(functionIndex, 6, { "link", right, newModule, false});
+            }
+
             functionIndex++;
         }
 
         module->addTable(table);
     }
 
+    ReportModule * generateFunctionModule( const TestCase & test ) const {
+        ReportModule * newModule = new ReportModule;
+        newModule->setName( test.m_name + " summary" );
+        ReportTable table(6);
+
+        ReportTable::ALIGNMENT left = ReportTable::ALIGNMENT::LEFT;
+        ReportTable::ALIGNMENT right = ReportTable::ALIGNMENT::RIGHT;
+        ReportTable::ALIGNMENT center = ReportTable::ALIGNMENT::CENTER;
+
+        table.setTitle("Assert summary");
+        table.setCell(0, 0, {"File", center, nullptr, true});
+        table.setCell(0, 1, {"Function", center, nullptr, true});
+        table.setCell(0, 2, {"Line", center, nullptr, true});
+        table.setCell(0, 3, {"Type", center, nullptr, true});
+        table.setCell(0, 4, {"Source", center, nullptr, true});
+        table.setCell(0, 5, {"Comment", center, nullptr, true});
+
+        table.setColumn(0, {true, ReportTable::TYPE::STRING});
+        table.setColumn(1, {true, ReportTable::TYPE::STRING});
+        table.setColumn(2, {true, ReportTable::TYPE::INTEGER});
+        table.setColumn(3, {true, ReportTable::TYPE::STRING});
+        table.setColumn(4, {true, ReportTable::TYPE::STRING});
+        table.setColumn(5, {true, ReportTable::TYPE::STRING});
+
+        unsigned int assertIndex = 1;
+        for (auto & assert: test.m_results) {
+
+            std::string file = assert.m_file;
+            std::string function = assert.m_function;
+            std::string line = std::to_string( assert.m_line );
+            std::string type;
+            switch ( assert.m_type ) {
+            case TestResult::TYPE::SIMPLE:
+                type = "simple";
+                break;
+            case TestResult::TYPE::EQUALITY:
+                type = "equality";
+                break;
+            case TestResult::TYPE::INEQUALITY:
+                type = "inequality";
+                break;
+            case TestResult::TYPE::GREATER_OR_EQUAL:
+                type = "greater or equal";
+                break;
+            case TestResult::TYPE::EMITTED:
+                type = "emitted";
+                break;
+            case TestResult::TYPE::REGULAR_EXPRESSION:
+                type = "regular expresssion";
+                break;
+            }
+            std::string source = assert.m_source;
+            std::string comment = assert.m_comment;
+
+            table.setCell(assertIndex, 0, {file, left, nullptr, false});
+            table.setCell(assertIndex, 1, {function, left, nullptr, false});
+            table.setCell(assertIndex, 2, {line, right, nullptr, false});
+            table.setCell(assertIndex, 3, {type, left, nullptr, false});
+            table.setCell(assertIndex, 4, {source, left, nullptr, false});
+            table.setCell(assertIndex, 5, {comment, left, nullptr, false});
+
+            assertIndex++;
+        }
+
+        newModule->addTable(table);
+        return newModule;
+    }
 
 protected:
+
+    void addNewResult(std::string function, TestResult result)
+    {
+        m_asserts++;
+        if (result.m_result == false) {
+            result.m_function = function;
+            std::cout << std::endl << std::endl << "\tFile: " << result.m_file << std::endl;
+            std::cout << "\tFunction: " << function << std::endl;
+            std::cout << "\tLine: " << result.m_line << std::endl;
+            std::cout << "\t" << result.m_source << std::endl;
+            if (result.m_comment.length() > 0) {
+                std::cout << "\t" << result.m_comment << std::endl;
+            }
+            if (Tester::getExtraInfo().length() > 0) {
+                std::cout << "\t Extra info: " << Tester::getExtraInfo() << std::endl;
+            }
+            std::cout << std::endl;
+            m_actualTestCase->m_results.push_back(result);
+        }
+    }
 
     template<class TYPE>
     void testWithPermutation(const TYPE * array,
@@ -375,9 +489,8 @@ protected:
         newResult.m_line = line;
         newResult.m_result = result;
         newResult.m_source = std::string("Source: ") + source;
-        m_errorCounter += result == false;
-        m_asserts++;
-        Tester::addNewResult(m_name, function, newResult);
+        newResult.m_type = TestResult::TYPE::SIMPLE;
+        addNewResult(function, newResult);
         //Tester::m_results[m_name][function].push_back(newResult);
     }
 
@@ -392,19 +505,18 @@ protected:
         newResult.m_file = file;
         newResult.m_line = line;
         newResult.m_result = testedValue == referenceValue;
+        newResult.m_type = TestResult::TYPE::EQUALITY;
+        newResult.m_source = source;
         //std::cout << "itt jo" << std::endl;
         if (newResult.m_result == false) {
             std::ostringstream os;
-            os << "[EQUALITY TEST FAILED] " << testedValue << " != " << referenceValue << "\n\tsource: " << source;
-            newResult.m_source = os.str();
-            m_errorCounter++;
+            os << "[EQUALITY TEST FAILED] " << testedValue << " != " << referenceValue;
+            newResult.m_comment = os.str();
         } else {
-            newResult.m_source = std::string("[EQUALITY] ") + std::string(source);
+            newResult.m_comment = std::string("[EQUALITY] ") + std::string(source);
         }
-        m_asserts++;
-        Tester::addNewResult(m_name, function, newResult);
+        addNewResult(function, newResult);
     }
-
     template<class COMPARABLE_TYPE1, class COMPARABLE_TYPE2>
     void saveInequalityTestResult(const char * file,
                                   const char * function,
@@ -416,17 +528,17 @@ protected:
         newResult.m_file = file;
         newResult.m_line = line;
         newResult.m_result = testedValue != referenceValue;
+        newResult.m_type = TestResult::TYPE::INEQUALITY;
+        newResult.m_source = source;
         //std::cout << "itt jo" << std::endl;
         if (newResult.m_result == false) {
             std::ostringstream os;
-            os << "[INEQUALITY TEST FAILED] " << testedValue << " == " << referenceValue << "\n\tsource: " << source;
-            newResult.m_source = os.str();
-            m_errorCounter++;
+            os << "[INEQUALITY TEST FAILED] " << testedValue << " == " << referenceValue;
+            newResult.m_comment = os.str();
         } else {
-            newResult.m_source = std::string("[INEQUALITY] ") + std::string(source);
+            newResult.m_comment = std::string("[INEQUALITY] ") + std::string(source);
         }
-        m_asserts++;
-        Tester::addNewResult(m_name, function, newResult);
+        addNewResult(function, newResult);
     }
 
     template<class COMPARABLE_TYPE1, class COMPARABLE_TYPE2>
@@ -440,23 +552,21 @@ protected:
         newResult.m_file = file;
         newResult.m_line = line;
         newResult.m_result = testedValue >= referenceValue;
+        newResult.m_type = TestResult::TYPE::GREATER_OR_EQUAL;
+        newResult.m_source = source;
         if (newResult.m_result == false) {
             std::ostringstream os;
-            os << "[INEQUALITY TEST FAILED] " << testedValue << " < " << referenceValue << "\n\tsource: " << source;
-            newResult.m_source = os.str();
-            m_errorCounter++;
+            os << "[INEQUALITY TEST FAILED] " << testedValue << " < " << referenceValue;
+            newResult.m_comment = os.str();
         } else {
-            newResult.m_source = std::string("[INEQUALITY] ") + std::string(source);
+            newResult.m_comment = std::string("[INEQUALITY] ") + std::string(source);
         }
-        m_asserts++;
-        Tester::addNewResult(m_name, function, newResult);
+        addNewResult(function, newResult);
     }
 
     std::vector<TestCase> m_testCases;
 private:
     std::string m_name;
-
-    unsigned int m_errorCounter;
 
     unsigned long long int m_failedTestFunctions;
 
@@ -467,6 +577,8 @@ private:
     unsigned long long int m_failedAsserts;
 
     double m_executionTime;
+
+    TestCase * m_actualTestCase;
 
     std::map<std::string, std::string> m_extraInfos;
 };
