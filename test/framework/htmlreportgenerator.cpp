@@ -22,6 +22,62 @@ void HtmlReportGenerator::generateHead(std::ostream &output,
     output << "<!DOCTYPE html>" << std::endl;
     output << "<html>" << std::endl;
     output << "<head>" << std::endl;
+
+    /*output << "<style>" << std::endl;
+    output << "table, th, td {" << std::endl;
+    output << "\tborder: 1px solid black;" << std::endl;
+    output << "\tborder-collapse: collapse;" << std::endl;
+    output << "}" << std::endl;
+    output << "</style>" << std::endl;*/
+
+    output << "<style>" << std::endl;
+    output << "table {" << std::endl;
+    output << "font-family: \"Trebuchet MS\", Arial, Helvetica, sans-serif;" << std::endl;
+    //output << "width: 100%;" << std::endl;
+    output << "border-collapse: collapse;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "table td, th {" << std::endl;
+    output << "font-size: 1em;" << std::endl;
+    output << "border: 1px solid #a0b4bb;" << std::endl;
+    // 98bf21
+    output << "padding: 3px 7px 2px 7px;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "table th {" << std::endl;
+    output << "font-size: 1.1em;" << std::endl;
+    output << "text-align: left;" << std::endl;
+    output << "padding-top: 5px;" << std::endl;
+    output << "padding-bottom: 4px;" << std::endl;
+    output << "background-color: #5081bb;" << std::endl;
+    // green: A7C942
+    output << "color: #ffffff;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "table tr.alt td {" << std::endl;
+    output << "color: #000000;" << std::endl;
+    output << "background-color: #d3e0e9;" << std::endl;
+    // EAF2D3
+    output << "}" << std::endl;
+
+    output << "a:link {" << std::endl;
+    output << "color: #FFFFFF;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "a:visited {" << std::endl;
+    output << "color: #FFFFFF;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "a:hover {" << std::endl;
+    output << "color: #d3e0e9;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "a:active {" << std::endl;
+    output << "color: #d3e0e9;" << std::endl;
+    output << "}" << std::endl;
+
+    output << "</style>" << std::endl;
+
     output << "\t<title>" << module.name() << "</title" << std::endl;
     output << "</head>" << std::endl;
 }
@@ -51,14 +107,18 @@ void HtmlReportGenerator::generateTable(std::ostream &output,
                                         const std::string dest) const
 {
     output << "\t<h1>" << table.title() << "</h1>" << std::endl;
-    output << "\t<table border=\"1\"";
+    output << "\t<table ";
     std::string name = getCamelCase( table.title(), true ) + "Table";
     output << " id=\"" << name << "\"";
     output << ">" << std::endl;
 
     unsigned int rowIndex = 0;
     for (auto & row: table.getTable()) {
-        output << "\t\t<tr>" << std::endl;
+        output << "\t\t<tr ";
+        if (rowIndex % 2 == 0) {
+            output << "class=\"alt\"" << std::endl;
+        }
+        output << ">" << std::endl;
         unsigned int columnIndex = 0;
         for (auto & cell: row) {
             //

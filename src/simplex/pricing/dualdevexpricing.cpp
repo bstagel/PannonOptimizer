@@ -31,6 +31,11 @@ DualDevexPricing::~DualDevexPricing()
 }
 
 int DualDevexPricing::performPricingPhase1() {
+    static bool begin = true;
+    if (begin) {
+     //   setReferenceFramework();
+    }
+    begin = false;
     initPhase1();
 
     if (m_previousPhase != 1) {
@@ -55,6 +60,7 @@ int DualDevexPricing::performPricingPhase1() {
         unsigned int variableIndex = m_basisHead[index];
         Variable::VARIABLE_TYPE variableType = m_simplexModel.getVariable(variableIndex).getType();
         Numerical::Double weighetReducedCost = m_phase1ReducedCosts[index] / m_weights[index];
+       // LPINFO("1 - weight: " << m_weights[index]);
         if ( variableType == Variable::FIXED ||
              variableType == Variable::BOUNDED ||
              (variableType == Variable::PLUS && weighetReducedCost > 0) ||
@@ -97,6 +103,7 @@ int DualDevexPricing::performPricingPhase2() {
         case Simplex::MINUS:
             difference =  (m_simplexModel.getVariable(variableIndex).getLowerBound() -
                            m_basicVariableValues.at(rowIndex)) / m_weights[rowIndex];
+            //LPINFO("2 - weight: " << m_weights[rowIndex]);
             if (difference > max) {
                 max = difference;
                 m_reducedCost = difference * m_weights[rowIndex];
@@ -106,7 +113,8 @@ int DualDevexPricing::performPricingPhase2() {
             break;
         case Simplex::PLUS:
             difference = (m_basicVariableValues.at(rowIndex) -
-                    m_simplexModel.getVariable(variableIndex).getUpperBound()) / m_weights[rowIndex];;
+                    m_simplexModel.getVariable(variableIndex).getUpperBound()) / m_weights[rowIndex];
+           // LPINFO("2 - weight: " << m_weights[rowIndex]);
             if (difference > max) {
                 max = difference;
                 m_reducedCost = difference * m_weights[rowIndex];
@@ -131,12 +139,15 @@ void DualDevexPricing::update(int incomingIndex,
 
     Numerical::Double alphaPNorm = 0.0;
     unsigned int index = 0;
+   // std::cout << std::endl;
     for (index = 0; index < m_referenceFramework.size(); index++) {
+     //   std::cout << "(" << pivotRow.at(index) << ", " << (char)(m_referenceFramework[index]+'0') << ") ";
         if (m_referenceFramework[index] == 1) {
             Numerical::Double value = pivotRow.at(index);
             alphaPNorm += value * value;
         }
     }
+   // std::cin.get();
 
     alphaPNorm = Numerical::sqrt(alphaPNorm);
 
@@ -151,13 +162,18 @@ void DualDevexPricing::update(int incomingIndex,
         Numerical::Double actualWeight = m_weights[index];
         Numerical::Double newWeight = Numerical::fabs(*nonzIter / alpha_p_q) * alphaPNorm;
         if (newWeight > actualWeight) {
+           // LPWARNING("modify " << actualWeight << " -> " << newWeight);
             m_weights[index] = newWeight;
+        } else {
+           // LPERROR("not modify: " << actualWeight << " -> " << newWeight << "   " << alphaPNorm);
         }
     }
 
     Numerical::Double pivotWeight = alphaPNorm / alpha_p_q;
     if (pivotWeight > 1.0) {
+        //LPWARNING("*modify " << m_weights[outgoingIndex] << " -> " << pivotWeight);
         m_weights[outgoingIndex] = pivotWeight;
+
         if (pivotWeight > alphaPNorm * 3) {
             setReferenceFramework();
             LPINFO("SET REFERENCE FRAMEWORK");
@@ -186,6 +202,6 @@ void DualDevexPricing::setReferenceFramework() {
     std::vector<int>::const_iterator iter = m_basisHead.begin();
     std::vector<int>::const_iterator iterEnd = m_basisHead.end();
     for (; iter != iterEnd; ++iter) {
-        m_referenceFramework[index] = 1;
+        m_referenceFramework[*iter] = 1;
     }
 }

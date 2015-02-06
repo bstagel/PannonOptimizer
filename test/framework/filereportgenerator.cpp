@@ -42,21 +42,16 @@ std::string FileReportGenerator::getNewIndexedFileName(const std::string & prefi
                                                        const std::string & postfix) const
 {
     unsigned int index = 0;
-    std::cout << "prefix: \"" << prefix << "\"" << std::endl;
-    std::cout << "postfix: \"" << postfix << "\"" << std::endl;
     std::ifstream ifs;
     do {
         if (ifs.is_open()) {
             ifs.close();
         }
         std::string name = prefix + std::to_string(index) + postfix;
-        std::cout << "name: " << name << std::endl;
         ifs.open(name.c_str());
         if (ifs.is_open() == false) {
-            std::cout << "nem tudta megnyitni" << std::endl;
             return name;
         }
-        std::cout << "meg tudta nyitni" << std::endl;
         index++;
     } while (ifs.is_open() == true);
     return "";

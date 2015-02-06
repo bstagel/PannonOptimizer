@@ -7,11 +7,6 @@
 
 
 std::list<UnitTest*> Tester::sm_tests;
-std::map<std::string, std::map< std::string, std::list<TestResult> > > Tester::sm_results;
-unsigned int Tester::sm_totalCounter = 0;
-unsigned int Tester::sm_subCounter = 0;
-bool Tester::sm_firstTest = true;
-bool Tester::sm_actualIsGood = true;
 unsigned int Tester::sm_totalErrorCounter = 0;
 std::string Tester::sm_extraInfo;
 std::string Tester::sm_title;
@@ -127,6 +122,11 @@ std::string Tester::getStatusString()
     return "FAILED";
 }
 
+std::string Tester::getExtraInfo()
+{
+    return sm_extraInfo;
+}
+
 void Tester::generateSummaryReport(ReportModule *module)
 {
     ReportTable summaryTable(2);
@@ -228,7 +228,7 @@ void Tester::generateSummaryReport(ReportModule *module)
     unitTestTables.setColumn(5, {true, ReportTable::TYPE::INTEGER});
     unitTestTables.setColumn(6, {true, ReportTable::TYPE::INTEGER});
     unitTestTables.setColumn(7, {true, ReportTable::TYPE::INTEGER});
-    unitTestTables.setColumn(7, {false, ReportTable::TYPE::STRING});
+    unitTestTables.setColumn(8, {false, ReportTable::TYPE::STRING});
 
     module->setName(sm_title);
     module->addTable(summaryTable);
