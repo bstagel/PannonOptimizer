@@ -303,9 +303,13 @@ private:
      */
     int m_fakeFeasibilityCounterPhase2;
 
+    //Parameter references
+    /**
+     * Value of the run-time parameter "e_pivot_generation",
+     * see SimplexParameterHandler for details.
+     */
     bool m_ePivotGeneration;
 
-    //Parameter references
     /**
      * Reference of the run-time parameter "nonlinear_dual_phaseI_function",
      * see SimplexParameterHandler for details.

@@ -323,9 +323,9 @@ void Simplex::setModel(const Model &model) {
     m_reducedCosts.reInit(rowCount + columnCount);
 
     m_startingBasisFinder = new StartingBasisFinder(*m_simplexModel, &m_basisHead, &m_variableStates);
-    if(m_enableExport){
-        m_iterationReport->addProviderForExport(*this);
-    }
+//    if(m_enableExport){
+//        m_iterationReport->addProviderForExport(*this);
+//    }
 
     Timer perturbTimer;
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.perturb_cost_vector") != "INACTIVE"){

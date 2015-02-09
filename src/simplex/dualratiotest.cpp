@@ -4,11 +4,7 @@
 
 #include <simplex/dualratiotest.h>
 #include <simplex/simplexparameterhandler.h>
-#include <lp/model.h>
-#include <utility>
 #include <simplex/simplex.h>
-#include <globals.h>
-#include <simplex/simplexparameterhandler.h>
 #include <prettyprint.h>
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
@@ -129,7 +125,6 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
     bool original = true;
     if(!original){
         Numerical::Double t_next = 0;
-
         std::vector<std::pair<int,Numerical::Double> > ratios;
 
         int firstCandidate = -1;
@@ -173,8 +168,7 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
             ++iterationCounter;
             t_prev = t_actual;
         }
-    //    LPINFO("firstCandidate "<<firstCandidate);
-    //    LPINFO("lastCandidate "<<lastCandidate);
+
         //Search the best incoming alternative
         if(firstCandidate != -1){
             for(int i=firstCandidate; i<=lastCandidate; i++){
@@ -185,7 +179,7 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
             }
             actualBreakpoint = m_breakpointHandler.getBreakpoint(firstCandidate);
         }
-    //    LPINFO("m_incomingVariableIndex "<<m_incomingVariableIndex);
+
         if (actualBreakpoint != NULL){
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * actualBreakpoint->value;
@@ -204,9 +198,6 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
         } else{
             LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
         }
-//        m_breakpointHandler.printBreakpoints();
-//        LPINFO(m_updateFeasibilitySets);
-//        LPINFO(m_becomesFeasible);
     } else {
     //Original version
 
@@ -236,7 +227,6 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                                           const DenseVector& alpha,
                                           Numerical::Double& functionSlope)
 {
-    LPINFO("useNumericalThresholdPhase1");
     m_stablePivotActivationPhase1++;
     LPINFO("Stable pivot activated in phase 1");
 
@@ -268,7 +258,7 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
         }
     }
 
-    //Prefer the selection o the previous breakpoint hence it is already available
+    //Prefer the selection of the previous breakpoint hence it is already available
     bool prevIsBetter = (prevObjValue >= nextObjValue ? true : false);
 
     //Search while there is any potential positive step
@@ -447,6 +437,7 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
     } else{
         LPWARNING(" - Ratiotest - No breakpoint found!");
     }
+    //Ask for another row
     if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0;
@@ -455,9 +446,6 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
 
 void DualRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 {
-    #ifndef NDEBUG
-    //if (alpha.getType() == Vector::SPARSE_VECTOR) LPWARNING("Alpha is sparse vector!");
-    #endif
 
 //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
@@ -512,7 +500,6 @@ void DualRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 void DualRatiotest::generateExpandedBreakpointsPhase2(const DenseVector &alpha,
                                                       Numerical::Double workingTolerance)
 {
-
     //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
@@ -881,6 +868,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             m_incomingVariableIndex = -1;
         }
     }
+    //Ask for another row
     if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0;

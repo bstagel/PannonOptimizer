@@ -23,7 +23,6 @@ bool PrimalFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     m_basicVariableFeasibilities->clearPartition(Simplex::MINUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::PLUS);
     m_basicVariableFeasibilities->clearPartition(Simplex::FEASIBLE);
-
     m_phaseIObjectiveValue = 0;
 
     Numerical::Double lbOfVariable = 0;
