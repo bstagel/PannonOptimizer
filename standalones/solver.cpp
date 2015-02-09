@@ -137,7 +137,8 @@ void solveDir(std::string dirPath) {
             if(entry.size()>=4){
                 LPINFO("ENTRY: "<<entry);
             }
-            if(entry.size()>=4 && entry.substr(entry.size()-4 , 4).compare(".MPS") == 0){
+            if(entry.size()>=4 && (entry.substr(entry.size()-4 , 4).compare(".MPS") == 0 ||
+                                   entry.substr(entry.size()-4 , 4).compare(".mps") == 0) ){
                 std::string filePath = dirPath;
                 filePath.append({PATH_SEPARATOR}).append(entry);
                 solve(filePath);

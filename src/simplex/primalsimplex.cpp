@@ -263,6 +263,12 @@ void PrimalSimplex::selectPivot() {
     }
 
     m_primalTheta = m_ratiotest->getPrimalSteplength();
+    if(m_degenerate){
+        m_degenerate = m_ratiotest->isDegenerate();
+    }
+    if(m_ratiotest->isDegenerate()){
+        m_degenerateIterations++;
+    }
 }
 
 void PrimalSimplex::update() {
@@ -392,7 +398,9 @@ void PrimalSimplex::computeWorkingTolerance() {
 }
 
 void PrimalSimplex::releaseLocks() {
-    m_pricing->releaseUsed();
+    if(m_pricing != nullptr){
+        m_pricing->releaseUsed();
+    }
 }
 
 void PrimalSimplex::updateReducedCosts() {
@@ -427,8 +435,8 @@ void PrimalSimplex::updateReducedCosts() {
 void PrimalSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
-    if(m_workingTolerance != m_masterTolerance * m_toleranceMultiplier){
-        LPINFO("Resetting EXPAND tolerance!");
+    if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
+//        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

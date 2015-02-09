@@ -363,7 +363,6 @@ void DualSimplex::selectPivot() {
         m_degenerateIterations++;
     }
 
-
     if(m_incomingIndex != -1){
         m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
     } else {
@@ -705,7 +704,7 @@ void DualSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
     if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-        //        LPINFO("Resetting EXPAND tolerance!");
+//        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

@@ -238,7 +238,14 @@ private:
      */
     int m_fakeFeasibilityCounterPhase2;
 
+    /**
+     * Value of the run-time parameter "e_pivot_generation",
+     * see SimplexParameterHandler for details.
+     */
+    bool m_ePivotGeneration;
+
     //Parameter references
+
     /**
      * Reference of the run-time parameter "nonlinear_primal_phaseI_function".
      *
@@ -271,6 +278,12 @@ private:
      * see SimplexParameterHandler for details.
      */
     const std::string & m_expand;
+
+    /**
+     * Parameter reference of run-time parameter "avoidthetamin",
+     * see SimplexParameterHandler for details.
+     */
+     const bool & m_avoidThetaMin;
 
     /**
      * This is the value of the tolerance increment in the expand procedure.
