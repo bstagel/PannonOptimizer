@@ -98,8 +98,7 @@ int IterationReport::getDebugLevel() const {
 void IterationReport::addFields( const IterationReportProvider & provider,
                                  std::vector<IterationReportField> * fields,
                                  enum IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) {
-    std::vector<IterationReportField> resultFields =
-            provider.getIterationReportFields(type);
+    std::vector<IterationReportField> resultFields = provider.getIterationReportFields(type);
 
     STL_FOREACH(std::vector<IterationReportField>, resultFields, iter) {
         fields->push_back(*iter);

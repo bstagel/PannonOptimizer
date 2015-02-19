@@ -176,7 +176,7 @@ void DualDevexPricing::update(int incomingIndex,
 
         if (pivotWeight > alphaPNorm * 3) {
             setReferenceFramework();
-            LPINFO("SET REFERENCE FRAMEWORK");
+//            LPINFO("SET REFERENCE FRAMEWORK");
         }
     }
 
