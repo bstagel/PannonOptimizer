@@ -139,8 +139,6 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
                                                   6, IterationReportField::IRF_FIXED));
 
         } else if (m_exportType == "REVISION_CHECK") {
-            result.push_back(IterationReportField(EXPORT_PHASE1_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
-                                                  IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_ITERATION, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_INT, *this));
             result.push_back(IterationReportField(EXPORT_TIME, 20, 0, IterationReportField::IRF_LEFT,
@@ -312,6 +310,9 @@ void SimplexController::sequentialSolve(const Model &model)
         iterationReport->addProviderForStart(*m_currentSimplex);
         iterationReport->addProviderForIteration(*m_currentSimplex);
         iterationReport->addProviderForSolution(*m_currentSimplex);
+        if(m_enableExport){
+            iterationReport->addProviderForExport(*m_currentSimplex);
+        }
         iterationReport->createStartReport();
         iterationReport->writeStartReport();
 
