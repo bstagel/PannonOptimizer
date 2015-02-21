@@ -60,19 +60,19 @@ void HtmlReportGenerator::generateHead(std::ostream &output,
     // EAF2D3
     output << "}" << std::endl;
 
-    output << "a:link {" << std::endl;
+    output << "a:link.column {" << std::endl;
     output << "color: #FFFFFF;" << std::endl;
     output << "}" << std::endl;
 
-    output << "a:visited {" << std::endl;
+    output << "a:visited.column {" << std::endl;
     output << "color: #FFFFFF;" << std::endl;
     output << "}" << std::endl;
 
-    output << "a:hover {" << std::endl;
+    output << "a:hover.column {" << std::endl;
     output << "color: #d3e0e9;" << std::endl;
     output << "}" << std::endl;
 
-    output << "a:active {" << std::endl;
+    output << "a:active.column {" << std::endl;
     output << "color: #d3e0e9;" << std::endl;
     output << "}" << std::endl;
 
@@ -141,7 +141,7 @@ void HtmlReportGenerator::generateTable(std::ostream &output,
             output << "> ";
             //<a onclick="unitTestSummarySort(compareByName, nameOrder); nameOrder = 1 - nameOrder;" href="#" >
             if (rowIndex == 0 && table.getColumns()[columnIndex].m_sortable ) {
-                output << "<a onclick=\"";
+                output << "<a class=\"column\" onclick=\"";
                 output << name << "Sort(compareBy";
                 output << getCamelCase(cell.m_content) << ", ";
                 output << getCamelCase(cell.m_content, true) << "Order); ";

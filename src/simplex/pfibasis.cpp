@@ -446,7 +446,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
 
         Numerical::Double * ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
-        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
             Numerical::Double & originalValue = denseVector[*ptrIndex];
@@ -481,9 +481,12 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
 
         Numerical::Double * ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
-        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        // itt volt a baj: nonZeros() helyett m_length volt
+        //
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
+            //LPERROR("ptrIndex = " << *ptrIndex);
             Numerical::Double & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
@@ -639,7 +642,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         //All eta vectors are sparse!
         Numerical::Double * ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
-        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
 
         while (ptrIndex < ptrIndexEnd) {
             summarizer.add(denseVector[*ptrIndex] * *ptrValue);
@@ -671,7 +674,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         Numerical::Double dotProduct = 0;
         Numerical::Double * ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
-        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_length;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
 
         while (ptrIndex < ptrIndexEnd) {
             summarizer.add(denseVector[*ptrIndex] * *ptrValue);

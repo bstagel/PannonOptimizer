@@ -174,7 +174,8 @@ HEADERS += include/debug.h \
     include/linalg/linalgparametercomments.h \
     include/utils/multiplefloat.h \
     include/utils/stacktrace.h \
-    include/simplex/simplexthread.h
+    include/simplex/simplexthread.h \
+    include/simplex/pricing/primalsteepestedgepricing.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -249,7 +250,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/lp/abstractmodel.cpp \
     src/utils/parameterfilebuilder.cpp \
     src/utils/stacktrace.cpp \
-    src/simplex/simplexthread.cpp
+    src/simplex/simplexthread.cpp \
+    src/simplex/pricing/primalsteepestedgepricing.cpp
 
 #OBJECTS_DIR = .o
 
