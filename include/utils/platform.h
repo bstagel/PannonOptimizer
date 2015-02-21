@@ -62,7 +62,18 @@
 #endif
 #endif
 
-#ifdef __GNUC__
+#if defined(__clang__)
+    # if not __has_feature(cxx_thread_local)
+        #define thread_local __thread
+    #endif
+    //cout << "CLANG" << endl;
+    //cout << "__clang_major__ " << __clang_major__ << endl;
+    //cout << "__clang_minor__ " << __clang_minor__ << endl;
+    //cout << "__clang_patchlevel__ " << __clang_patchlevel__ << endl;
+    //cout << "__clang_version__ " << __clang_version__ << endl;
+#endif
+
+#if defined(__GNUC__) && not defined(__clang__)
     #define GNU_COMPILER
     #if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
     #error Too old gcc version. Use unless 4.8.0. or higher!

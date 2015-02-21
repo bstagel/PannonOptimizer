@@ -41,8 +41,10 @@
 #endif
 
 #if COLORFLAGS == WINDOWSCOLOR
+#if defined(WIN32)
 #include <windows.h>
 static const HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
+#endif
 #endif
 
 // Define colors
