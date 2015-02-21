@@ -70,6 +70,13 @@ win32:contains(QMAKE_HOST.arch, x86): {
     nasmproc32.input = ASM_SRCS_32
 }
 
+macx {
+    message("Ez egy Macintosh")
+    QMAKE_CXX = clang++
+    QMAKE_CC = clang
+    QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+}
+
 
 #Includes
 INCLUDEPATH += . \
