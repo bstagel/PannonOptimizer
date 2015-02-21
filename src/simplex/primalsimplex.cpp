@@ -5,6 +5,7 @@
 
 #include <simplex/primalsimplex.h>
 #include <simplex/pricing/primaldantzigpricing.h>
+#include <simplex/pricing/primalsteepestedgepricing.h>
 #include <simplex/simplexcontroller.h>
 
 #include <simplex/simplexparameterhandler.h>
@@ -182,15 +183,27 @@ void PrimalSimplex::computeFeasibility() {
 
 void PrimalSimplex::price() {
     if(m_pricing == nullptr){
-        m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
-                                             m_basicVariableFeasibilities,
-                                             &m_reducedCostFeasibilities,
-                                             m_variableStates,
-                                             m_basisHead,
-                                             *m_simplexModel,
-                                             *m_basis,
-                                             m_reducedCosts);
-
+        std::string pricingType = SimplexParameterHandler::getInstance().getStringParameterValue("Pricing.type");
+        if (pricingType == "DANTZIG") {
+            m_pricing = new PrimalDantzigPricing(m_basicVariableValues,
+                                                 m_basicVariableFeasibilities,
+                                                 &m_reducedCostFeasibilities,
+                                                 m_variableStates,
+                                                 m_basisHead,
+                                                 *m_simplexModel,
+                                                 *m_basis,
+                                                 m_reducedCosts);
+        }
+        if (pricingType == "STEEPEST_EDGE") {
+            m_pricing = new PrimalSteepestEdgePricing(m_basicVariableValues,
+                                                      m_basicVariableFeasibilities,
+                                                      &m_reducedCostFeasibilities,
+                                                      m_variableStates,
+                                                      m_basisHead,
+                                                      *m_simplexModel,
+                                                      *m_basis,
+                                                      m_reducedCosts);
+        }
         Simplex::m_pricing = m_pricing;
     }
 
@@ -276,16 +289,16 @@ void PrimalSimplex::update() {
     std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
     for(; it < itend; ++it){
-//        LPWARNING("BOUNDFLIPPING at: "<<*it);
+        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
         if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
-//            LPINFO("LB->UB");
+            //            LPINFO("LB->UB");
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
         } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
-//            LPINFO("UB->LB");
+            //            LPINFO("UB->LB");
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
@@ -324,7 +337,7 @@ void PrimalSimplex::update() {
             throw PanOptException("Invalid variable type");
         }
 
-        m_pricing->update( m_incomingIndex, m_outgoingIndex, 0, 0);
+        m_pricing->update( m_incomingIndex, m_outgoingIndex, &m_pivotColumn, 0);
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
 
@@ -361,7 +374,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
             LPWARNING("BAD ITERATION - PHASE I");
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
-//            LPWARNING("DEGENERATE - PHASE I");
+            //            LPWARNING("DEGENERATE - PHASE I");
             //TODO: Mashogy kell merni
             m_degenerateIterations++;
         }
@@ -370,7 +383,7 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
             LPWARNING("BAD ITERATION - PHASE II");
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
-//            LPWARNING("DEGENERATE - PHASE II");
+            //            LPWARNING("DEGENERATE - PHASE II");
             m_degenerateIterations++;
         }
     }
@@ -436,7 +449,7 @@ void PrimalSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
     if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-//        LPINFO("Resetting EXPAND tolerance!");
+        //        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }
