@@ -10,7 +10,7 @@
 namespace std
 {
     // Pre-declarations of container types so we don't actually have to include the relevant headers if not needed, speeding up compilation time.
-    template<typename T, typename TTraits, typename TAllocator> class set;
+    //template<typename T, typename TTraits = std::less<T>, typename TAllocator = std::allocator<T> > class set;
 }
 
 namespace pretty_print

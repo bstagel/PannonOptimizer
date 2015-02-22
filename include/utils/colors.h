@@ -30,6 +30,14 @@
 #define COLORFLAGS BASHCOLOR
 #endif
 
+#ifdef MACINTOSH
+#define BASHCOLOR       1
+#undef NOCOLOR
+#undef COLORFLAGS
+#define COLORFLAGS BASHCOLOR
+#endif
+
+
 /*
  * The WINDOWSCOLOR macro is available only on _WIN32 platforms.
  */

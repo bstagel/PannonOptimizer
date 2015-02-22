@@ -102,6 +102,9 @@ unsigned int ArchitectureX86::getBits(unsigned int pattern,
 
 bool ArchitectureX86::cpuidSupported()
 {
+#ifdef MACINTOSH
+    return false;
+#endif
 #ifndef CACHE_LINE_ALIGNMENT
     return false;
 #endif
@@ -779,3 +782,4 @@ void ArchitectureX86::generateParameterFile() const
 }
 
 #endif
+

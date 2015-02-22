@@ -2,6 +2,8 @@
 // * @file vector.cpp
 // */
 
+int vector_cpp_symbol_for_ranlib;
+
 //#include <debug.h>
 //#include <linalg/matrix.h>
 //#include <linalg/vector.h>
