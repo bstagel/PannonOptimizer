@@ -33,6 +33,17 @@ CONFIG(debug, debug|release) {
     OBJECTS_DIR = .o_debug
 }
 
+macx {
+    #message("Ez egy Macintosh")
+    QMAKE_CXX = clang++
+    QMAKE_CC = clang
+    QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++
+    QMAKE_LFLAGS -= -static-libgcc -static-libstdc++ -lgcc_eh
+    LIBS -= -pthread -L../panopt/lib/
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+    CONFIG -= app_bundle
+}
+
 #Includes
 INCLUDEPATH += . \
                include/ \

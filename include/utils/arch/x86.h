@@ -257,6 +257,7 @@ extern "C" void _denseToDenseAddAVX_nocache_64_linux(
 #define DENSE_TO_DENSE_ADD_AVX_NOCACHE ::_denseToDenseAddAVX_nocache_64_linux
 
 #else
+#ifdef WIN32
 /*****************************************
  * Windows, 64 bit
  ****************************************/
@@ -296,6 +297,53 @@ extern "C" void _denseToDenseAddAVX_nocache_64_linux(
 #define DENSE_TO_DENSE_ADD_AVX_CACHE ::denseToDenseAdd
 #define DENSE_TO_DENSE_ADD_AVX_NOCACHE ::denseToDenseAdd
 
+#else
+#ifdef MACINTOSH
+
+/*****************************************
+ * Macintosh, 64 bit
+ ****************************************/
+#define CPUID(eax, ebx, ecx, edx, results) \
+    //_cpuinfo_64_macintosh(eax, ebx, ecx, edx, results);
+#define SET_FPU_TO_64 doNothing_seriously_nothing
+#define AVX_ENABLED_BY_OS doNothing_seriously_nothing
+/*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_windows_cread_cwrite
+#define MEMCPY_NO_CACHE_SSE4_1 _memcpy_sse4_1_64_windows_ntread_ntwrite
+
+#define DENSE_TO_DENSE_UNSTABLE_SSE2 _denseToDenseDotProduct_unstable_SSE2_64_windows
+#define DENSE_TO_DENSE_UNSTABLE_AVX _denseToDenseDotProduct_unstable_AVX_64_windows
+*/
+
+#define MEMCPY_CACHE_SSE2 ::memcpy
+#define MEMCPY_NO_CACHE_SSE4_1 ::memcpy
+
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToDenseDotProductUnstable
+#define DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX ::denseToDenseDotProductUnstable
+
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_SSE2 ::denseToSparseDotProductUnstable
+#define DENSE_TO_SPARSE_DOTPRODUCT_UNSTABLE_AVX ::denseToSparseDotProductUnstable
+
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_SSE2 ::denseToSparseDotProductStable
+#define DENSE_TO_SPARSE_DOTPRODUCT_STABLE_AVX ::denseToSparseDotProductStable
+
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_CACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_REL_SSE2_NOCACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_CACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_ABS_SSE2_NOCACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_SSE2_CACHE ::denseToDenseAdd
+#define DENSE_TO_DENSE_ADD_SSE2_NOCACHE ::denseToDenseAdd
+#define DENSE_TO_DENSE_ADD_ABS_REL_AVX_CACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_REL_AVX_NOCACHE ::denseToDenseAddAbsRel
+#define DENSE_TO_DENSE_ADD_ABS_AVX_CACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_ABS_AVX_NOCACHE ::denseToDenseAddAbs
+#define DENSE_TO_DENSE_ADD_AVX_CACHE ::denseToDenseAdd
+#define DENSE_TO_DENSE_ADD_AVX_NOCACHE ::denseToDenseAdd
+
+#else
+#error Unindentified platform!
+#endif
+
+#endif
 #endif
 #endif
 

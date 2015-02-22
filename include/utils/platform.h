@@ -20,6 +20,12 @@
  * This macro is defined if the source is compiled into Unix compatible platforms.
  */
 
+/**
+ * @def MACINTOSH
+ *
+ * This macro is defined if the source is compiled into Macintosh compatible platforms.
+ */
+
 #ifdef _WIN32
 #ifndef WIN32
 #define WIN32
@@ -60,6 +66,10 @@
 #ifndef UNIX
 #define UNIX
 #endif
+#endif
+
+#ifdef __APPLE__
+#define MACINTOSH
 #endif
 
 #if defined(__clang__)

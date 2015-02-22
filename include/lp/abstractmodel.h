@@ -25,7 +25,7 @@ public:
 
     virtual ~AbstractModel() {}
 
-    virtual std::string getHash() {
+    virtual std::string getHash() const {
         return "";
     }
 

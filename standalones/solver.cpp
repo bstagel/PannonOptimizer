@@ -64,6 +64,7 @@ void printHelp() {
                  "   -o, --output    \t Redirect the solver output to a file.\n"<<
                  "   -h, --help      \t Displays this help.\n"<<
                  "\n";
+
 }
 
 bool isFile(std::string path){
@@ -307,6 +308,7 @@ int main(int argc, char** argv) {
     if(outputRedirected){
         fclose(stdout);
     }
+
     return EXIT_SUCCESS;
 }
 
