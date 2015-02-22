@@ -6,6 +6,7 @@
 #include <simplex/primalsimplex.h>
 #include <simplex/pricing/primaldantzigpricing.h>
 #include <simplex/pricing/primalsteepestedgepricing.h>
+#include <simplex/pricing/primaldevexpricing.h>
 #include <simplex/simplexcontroller.h>
 
 #include <simplex/simplexparameterhandler.h>
@@ -203,6 +204,16 @@ void PrimalSimplex::price() {
                                                       *m_simplexModel,
                                                       *m_basis,
                                                       m_reducedCosts);
+        }
+        if (pricingType == "DEVEX") {
+            m_pricing = new PrimalDevexPricing(m_basicVariableValues,
+                                               m_basicVariableFeasibilities,
+                                               &m_reducedCostFeasibilities,
+                                               m_variableStates,
+                                               m_basisHead,
+                                               *m_simplexModel,
+                                               *m_basis,
+                                               m_reducedCosts);
         }
         Simplex::m_pricing = m_pricing;
     }
