@@ -204,6 +204,7 @@ private:
     std::vector<SparseVector*>* m_mmColumns;
     std::vector<int>* m_mmColumnIndices;
 
+    std::vector<std::vector<int> >* m_mmGraphOut;
     /**
      * Represents the usage of a node during the tarjan algorithm.
      * -1 means the node is already used

@@ -40,11 +40,11 @@ PfiBasis::PfiBasis() :
 
     m_cColumns = new std::vector<const SparseVector*>();
     m_cPivotIndexes = new std::vector<int>();
-
     m_mmRows = new std::vector<SparseVector*>();
     m_mmRowIndices = new std::vector<int>();
     m_mmColumns = new std::vector<SparseVector*>();
     m_mmColumnIndices = new std::vector<int>();
+    m_mmGraphOut = new std::vector<std::vector<int> >();
     m_mmGraphUsed = new std::vector<char>();
     m_stack = new std::vector<PathNode>();
     m_mmBlocks = new std::vector<int>();
@@ -69,6 +69,8 @@ PfiBasis::~PfiBasis() {
     m_mmColumns = nullptr;
     delete m_mmColumnIndices;
     m_mmColumnIndices = nullptr;
+    delete m_mmGraphOut;
+    m_mmGraphOut = nullptr;
     delete m_mmGraphUsed;
     m_mmGraphUsed = nullptr;
     delete m_stack;
@@ -1348,6 +1350,26 @@ int PfiBasis::searchColumn(int columnIndex, int searchIndex, std::vector<int>& s
     return -1;
 }
 
+void PfiBasis::createGraph() {
+    int mmSize = m_mmRows->size();
+    m_mmGraphOut->resize(mmSize, std::vector<int>());
+    m_mmGraphUsed->resize(mmSize, 0);
+    for (int i=0; i < mmSize; i++) {
+        (*m_mmGraphOut)[i].reserve(16);
+    }
+    auto it = m_mmRows->begin();
+    auto itend = m_mmRows->end();
+    for (int i=0 ; it < itend; ++it, i++) {
+        SparseVector::NonzeroIterator vectorIt = (*it)->beginNonzero();
+        SparseVector::NonzeroIterator vectorItend = (*it)->endNonzero();
+        for (; vectorIt < vectorItend; ++vectorIt) {
+            if ((int) vectorIt.getIndex() != it - m_mmRows->begin()) {
+                (*m_mmGraphOut)[it - m_mmRows->begin()].push_back(vectorIt.getIndex());
+            }
+        }
+    }
+}
+
 void PfiBasis::tarjan() {
     DEVINFO(D::PFIMAKER, "Tarjan begin");
     for (std::vector<char>::iterator it = m_mmGraphUsed->begin(); it < m_mmGraphUsed->end(); ++it) {
@@ -1372,15 +1394,27 @@ int PfiBasis::searchNode() {
     int nextLowest = -1;
     DEVINFO(D::PFIMAKER, "Searching node " << currentNode.index);
     //Go the outgoing edge
-    auto rowIt = (*m_mmRows)[currentNode.index]->beginNonzero();
-    auto rowItEnd = (*m_mmRows)[currentNode.index]->endNonzero();
-    while (rowIt != rowItEnd) {
-        if(*rowIt == currentNode.index){
-            continue;
-        }
+    const std::vector<int> & outGoing = (*m_mmGraphOut)[currentNode.index];
+//    std::vector<int>  outGoing;
+//    for(auto it = (*m_mmRows)[currentNode.index]->beginNonzero(); it != (*m_mmRows)[currentNode.index]->endNonzero(); ++it){
+//        if( it.getIndex() != currentNode.index){
+//            outGoing.push_back(it.getIndex());
+//        }
+//    }
+    //Go the outgoing edge
+    while ((int) outGoing.size() > currentNode.nextEdge) {
         //If the pointed node is still active (it has incoming edges)
-        if ((*m_mmGraphUsed)[*rowIt] != -1) {
-            int next = *rowIt;
+        if ((*m_mmGraphUsed)[outGoing[currentNode.nextEdge]] != -1) {
+            int next = outGoing[currentNode.nextEdge];
+//    auto rowIt = (*m_mmRows)[currentNode.index]->beginNonzero();
+//    auto rowItEnd = (*m_mmRows)[currentNode.index]->endNonzero();
+//    for (;rowIt != rowItEnd; ++rowIt) {
+//        if(rowIt.getIndex() == (unsigned int) currentNode.index){
+//            continue;
+//        }
+//        //If the pointed node is still active (it has incoming edges)
+//        if ((*m_mmGraphUsed)[rowIt.getIndex()] != -1) {
+//            int next = rowIt.getIndex();
             DEVINFO(D::PFIMAKER, "Searching edge " << next);
             //If the node is available (new node), create it on the stack
             if((*m_mmGraphUsed)[next] == 0) {
@@ -1455,7 +1489,8 @@ void PfiBasis::createBlockTriangular() {
     buildMM();
     findTransversal();
     //Instead of creating a graph only a marker vector is used
-    m_mmGraphUsed->resize(m_mmRows->size(), 0);
+//    m_mmGraphUsed->resize(m_mmRows->size(), 0);
+    createGraph();
     tarjan();
 
 #ifndef NDEBUG
