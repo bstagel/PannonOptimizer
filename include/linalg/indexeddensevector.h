@@ -256,6 +256,11 @@ public:
     void clear();
 
     /**
+     * Sets the elements of the vector to zero.
+     */
+    void clearDense();
+
+    /**
      * Sets the add mode for the vector-vector addition operations.
      * The default value is the Numerical::ADD_FAST.
      *
