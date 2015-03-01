@@ -189,7 +189,7 @@ private:
      * The MM part is logically reordered after the R and C parts are identified
      * to logically form a standard square matrix.
      */
-    std::vector<SparseVector>* m_mmRows;
+    std::vector<SparseVector*>* m_mmRows;
 
     /**
      * The
@@ -201,10 +201,8 @@ private:
      * The MM part is logically reordered after the R and C parts are identified
      * to logically form a standard square matrix.
      */
-    std::vector<SparseVector>* m_mmColumns;
+    std::vector<SparseVector*>* m_mmColumns;
     std::vector<int>* m_mmColumnIndices;
-
-    std::vector<std::vector<int> >* m_mmGraphOut;
 
     /**
      * Represents the usage of a node during the tarjan algorithm.
@@ -263,7 +261,6 @@ private:
     void printCounts() const;
     void printMM() const;
     void printSwapHashes() const;
-    void printGraph() const;
     void printStack() const;
     void printBlocks() const;
     void printStatistics() const;

@@ -148,6 +148,11 @@ public:
     void init(unsigned maxNumberOfBreakpoints);
 
     /**
+     * A simple function which performs a clear() operation.
+     */
+    void clear();
+
+    /**
      * Function returning the second pass ratios of expand procedure.
      * In the first pass ratios with expanded bounds are defined, and a theta steplength is choosen among them.
      * In the second pass of the Harris ratio test and the Expand procedure we need ratios
