@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include <linalg/indexeddensevector.h>
+
 #include <simplex/pfibasis.h>
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
@@ -21,9 +23,7 @@ int aprExpCounter = 0;
 
 thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
-
-//TODO This thread_local leads to memory error
-thread_local std::vector<int>* PfiBasis::m_updateHelper = nullptr;
+thread_local IndexedDenseVector* PfiBasis::m_updateHelper = nullptr;
 
 PfiBasis::PfiBasis() :
     Basis(),
@@ -100,7 +100,7 @@ void PfiBasis::registerThread() {
     }
 
     if(m_updateHelper == nullptr){
-        m_updateHelper = new std::vector<int>();
+        m_updateHelper = new IndexedDenseVector();
     }
 }
 
@@ -717,7 +717,11 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     std::list<int>::iterator it = m_rowNonzeroIndices[rowindex].begin();
     std::list<int>::iterator itend = m_rowNonzeroIndices[rowindex].end();
 
-    m_updateHelper->resize(m_model->getRowCount(), 0);
+    m_updateHelper->resize(m_model->getRowCount());
+
+    //Make thread_local pointers local to avoid TLS overhead
+    IndexedDenseVector* tls_updateHelper = m_updateHelper;
+
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
 
@@ -731,8 +735,9 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             SparseVector::NonzeroIterator columnIt = m_basicColumnCopies[*it]->beginNonzero();
             SparseVector::NonzeroIterator columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
-                if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    (*m_updateHelper)[columnIt.getIndex()]--;
+                unsigned int index = columnIt.getIndex();
+                if(index != rowindex && m_rowCounts[index] > -1){
+                    tls_updateHelper->set(index,-1);
                 }
             }
 
@@ -745,8 +750,9 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             columnIt = m_basicColumnCopies[*it]->beginNonzero();
             columnItend = m_basicColumnCopies[*it]->endNonzero();
             for (; columnIt < columnItend; ++columnIt) {
-                if(columnIt.getIndex() != rowindex && m_rowCounts[columnIt.getIndex()] > -1){
-                    (*m_updateHelper)[columnIt.getIndex()]++;
+                unsigned int index = columnIt.getIndex();
+                if(index != rowindex && m_rowCounts[index] > -1){
+                        tls_updateHelper->set(index,tls_updateHelper->at(index)+1);
                     newColumnCount++;
                 }
             }
@@ -754,19 +760,20 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
             //Update the column count
             m_columnCounts[*it] = newColumnCount;
 
-            std::vector<int>::iterator helperIt = m_updateHelper->begin();
-            std::vector<int>::iterator helperItend = m_updateHelper->end();
-            for(int columnIndex = 0; helperIt != helperItend; helperIt++, columnIndex++){
+            IndexedDenseVector::NonzeroIterator helperIt = tls_updateHelper->beginNonzero();
+            const IndexedDenseVector::NonzeroIterator helperItend = tls_updateHelper->endNonzero();
+            for(;helperIt != helperItend; ++helperIt){
                 if(*helperIt == -1){
-                    *helperIt = 0;
-                    m_rowNonzeroIndices[columnIndex].remove(*it);
-                    m_rowCounts[columnIndex]--;
-                } else if (*helperIt == 1){
-                    *helperIt = 0;
-                    m_rowNonzeroIndices[columnIndex].push_back(*it);
-                    m_rowCounts[columnIndex]++;
+                    int index = helperIt.getIndex();
+                    m_rowNonzeroIndices[index].remove(*it);
+                    m_rowCounts[index]--;
+                } else /*if (*helperIt == 1)*/{
+                    int index = helperIt.getIndex();
+                    m_rowNonzeroIndices[index].push_back(*it);
+                    m_rowCounts[index]++;
                 }
             }
+            tls_updateHelper->clear();
         }
     }
 

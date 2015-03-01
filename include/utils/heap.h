@@ -288,7 +288,6 @@ public:
      */
     void insert(const K & key, const T & data, bool debug = false)
     {
-        //        static thread_local int count = 0;
         //count++;
 
         m_size++;
@@ -357,7 +356,6 @@ public:
      */
     void remove(unsigned int index)
     {
-//        static thread_local int counter = 0;
 //        counter++;
 
         const K minKey = numeric_limits<K>::min();

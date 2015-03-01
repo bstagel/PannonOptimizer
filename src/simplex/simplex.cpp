@@ -43,7 +43,8 @@ const static char * EXPORT_PIVOT_THRESHOLD = "export_pivot_threshold";
 const static char * EXPORT_NONLINEAR_DUAL_PHASEI_FUNCTION = "export_nonlinear_dual_phaseI_function";
 const static char * EXPORT_NONLINEAR_DUAL_PHASEII_FUNCTION = "export_nonlinear_dual_phaseII_function";
 const static char * EXPORT_ENABLE_FAKE_FEASIBILITY = "export_enable_fake_feasibility";
-thread_local int Simplex::sm_repeatSolution = 0;
+
+int Simplex::sm_repeatSolution = 0;
 
 Simplex::Simplex(Basis* basis):
     m_iterationIndex(0),

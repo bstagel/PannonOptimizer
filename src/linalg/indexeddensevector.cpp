@@ -3,12 +3,12 @@
 #include <linalg/sparsevector.h>
 #include <utils/architecture.h>
 
-thread_local IndexedDenseVector::AddIndexedDenseToIndexedDense IndexedDenseVector::sm_addIndexedDenseToIndexedDense;
-thread_local IndexedDenseVector::AddDenseToIndexedDense IndexedDenseVector::sm_addDenseToIndexedDense;
-thread_local IndexedDenseVector::AddSparseToIndexedDense IndexedDenseVector::sm_addSparseToIndexedDense;
-thread_local IndexedDenseVector::IndexedDenseToIndexedDenseDotProduct IndexedDenseVector::sm_indexedDenseToIndexedDenseDotProduct;
-thread_local IndexedDenseVector::IndexedDenseToDenseDotProduct IndexedDenseVector::sm_indexedDenseToDenseDotProduct;
-thread_local IndexedDenseVector::IndexedDenseToSparseDotProduct IndexedDenseVector::sm_indexedDenseToSparseDotProduct;
+IndexedDenseVector::AddIndexedDenseToIndexedDense IndexedDenseVector::sm_addIndexedDenseToIndexedDense;
+IndexedDenseVector::AddDenseToIndexedDense IndexedDenseVector::sm_addDenseToIndexedDense;
+IndexedDenseVector::AddSparseToIndexedDense IndexedDenseVector::sm_addSparseToIndexedDense;
+IndexedDenseVector::IndexedDenseToIndexedDenseDotProduct IndexedDenseVector::sm_indexedDenseToIndexedDenseDotProduct;
+IndexedDenseVector::IndexedDenseToDenseDotProduct IndexedDenseVector::sm_indexedDenseToDenseDotProduct;
+IndexedDenseVector::IndexedDenseToSparseDotProduct IndexedDenseVector::sm_indexedDenseToSparseDotProduct;
 
 IndexedDenseVector::IndexedDenseVector(unsigned int length)
 {
@@ -67,6 +67,7 @@ void IndexedDenseVector::set(unsigned int index, Numerical::Double value)
 {
     const Numerical::Double old = m_data[index];
     m_data[index] = value;
+
     if (old == 0.0 && value != 0.0) {
         m_indexIndices[index] = m_nonzeroIndices + m_nonZeros;
         m_nonzeroIndices[m_nonZeros] = index;
@@ -76,6 +77,7 @@ void IndexedDenseVector::set(unsigned int index, Numerical::Double value)
             std::cout << "lenullazom ezt: " << *(m_indexIndices[index]) << std::endl;
         }
         *(m_indexIndices[index]) = m_nonzeroIndices[m_nonZeros - 1];
+        m_indexIndices[m_nonzeroIndices[m_nonZeros - 1]] = m_indexIndices[index];
         m_indexIndices[index] = nullptr;
         m_nonZeros--;
     }
@@ -368,6 +370,7 @@ void IndexedDenseVector::reserve()
 
 void IndexedDenseVector::resize(unsigned int length)
 {
+    //TODO: 10 -> 5 -> 10 resize leads to a realloc (but unnecessary)
     if (length <= m_length) {
         unsigned int pos = 0;
         while (pos < m_nonZeros) {

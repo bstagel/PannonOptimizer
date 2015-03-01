@@ -8,7 +8,6 @@
 
 #include <globals.h>
 
-#include <linalg/vector.h>
 #include <linalg/sparsevector.h>
 
 /**

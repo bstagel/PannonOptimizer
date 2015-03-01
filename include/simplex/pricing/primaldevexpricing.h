@@ -3,7 +3,6 @@
 
 #include <globals.h>
 
-#include <linalg/vector.h>
 #include <simplex/primalpricing.h>
 #include <utils/exceptions.h>
 #include <utils/indexlist.h>

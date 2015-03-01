@@ -313,9 +313,9 @@ public:
 
     bool operator==(const SparseVector& other) const;
 
-    static void checkScattered(int nzr, unsigned length);
+//    static void checkScattered(int nzr, unsigned length);
 
-    static void checkVector(const SparseVector & vector);
+//    static void checkVector(const SparseVector & vector);
 
     ALWAYS_INLINE bool operator!=(const SparseVector& other) const
     {
@@ -449,13 +449,13 @@ protected:
     typedef Numerical::Double (SparseVector::*SparseToSparseDotProduct)(const SparseVector &,
                                                                         const SparseVector &) const;
 
-    static thread_local AddSparseToSparse sm_addSparseToSparse;
-    static thread_local AddDenseToSparse sm_addDenseToSparse;
-    static thread_local AddIndexedDenseToSparse sm_addIndexedDenseToSparse;
+    static AddSparseToSparse sm_addSparseToSparse;
+    static AddDenseToSparse sm_addDenseToSparse;
+    static AddIndexedDenseToSparse sm_addIndexedDenseToSparse;
 
-    static thread_local SparseToIndexedDenseDotProduct sm_sparseToIndexedDenseDotProduct;
-    static thread_local SparseToDenseDotProduct sm_sparseToDenseDotProduct;
-    static thread_local SparseToSparseDotProduct sm_sparseToSparseDotProduct;
+    static SparseToIndexedDenseDotProduct sm_sparseToIndexedDenseDotProduct;
+    static SparseToDenseDotProduct sm_sparseToDenseDotProduct;
+    static SparseToSparseDotProduct sm_sparseToSparseDotProduct;
 
     Numerical::Double * m_data;
 
@@ -486,7 +486,7 @@ protected:
     /**
      *
      */
-    static thread_local char * sm_removeIndices;
+    static thread_local unsigned int * sm_removeIndices;
 
     /**
      * Describes the size of sm_fullLengthVector.
@@ -501,7 +501,7 @@ protected:
     /**
      *
      */
-    static thread_local unsigned int sm_elbowRoom;
+    static unsigned int sm_elbowRoom;
 
     /**
      *

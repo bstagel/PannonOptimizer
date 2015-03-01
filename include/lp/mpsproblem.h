@@ -9,7 +9,6 @@
 #include <utils/file.h>
 #include <utils/hashtable.h>
 #include <utils/list.h>
-#include <linalg/vector.h>
 #include <linalg/densevector.h>
 #include <lp/modelbuilder.h>
 #include <lp/variable.h>

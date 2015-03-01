@@ -12,7 +12,6 @@
 #include <lp/variable.h>
 #include <lp/constraint.h>
 #include <utils/numerical.h>
-#include <linalg/vector.h>
 #include <string>
 
 /**
