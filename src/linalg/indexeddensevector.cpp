@@ -205,6 +205,17 @@ void IndexedDenseVector::sortIndices()
 
 void IndexedDenseVector::clear()
 {
+    unsigned int index;
+    for (index = 0; index < m_nonZeros; index++) {
+        const unsigned int nonZeroIndex = m_nonzeroIndices[index];
+        m_data[nonZeroIndex] = 0.0;
+        m_indexIndices[nonZeroIndex] = nullptr;
+    }
+    m_nonZeros = 0;
+}
+
+void IndexedDenseVector::clearDense()
+{
     m_nonZeros = 0;
     CLEAR_DOUBLES(m_data, m_length);
     panOptMemset(m_indexIndices, 0, sizeof( unsigned int * ) * m_length);
