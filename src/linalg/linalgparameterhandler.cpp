@@ -15,7 +15,7 @@
 
 #include <utils/parameterfilebuilder.h>
 
-thread_local const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
+const char * LinalgParameterHandler::sm_defaultFilename = "linalg.PAR";
 
 LinalgParameterHandler * LinalgParameterHandler::sm_instance;
 

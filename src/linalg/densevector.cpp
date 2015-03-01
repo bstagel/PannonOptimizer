@@ -4,12 +4,12 @@
 #include <utils/architecture.h>
 #include <utils/exceptions.h>
 
-thread_local DenseVector::AddDenseToDense DenseVector::sm_addDenseToDense;
-thread_local DenseVector::AddIndexedDenseToDense DenseVector::sm_addIndexedDenseToDense;
-thread_local DenseVector::AddSparseToDense DenseVector::sm_addSparseToDense;
-thread_local DenseVector::DenseToDenseDotProduct DenseVector::sm_denseToDenseDotProduct;
-thread_local DenseVector::DenseToIndexedDenseDotProduct DenseVector::sm_denseToIndexedDenseDotProduct;
-thread_local DenseVector::DenseToSparseDotProduct DenseVector::sm_denseToSparseDotProduct;
+DenseVector::AddDenseToDense DenseVector::sm_addDenseToDense;
+DenseVector::AddIndexedDenseToDense DenseVector::sm_addIndexedDenseToDense;
+DenseVector::AddSparseToDense DenseVector::sm_addSparseToDense;
+DenseVector::DenseToDenseDotProduct DenseVector::sm_denseToDenseDotProduct;
+DenseVector::DenseToIndexedDenseDotProduct DenseVector::sm_denseToIndexedDenseDotProduct;
+DenseVector::DenseToSparseDotProduct DenseVector::sm_denseToSparseDotProduct;
 
 DenseVector::DenseVector(unsigned int length)
 {

@@ -1,7 +1,6 @@
 #include <initpanopt.h>
 #include <linalg/linalgparameterhandler.h>
 #include <simplex/simplexparameterhandler.h>
-#include <linalg/vector.h>
 #include <linalg/indexeddensevector.h>
 #include <linalg/densevector.h>
 #include <linalg/sparsevector.h>

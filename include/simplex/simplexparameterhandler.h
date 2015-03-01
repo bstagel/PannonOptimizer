@@ -115,7 +115,7 @@ private:
 
     std::vector< std::map<std::string, Parameter> > m_threadParameters;
 
-    static thread_local const char * sm_defaultFilename;
+    static const char * sm_defaultFilename;
 
     static SimplexParameterHandler * sm_instance;
 

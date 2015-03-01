@@ -394,13 +394,13 @@ protected:
     typedef Numerical::Double (DenseVector::*DenseToSparseDotProduct)(const DenseVector &,
                                                                       const SparseVector &) const;
 
-    static thread_local AddDenseToDense sm_addDenseToDense;
-    static thread_local AddIndexedDenseToDense sm_addIndexedDenseToDense;
-    static thread_local AddSparseToDense sm_addSparseToDense;
+    static AddDenseToDense sm_addDenseToDense;
+    static AddIndexedDenseToDense sm_addIndexedDenseToDense;
+    static AddSparseToDense sm_addSparseToDense;
 
-    static thread_local DenseToIndexedDenseDotProduct sm_denseToIndexedDenseDotProduct;
-    static thread_local DenseToDenseDotProduct sm_denseToDenseDotProduct;
-    static thread_local DenseToSparseDotProduct sm_denseToSparseDotProduct;
+    static DenseToIndexedDenseDotProduct sm_denseToIndexedDenseDotProduct;
+    static DenseToDenseDotProduct sm_denseToDenseDotProduct;
+    static DenseToSparseDotProduct sm_denseToSparseDotProduct;
 
     Numerical::Double * m_data;
 

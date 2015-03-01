@@ -9,7 +9,6 @@
 #include <globals.h>
 
 #include <vector>
-#include <linalg/vector.h>
 #include <linalg/sparsevector.h>
 #include <linalg/densevector.h>
 #include <linalg/matrixbuilder.h>

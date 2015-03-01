@@ -6,7 +6,6 @@
 #define PRIMALFEASIBILITYCHECKER_H
 
 #include <utils/indexlist.h>
-#include <linalg/vector.h>
 #include <simplex/simplexmodel.h>
 
 /**

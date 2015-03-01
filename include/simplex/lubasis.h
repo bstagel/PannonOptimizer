@@ -9,8 +9,6 @@
 #include <vector>
 #include <list>
 
-#include <linalg/vector.h>
-
 #include <simplex/basis.h>
 #include <simplex/simplexmodel.h>
 

@@ -42,7 +42,7 @@ private:
     /**
      * The default filename to read the paramters from or write them to.
      */
-    static thread_local const char * sm_defaultFilename;
+    static const char * sm_defaultFilename;
 
     static LinalgParameterHandler * sm_instance;
 

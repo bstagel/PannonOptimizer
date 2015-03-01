@@ -11,8 +11,6 @@ class SimplexModel;
 #include <vector>
 #include <list>
 
-#include <linalg/vector.h>
-
 #include <simplex/simplex.h>
 
 #include <utils/exceptions.h>

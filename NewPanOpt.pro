@@ -86,8 +86,6 @@ INCLUDEPATH += . \
 #Input
 HEADERS += include/debug.h \
            include/linalg/matrix.h \
-           include/linalg/vector.h \
-           include/linalg/vector_iterator.h \
            include/linalg/matrixbuilder.h \
            include/linalg/linalgparameterhandler.h \
            include/lp/abstractmodel.h \
@@ -187,7 +185,6 @@ HEADERS += include/debug.h \
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
-           src/linalg/vector.cpp \
            src/linalg/linalgparameterhandler.cpp \
            src/lp/model.cpp \
            src/lp/manualmodelbuilder.cpp \

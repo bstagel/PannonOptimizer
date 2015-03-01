@@ -6,7 +6,6 @@
 #define DUALRATIOTEST_H
 
 #include <vector>
-#include <linalg/vector.h>
 #include <linalg/matrix.h>
 #include <utils/indexlist.h>
 #include <simplex/dualfeasibilitychecker.h>

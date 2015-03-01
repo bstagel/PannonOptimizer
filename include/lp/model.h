@@ -13,7 +13,6 @@
 #include <lp/constraint.h>
 #include <lp/modelbuilder.h>
 #include <lp/abstractmodel.h>
-#include <linalg/vector.h>
 #include <linalg/densevector.h>
 #include <linalg/matrix.h>
 #include <lp/scaler.h>

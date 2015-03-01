@@ -11,7 +11,6 @@
 #include <iostream>
 #include <utils/numerical.h>
 #include <utils/exceptions.h>
-#include <linalg/vector.h>
 #include <linalg/sparsevector.h>
 
 class Variable;

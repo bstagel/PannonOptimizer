@@ -9,8 +9,6 @@
 #include <vector>
 #include <list>
 
-#include <linalg/vector.h>
-
 #include <simplex/basis.h>
 #include <simplex/simplexmodel.h>
 
@@ -226,7 +224,7 @@ private:
     Numerical::Double m_mNumAverage;
     static thread_local int m_inversionCount;
 
-    static thread_local std::vector<int>* m_updateHelper;
+    static thread_local IndexedDenseVector* m_updateHelper;
 
     //Run parameters
     //Non-triangular method parameter

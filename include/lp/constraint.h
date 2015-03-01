@@ -9,7 +9,6 @@
 #include <globals.h>
 
 #include <utils/numerical.h>
-#include <linalg/vector.h>
 #include <linalg/sparsevector.h>
 #include <utils/exceptions.h>
 
