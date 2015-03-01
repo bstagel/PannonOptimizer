@@ -77,6 +77,11 @@ void BreakpointHandler::init(unsigned maxNumberOfBreakpoints)
     m_breakpoints.reserve(maxNumberOfBreakpoints);
 }
 
+void BreakpointHandler::clear()
+{
+    m_breakpoints.clear();
+}
+
 const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getExpandSecondPass()
 {
     //reserve the maximal possible number: total number of breakpoints

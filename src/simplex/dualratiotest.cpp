@@ -42,11 +42,16 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
                     SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
     m_degenerate(false)
 {
-    m_ratioDirections.resize(m_model.getColumnCount() + m_model.getRowCount());
+    int dimension = m_model.getColumnCount() + m_model.getRowCount();
+    m_ratioDirections.resize(dimension);
+    m_updateFeasibilitySets.reserve(2*dimension);
+    m_breakpointHandler.init(2*dimension);
+    m_boundflips.reserve(dimension);
 }
 
-void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha){
-//computing ratios
+void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha)
+{
+    //computing ratios
     IndexList<>::PartitionIterator it;
     IndexList<>::PartitionIterator endit;
     Variable::VARIABLE_TYPE typeOfIthVariable;
@@ -341,11 +346,10 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
     //In parallel case this can cause serious errors (because of the basis resetting)
     m_boundflips.clear();
 
-
     m_becomesFeasible.clear();
     m_updateFeasibilitySets.clear();
-    m_updateFeasibilitySets.reserve(2*alpha.nonZeros());
-    m_breakpointHandler.init(2*alpha.nonZeros());
+    m_breakpointHandler.clear();
+
     Numerical::Double functionSlope = Numerical::fabs(phaseIReducedCost);
     unsigned iterationCounter = 0;
 
@@ -446,8 +450,7 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
 
 void DualRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 {
-
-//computing ratios
+    //computing ratios
     IndexList<const Numerical::Double*>::PartitionIterator it;
     IndexList<const Numerical::Double*>::PartitionIterator endit;
     Numerical::Double epsilon = 0;
@@ -672,8 +675,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                            Numerical::Double workingTolerance)
 {
     m_boundflips.clear();
-    m_boundflips.reserve(alpha.nonZeros());
-    m_breakpointHandler.init(alpha.nonZeros());
+    m_breakpointHandler.clear();
 
     m_incomingVariableIndex = -1;
     m_dualSteplength = 0;
@@ -681,7 +683,7 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
 
     unsigned int iterationCounter = 0;
 
-//determining t>0 or t<0 cases
+    //determining t>0 or t<0 cases
     const Variable & outgoingVariable = m_model.getVariable(outgoingVariableIndex);
     Numerical::Double outgoingVariableValue = *(m_variableStates.getAttachedData(outgoingVariableIndex));
 
