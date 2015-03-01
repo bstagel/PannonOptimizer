@@ -1143,6 +1143,8 @@ void PfiBasis::buildMM() {
     m_rowSwapHash->clear();
     m_columnSwapHash->clear();
     m_columnSwapLog->clear();
+
+    m_mmGraphOut->clear();
     m_mmGraphUsed->clear();
     m_stack->clear();
     m_mmBlocks->clear();
