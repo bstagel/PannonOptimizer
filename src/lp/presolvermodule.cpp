@@ -66,8 +66,6 @@ void SingletonRowsModule::executeMethod() {
                     m_removedConstraints++;
                     removedCount++;
                     removedRows[index] = 1;
-//                    m_parent->removeConstraint(index);
-//                    lastRow = m_parent->getRowNonzeros()->end();
                     continue;
                 }
             }
@@ -123,8 +121,6 @@ void SingletonRowsModule::executeMethod() {
                     m_removedConstraints++;
                     removedCount++;
                     removedRows[index] = 1;
-//                    m_parent->removeConstraint(index);
-//                    lastRow = m_parent->getRowNonzeros()->end();
 
                     m_parent->fixVariable(varIdx, fixVal);
                     eliminatedVariableCount++;
@@ -156,9 +152,7 @@ void SingletonRowsModule::executeMethod() {
                     m_removedConstraints++;
                     removedCount++;
                     removedRows[index] = 1;
-//                    m_parent->removeConstraint(index);
                     m_parent->getColumnNonzeros()->set(varIdx, m_parent->getColumnNonzeros()->at(varIdx) - 1);
-//                    lastRow = m_parent->getRowNonzeros()->end();
                     continue;
                 }
             }
@@ -222,7 +216,11 @@ void SingletonColumnsModule::executeMethod() {
                         if(costCoeff > 0) {
                             m_parent->fixVariable(index, varLowerBound);
                         } else {
-                            m_parent->fixVariable(index, varUpperBound);
+                            if(costCoeff < 0) {
+                                m_parent->fixVariable(index, varUpperBound);
+                            } else {
+                                m_parent->fixVariable(index, 0);
+                            }
                         }
                         lastColumn = m_parent->getColumnNonzeros()->end();
                         m_removedVariables++;
@@ -508,9 +506,6 @@ void ImpliedBoundsModule::executeMethod() {
             removedCount++;
             ++begin;
             m_constraintsToCheck->set(index, 0);
-//            m_parent->removeConstraint(index);
-//            m_constraintsToCheck->removeElement(index);
-//            m_constraintStack->removeElement(index);
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
             m_removedConstraints++;
@@ -547,9 +542,6 @@ void ImpliedBoundsModule::executeMethod() {
             removedCount++;
             ++begin;
             m_constraintsToCheck->set(index, 0);
-//            m_parent->removeConstraint(index);
-//            m_constraintsToCheck->removeElement(index);
-//            m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
@@ -582,23 +574,11 @@ void ImpliedBoundsModule::executeMethod() {
             removedCount++;
             ++begin;
             m_constraintsToCheck->set(index, 0);
-//            m_parent->removeConstraint(index);
-//            m_constraintsToCheck->removeElement(index);
-//            m_constraintStack->removeElement(index);
             m_removedConstraints++;
             end = m_constraintsToCheck->endNonzero();
             if(*begin != 1) { ++begin; }
             continue;
         }
-
-//        //Use the tightest computed bounds for constraints
-//        if(impliedLB > curConstraint.getLowerBound()) {
-//            curConstraint.setLowerBound(impliedLB);
-//        }
-
-//        if(impliedUB < curConstraint.getUpperBound()) {
-//            curConstraint.setUpperBound(impliedUB);
-//        }
 
         //If constraint is neither redundant nor forcing, calculate the implied bounds of the participating
         //variables and compare them to the original bounds.
@@ -985,14 +965,6 @@ void LinearAlgebraicModule::executeMethod() {
     m_parent->removeConstraints(indices, removeCount);
     m_removedConstraints += removeCount;
 
-//    for(int i=indices.size()-1 ; i>0; --i) {
-//        if(indices[i] == 0){
-//            continue;
-//        }
-//        m_removedConstraints++;
-//        m_parent->removeConstraint(i);
-//    }
-
     rowCount = m_parent->getModel()->constraintCount();
     removeCount = 0;
 
@@ -1000,11 +972,7 @@ void LinearAlgebraicModule::executeMethod() {
     IndexList<> hashedColumns(columnCount, columnCount);
 
     usedPartitions.resize(columnCount,0);
-//    indices.resize(columnCount);
 
-//    for(int i = 0; i < columnCount; i++) {
-//        indices[i] = 0;
-//    }
     std::vector<Numerical::Double> vIndices(columnCount, 0.0);
 
     for(int i = 0; i < columnCount; i++) {
