@@ -230,7 +230,7 @@ private:
      */
     void insertVariable(Simplex::VARIABLE_STATE state,
                         const VariableIndex * variableIndex,
-                        const Numerical::Double * attached = 0);
+                        const Numerical::Double *attached = 0);
 };
 
 #endif // BASISHEADBAS_H

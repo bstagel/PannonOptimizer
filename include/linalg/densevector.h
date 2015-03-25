@@ -24,6 +24,10 @@ class DenseVector {
     friend class DualSimplex;
 private:
 
+    Numerical::Double * m_data;
+
+    unsigned int m_length;
+
     template<class ADD>
     friend void addDenseToSparseTemplate(Numerical::Double lambda,
                                          SparseVector * vector1,
@@ -65,12 +69,12 @@ public:
     /**
      * This iterator iterates on the elements of the vector.
      */
-    typedef NormalIterator<Numerical::Double> Iterator;
+    typedef NormalIterator< std::remove_reference<decltype(*m_data)>::type > Iterator;
 
     /**
      * This iterator iterates only on the nonzero elements of the vector.
      */
-    typedef SkipIterator<Numerical::Double, SkipZeros> NonzeroIterator;
+    typedef SkipIterator<std::remove_reference<decltype(*m_data)>::type, SkipZeros> NonzeroIterator;
 
     /**
      * Constructor of the class DenseVector. The dimension of the vector will be
@@ -157,7 +161,7 @@ public:
      * @param index The index of the element.
      * @return Value of the index^th element.
      */
-    const Numerical::Double& at(unsigned int index) const {
+    decltype(*m_data) at(unsigned int index) const {
         if (likely(index < m_length)) {
             return m_data[index];
         } else {
@@ -401,10 +405,6 @@ protected:
     static DenseToIndexedDenseDotProduct sm_denseToIndexedDenseDotProduct;
     static DenseToDenseDotProduct sm_denseToDenseDotProduct;
     static DenseToSparseDotProduct sm_denseToSparseDotProduct;
-
-    Numerical::Double * m_data;
-
-    unsigned int m_length;
 
     static void _globalInit();
 

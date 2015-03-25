@@ -10,7 +10,7 @@
 PrimalSteepestEdgePricing::PrimalSteepestEdgePricing(const DenseVector &basicVariableValues,
                                                      const IndexList<> & basicVariableFeasibilities,
                                                      IndexList<> * reducedCostFeasibilities,
-                                                     const IndexList<const Numerical::Double *> & variableStates,
+                                                     const IndexList<const Numerical::Double *> &variableStates,
                                                      const std::vector<int> & basisHead,
                                                      const SimplexModel & model,
                                                      const Basis & basis,
@@ -52,10 +52,10 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
 
     int maxIndex = -1;
     int minIndex = -1;
-    Numerical::Double maxWeightedReducedCost = 0;
-    Numerical::Double minWeightedReducedCost = 0;
-    Numerical::Double maxReducedCost = 0;
-    Numerical::Double minReducedCost = 0;
+    double maxWeightedReducedCost = 0;
+    double minWeightedReducedCost = 0;
+    double maxReducedCost = 0;
+    double minReducedCost = 0;
 
     unsigned int variableIndex;
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
@@ -63,7 +63,7 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
             continue;
         }
 
-        Numerical::Double weight = Numerical::sqrt(m_weights[variableIndex]);
+        double weight = Numerical::sqrt(m_weights[variableIndex]);
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
             if (m_phase1ReducedCosts[variableIndex] / weight < minWeightedReducedCost) {
@@ -99,7 +99,7 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
         }
     }
 
-    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -122,15 +122,16 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
     m_reducedCost = 0.0;
     m_incomingIndex = -1;
     // ????
-    //    Numerical::Double maxReducedCost = m_optimalityTolerance;
-    //    Numerical::Double minReducedCost = -m_optimalityTolerance;
+    //    double maxReducedCost = m_optimalityTolerance;
+    //    double minReducedCost = -m_optimalityTolerance;
 
-    Numerical::Double maxReducedCost = 0;
-    Numerical::Double minReducedCost = 0;
-    Numerical::Double maxWeightedReducedCost = 0;
-    Numerical::Double minWeightedReducedCost = 0;
-    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    double maxReducedCost = 0;
+    double minReducedCost = 0;
+    double maxWeightedReducedCost = 0;
+    double minWeightedReducedCost = 0;
 
+    auto iter = m_variableStates.getIterator();
+    auto iterEnd = m_variableStates.getIterator();
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_AT_LB, 1);
 
     for (; iter != iterEnd; ++iter) {
@@ -138,8 +139,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const Numerical::Double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        const double weight = Numerical::sqrt(m_weights[variableIndex]);
+        const double reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -154,8 +155,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const Numerical::Double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        const double weight = Numerical::sqrt(m_weights[variableIndex]);
+        const double reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight > maxWeightedReducedCost) {
             maxIndex = variableIndex;
             maxReducedCost = reducedCost;
@@ -169,8 +170,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const Numerical::Double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const Numerical::Double reducedCost = m_reducedCosts.at(variableIndex);
+        const double weight = Numerical::sqrt(m_weights[variableIndex]);
+        const double reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -183,7 +184,7 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
     }
     //    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
     //    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
-    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -214,33 +215,34 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
     // gamma_q = alpha^t_q * alpha_q + 1
 
     m_weights[incomingIndex] = incomingAlpha->euclidNorm2() + 1.0;
-    Numerical::Double incomingGamma = m_weights[incomingIndex];
+    double incomingGamma = m_weights[incomingIndex];
 
     SparseVector temp = SparseVector::createVectorFromDenseArray( &incomingAlpha->at(0), incomingAlpha->length() );
     m_basis.Btran(temp);
 
-    Numerical::Double alpha_q_p = incomingAlpha->at(outgoingIndex);
+    double alpha_q_p = incomingAlpha->at(outgoingIndex);
     m_weights[outgoingVariable] = (1.0 / (alpha_q_p * alpha_q_p)) * m_weights[incomingIndex];
 
     SparseVector multiplier = SparseVector::createUnitVector( incomingAlpha->length(), outgoingIndex );
     m_basis.Btran(multiplier);
 
-    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    auto iter = m_variableStates.getIterator();
+    auto iterEnd = m_variableStates.getIterator();
     m_variableStates.getIterators(&iter, &iterEnd,
                                   Simplex::NONBASIC_AT_LB,
-                                  Simplex::VARIABLE_STATE_ENUM_LENGTH - Simplex::NONBASIC_AT_LB);
+                                  (int)Simplex::VARIABLE_STATE_ENUM_LENGTH - (int)Simplex::NONBASIC_AT_LB);
     for (; iter != iterEnd; ++iter) {
         const unsigned int variableIndex = iter.getData();
-        if (variableIndex == outgoingVariable || variableIndex == incomingIndex) {
+        if (variableIndex == outgoingVariable || (int)variableIndex == incomingIndex) {
             continue;
         }
 
-        Numerical::Double weight = m_weights[variableIndex];
+        double weight = m_weights[variableIndex];
 
         if (variableIndex < matrix.columnCount()) {
-            Numerical::Double alpha_p_j = matrix.column(variableIndex).dotProduct(multiplier);
+            double alpha_p_j = matrix.column(variableIndex).dotProduct(multiplier);
 
-            Numerical::Double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+            double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
             if (updatedAlpha_j_p == 0.0) {
                 continue;
             }
@@ -249,25 +251,25 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
 
             weight = Numerical::stableAdd(weight, updatedAlpha_j_p * updatedAlpha_j_p * incomingGamma);
 
-            Numerical::Double dotp = temp.dotProduct(matrix.column(variableIndex));
+            double dotp = temp.dotProduct(matrix.column(variableIndex));
 
             if (dotp != 0.0) {
                 weight = Numerical::stableAdd(weight, -2.0 * updatedAlpha_j_p * dotp);
             }
-            Numerical::Double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
+            double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
             if (weight < alternativeWeight) {
                 weight = alternativeWeight;
             }
 
 
         } else {
-            Numerical::Double alpha_p_j = multiplier.at(variableIndex - columns);
+            double alpha_p_j = multiplier.at(variableIndex - columns);
             //end = clock();
             //time += end - start;
             //LPINFO("dot product: " << alpha_p_j);
             //std::cin.get();
 
-            Numerical::Double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+            double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
             if (updatedAlpha_j_p == 0.0) {
                 continue;
             }
@@ -275,13 +277,13 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
 
             weight = Numerical::stableAdd(weight, updatedAlpha_j_p * updatedAlpha_j_p * incomingGamma);
             //start = clock();
-            Numerical::Double dotp = temp.at(variableIndex - columns);
+            double dotp = temp.at(variableIndex - columns);
             //end = clock();
             //time += end - start;
             if (dotp != 0.0) {
                 weight = Numerical::stableAdd(weight, -2.0 * updatedAlpha_j_p * dotp);
             }
-            Numerical::Double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
+            double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
             if (weight < alternativeWeight) {
                 weight = alternativeWeight;
             }
@@ -304,23 +306,24 @@ void PrimalSteepestEdgePricing::recomputeSteepestEdgeWeights()
     if (m_weights.size() < columnCount + rowCount ) {
         m_weights.resize(columnCount + rowCount, 1.0);
     }
-    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    auto iter = m_variableStates.getIterator();
+    auto iterEnd = m_variableStates.getIterator();
     m_variableStates.getIterators(&iter, &iterEnd,
                                   Simplex::NONBASIC_AT_LB,
-                                  Simplex::VARIABLE_STATE_ENUM_LENGTH - Simplex::NONBASIC_AT_LB);
+                                  (int)Simplex::VARIABLE_STATE_ENUM_LENGTH - (int)Simplex::NONBASIC_AT_LB);
     for (; iter != iterEnd; ++iter) {
         const unsigned int variableIndex = iter.getData();
         if (variableIndex < columnCount) {
             SparseVector column = m_simplexModel.getMatrix().column( variableIndex );
 
             m_basis.Ftran(column);
-            Numerical::Double weight = column.euclidNorm();
+            double weight = column.euclidNorm();
             weight = weight * weight + 1;
             m_weights[ variableIndex ] = weight;
         } else {
             SparseVector column = SparseVector::createUnitVector(rowCount, variableIndex - columnCount);
             m_basis.Ftran(column);
-            Numerical::Double weight = column.euclidNorm();
+            double weight = column.euclidNorm();
             weight = weight * weight + 1;
             m_weights[ variableIndex ] = weight;
         }

@@ -15,7 +15,7 @@ public:
 
     ~LPMatrix();
 
-    void addColumn(const Numerical::Double * data,
+    void addColumn(const double * data,
                    const unsigned int * indices,
                    unsigned int count);
 
@@ -28,7 +28,7 @@ public:
 private:
 
     struct Column {
-        Numerical::Double * m_dataStart;
+        double * m_dataStart;
         unsigned int * m_indexStart;
     };
 
@@ -41,7 +41,7 @@ private:
     };
 
     struct Vector {
-        Numerical::Double * m_data;
+        double * m_data;
         unsigned int * m_index;
         unsigned int * m_transposedIndex;
         unsigned int m_count;

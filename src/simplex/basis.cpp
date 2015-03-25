@@ -51,7 +51,7 @@ void Basis::setNewHead() {
     //Set the basic variables state and remove their traces from the pattern vector
     for (std::vector<int>::iterator it = m_basisHead->begin(); it < m_basisHead->end(); ++it) {
         nonbasic[*it] = false;
-        if(m_variableStates->where(*it) != Simplex::BASIC) {
+        if(m_variableStates->where(*it) != (int)Simplex::BASIC) {
             m_variableStates->move(*it, Simplex::BASIC, &(m_basicVariableValues->at(it - m_basisHead->begin())));
         } else {
             m_variableStates->setAttachedData(*it, &(m_basicVariableValues->at(it - m_basisHead->begin())));
@@ -105,10 +105,10 @@ SparseVector* Basis::createEta(const SparseVector& vector, int pivotPosition)
                 eta->newNonZero(1 / atPivot, pivotPosition);
             } else {
                 eta->newNonZero(-(*it) / atPivot, it.getIndex());
-                //                if(Numerical::fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){
+                //                if(fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){
                 //                    LPERROR("INVERSION ERROR!: "<<"atPivot: "<<atPivot);
                 //                    LPERROR("INVERSION ERROR!: "<<"(*it): "<<(*it));
-                //                    LPERROR("INVERSION ERROR!: "<<"index: "<<it.getIndex()<< " value: "<<Numerical::fabs(-(*it) / atPivot));
+                //                    LPERROR("INVERSION ERROR!: "<<"index: "<<it.getIndex()<< " value: "<<fabs(-(*it) / atPivot));
                 //                }
             }
         }

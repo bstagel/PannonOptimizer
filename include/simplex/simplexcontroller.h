@@ -57,14 +57,14 @@ public:
      *
      * @return phase 2 objective value.
      */
-    const Numerical::Double & getObjectiveValue() const;
+    const Numerical::Double &getObjectiveValue() const;
 
     /**
      * Getter of the phase 1 objective value according to the current algorithm.
      *
      * @return phase 1 objective value.
      */
-    const Numerical::Double & getPhaseIObjectiveValue() const;
+    const Numerical::Double &getPhaseIObjectiveValue() const;
 
     /**
      * Getter of the basishead that containts the basic variable indicies.
@@ -92,6 +92,12 @@ public:
      * @return SimplexController::sm_solveTimer
      */
     static const Timer& getSolveTimer(){return sm_solveTimer;}
+
+    /**
+     * This function returns with the number of iterations.
+     * @return The number of iterations.
+     */
+    unsigned int getIterationCount() const { return m_iterations; }
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.
@@ -133,7 +139,7 @@ private:
     /**
      * Time spent by the solver in phase 1.
      */
-    Numerical::Double m_phase1Time;
+    double m_phase1Time;
 
     /**
      * This boolean variable is true, if the basis has been inverted in the current iteration.
@@ -241,6 +247,11 @@ private:
      * Counter for the triggered reinversions. (eg. numerical issues)
      */
     int m_triggeredReinversion;
+
+    /**
+     * Counter for the iterations.
+     */
+    unsigned int m_iterations;
 
     /**
      * Function that solves the LP problem given by the parameter using a main thread.

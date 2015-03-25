@@ -8,7 +8,7 @@
 
 SbfStructural::SbfStructural(const SimplexModel& model,
                        std::vector<int>* basisHead,
-                       IndexList<const Numerical::Double*>* variableStates,
+                       IndexList<const Numerical::Double *> *variableStates,
                        StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates):
     SbfSuper(model, basisHead, variableStates, nonbasicStates)
 {

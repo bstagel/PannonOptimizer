@@ -820,6 +820,14 @@ public:
     typedef _Iterator<ATTACHED_TYPE> Iterator;
     typedef _PartitionIterator<ATTACHED_TYPE> PartitionIterator;
 
+    Iterator getIterator() const {
+        return Iterator();
+    }
+
+    PartitionIterator getPartitionIterator() const {
+        return PartitionIterator();
+    }
+
     /**
      * Gets the start and end iterators for the index list.
      * The starting partition and partition count to be iterated can be also specified.
@@ -1046,7 +1054,7 @@ std::ostream & operator << (std::ostream & os, const IndexList<ATTACHED_TYPE> & 
         list.getIterators(&iter, &iterEnd, index);
         for (; iter != iterEnd; ++iter) {
             os << "     " << iter.getData();
-//            if(typeid(ATTACHED_TYPE) == typeid(Numerical::Double*)){
+//            if(typeid(ATTACHED_TYPE) == typeid(double*)){
                 os << "  ; val = " << *(iter.getAttached());
 //            }
             os << std::endl;

@@ -125,6 +125,12 @@ public:
     void releaseThread();
     void clearUpdates();
 
+    /**
+     * Dumps the content of the inverse to the stream os.
+     * @param os
+     */
+    void dumbToStream(std::ostream & os) const;
+
 private:
 
     /**

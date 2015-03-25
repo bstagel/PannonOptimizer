@@ -220,7 +220,7 @@ private:
     /**
       * Age vector to record transformation counts.
       */
-    std::vector<Numerical::Double> m_variableAge;
+    std::vector<double> m_variableAge;
 
 
     /**
@@ -354,7 +354,7 @@ private:
     /**
      * This is the value of the tolerance increment in the expand procedure.
      */
-    double m_toleranceStep;
+    Numerical::Double m_toleranceStep;
 
     /**
      * This contains the directions of the phase 1 ratios.
@@ -394,7 +394,7 @@ private:
      * @param iterationCounter The count of the computed breakpoints.
      * @param functionSlope The value of the objective function's slope.
      */
-    void computeFunctionPhase1(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope);
+    void computeFunctionPhase1(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double &functionSlope);
 
     /**
      * This is the phase 1 stable pivot procedure that provides the solver a numerically stable pivot candidate.
@@ -403,7 +403,7 @@ private:
      * @param alpha The alpha vector.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double& functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double &functionSlope);
 
     /**
      * This function computes the ratios in dual phase 2.
@@ -429,7 +429,7 @@ private:
      * @param functionSlope The value of the objective function's slope.
      * @param workingTolerance The value of the expanding tolerance in the current iteration.
      */
-    void computeFunctionPhase2(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double& functionSlope, Numerical::Double workingTolerance);
+    void computeFunctionPhase2(const DenseVector &alpha, unsigned int& iterationCounter, Numerical::Double &functionSlope, Numerical::Double workingTolerance);
 
     /**
      * This is the phase 2 stable pivot procedure that provides the solver a numerically stable pivot candidate.

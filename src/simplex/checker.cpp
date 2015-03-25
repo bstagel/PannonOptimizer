@@ -266,9 +266,9 @@ bool Checker::checkAlphaValue(const Simplex& simplex,
     rho.set(rowIndex, 1);
 
     simplex.m_basis->Btran(rho);
-    IndexList<const Numerical::Double *>::Iterator it;
-    IndexList<const Numerical::Double *>::Iterator itEnd;
 
+    auto it = simplex.m_variableStates.getIterator();
+    auto itEnd = simplex.m_variableStates.getIterator();
     simplex.m_variableStates.getIterators(&it, &itEnd, 0, Simplex::VARIABLE_STATE_ENUM_LENGTH);
     for(; it != itEnd ; ++it){
         unsigned int columnIndex = it.getData();

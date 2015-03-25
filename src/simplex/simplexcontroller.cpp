@@ -45,7 +45,8 @@ SimplexController::SimplexController():
     m_exportType(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.type")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
-    m_triggeredReinversion(0)
+    m_triggeredReinversion(0),
+    m_iterations(0)
 {
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
@@ -230,6 +231,7 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
 }
 
 void SimplexController::solve(const Model &model) {
+    m_iterations = 0;
     if (m_enableParallelization) {
         if(m_enableThreadSynchronization){
             parallelSolve(model);
@@ -276,7 +278,7 @@ void SimplexController::sequentialSolve(const Model &model)
     ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
-    const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
@@ -321,6 +323,7 @@ void SimplexController::sequentialSolve(const Model &model)
         for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
+
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
             }
@@ -354,6 +357,7 @@ void SimplexController::sequentialSolve(const Model &model)
             try{
                 //iterate
                 m_currentSimplex->iterate(m_iterationIndex);
+                m_iterations++;
 
                 if(!m_currentSimplex->m_feasible){
                     lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
@@ -475,7 +479,7 @@ void SimplexController::parallelSolve(const Model &model)
     int masterIndex=0;
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
-    const Numerical::Double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {

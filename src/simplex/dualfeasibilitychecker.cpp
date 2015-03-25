@@ -9,7 +9,7 @@
 #include <simplex/pfibasis.h>
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
-                                               IndexList<const Numerical::Double*>* variableStates,
+                                               IndexList<const Numerical::Double *> *variableStates,
                                                IndexList<>* reducedCostFeasibilities,
                                                const DenseVector &reducedCosts,
                                                const Basis& basis):
@@ -34,7 +34,6 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         if (m_variableStates->where(variableIndex) != Simplex::BASIC) {
             typeOfIthVariable = m_model.getVariable(variableIndex).getType();
-
     //nonbasic variables with M type infeasibility
                 if (m_reducedCosts.at(variableIndex) < -tolerance &&
                         (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
@@ -61,7 +60,6 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 
     m_reducedCostFeasibilities->getIterators(&setMit,&setMendit,Simplex::MINUS);
     m_reducedCostFeasibilities->getIterators(&setPit,&setPendit,Simplex::PLUS);
-
     return ((setMit == setMendit) && (setPit == setPendit));
 }
 
@@ -115,6 +113,7 @@ bool DualFeasibilityChecker::updateFeasibilities(const std::vector<std::pair<int
                                                  const std::vector<int>& becomesFeasible)
 {
     //TODO: reservek koknstruktorbol
+    LPINFO("UPDATE FEASIBILITIES");
     for (unsigned int index = 0; index < updateFeasibilitySets.size(); index++) {
         int variableIndex = updateFeasibilitySets[index].first;
         if (updateFeasibilitySets[index].second == 1) {

@@ -447,7 +447,7 @@ void LuBasis::invertM()
         std::vector<int> columnMarkowitzRowIndices;
         columnMarkowitzs.resize(basisSize,basisSize*basisSize);
         columnMarkowitzRowIndices.resize(basisSize);
-        const Numerical::Double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold");
+        const double & pivotThreshold = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold");
         std::list<int>::iterator activeRowIt;
         std::list<int>::iterator activeRowItend;
         //Compute the row and column Markowitz numbers

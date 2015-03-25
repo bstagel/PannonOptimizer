@@ -21,7 +21,6 @@
 #define DOUBLE_GMP     2
 
 #define DOUBLE_TYPE DOUBLE_CLASSIC
-
 #if DOUBLE_TYPE == DOUBLE_HISTORY
 #include <utils/doublehistory.h>
 #endif
@@ -30,19 +29,21 @@
 #include <utils/multiplefloat.h>
 #endif
 
+
+
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-#define COPY_DOUBLES(dest, src, count) panOptMemcpy(dest, src, sizeof(Numerical::Double) * count);
-#define CLEAR_DOUBLES(dest, count) panOptMemset(dest, 0, sizeof(Numerical::Double) * count);
-//memcpy(dest, src, sizeof(Numerical::Double) * count);
+#define COPY_DOUBLES(dest, src, count) panOptMemcpy(dest, src, sizeof(double) * count);
+#define CLEAR_DOUBLES(dest, count) panOptMemset(dest, 0, sizeof(double) * count);
+//memcpy(dest, src, sizeof(double) * count);
 #else
 #define COPY_DOUBLES(dest, src, count) {unsigned int _count = (count); \
     for(unsigned int i = 0; i < _count; i++) { \
-    dest[i] = src[i]; \
+    (dest)[i] = (src)[i]; \
     } \
     }
 #define CLEAR_DOUBLES(dest, count) {unsigned int _count = (count); \
     for(unsigned int i = 0; i < _count; i++) { \
-    dest[i] = 0.0; \
+    (dest)[i] = 0.0; \
     } \
     }
 #endif
@@ -89,6 +90,24 @@ public:
 
 #if DOUBLE_TYPE == DOUBLE_GMP
     typedef MultipleFloat Double;
+#endif
+
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+inline static Double * allocDouble(int size) {
+    return alloc<Double, 32>(size);
+}
+
+void static freeDouble(Numerical::Double * ptr) {
+    release(ptr);
+}
+#else
+inline static Double * allocDouble(int size) {
+    return new Numerical::Double[size];
+}
+
+void static freeDouble(const Numerical::Double * ptr) {
+    delete [] ptr;
+}
 #endif
 
     /**
@@ -453,15 +472,15 @@ public:
      */
     static inline bool equals(const Double & a, const Double & b)
     {
-        const Double aabs = Numerical::fabs(a);
-        const Double babs = Numerical::fabs(b);
+        const Double aabs = fabs(a);
+        const Double babs = fabs(b);
         //Checking infinity
-        const Numerical::Double bound = (aabs > babs ? aabs : babs) * RelativeTolerance;
+        const double bound = (aabs > babs ? aabs : babs) * RelativeTolerance;
         if (bound == Infinity) {
             return false;
         }
         //Equality is necessary here to handle the case if both of them are equal to zero!
-        return Numerical::fabs(a - b) <= ((bound > AbsoluteTolerance) ? bound : (Numerical::Double)AbsoluteTolerance);
+        return fabs(a - b) <= ((bound > AbsoluteTolerance) ? bound : (double)AbsoluteTolerance);
     }
 
     /**
@@ -540,14 +559,14 @@ public:
         //            return value1 + value2;
         //        }
         //        *((unsigned long long int*)&num) = (0x7FFFFFFFFFFFFFFFULL & *((unsigned long long int*)(&num)));
-        const Double value1abs = Numerical::fabs(value1);
-        const Double value2abs = Numerical::fabs(value2);
+        const Double value1abs = fabs(value1);
+        const Double value2abs = fabs(value2);
         const Double result = value1 + value2;
-        if ((value1abs + value2abs) * RelativeTolerance > Numerical::fabs(result)) {
+        if ((value1abs + value2abs) * RelativeTolerance > fabs(result)) {
             return 0.0;
         }
 
-        else if(Numerical::fabs(result)<AbsoluteTolerance){
+        else if(fabs(result)<AbsoluteTolerance){
             return 0.0;
         }
         return result;
@@ -565,7 +584,7 @@ public:
     static ALWAYS_INLINE Double stableAddAbs(const Double & value1, const Double & value2)
     {
         const Double result = value1 + value2;
-        if(Numerical::fabs(result)<AbsoluteTolerance) {
+        if(fabs(result)<AbsoluteTolerance) {
             return 0.0;
         }
 
@@ -582,18 +601,20 @@ public:
      */
     static inline void stableAddTo(Double & value1, const Double & value2)
     {
-        const Double value1abs = Numerical::fabs(value1);
-        const Double value2abs = Numerical::fabs(value2);
+        const Double value1abs = fabs(value1);
+        const Double value2abs = fabs(value2);
         value1 += value2;
-        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= Numerical::fabs(value1)) {
+        if ((value1abs > value2abs ? value1abs : value2abs) * RelativeTolerance >= fabs(value1)) {
             value1 = 0.0;
         }
-        else if(Numerical::fabs(value1)<AbsoluteTolerance){
+        else if(fabs(value1)<AbsoluteTolerance){
             value1 = 0.0;
         }
     }
 
 };
+
+
 
 /**
  * Constant double defining zero.

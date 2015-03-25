@@ -51,7 +51,7 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
                                const SparseVector & vector2
                                ) {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
     unsigned int * tls_indexVector = SparseVector::sm_indexVector;
     unsigned int ** tls_indexPointerVector = SparseVector::sm_indexPointerVector;
 
@@ -63,7 +63,7 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
         const unsigned int index = vector2.m_indices[nonZeroIndex];
 
         const Numerical::Double sum = ADD::add(tls_fullLengthVector[index],
-                                               vector2.m_data[nonZeroIndex] * lambda);
+                                    vector2.m_data[nonZeroIndex] * lambda);
 
         if (tls_fullLengthVector[index] == 0.0 && sum != 0.0) {
             tls_indexVector[nonZeros] = index;
@@ -102,14 +102,14 @@ void addDenseToSparseTemplate(Numerical::Double lambda,
                               const DenseVector & vector2
                               ) {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
 
     vector1->scatterData();
     unsigned int index;
     unsigned int nonZeros = vector1->m_nonZeros;
     for (index = 0; index < vector2.m_length; index++) {
         const Numerical::Double sum = ADD::add(tls_fullLengthVector[index],
-                                               vector2.m_data[index] * lambda);
+                                    vector2.m_data[index] * lambda);
 
         if (tls_fullLengthVector[index] == 0.0 && sum != 0.0) {
             nonZeros++;
@@ -140,7 +140,7 @@ void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
                                      const IndexedDenseVector & vector2
                                      ) {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
     unsigned int * tls_indexVector = SparseVector::sm_indexVector;
     unsigned int ** tls_indexPointerVector = SparseVector::sm_indexPointerVector;
 
@@ -159,7 +159,7 @@ void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
     for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
         const unsigned int index = vector2.m_nonzeroIndices[nonZeroIndex];
         const Numerical::Double sum = ADD::add(tls_fullLengthVector[index],
-                                               vector2.m_data[index] * lambda);
+                                    vector2.m_data[index] * lambda);
 
         if (DEBUG_MODE) {
             std::cout << "sum = " << sum << std::endl;
@@ -254,7 +254,7 @@ SparseVector SparseVector::createUnitVector(unsigned int length, unsigned int in
 {
     SparseVector result(length);
     result.m_nonZeros = 1;
-    result.m_data = alloc<Numerical::Double, 32>(1);
+    result.m_data = Numerical::allocDouble(1);
     result.m_data[0] = 1.0;
     result.m_indices = alloc<unsigned int, 16>(1);
     result.m_indices[0] = index;
@@ -280,7 +280,7 @@ SparseVector SparseVector::createVectorFromSparseArray(const Numerical::Double *
         return result;
     }
     result.m_nonZeros = count;
-    result.m_data = alloc<Numerical::Double, 32>(count);
+    result.m_data = Numerical::allocDouble(count);
     COPY_DOUBLES(result.m_data, data, count);
     result.m_indices = alloc<unsigned int, 16>(count);
     panOptMemcpy(result.m_indices, indices, count * sizeof(unsigned int));
@@ -299,7 +299,7 @@ SparseVector *SparseVector::createEtaVector(const SparseVector &vector,
     } else {
         SparseVector * result = new SparseVector(vector.length());
         result->m_nonZeros = vector.m_nonZeros;
-        result->m_data = alloc<Numerical::Double, 32>(vector.m_nonZeros);
+        result->m_data = Numerical::allocDouble(vector.m_nonZeros);
         result->m_indices = alloc<unsigned int, 16>(vector.m_nonZeros);
         panOptMemcpy(result->m_indices, vector.m_indices, vector.m_nonZeros * sizeof(unsigned int));
         result->m_capacity = vector.m_capacity;
@@ -391,7 +391,7 @@ Numerical::Double SparseVector::l1Norm() const
     unsigned int index;
     Numerical::Double sum = 0.0;
     for (index = 0; index < m_nonZeros; index++) {
-        sum += Numerical::fabs(m_data[index]);
+        sum += fabs(m_data[index]);
     }
     return sum;
 }
@@ -459,9 +459,9 @@ void SparseVector::scale(Numerical::Double lambda)
 void SparseVector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas)
 {
     // TODO: lekezelni azt, mikor 0-val szorzunk be
-    Numerical::Double * dataPtr = m_data;
+    decltype(m_data) dataPtr = m_data;
     unsigned int * indexPtr = m_indices;
-    Numerical::Double * lastData = m_data + m_nonZeros - 1;
+    decltype(m_data) lastData = m_data + m_nonZeros - 1;
     unsigned int * lastIndex = m_indices + m_nonZeros - 1;
 
     while (dataPtr <= lastData) {
@@ -481,7 +481,7 @@ void SparseVector::scaleByLambdas(const std::vector<Numerical::Double> & lambdas
 
 void SparseVector::scaleElementBy(unsigned int index, Numerical::Double lambda)
 {
-    Numerical::Double * ptr = nullptr;
+    decltype(m_data) ptr = nullptr;
     unsigned int nonZeroIndex = 0;
     while (nonZeroIndex < m_nonZeros && m_indices[nonZeroIndex] != index) {
         nonZeroIndex++;
@@ -635,10 +635,10 @@ Numerical::Double SparseVector::absMaxElement() const
 {
     Numerical::Double result = 0;
     if (m_nonZeros > 0) {
-        const Numerical::Double * dataPtr = m_data;
-        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        decltype(m_data) dataPtr = m_data;
+        decltype(m_data) dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            const Numerical::Double absValue = fabs(*dataPtr);
             if (absValue > result) {
                 result = absValue;
             }
@@ -648,21 +648,21 @@ Numerical::Double SparseVector::absMaxElement() const
 }
 
 Numerical::Double SparseVector::scaleAndGetResults(const std::vector<Numerical::Double> & multipliers,
-                                                   Numerical::Double lambda,
-                                                   Numerical::Double * squareSumPtr,
-                                                   Numerical::Double * minPtr,
-                                                   Numerical::Double * maxPtr) {
+                                        Numerical::Double lambda,
+                                        Numerical::Double * squareSumPtr,
+                                        Numerical::Double * minPtr,
+                                        Numerical::Double * maxPtr) {
     Numerical::Double absSum = 0;
     Numerical::Double squareSum = 0;
     Numerical::Double min = Numerical::Infinity;
     Numerical::Double max = 0;
     if (m_nonZeros > 0) {
-        Numerical::Double * dataPtr = m_data;
-        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        decltype(m_data) dataPtr = m_data;
+        const decltype(m_data) dataEnd = m_data + m_nonZeros;
         const unsigned int * indexPtr = m_indices;
         for (; dataPtr < dataEnd; dataPtr++, indexPtr++) {
             *dataPtr *= lambda * multipliers[*indexPtr];
-            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            const Numerical::Double absValue = fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
             if (min > absValue) {
@@ -681,17 +681,17 @@ Numerical::Double SparseVector::scaleAndGetResults(const std::vector<Numerical::
 }
 
 Numerical::Double SparseVector::absMaxSumsAndMinMax(Numerical::Double * squareSumPtr,
-                                                    Numerical::Double * minPtr,
-                                                    Numerical::Double * maxPtr) const {
+                                         Numerical::Double * minPtr,
+                                         Numerical::Double * maxPtr) const {
     Numerical::Double absSum = 0;
     Numerical::Double squareSum = 0;
     Numerical::Double min = Numerical::Infinity;
     Numerical::Double max = 0;
     if (m_nonZeros > 0) {
-        const Numerical::Double * dataPtr = m_data;
-        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        decltype(m_data) dataPtr = m_data;
+        decltype(m_data) dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            const Numerical::Double absValue = fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
             if (min > absValue) {
@@ -712,10 +712,10 @@ Numerical::Double SparseVector::absMaxSums(Numerical::Double * squareSumPtr) con
     Numerical::Double absSum = 0;
     Numerical::Double squareSum = 0;
     if (m_nonZeros > 0) {
-        const Numerical::Double * dataPtr = m_data;
-        const Numerical::Double * dataEnd = m_data + m_nonZeros;
+        decltype(m_data) dataPtr = m_data;
+        decltype(m_data) dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
+            const Numerical::Double absValue = fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
         }
@@ -766,9 +766,9 @@ void SparseVector::batchRemove(const std::vector<int> &indices)
 void SparseVector::reserve()
 {
     m_capacity = m_nonZeros;
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_capacity);
+    auto newData = Numerical::allocDouble(m_capacity);
     COPY_DOUBLES(newData, m_data, m_nonZeros);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
 
     unsigned int * newIndices = alloc<unsigned int, 16>(m_capacity);
@@ -805,8 +805,8 @@ void SparseVector::reInit(unsigned int length)
 
 void SparseVector::resizeFullLengthVector(unsigned int length)
 {
-    ::release(sm_fullLengthVector);
-    sm_fullLengthVector = alloc<Numerical::Double, 32>(length);
+    Numerical::freeDouble(sm_fullLengthVector);
+    sm_fullLengthVector = Numerical::allocDouble(length);
     CLEAR_DOUBLES(sm_fullLengthVector, length);
     ::release(sm_indexVector);
     sm_indexVector = alloc<unsigned int, 16>(length);
@@ -836,7 +836,7 @@ void SparseVector::_globalInit()
 
 void SparseVector::_globalRelease()
 {
-    ::release(sm_fullLengthVector);
+    Numerical::freeDouble(sm_fullLengthVector);
     sm_fullLengthVector = nullptr;
     ::release(sm_indexVector);
     sm_indexVector = nullptr;
@@ -853,7 +853,7 @@ void SparseVector::copy(const SparseVector &orig)
     m_nonZeros = orig.m_nonZeros;
     m_capacity = orig.m_capacity;
     if (orig.m_nonZeros != 0) {
-        m_data = alloc<Numerical::Double, 32>(m_capacity);
+        m_data = Numerical::allocDouble(m_capacity);
         COPY_DOUBLES(m_data, orig.m_data, m_nonZeros);
         m_indices = alloc<unsigned int, 16>(m_capacity);
         panOptMemcpy(m_indices, orig.m_indices, sizeof(unsigned int) * m_capacity);
@@ -867,7 +867,7 @@ void SparseVector::release()
 {
     m_length = 0;
     m_nonZeros = 0;
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = nullptr;
     ::release(m_indices);
     m_indices = nullptr;
@@ -890,9 +890,9 @@ void SparseVector::move(SparseVector &orig)
 
 void SparseVector::resizeCapacity(unsigned int capacity)
 {
-    Numerical::Double * data = alloc<Numerical::Double, 32>(capacity);
+    auto data = Numerical::allocDouble(capacity);
     COPY_DOUBLES(data, m_data, m_nonZeros);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = data;
 
     unsigned int * indices = alloc<unsigned int, 16>(capacity);
@@ -905,7 +905,7 @@ void SparseVector::resizeCapacity(unsigned int capacity)
 void SparseVector::scatter() const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
     unsigned int * tls_indexVector = SparseVector::sm_indexVector;
     unsigned int ** tls_indexPointerVector = SparseVector::sm_indexPointerVector;
 
@@ -921,7 +921,7 @@ void SparseVector::scatter() const
 void SparseVector::scatterData() const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
 
     unsigned int nonZeroIndex;
     for (nonZeroIndex = 0; nonZeroIndex < m_nonZeros; nonZeroIndex++) {
@@ -986,58 +986,58 @@ void SparseVector::addIndexedDenseToSparseAbsRel(Numerical::Double lambda,
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseUnstable(const SparseVector &vector1,
-                                                                       const IndexedDenseVector &vector2) const
+                                                            const IndexedDenseVector &vector2) const
 {
     return vector2.dotProductIndexedDenseToSparseUnstable(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseFast(const SparseVector &vector1,
-                                                                   const IndexedDenseVector &vector2) const
+                                                        const IndexedDenseVector &vector2) const
 {
     return vector2.dotProductIndexedDenseToSparseFast(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbs(const SparseVector &vector1,
-                                                                  const IndexedDenseVector &vector2) const
+                                                       const IndexedDenseVector &vector2) const
 {
     return vector2.dotProductIndexedDenseToSparseAbs(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToIndexedDenseAbsRel(const SparseVector &vector1,
-                                                                     const IndexedDenseVector &vector2) const
+                                                          const IndexedDenseVector &vector2) const
 {
     return vector2.dotProductIndexedDenseToSparseAbsRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseUnstable(const SparseVector &vector1,
-                                                                const DenseVector &vector2) const
+                                                     const DenseVector &vector2) const
 {
     return vector2.dotProductDenseToSparseUnstable(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseFast(const SparseVector &vector1,
-                                                            const DenseVector &vector2) const
+                                                 const DenseVector &vector2) const
 {
     return vector2.dotProductDenseToSparseFast(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbs(const SparseVector &vector1,
-                                                           const DenseVector &vector2) const
+                                                const DenseVector &vector2) const
 {
     return vector2.dotProductDenseToSparseAbs(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToDenseAbsRel(const SparseVector &vector1,
-                                                              const DenseVector &vector2) const
+                                                   const DenseVector &vector2) const
 {
     return vector2.dotProductDenseToSparseAbsRel(vector2, vector1);
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseUnstable(const SparseVector &vector1,
-                                                                 const SparseVector &vector2) const
+                                                      const SparseVector &vector2) const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
 
     const SparseVector * smallVector;
     const SparseVector * largeVector;
@@ -1062,10 +1062,10 @@ Numerical::Double SparseVector::dotProductSparseToSparseUnstable(const SparseVec
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseFast(const SparseVector &vector1,
-                                                             const SparseVector &vector2) const
+                                                  const SparseVector &vector2) const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
 
     const SparseVector * smallVector;
     const SparseVector * largeVector;
@@ -1092,10 +1092,10 @@ Numerical::Double SparseVector::dotProductSparseToSparseFast(const SparseVector 
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbs(const SparseVector &vector1,
-                                                            const SparseVector &vector2) const
+                                                 const SparseVector &vector2) const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
 
     const SparseVector * smallVector;
     const SparseVector * largeVector;
@@ -1122,10 +1122,10 @@ Numerical::Double SparseVector::dotProductSparseToSparseAbs(const SparseVector &
 }
 
 Numerical::Double SparseVector::dotProductSparseToSparseAbsRel(const SparseVector &vector1,
-                                                               const SparseVector &vector2) const
+                                                    const SparseVector &vector2) const
 {
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
     const SparseVector * smallVector;
     const SparseVector * largeVector;
     if (vector1.m_nonZeros < vector2.m_nonZeros) {
@@ -1157,7 +1157,7 @@ void SparseVector::convertFromDenseArray(const Numerical::Double *source, unsign
     }
 
     //Make thread_local pointers local to avoid TLS overhead
-    Numerical::Double * tls_fullLengthVector = SparseVector::sm_fullLengthVector;
+    auto tls_fullLengthVector = SparseVector::sm_fullLengthVector;
     unsigned int * tls_indexVector = SparseVector::sm_indexVector;
 
     m_nonZeros = 0;
@@ -1176,7 +1176,7 @@ void SparseVector::convertFromDenseArray(const Numerical::Double *source, unsign
         m_capacity = 0;
         return;
     }
-    m_data = alloc<Numerical::Double, 32>(m_nonZeros);
+    m_data = Numerical::allocDouble(m_nonZeros);
     m_indices = alloc<unsigned int, 16>(m_nonZeros);
     for (index = 0; index < m_nonZeros; index++) {
         m_data[index] = tls_fullLengthVector[index];

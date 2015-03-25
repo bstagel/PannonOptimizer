@@ -26,7 +26,7 @@ typedef pair<int,int> intpair;
 
 StartingBasisFinder::StartingBasisFinder(const SimplexModel& model,
                                          std::vector<int>* basisHead,
-                                         IndexList<const Numerical::Double*>* variableStates) :
+                                         IndexList<const Numerical::Double *> *variableStates) :
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),

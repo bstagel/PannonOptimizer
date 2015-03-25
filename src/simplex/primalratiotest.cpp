@@ -11,7 +11,7 @@ PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
                                  const DenseVector &basicVariableValues,
                                  const std::vector<int>& basishead,
                                  const IndexList<>& basicVariableFeasibilities,
-                                 const IndexList<const Numerical::Double *>& variableStates
+                                 const IndexList<const Numerical::Double *> &variableStates
                                  ):
     m_model(model),
     m_basicVariableValues(basicVariableValues),
@@ -422,7 +422,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                 m_degenerate = true;
             }
 
-            double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
+            Numerical::Double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
                           / alpha.at(m_outgoingVariableIndex));
             m_outgoingAtUpperBound = Numerical::equals(m_primalSteplength,ref);
         //Boundflip
@@ -464,7 +464,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                 if(m_avoidThetaMin){
                     int candidateBreakpointId = -1;
                     Numerical::Double maxAlpha = 0;
-                    double limit = (m_expand == "HARRIS") ? 0 : thetaMin;
+                    Numerical::Double limit = (m_expand == "HARRIS") ? (Numerical::Double)0 : thetaMin;
                     //choosing best pivot candidate with ratio value > thetamin
                     for(unsigned i=0; i < secondPassRatios.size(); i++){
                         variableIndex = secondPassRatios[i]->variableIndex;
@@ -493,7 +493,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                     m_primalSteplength = m_sigma * secondPassRatios[maxBreakpointId]->value;
                 }
                 m_outgoingVariableIndex = maxAlphaId;
-                double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
+                Numerical::Double ref = ((m_basicVariableValues.at(m_outgoingVariableIndex) - m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
                               / alpha.at(m_outgoingVariableIndex));
                 m_outgoingAtUpperBound = Numerical::equal(m_primalSteplength, ref, workingTolerance);
             } else if(m_primalSteplength != 0){

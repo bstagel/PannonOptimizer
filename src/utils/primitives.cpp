@@ -2,7 +2,7 @@
 #include <debug.h>
 
 union Number {
-    double m_num;
+    Numerical::Double m_num;
     unsigned long long int m_bits;
 };
 
@@ -55,8 +55,8 @@ Numerical::Double denseToDenseDotProductStable(const Numerical::Double * __restr
                                                size_t count,
                                                Numerical::Double * __restrict__ negPtr) {
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-    double negpos1[2] = {0.0, 0.0};
-    double negpos2[2] = {0.0, 0.0};
+    Numerical::Double negpos1[2] = {0.0, 0.0};
+    Numerical::Double negpos2[2] = {0.0, 0.0};
     Number num1, num2;
     unsigned int index;
     unsigned int one = count % 2;
@@ -96,8 +96,8 @@ Numerical::Double denseToSparseDotProductStable(const Numerical::Double * __rest
                                                 size_t count,
                                                 Numerical::Double * __restrict__ negPtr) {
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-    double negpos1[2] = {0.0, 0.0};
-    double negpos2[2] = {0.0, 0.0};
+    Numerical::Double negpos1[2] = {0.0, 0.0};
+    Numerical::Double negpos2[2] = {0.0, 0.0};
     Number num1, num2;
     unsigned int index;
     unsigned int one = count % 2;
@@ -184,7 +184,7 @@ Numerical::Double indexedDenseToIndexedDenseDotProductStable(const Numerical::Do
                                                              size_t nonZeroCount,
                                                              Numerical::Double * __restrict__ negPtr) {
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-    double negpos[2] = {0.0, 0.0};
+    Numerical::Double negpos[2] = {0.0, 0.0};
     Number num1, num2;
     unsigned int nonZeroIndex;
     unsigned int one = nonZeroCount % 2;

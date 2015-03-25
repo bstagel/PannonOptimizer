@@ -163,11 +163,11 @@ void Model::scale() {
     m_scaled = true;
     m_rowMultipliers = scaler.getRowMultipliers();
     m_columnMultipliers = scaler.getColumnMultipliers();
-    const std::vector<Numerical::Double> & rowMultipliers = scaler.getRowMultipliers();
+    auto & rowMultipliers = scaler.getRowMultipliers();
 
-    const std::vector<Numerical::Double> & columnMultipliers = scaler.getColumnMultipliers();
+    auto & columnMultipliers = scaler.getColumnMultipliers();
 
-    std::vector<Numerical::Double>::const_iterator mulIter = rowMultipliers.begin();
+    auto mulIter = rowMultipliers.begin();
     std::vector<Constraint>::iterator constraintIter = m_constraints.begin();
     std::vector<Constraint>::iterator constraintIterEnd = m_constraints.end();
     for (; constraintIter < constraintIterEnd; constraintIter++, mulIter++) {
@@ -218,7 +218,7 @@ std::string Model::getHash() const {
     }
     generator.addBuffer(&intTemp, sizeof(intTemp));
 
-    Numerical::Double doubleTemp;
+    double doubleTemp;
     doubleTemp = this->m_costConstant;
     generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
 

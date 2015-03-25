@@ -17,7 +17,7 @@ DenseVector::DenseVector(unsigned int length)
     m_data = nullptr;
 
     if (m_length > 0) {
-        m_data = alloc<Numerical::Double, 32>(m_length);
+        m_data = Numerical::allocDouble(m_length);
         CLEAR_DOUBLES(m_data, m_length);
     }
 }
@@ -97,7 +97,7 @@ Numerical::Double DenseVector::l1Norm() const
     unsigned int index;
     Numerical::Double sum = 0.0;
     for (index = 0; index < m_length; index++) {
-        sum += Numerical::fabs(m_data[index]);
+        sum += fabs(m_data[index]);
     }
     return sum;
 }
@@ -225,30 +225,30 @@ void DenseVector::remove(unsigned int index)
 
 void DenseVector::insert(unsigned int index, Numerical::Double value)
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    Numerical::Double * newData = Numerical::allocDouble(m_length + 1);
     COPY_DOUBLES(newData, m_data, index);
     newData[index] = value;
     COPY_DOUBLES(newData + index + 1, m_data + index + 1, m_length - index);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
     m_length++;
 }
 
 void DenseVector::append(Numerical::Double value)
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    Numerical::Double * newData = Numerical::allocDouble(m_length + 1);
     COPY_DOUBLES(newData, m_data, m_length);
     newData[m_length] = value;
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
     m_length++;
 }
 
 void DenseVector::reserve()
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length);
+    Numerical::Double * newData = Numerical::allocDouble(m_length);
     COPY_DOUBLES(newData, m_data, m_length);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
 }
 
@@ -258,10 +258,10 @@ void DenseVector::resize(unsigned int length)
         m_length = length;
         return;
     }
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+    Numerical::Double * newData = Numerical::allocDouble(length);
     COPY_DOUBLES(newData, m_data, m_length);
     CLEAR_DOUBLES(newData + m_length, length - m_length);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
     m_length = length;
 }
@@ -271,12 +271,12 @@ void DenseVector::resize(unsigned int length, Numerical::Double value) {
         m_length = length;
         return;
     }
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+    Numerical::Double * newData = Numerical::allocDouble(length);
     COPY_DOUBLES(newData, m_data, m_length);
     for(unsigned int i = 0; i < m_length; i++) {
         m_data[i] = value;
     }
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
     m_length = length;
 }
@@ -286,8 +286,8 @@ void DenseVector::reInit(unsigned int length)
     if(length <= m_length) {
         CLEAR_DOUBLES(m_data, length)
     } else {
-        ::release(m_data);
-        m_data = alloc<Numerical::Double, 32>(length);
+        Numerical::freeDouble(m_data);
+        m_data = Numerical::allocDouble(length);
         CLEAR_DOUBLES(m_data, length);
     }
     m_length = length;
@@ -326,7 +326,7 @@ DenseVector DenseVector::createVectorFromDenseArray(const Numerical::Double *sou
 {
     DenseVector result;
     result.m_length = size;
-    result.m_data = alloc<Numerical::Double, 32>(size);
+    result.m_data = Numerical::allocDouble(size);
     COPY_DOUBLES(result.m_data, source, size);
     return result;
 }
@@ -349,7 +349,7 @@ void DenseVector::copy(const DenseVector &orig)
     m_length = orig.m_length;
     m_data = nullptr;
     if (m_length > 0) {
-        m_data = alloc<Numerical::Double, 32>(m_length);
+        m_data = Numerical::allocDouble(m_length);
         COPY_DOUBLES(m_data, orig.m_data, m_length);
     }
 }
@@ -364,7 +364,7 @@ void DenseVector::move(DenseVector &orig)
 
 void DenseVector::release()
 {
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = nullptr;
 }
 

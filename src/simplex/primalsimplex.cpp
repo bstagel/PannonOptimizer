@@ -302,13 +302,13 @@ void PrimalSimplex::update() {
     for(; it < itend; ++it){
         //        LPWARNING("BOUNDFLIPPING at: "<<*it);
         const Variable& variable = m_simplexModel->getVariable(*it);
-        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+        if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
             //            LPINFO("LB->UB");
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
-        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+        } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
             //            LPINFO("UB->LB");
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);

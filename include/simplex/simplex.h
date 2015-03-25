@@ -108,7 +108,7 @@ protected:
     /**
      * Time spent by the solver in phase 1.
      */
-    Numerical::Double m_phase1Time;
+    double m_phase1Time;
 
     // Interface of the iteration report provider
     /**

@@ -159,8 +159,8 @@ void DualDevexPricing::update(int incomingIndex,
         if (unlikely((int)index == outgoingIndex)) {
             continue;
         }
-        Numerical::Double actualWeight = m_weights[index];
-        Numerical::Double newWeight = Numerical::fabs(*nonzIter / alpha_p_q) * alphaPNorm;
+        auto actualWeight = m_weights[index];
+        auto newWeight = Numerical::fabs(*nonzIter / alpha_p_q) * alphaPNorm;
         if (newWeight > actualWeight) {
            // LPWARNING("modify " << actualWeight << " -> " << newWeight);
             m_weights[index] = newWeight;

@@ -31,7 +31,7 @@ public:
 
 private:
 
-    std::vector<Numerical::Double> m_weights;
+    std::vector<double> m_weights;
     std::vector<char> m_referenceFrameWorkMask;
 
     bool m_weightsReady;
@@ -42,7 +42,7 @@ private:
 
     void setReferenceFramework();
 
-    Numerical::Double getExactDevexWeigth(const DenseVector &vector, unsigned int index);
+    double getExactDevexWeigth(const DenseVector &vector, unsigned int index);
 
 };
 

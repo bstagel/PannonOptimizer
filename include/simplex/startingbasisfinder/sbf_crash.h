@@ -17,7 +17,7 @@ public:
 
     virtual void run();
 
-    Numerical::Double getTime() const {
+    double getTime() const {
         return m_time;
     }
 
@@ -26,7 +26,7 @@ public:
     }
 private:
 
-    Numerical::Double m_time;
+    double m_time;
 
     unsigned int m_structuralVariables;
 };
