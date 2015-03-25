@@ -19,7 +19,7 @@ IndexedDenseVector::IndexedDenseVector(unsigned int length)
     m_length = length;
 
     if (length > 0) {
-        m_data = alloc<Numerical::Double, 32>(length);
+        m_data = Numerical::allocDouble(length);
         m_nonzeroIndices = alloc<unsigned int, 16>(length);
         m_indexIndices = alloc<unsigned int *, 16>(length);
         CLEAR_DOUBLES(m_data, length);
@@ -114,7 +114,7 @@ Numerical::Double IndexedDenseVector::l1Norm() const
     Numerical::Double sum = 0.0;
     unsigned int index;
     for (index = 0; index < m_length; index++) {
-        sum += Numerical::fabs(m_data[index]);
+        sum += fabs(m_data[index]);
     }
     return sum;
 }
@@ -309,11 +309,11 @@ void IndexedDenseVector::remove(unsigned int index)
 
 void IndexedDenseVector::insert(unsigned int index, Numerical::Double value)
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    Numerical::Double * newData = Numerical::allocDouble(m_length + 1);
     COPY_DOUBLES(newData, m_data, index);
     newData[index] = value;
     COPY_DOUBLES(newData + index + 1, m_data + index + 1, m_length - index);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
 
     if (value != 0.0) {
@@ -338,10 +338,10 @@ void IndexedDenseVector::insert(unsigned int index, Numerical::Double value)
 
 void IndexedDenseVector::append(Numerical::Double value)
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length + 1);
+    Numerical::Double * newData = Numerical::allocDouble(m_length + 1);
     COPY_DOUBLES(newData, m_data, m_length);
     newData[m_length] = value;
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
 
     if (value != 0.0) {
@@ -363,9 +363,9 @@ void IndexedDenseVector::append(Numerical::Double value)
 
 void IndexedDenseVector::reserve()
 {
-    Numerical::Double * newData = alloc<Numerical::Double, 32>(m_length);
+    Numerical::Double * newData = Numerical::allocDouble(m_length);
     COPY_DOUBLES(newData, m_data, m_length);
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = newData;
 
     unsigned int * newNonzeroIndices = alloc<unsigned int, 16>(m_length);
@@ -396,10 +396,10 @@ void IndexedDenseVector::resize(unsigned int length)
         }
         m_length = length;
     } else {
-        Numerical::Double * newData = alloc<Numerical::Double, 32>(length);
+        Numerical::Double * newData = Numerical::allocDouble(length);
         COPY_DOUBLES(newData, m_data, m_length);
         CLEAR_DOUBLES(newData + m_length, length - m_length);
-        ::release(m_data);
+        Numerical::freeDouble(m_data);
         m_data = newData;
 
         unsigned int * newNonzeroIndices = alloc<unsigned int, 16>(length);
@@ -428,7 +428,7 @@ IndexedDenseVector IndexedDenseVector::createVectorFromDenseArray(const Numerica
 {
     IndexedDenseVector result;
     result.m_length = size;
-    result.m_data = alloc<Numerical::Double, 32>(size);
+    result.m_data = Numerical::allocDouble(size);
     result.m_nonzeroIndices = alloc<unsigned int, 16>(size);
     result.m_indexIndices = alloc<unsigned int *, 16>(size);
     panOptMemset(result.m_indexIndices, 0, sizeof( unsigned int * ) * size);
@@ -456,7 +456,7 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
     IndexedDenseVector result;
     result.m_length = length;
     result.m_nonZeros = count;
-    result.m_data = alloc<Numerical::Double, 32>(count);
+    result.m_data = Numerical::allocDouble(count);
     result.m_nonzeroIndices = alloc<unsigned int, 16>(count);
     result.m_indexIndices = alloc<unsigned int *, 16>(count);
     CLEAR_DOUBLES(result.m_data, length);
@@ -517,7 +517,7 @@ void IndexedDenseVector::copy(const IndexedDenseVector &orig)
 {
     m_length = orig.m_length;
     m_nonZeros = orig.m_nonZeros;
-    m_data = alloc<Numerical::Double, 32>(m_length);
+    m_data = Numerical::allocDouble(m_length);
     m_nonzeroIndices = alloc<unsigned int, 16>(m_length);
     m_indexIndices = alloc<unsigned int *, 16>(m_length);
     COPY_DOUBLES(m_data, orig.m_data, m_length);
@@ -527,7 +527,7 @@ void IndexedDenseVector::copy(const IndexedDenseVector &orig)
 
 void IndexedDenseVector::release()
 {
-    ::release(m_data);
+    Numerical::freeDouble(m_data);
     m_data = 0;
     ::release(m_nonzeroIndices);
     m_nonzeroIndices = 0;

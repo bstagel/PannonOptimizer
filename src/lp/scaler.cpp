@@ -211,10 +211,10 @@ Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
     temp.m_value = value;
 #endif
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
-    temp.m_value = (double)value;
+    temp.m_value = (Numerical::Double)value;
 #endif
 #if DOUBLE_TYPE == DOUBLE_HISTORY
-    temp.m_value = (double)value;
+    temp.m_value = (Numerical::Double)value;
 #endif
     temp.m_bits &= 0xFFF0000000000000ULL;
     Numerical::Double result1 = temp.m_value;

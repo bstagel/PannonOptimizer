@@ -5,6 +5,7 @@
 #include <simplex/dualpricing.h>
 #include <simplex/simplexparameterhandler.h>
 #include <mutex>
+#include <fstream>
 
 DualPricing::DualPricing(const DenseVector &basicVariableValues,
                          IndexList<> * basicVariableFeasibilities,

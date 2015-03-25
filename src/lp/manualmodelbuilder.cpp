@@ -132,7 +132,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     Numerical::Double value;
     unsigned int maxIndex = 0;
     for (index = 0; index < nonzeros; index++) {
-        double dvalue;
+        Numerical::Double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
@@ -155,7 +155,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     va_start(arguments, nonzeros);
     unsigned int variableIndex = m_variables.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        double dvalue;
+        Numerical::Double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
@@ -276,7 +276,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int columnIndex;
     Numerical::Double value;
     for (index = 0; index < nonzeros; index++) {
-        double dvalue;
+        Numerical::Double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
@@ -300,7 +300,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     va_start(arguments, nonzeros);
     unsigned int constraintIndex = m_constraints.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        double dvalue;
+        Numerical::Double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
@@ -378,8 +378,8 @@ void ManualModelBuilder::buildCostVector(DenseVector *costVector) const
 {
     unsigned int dimension = m_variables.size();
     LPINFO(m_costVector.size() << "  " << dimension);
-    std::vector< Numerical::Double >::const_iterator iter = m_costVector.begin();
-    std::vector< Numerical::Double >::const_iterator iterEnd = m_costVector.end();
+    auto iter = m_costVector.begin();
+    auto iterEnd = m_costVector.end();
     unsigned int index;
     if(m_objectiveType == MINIMIZE){
         for (index = 0; iter != iterEnd; ++iter, index++) {

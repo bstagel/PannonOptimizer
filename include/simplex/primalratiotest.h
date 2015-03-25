@@ -318,7 +318,7 @@ private:
      * @param alpha The alpha values.
      * @param functionSlope The value of the objective function's slope.
      */
-    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double& functionSlope);
+    void useNumericalThresholdPhase1(unsigned int iterationCounter, const DenseVector &alpha, Numerical::Double &functionSlope);
 
     /**
      * This function generates the ratios in phase 2.

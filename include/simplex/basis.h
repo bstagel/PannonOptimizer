@@ -175,6 +175,11 @@ public:
     virtual void registerThread() = 0;
     virtual void releaseThread() = 0;
 
+    /**
+     * Dumps the content of the inverse representation to the stream.
+     */
+    virtual void dumbToStream(std::ostream & ) const {}
+
 protected:
     /**
      * The model if the LP problem.

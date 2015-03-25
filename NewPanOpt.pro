@@ -258,7 +258,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/stacktrace.cpp \
     src/simplex/simplexthread.cpp \
     src/simplex/pricing/primalsteepestedgepricing.cpp \
-    src/simplex/pricing/primaldevexpricing.cpp
+    src/simplex/pricing/primaldevexpricing.cpp \
+    src/utils/multiplefloat.cpp
 
 #OBJECTS_DIR = .o
 

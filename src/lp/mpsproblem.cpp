@@ -367,7 +367,7 @@ double MpsModelBuilder::parseDouble(const char * ptr) {
     //val = 0;
     //const char * originalStr = ptr;
 #ifdef CHECK_PARSE_DOUBLE
-    Numerical::Double refValue = atof(ptr);
+    double refValue = atof(ptr);
 #endif
     unsigned int index = 0;
     while (*ptr == ' ') {
@@ -383,7 +383,7 @@ double MpsModelBuilder::parseDouble(const char * ptr) {
         index++;
     }
     long long int mul = 1;
-    //Numerical::Double mulchg = 10.0;
+    //double mulchg = 10.0;
     int exponent1 = 0;
     int exponent2 = 0;
     long long int mantissa = 0;
@@ -1070,7 +1070,7 @@ void MpsModelBuilder::finishColumns() {
 
 }
 
-void MpsModelBuilder::readRhsOrRanges(Numerical::Double Row::*range) {
+void MpsModelBuilder::readRhsOrRanges(double Row::*range) {
     MpsName rhsName;
     MpsName currentRhsName;
     const RowIndex * rowIndexPtr1;
@@ -1581,10 +1581,10 @@ const Variable & MpsModelBuilder::getVariable(unsigned int index) const {
 
 const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const {
     const Row * row = m_rowsMap[index];
-    Numerical::Double lowerBound = 0.0;
-    Numerical::Double upperBound = 0.0;
-    Numerical::Double range = row->m_range;
-    Numerical::Double rhs = row->m_rhs;
+    double lowerBound = 0.0;
+    double upperBound = 0.0;
+    double range = row->m_range;
+    double rhs = row->m_rhs;
 
     switch ( row->m_rowType ) {
     case 'N':
@@ -1593,13 +1593,13 @@ const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const {
         break;
     case 'G':
         lowerBound = rhs;
-        upperBound = rhs + Numerical::fabs(range);
+        upperBound = rhs + fabs(range);
         break;
     case 'L':
         if (range == Numerical::Infinity) {
             range = -Numerical::Infinity;
         }
-        lowerBound = rhs - Numerical::fabs(range);
+        lowerBound = rhs - fabs(range);
         upperBound = rhs;
         break;
     case 'E':
@@ -1608,10 +1608,10 @@ const Constraint & MpsModelBuilder::getConstraint(unsigned int index) const {
         }
         if (range >= 0.0) {
             lowerBound = rhs;
-            upperBound = rhs + Numerical::Double(range);
+            upperBound = rhs + double(range);
         } else {
             upperBound = rhs;
-            lowerBound = rhs - Numerical::Double(range);
+            lowerBound = rhs - double(range);
         }
         break;
     default:

@@ -224,7 +224,7 @@ public:
      * @param index The index of the element to be returned.
      * @return The value of the element.
      */
-    inline Numerical::Double getCostCoefficient(int index) { return m_model->getCostVector().at(index); }
+    inline double getCostCoefficient(int index) { return m_model->getCostVector().at(index); }
 
     inline const double & getFeasibilityTolerance() {return m_feasibilityTolerance;}
 
@@ -271,7 +271,7 @@ public:
      * @param index The index of the variable to be removed.
      * @param value The value of the variable.
      */
-    void fixVariable(int index, Numerical::Double value);
+    void fixVariable(int index, double value);
 
     /**
      * Sets the specified variables in the model to their given values, then removes them
@@ -281,7 +281,7 @@ public:
      * to 0, the corresponding nonzero value is infinity.
      * @param removeCount The number of indices to be removed. The vector will be checked if this parameter is -1.
      */
-    void fixVariables(const std::vector<Numerical::Double> &fixValues, int removeCount = -1, SUBSTITUTED_VARIABLE_FLAG fixMode = FIXED_VARIABLE);
+    void fixVariables(const std::vector<double> &fixValues, int removeCount = -1, SUBSTITUTED_VARIABLE_FLAG fixMode = FIXED_VARIABLE);
 
     /**
      * Removes a specified constraint from the model.

@@ -10,7 +10,7 @@
 PrimalPricing::PrimalPricing(const DenseVector &basicVariableValues,
                              const IndexList<> & basicVariableFeasibilities,
                              IndexList<> * reducedCostFeasibilities,
-                             const IndexList<const Numerical::Double *> & variableStates,
+                             const IndexList<const Numerical::Double *> &variableStates,
                              const std::vector<int> & basisHead,
                              const SimplexModel & model,
                              const Basis & basis,

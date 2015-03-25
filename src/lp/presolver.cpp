@@ -135,7 +135,7 @@ void Presolver::printStatistics() {
     LPINFO("[Presolver] Presolve time: " << m_timer->getTotalElapsed() / 1000000);
 }
 
-void Presolver::fixVariable(int index, Numerical::Double value) {
+void Presolver::fixVariable(int index, double value) {
 
     SparseVector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
     SparseVector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();
@@ -162,7 +162,7 @@ void Presolver::fixVariable(int index, Numerical::Double value) {
     m_columnNonzeros->remove(index);
 }
 
-void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, int removeCount, SUBSTITUTED_VARIABLE_FLAG fixMode) {
+void Presolver::fixVariables(const std::vector<double> &fixValues, int removeCount, SUBSTITUTED_VARIABLE_FLAG fixMode) {
     if(removeCount < 0) {
         removeCount = 0;
         for(auto it = fixValues.begin(), itEnd = fixValues.end(); it != itEnd; ++it) {
@@ -179,7 +179,7 @@ void Presolver::fixVariables(const std::vector<Numerical::Double> &fixValues, in
     for(auto itStart = fixValues.begin(), it = fixValues.begin(), itEnd = fixValues.end(); it != itEnd; ++it) {
         int index = it - itStart - removedCount;
         if(*it != 0) {
-            Numerical::Double fixVal = *it==Numerical::Infinity?0:*it;
+            double fixVal = *it==Numerical::Infinity?0:*it;
             SparseVector::NonzeroIterator itV = m_model->getVariable(index).getVector()->beginNonzero();
             SparseVector::NonzeroIterator itVEnd = m_model->getVariable(index).getVector()->endNonzero();
             for(;itV != itVEnd; ++itV) {

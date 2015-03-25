@@ -304,7 +304,6 @@ union Pointer {
 
 template <class T, unsigned alignment>
 T * alloc(int size) {
-
 #ifndef CACHE_LINE_ALIGNMENT
     return new T[size];
 #endif

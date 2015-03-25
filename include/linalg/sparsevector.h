@@ -9,6 +9,7 @@
 #include <utils/numerical.h>
 #include <utils/iterator.h>
 #include <vector>
+#include <type_traits>
 
 class DenseVector;
 class IndexedDenseVector;
@@ -25,6 +26,16 @@ class SparseVector {
     friend class SparseVectorTestSuite;
     friend class PfiBasis;
     friend class LuBasis;
+
+    Numerical::Double * m_data;
+
+    unsigned int * m_indices;
+
+    unsigned int m_length;
+
+    unsigned int m_nonZeros;
+
+    unsigned int m_capacity;
 
     /**
      *
@@ -96,7 +107,7 @@ public:
     /**
      *
      */
-    typedef ValueIndexPairIterator<Numerical::Double, unsigned int> NonzeroIterator;
+    typedef ValueIndexPairIterator< std::remove_reference<decltype(*m_data)>::type, unsigned int> NonzeroIterator;
 
     /**
      *
@@ -154,7 +165,7 @@ public:
      * @param size Size of the array.
      * @return The result vector.
      */
-    static SparseVector createVectorFromDenseArray(const Numerical::Double * source,
+    static SparseVector createVectorFromDenseArray(const Numerical::Double *source,
                                                    unsigned int length);
 
 
@@ -330,7 +341,7 @@ public:
         m_length = length;
         m_capacity = nonZeros + sm_elbowRoom;
         m_indices = alloc<unsigned int, 16>(nonZeros + sm_elbowRoom);
-        m_data = alloc<Numerical::Double, 32>(nonZeros + sm_elbowRoom);
+        m_data = Numerical::allocDouble(nonZeros + sm_elbowRoom);
         m_nonZeros = 0;
     }
 
@@ -456,16 +467,6 @@ protected:
     static SparseToIndexedDenseDotProduct sm_sparseToIndexedDenseDotProduct;
     static SparseToDenseDotProduct sm_sparseToDenseDotProduct;
     static SparseToSparseDotProduct sm_sparseToSparseDotProduct;
-
-    Numerical::Double * m_data;
-
-    unsigned int * m_indices;
-
-    unsigned int m_length;
-
-    unsigned int m_nonZeros;
-
-    unsigned int m_capacity;
 
 
     /**

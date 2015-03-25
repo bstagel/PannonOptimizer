@@ -126,6 +126,47 @@ void PfiBasis::clearUpdates() {
     m_updates->clear();
 }
 
+void PfiBasis::dumbToStream(ostream &os) const
+{
+    os << "Product form of the inverse {" << std::endl;
+    os << "\tNumber of common eta vectors: " << m_basis->size() << std::endl;
+    os << "\tEta vectors:" << std::endl;
+    unsigned int etaIndex = 0;
+    for (auto eta: *m_basis) {
+        os << "\tEta #" << etaIndex << " { " << std::endl;
+        os << "\t\tPivot index: " << eta.index << std::endl;
+        os << "\t\tVector {" << std::endl;
+        auto iter = eta.eta->beginNonzero();
+        auto iterEnd = eta.eta->endNonzero();
+        for (; iter != iterEnd; ++iter) {
+            os << "\t\t\t{" << iter.getIndex() << "; " << (double)*iter << "}" << std::endl;
+        }
+
+        os << "\t\t}" << std::endl;
+        os << "\t}" << std::endl;
+        etaIndex++;
+    }
+    os << "\tNumber of local vectors: " << m_updates->size() << std::endl;
+    os << "\tEta vectors:" << std::endl;
+    etaIndex = 0;
+    for (auto eta: *m_updates) {
+        os << "\tEta #" << etaIndex << " { " << std::endl;
+        os << "\t\tPivot index: " << eta.index << std::endl;
+        os << "\t\tVector {" << std::endl;
+        auto iter = eta.eta->beginNonzero();
+        auto iterEnd = eta.eta->endNonzero();
+        for (; iter != iterEnd; ++iter) {
+            os << "\t\t\t{" << iter.getIndex() << "; " << (double)*iter << "}" << std::endl;
+        }
+
+        os << "\t\t}" << std::endl;
+        os << "\t}" << std::endl;
+        etaIndex++;
+    }
+    os << "}" << std::endl;
+
+}
+
 void PfiBasis::copyBasis(bool buildIndexLists) {
     DEVINFO(D::PFIMAKER, "Copy the basis");
     unsigned int columnCount = m_model->getColumnCount();
@@ -353,8 +394,7 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
     }
 #endif //!NDEBUG
     //The ftran operation.
-    Numerical::Double * denseVector;
-    denseVector = vector.m_data;
+    auto denseVector = vector.m_data;
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
@@ -365,12 +405,12 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         if (pivotValue == 0.0) {
             continue;
         }
-        Numerical::Double * ptrEta = iter->eta->m_data;
+        auto ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
-            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            auto & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
@@ -394,12 +434,12 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         if (pivotValue == 0.0) {
             continue;
         }
-        Numerical::Double * ptrEta = iter->eta->m_data;
+        auto ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
-            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            auto & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
@@ -429,11 +469,9 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
 #endif //!NDEBUG
     //The ftran operation.
 
-    Numerical::Double * denseVector;
-
     // 1. lepes: ha kell akkor atvaltjuk dense-re
     vector.scatter();
-    denseVector = SparseVector::sm_fullLengthVector;
+    auto denseVector = SparseVector::sm_fullLengthVector;
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
@@ -445,12 +483,12 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
             continue;
         }
 
-        Numerical::Double * ptrEta = iter->eta->m_data;
+        auto ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
-            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            auto & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
@@ -480,7 +518,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
             continue;
         }
 
-        Numerical::Double * ptrEta = iter->eta->m_data;
+        auto ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         // itt volt a baj: nonZeros() helyett m_length volt
         //
@@ -488,7 +526,7 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
             //LPERROR("ptrIndex = " << *ptrIndex);
-            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            auto & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
@@ -511,8 +549,8 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
     // 4. lepes: ha kell akkor v-t atvaltani, adatokat elmenteni    Vector::VECTOR_TYPE newType;
 
     vector.prepareForData(vector.m_nonZeros, vector.m_length);
-    Numerical::Double * ptrValue = denseVector;
-    const Numerical::Double * ptrValueEnd = denseVector + vector.m_length;
+    auto ptrValue = denseVector;
+    const auto ptrValueEnd = denseVector + vector.m_length;
     unsigned int index = 0;
     while (ptrValue < ptrValueEnd) {
         if (*ptrValue != 0.0) {
@@ -548,9 +586,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
 #endif //!NDEBUG
 
     //The btran operation.
-    Numerical::Double * denseVector;
-
-    denseVector = vector.m_data;
+    auto denseVector = vector.m_data;
 
     // 2. perform the dot products on the update vectors
     ETM * iterEnd = m_updates->data() - 1;
@@ -562,7 +598,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
 
-        Numerical::Double * ptrValue = iter->eta->m_data;
+        auto ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
 
@@ -590,7 +626,7 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
 
-        Numerical::Double * ptrValue = iter->eta->m_data;
+        auto ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
 
@@ -624,11 +660,10 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 #endif //!NDEBUG
 
     //The btran operation.
-    Numerical::Double * denseVector;
 
     // 1. convert the input vector to dense form if necessary
     vector.scatter();
-    denseVector = SparseVector::sm_fullLengthVector;
+    auto denseVector = SparseVector::sm_fullLengthVector;
 
     // 2. perform the dot products on the update vectors
     ETM * iterEnd = m_updates->data() - 1;
@@ -641,7 +676,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
         Numerical::Double dotProduct = 0;
 
         //All eta vectors are sparse!
-        Numerical::Double * ptrValue = iter->eta->m_data;
+        auto ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
 
@@ -673,7 +708,7 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
         Numerical::Summarizer summarizer;
         Numerical::Double dotProduct = 0;
-        Numerical::Double * ptrValue = iter->eta->m_data;
+        auto ptrValue = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->nonZeros();
 
@@ -701,8 +736,8 @@ void PfiBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
     // build the result vector, if the original vector was sparse
     vector.prepareForData(vector.m_nonZeros, vector.m_length);
-    Numerical::Double * ptrValue = denseVector;
-    const Numerical::Double * ptrValueEnd = denseVector + vector.m_length;
+    auto ptrValue = denseVector;
+    const auto ptrValueEnd = denseVector + vector.m_length;
     unsigned int index = 0;
     while (ptrValue < ptrValueEnd) {
         if (*ptrValue != 0.0) {

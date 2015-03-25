@@ -10,10 +10,10 @@
 bool _debug_flag = false;
 
 const double Numerical::Infinity = (std::numeric_limits<double>::infinity());
-//const Numerical::Double Numerical::Infinity = DBL_MAX;
+//const double Numerical::Infinity = DBL_MAX;
 
-//const Numerical::Double & Numerical::AbsoluteTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_absolute");
-//const Numerical::Double & Numerical::RelativeTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative");
+//const double & Numerical::AbsoluteTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_absolute");
+//const double & Numerical::RelativeTolerance = LinalgParameterHandler::getInstance().getDoubleParameterValue("e_relative");
 
 double Numerical::AbsoluteTolerance = 0;
 double Numerical::RelativeTolerance = 0;

@@ -1,10 +1,10 @@
 #include <linalg/lpmatrix.h>
 
-void LPMatrix::addColumn(const Numerical::Double * data,
+void LPMatrix::addColumn(const double * data,
                          const unsigned int * indices,
                          unsigned int count) {
     Vector newVector;
-    newVector.m_data = new Numerical::Double[count];
+    newVector.m_data = new double[count];
     newVector.m_index = new unsigned int[count];
     newVector.m_transposedIndex = new unsigned int[count];
     newVector.m_count = count;
@@ -30,7 +30,7 @@ void LPMatrix::finalize() {
     for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
         Vector newVector;
         unsigned int count = m_rowCounter[rowIndex];
-        newVector.m_data = new Numerical::Double[ count ];
+        newVector.m_data = new double[ count ];
         newVector.m_index = new unsigned int[ count ];
         newVector.m_transposedIndex = new unsigned int[ count ];
         newVector.m_count = 0;

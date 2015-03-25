@@ -14,7 +14,7 @@ class SbfLogical : public SbfSuper
 public:
     SbfLogical(const SimplexModel& model,
                std::vector<int>* basisHead,
-               IndexList<const Numerical::Double*>* variableStates,
+               IndexList<const Numerical::Double *> *variableStates,
                StartingBasisFinder::STARTING_NONBASIC_STATES nonbasicStates);
 	virtual ~SbfLogical();
 

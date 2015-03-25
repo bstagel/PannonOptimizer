@@ -24,6 +24,16 @@ class IndexedDenseVector {
     friend class DenseVector;
     friend class SparseVector;
 
+    Numerical::Double * m_data; // dense
+
+    unsigned int * m_nonzeroIndices; // sparse
+
+    unsigned int ** m_indexIndices; // dense
+
+    unsigned int m_nonZeros;
+
+    unsigned int m_length;
+
     template<class ADD>
     friend void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
                                                 SparseVector * vector1,
@@ -33,12 +43,12 @@ public:
     /**
      * This iterator iterates on the elements of the vector.
      */
-    typedef NormalIterator<Numerical::Double> Iterator;
+    typedef NormalIterator< std::remove_reference<decltype(*m_data)>::type > Iterator;
 
     /**
      * This iterator itrates on the nonzeros of the vector.
      */
-    typedef IndexedIterator<Numerical::Double, unsigned int> NonzeroIterator;
+    typedef IndexedIterator<std::remove_reference<decltype(*m_data)>::type, unsigned int> NonzeroIterator;
 
     /**
      * Constructor of the class IndexedDenseVector. The dimension of the vector will be
@@ -365,16 +375,6 @@ protected:
     static IndexedDenseToIndexedDenseDotProduct sm_indexedDenseToIndexedDenseDotProduct;
     static IndexedDenseToDenseDotProduct sm_indexedDenseToDenseDotProduct;
     static IndexedDenseToSparseDotProduct sm_indexedDenseToSparseDotProduct;
-
-    Numerical::Double * m_data; // dense
-
-    unsigned int * m_nonzeroIndices; // sparse
-
-    unsigned int ** m_indexIndices; // dense
-
-    unsigned int m_nonZeros;
-
-    unsigned int m_length;
 
     static void _globalInit();
 

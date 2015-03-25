@@ -19,6 +19,8 @@
 #include <utils/tokenizer.h>
 #include <simplex/checker.h>
 
+#include <linalg/indexeddensevector.h>
+
 void solve(std::string filename) {
 
     Model model;

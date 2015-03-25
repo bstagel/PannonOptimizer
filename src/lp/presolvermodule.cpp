@@ -32,7 +32,7 @@ SingletonRowsModule::~SingletonRowsModule() { }
 
 void SingletonRowsModule::executeMethod() {
     int eliminatedVariableCount;
-    const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
+    const double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
     for(unsigned i = 0; i < m_parent->getModel()->constraintCount();i++) {
         m_parent->getRowNonzeros()->set(i, (*m_parent->getConstraints())[i].getVector()->nonZeros());
     }
@@ -82,10 +82,10 @@ void SingletonRowsModule::executeMethod() {
                 Variable& curVariable = (*m_parent->getVariables())[varIdx];
 
                 //!Use the implied bounds instead of original ones (numerical errors eg. AGG)
-                const Numerical::Double& varLowerBound = /*m_parent->getImpliedLower()->at(varIdx);*/curVariable.getLowerBound();
-                const Numerical::Double& varUpperBound = /*m_parent->getImpliedUpper()->at(varIdx);*/curVariable.getUpperBound();
-                const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
-                const Numerical::Double& rowUpperBound = curConstraint.getUpperBound();
+                const double& varLowerBound = /*m_parent->getImpliedLower()->at(varIdx);*/curVariable.getLowerBound();
+                const double& varUpperBound = /*m_parent->getImpliedUpper()->at(varIdx);*/curVariable.getUpperBound();
+                const double& rowLowerBound = curConstraint.getLowerBound();
+                const double& rowUpperBound = curConstraint.getUpperBound();
 
                 //report infeasibility if bounds conflict
                 //example for the 4 cases here:
@@ -104,7 +104,7 @@ void SingletonRowsModule::executeMethod() {
                 }
 
                 //fix variable if bounds are equal
-                Numerical::Double fixVal;
+                double fixVal;
                 int upper;
                 if((curConstraint.getType() == Constraint::EQUALITY && (upper = 1)) ||
                    ((*it) > 0 && (varLowerBound * (*it) - rowUpperBound) >= 0 && (upper = 1)) ||
@@ -193,8 +193,8 @@ void SingletonColumnsModule::executeMethod() {
         while(currentColumn < lastColumn) {
 
             const Variable& curVariable = (*m_parent->getVariables())[index];
-            const Numerical::Double& varLowerBound = curVariable.getLowerBound();
-            const Numerical::Double& varUpperBound = curVariable.getUpperBound();
+            const double& varLowerBound = curVariable.getLowerBound();
+            const double& varUpperBound = curVariable.getUpperBound();
             //handle fixed variables
             if(varLowerBound - varUpperBound >= 0) {
                 m_parent->fixVariable(index, varLowerBound);
@@ -205,7 +205,7 @@ void SingletonColumnsModule::executeMethod() {
 
             //handle empty columns
             if(*currentColumn == 0) {
-                Numerical::Double costCoeff = m_parent->getCostCoefficient(index);
+                double costCoeff = m_parent->getCostCoefficient(index);
                 if(m_parent->getModel()->getObjectiveType() == MINIMIZE) {
 
                     if((varLowerBound == -Numerical::Infinity && costCoeff > 0) ||
@@ -253,8 +253,8 @@ void SingletonColumnsModule::executeMethod() {
                 SparseVector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
                 int constraintIdx = it.getIndex();
                 const Constraint& curConstraint = (*m_parent->getConstraints())[constraintIdx];
-                const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
-                const Numerical::Double& rowUpperBound = curConstraint.getUpperBound();
+                const double& rowLowerBound = curConstraint.getLowerBound();
+                const double& rowUpperBound = curConstraint.getUpperBound();
                 //this module only treats free variables, implied free variables are checked in the implied
                 //variable bounds module
                 //!int fixSign;
@@ -271,8 +271,8 @@ void SingletonColumnsModule::executeMethod() {
                    //!((*it) > 0 && varLowerBound == -Numerical::Infinity && m_parent->getRows().getAttachedData(constraintIdx).getLowerBound() == -Numerical::Infinity && (fixSign = -1 || true)) ||
                    //!((*it) < 0 && varLowerBound == -Numerical::Infinity && m_parent->getRows().getAttachedData(constraintIdx).getUpperBound() == Numerical::Infinity && (fixSign = -1 || true)) ||
                    //!((*it) < 0 && varUpperBound == Numerical::Infinity && m_parent->getRows().getAttachedData(constraintIdx).getLowerBound() == -Numerical::Infinity && (fixSign = 1 || true))) {
-                    Numerical::Double costCoeff = m_parent->getCostCoefficient(index);
-                    Numerical::Double fixBound;
+                    double costCoeff = m_parent->getCostCoefficient(index);
+                    double fixBound;
                     if(*it > 0) {
 
                         //get the constraint bound to fix the variable
@@ -383,7 +383,7 @@ ImpliedBoundsModule::~ImpliedBoundsModule() { }
 
 //TODO: Az constraintek ellenorzesi modszerenek ujrairasa gyorsabbra
 void ImpliedBoundsModule::executeMethod() {
-    const Numerical::Double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
+    const double & feasibilityTolerance = m_parent->getFeasibilityTolerance();
     m_impliedLower = m_parent->getImpliedLower();
     m_impliedUpper = m_parent->getImpliedUpper();
 
@@ -399,7 +399,7 @@ void ImpliedBoundsModule::executeMethod() {
     }
     DenseVector::NonzeroIterator begin = m_constraintsToCheck->beginNonzero();
     DenseVector::NonzeroIterator end = m_constraintsToCheck->endNonzero();
-    Numerical::Double impliedUB, impliedLB;
+    double impliedUB, impliedLB;
 
     //This loop iterates through the constraints of the model. After the first loop through every constraint of the model
     //only the constraints with possibly changed implied bounds are checked.
@@ -421,8 +421,8 @@ void ImpliedBoundsModule::executeMethod() {
 
         int index = begin.getIndex();
         const Constraint& curConstraint = (*m_parent->getConstraints())[index];
-        const Numerical::Double& rowLowerBound = curConstraint.getLowerBound();
-        const Numerical::Double& rowUpperBound = curConstraint.getUpperBound();
+        const double& rowLowerBound = curConstraint.getLowerBound();
+        const double& rowUpperBound = curConstraint.getUpperBound();
 
         Numerical::Summarizer impliedLBSummarizer;
         Numerical::Summarizer impliedUBSummarizer;
@@ -590,7 +590,7 @@ void ImpliedBoundsModule::executeMethod() {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
-                    Numerical::Double newUpperBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx));
+                    double newUpperBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it, m_impliedLower->at(varIdx));
                     if( newUpperBound < m_impliedUpper->at(varIdx)) {
                         m_impliedUpper->set(varIdx, newUpperBound);
                         itV = curVariable.getVector()->beginNonzero();
@@ -604,7 +604,7 @@ void ImpliedBoundsModule::executeMethod() {
                     }
 
                 } else {
-                    Numerical::Double newLowerBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx));
+                    double newLowerBound = Numerical::stableAdd((rowUpperBound - impliedLB) / *it,  m_impliedUpper->at(varIdx));
                     if(newLowerBound > m_impliedLower->at(varIdx)) {
                        m_impliedLower->set(varIdx, newLowerBound);
                        itV = curVariable.getVector()->beginNonzero();
@@ -627,7 +627,7 @@ void ImpliedBoundsModule::executeMethod() {
                 int varIdx = it.getIndex();
                 const Variable& curVariable = (*m_parent->getVariables())[varIdx];
                 if(*it > 0) {
-                    Numerical::Double newLowerBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedUpper->at(varIdx));
+                    double newLowerBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedUpper->at(varIdx));
                     if(newLowerBound > m_impliedLower->at(varIdx)) {
                        m_impliedLower->set(varIdx, newLowerBound);
                        itV = curVariable.getVector()->beginNonzero();
@@ -640,7 +640,7 @@ void ImpliedBoundsModule::executeMethod() {
                        }
                     }
                 } else {
-                    Numerical::Double newUpperBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx));
+                    double newUpperBound = Numerical::stableAdd((rowLowerBound - impliedUB) / *it, m_impliedLower->at(varIdx));
                     if(newUpperBound < m_impliedUpper->at(varIdx)) {
                        m_impliedUpper->set(varIdx, newUpperBound);
                        itV = curVariable.getVector()->beginNonzero();
@@ -685,7 +685,7 @@ void DualBoundsModule::executeMethod() {
     m_variableStack = new DenseVector(columnCount);
     DenseVector::NonzeroIterator begin = m_variablesToCheck->beginNonzero();
     DenseVector::NonzeroIterator end = m_variablesToCheck->endNonzero();
-    Numerical::Double impliedUB, impliedLB;
+    double impliedUB, impliedLB;
 
     //This loop iterates through the variables of the model. After the first loop through every variable of the model
     //only the variables with possibly changed implied bounds are checked.
@@ -709,8 +709,8 @@ void DualBoundsModule::executeMethod() {
         impliedUB = 0;
         int index = begin.getIndex();
         const Variable& curVariable = (*m_parent->getVariables())[index];
-        const Numerical::Double& varLowerBound = curVariable.getLowerBound();
-        const Numerical::Double& varUpperBound = curVariable.getUpperBound();
+        const double& varLowerBound = curVariable.getLowerBound();
+        const double& varUpperBound = curVariable.getUpperBound();
 
         SparseVector::NonzeroIterator it = curVariable.getVector()->beginNonzero();
         SparseVector::NonzeroIterator itEnd = curVariable.getVector()->endNonzero();
@@ -910,13 +910,13 @@ void LinearAlgebraicModule::executeMethod() {
                 Constraint& original = (*m_parent->getConstraints())[origIdx];
                 const Constraint& duplicate = (*m_parent->getConstraints())[duplIdx];
 
-                Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
+                double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
                 SparseVector tryVector(*(original.getVector()));
                 tryVector.addVector(-lambda, *(duplicate.getVector()));
 
                 if(tryVector.nonZeros() == 0) {
-                    Numerical::Double duplicateLower;
-                    Numerical::Double duplicateUpper;
+                    double duplicateLower;
+                    double duplicateUpper;
 
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
@@ -973,7 +973,7 @@ void LinearAlgebraicModule::executeMethod() {
 
     usedPartitions.resize(columnCount,0);
 
-    std::vector<Numerical::Double> vIndices(columnCount, 0.0);
+    std::vector<double> vIndices(columnCount, 0.0);
 
     for(int i = 0; i < columnCount; i++) {
         int vhash = 0;
@@ -1015,14 +1015,14 @@ void LinearAlgebraicModule::executeMethod() {
                 Variable& original = (*m_parent->getVariables())[origIdx];
                 const Variable& duplicate = (*m_parent->getVariables())[duplIdx];
 
-                Numerical::Double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
+                double lambda = *original.getVector()->beginNonzero() / *duplicate.getVector()->beginNonzero();
                 SparseVector tryVector(*(original.getVector()));
                 tryVector.addVector(-lambda, *(duplicate.getVector()));
 
                 if(tryVector.nonZeros() == 0 && m_parent->getModel()->getCostVector().at(duplIdx) * lambda == m_parent->getModel()->getCostVector().at(origIdx)) {
 
-                    Numerical::Double duplicateLower;
-                    Numerical::Double duplicateUpper;
+                    double duplicateLower;
+                    double duplicateUpper;
 
                     //With negative lambda, duplicate bounds are swapped
                     if(lambda > 0) {
@@ -1149,12 +1149,12 @@ void MakeSparserModule::executeMethod() {
                     }
                     if(pivotIt == pivotItEnd) {
                         pivotIt = pivotRow.getVector()->beginNonzero();
-                        Numerical::Double lambda = *beginColumn / *pivotIt;
+                        double lambda = *beginColumn / *pivotIt;
 
                         m_parent->getModel()->addToConstraint(secondIndex, index, -lambda);
 
-                        Numerical::Double newLowerBound;
-                        Numerical::Double newUpperBound;
+                        double newLowerBound;
+                        double newUpperBound;
                         if(lambda > 0) {
                             newLowerBound = curRow.getLowerBound() - lambda * pivotRow.getLowerBound();
                             newUpperBound = curRow.getUpperBound() - lambda * pivotRow.getUpperBound();

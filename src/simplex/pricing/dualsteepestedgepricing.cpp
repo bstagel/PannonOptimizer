@@ -73,9 +73,9 @@ int DualSteepestEdgePricing::performPricingPhase1() {
              (variableType == Variable::PLUS && weightedReducedCost > 0) ||
              (variableType == Variable::MINUS && weightedReducedCost < 0)) {
 
-            /*sum += Numerical::fabs(weightedReducedCost);
+            /*sum += fabs(weightedReducedCost);
             squareSum += weightedReducedCost * weightedReducedCost;
-            sum2 += Numerical::fabs(m_phase1ReducedCosts[index]);
+            sum2 += fabs(m_phase1ReducedCosts[index]);
             squareSum2 += m_phase1ReducedCosts[index] * m_phase1ReducedCosts[index];*/
 
             if ( Numerical::fabs(weightedReducedCost) > max ) {

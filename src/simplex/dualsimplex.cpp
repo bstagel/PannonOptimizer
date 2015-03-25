@@ -42,7 +42,7 @@ DualSimplex::DualSimplex(Basis *basis):
     m_ratiotest(nullptr),
     m_askForAnotherRowCounter(0)
 {
-
+    //m_dualTheta.setDebugMode(true);
 }
 
 DualSimplex::~DualSimplex()
@@ -396,13 +396,13 @@ void DualSimplex::update() {
 
         const Variable& variable = m_simplexModel->getVariable(*it);
         //Alpha is not available, since we are in the dual
-        if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_LB) {
+        if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
             Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
             m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
-        } else if(m_variableStates.where(*it) == Simplex::NONBASIC_AT_UB){
+        } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
             Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
             m_basicVariableValues.addVector(-1 * boundDistance, alpha);
             m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
@@ -495,16 +495,21 @@ void DualSimplex::update() {
         default:
             throw PanOptException("Invalid outgoing state!");
         }
+
         m_primalTheta = beta / m_pivotColumn.at(m_outgoingIndex);
 
         m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
+
         m_objectiveValue += beta * m_dualTheta;
+
 
         //Do some updates before the basis change
         //Update the pricing
+
         m_pricing->update(m_incomingIndex, m_outgoingIndex,
                           m_pivotColumn, m_pivotRow,
                           m_pivotRowOfBasisInverse);
+
 
         //Update the reduced costs
         updateReducedCosts();
@@ -516,8 +521,6 @@ void DualSimplex::update() {
         if (m_pricing) {
             m_pricing->checkAndFix();
         }
-
-
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
 
@@ -531,6 +534,7 @@ void DualSimplex::update() {
                 m_reducedCostFeasibilities.insert(Simplex::FEASIBLE,outgoingVariableIndex);
             }
         }
+
     }
 
     //Update the feasibility sets in phase I
@@ -670,7 +674,7 @@ void DualSimplex::computeTransformedRow() {
         SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
         for (; rowIter != rowIterEnd; ++rowIter) {
             const unsigned int index = rowIter.getIndex();
-            if ( m_variableStates.where(index) == Simplex::BASIC ) {
+            if ( m_variableStates.where(index) == (int)Simplex::BASIC ) {
                 continue;
             }
             //m_reducedCosts.set(index, Numerical::stableAdd( m_reducedCosts.at( index ), - lambda * *rowIter));

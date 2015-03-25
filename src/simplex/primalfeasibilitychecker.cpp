@@ -7,7 +7,7 @@
 #include <utils/thirdparty/prettyprint.h>
 
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
-                                                   IndexList<const Numerical::Double *> * variableStates,
+                                                   IndexList<const Numerical::Double *> *variableStates,
                                                    IndexList<> * basicVariableFeasibilities,
                                                    const std::vector<int>& basisHead):
     m_model(model),

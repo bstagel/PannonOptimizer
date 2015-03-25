@@ -345,8 +345,8 @@ void Simplex::setSimplexState(const Simplex & simplex)
     m_basisHead = simplex.m_basisHead;
 
     m_variableStates.clearAllPartitions();
-    IndexList<const Numerical::Double*>::PartitionIterator it;
-    IndexList<const Numerical::Double*>::PartitionIterator endit;
+    auto it = simplex.m_variableStates.getPartitionIterator();
+    auto endit = simplex.m_variableStates.getPartitionIterator();
 
     //TODO: Eliminate workaround with a proper (fast) solution
     //Workaround to keep order
@@ -412,6 +412,10 @@ void Simplex::setSimplexState(const Simplex & simplex)
 
 void Simplex::iterate(int iterationIndex)
 {
+    // TOROLD
+    //m_objectiveValue.setDebugMode(true);
+
+
     m_iterationIndex = iterationIndex;
     m_feasibleIteration = m_feasible;
 
@@ -453,7 +457,8 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
     }
     //    std::cout << std::endl;
 
-    IndexList<const Numerical::Double *>::PartitionIterator iter, iterEnd;
+    auto iter = m_variableStates.getPartitionIterator();
+    auto iterEnd = m_variableStates.getPartitionIterator();
 
     m_variableStates.getIterators(&iter, &iterEnd, Simplex::NONBASIC_FIXED);
     for (; iter != iterEnd; ++iter) {
@@ -507,7 +512,8 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
     m_variableStates.reversePartition(NONBASIC_FIXED);
     m_variableStates.reversePartition(NONBASIC_FREE);
 
-    IndexList<const Numerical::Double*>::Iterator iter, iterEnd;
+    auto iter = m_variableStates.getIterator();
+    auto iterEnd = m_variableStates.getIterator();
     m_variableStates.getIterators(&iter, &iterEnd, BASIC);
     for(unsigned int i=0; i<m_basicVariableValues.length(); i++){
         m_variableStates.setAttachedData(m_basisHead[i], &m_basicVariableValues.at(i));
@@ -613,7 +619,7 @@ const DenseVector Simplex::getPrimalSolution() const {
         unsigned int totalVariableCount = m_simplexModel->getColumnCount() + m_simplexModel->getRowCount();
         DenseVector result(totalVariableCount);
         if ( m_simplexModel->getModel().isScaled() ) {
-            const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
+            auto & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
             for(unsigned int i = 0; i<totalVariableCount; i++) {
                 result.set(i, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
             }
@@ -631,7 +637,7 @@ const DenseVector Simplex::getPrimalSolution() const {
         DenseVector logicalSolution(m_simplexModel->getRowCount()+3);
         logicalSolution.set(m_simplexModel->getRowCount(), 1);
         if ( m_simplexModel->getModel().isScaled() ) {
-            const std::vector<Numerical::Double> & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
+            auto & columnMultipliers = m_simplexModel->getModel().getColumnMultipliers();
             for(unsigned int i = 0; i<m_simplexModel->getColumnCount(); i++) {
                 structuralSolution.set(i, *(m_variableStates.getAttachedData(i)) / columnMultipliers[i]);
             }
@@ -729,8 +735,8 @@ void Simplex::computeBasicSolution() {
 
     const unsigned int columnCount = m_simplexModel->getColumnCount();
     //x_B=B^{-1}*(b-\SUM{U*x_U}-\SUM{L*x_L})
-    IndexList<const Numerical::Double *>::Iterator it;
-    IndexList<const Numerical::Double *>::Iterator itend;
+    auto it = m_variableStates.getIterator();
+    auto itend = m_variableStates.getIterator();
     //This iterates through Simplex::NONBASIC_AT_LB, Simplex::NONBASIC_AT_UB and Simplex::NONBASIC_FIXED
     m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
 
@@ -780,7 +786,7 @@ void Simplex::computeReducedCosts() {
 
     //For each variable
     for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-        if(m_variableStates.where(i) == Simplex::BASIC){
+        if(m_variableStates.where(i) == (int)Simplex::BASIC){
             //m_reducedCosts.set(i, 0.0);
             continue;
         }
@@ -875,7 +881,7 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
 
        // LPINFO(lowerBound << " <= " << value << " <= " << upperBound);
        // LPINFO(columnIndex << ": " << lower << " <= delta <= " << upper << "   " << (upper - lower) << "   " <<
-       //        log10(Numerical::fabs(lower)) << "  " << log10(Numerical::fabs(upper)));
+       //        log10(fabs(lower)) << "  " << log10(fabs(upper)));
 
         if (Numerical::fabs(lower) != Numerical::Infinity && lower != 0.0) {
             sumMinLog += Numerical::log10(Numerical::fabs(lower));
