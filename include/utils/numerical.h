@@ -6,7 +6,7 @@
 #ifndef _NUMERICAL_H_
 #define _NUMERICAL_H_
 
-//#include <globals.h>
+#include <double.h>
 
 #include <cmath>
 #include <limits>
@@ -16,11 +16,6 @@
 #include <utils/memoryman.h>
 //#include <debug.h>
 
-#define DOUBLE_CLASSIC 0
-#define DOUBLE_HISTORY 1
-#define DOUBLE_GMP     2
-
-#define DOUBLE_TYPE DOUBLE_CLASSIC
 #if DOUBLE_TYPE == DOUBLE_HISTORY
 #include <utils/doublehistory.h>
 #endif
