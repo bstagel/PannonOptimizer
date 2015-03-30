@@ -182,7 +182,8 @@ HEADERS += include/debug.h \
     include/utils/stacktrace.h \
     include/simplex/simplexthread.h \
     include/simplex/pricing/primalsteepestedgepricing.h \
-    include/simplex/pricing/primaldevexpricing.h
+    include/simplex/pricing/primaldevexpricing.h \
+    include/double.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \

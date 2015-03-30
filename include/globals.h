@@ -13,6 +13,7 @@
 #include <climits>
 #include <float.h>
 #include <macros.h>
+#include <double.h>
 
 //#define ANALYSE_DOT_PRODUCT
 

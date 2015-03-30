@@ -1,6 +1,10 @@
 #ifndef MULTIPLEFLOAT_H
 #define MULTIPLEFLOAT_H
 
+#include <globals.h>
+
+#if DOUBLE_TYPE == DOUBLE_GMP
+
 #include <gmpxx.h>
 #include <iostream>
 #include <limits>
@@ -1268,5 +1272,7 @@ template<>
       return __val.getString();
   }
 }*/
+
+#endif //#if DOUBLE_TYPE == DOUBLE_GMP
 
 #endif // MULTIPLEFLOAT_H
