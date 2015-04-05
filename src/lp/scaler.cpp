@@ -208,7 +208,7 @@ Numerical::Double Scaler::roundPowerOf2(Numerical::Double value) const {
         unsigned long long int m_bits;
     } temp;
 #if DOUBLE_TYPE == DOUBLE_GMP
-    temp.m_value = value;
+    temp.m_value = value.getDouble();
 #endif
 #if DOUBLE_TYPE == DOUBLE_CLASSIC
     temp.m_value = (Numerical::Double)value;

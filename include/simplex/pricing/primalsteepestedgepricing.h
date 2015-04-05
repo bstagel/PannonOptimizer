@@ -31,7 +31,7 @@ public:
 
 private:
 
-    std::vector<double> m_weights;
+    std::vector<Numerical::Double> m_weights;
 
     bool m_weightsReady;
 

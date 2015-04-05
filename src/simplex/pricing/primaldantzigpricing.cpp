@@ -48,8 +48,8 @@ int PrimalDantzigPricing::performPricingPhase1()
 
     int maxIndex = -1;
     int minIndex = -1;
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
 
     unsigned int variableIndex;
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
@@ -93,7 +93,7 @@ int PrimalDantzigPricing::performPricingPhase1()
 
 //    LPINFO("min: "<<minReducedCost<<" index: "<<minIndex);
 //    LPINFO("max: "<<maxReducedCost<<" index: "<<maxIndex);
-    if (fabs( minReducedCost ) > maxReducedCost) {
+    if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -116,8 +116,8 @@ int PrimalDantzigPricing::performPricingPhase2()
     //    double maxReducedCost = m_optimalityTolerance;
     //    double minReducedCost = -m_optimalityTolerance;
 
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
     auto iter = m_variableStates.getIterator();
     auto iterEnd = m_variableStates.getIterator();
 
@@ -128,7 +128,7 @@ int PrimalDantzigPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost < minReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -142,7 +142,7 @@ int PrimalDantzigPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost > maxReducedCost) {
             maxIndex = variableIndex;
             maxReducedCost = reducedCost;
@@ -155,7 +155,7 @@ int PrimalDantzigPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost < minReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -166,7 +166,7 @@ int PrimalDantzigPricing::performPricingPhase2()
     }
 //    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
 //    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
-    if (fabs( minReducedCost ) > maxReducedCost) {
+    if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;

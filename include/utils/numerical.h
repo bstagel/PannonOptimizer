@@ -458,6 +458,18 @@ void static freeDouble(const Numerical::Double * ptr) {
      */
     static double RelativeTolerance;
 
+    static inline double DoubleToIEEEDouble(const Double & d) {
+#if DOUBLE_TYPE == DOUBLE_CLASSIC
+        return d;
+#endif
+#if DOUBLE_TYPE == DOUBLE_GMP
+        return d.getDouble();
+#endif
+#if DOUBLE_TYPE == DOUBLE_HISTORY
+        return d;
+#endif
+    }
+
     /**
      * Does fuzzy comparison for checking equality on two Double variables
      *
@@ -470,7 +482,7 @@ void static freeDouble(const Numerical::Double * ptr) {
         const Double aabs = fabs(a);
         const Double babs = fabs(b);
         //Checking infinity
-        const double bound = (aabs > babs ? aabs : babs) * RelativeTolerance;
+        const double bound = DoubleToIEEEDouble((aabs > babs ? aabs : babs) * RelativeTolerance);
         if (bound == Infinity) {
             return false;
         }

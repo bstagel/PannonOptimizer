@@ -110,7 +110,7 @@ public:
      *
      * @return
      */
-    Numerical::Double getObjectiveConstant() const;
+    double getObjectiveConstant() const;
 
     /**
      *

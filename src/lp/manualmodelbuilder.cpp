@@ -22,15 +22,15 @@ void ManualModelBuilder::setName(const std::string & name)
     m_name = name;
 }
 
-void ManualModelBuilder::setObjectiveFunctionConstant(Numerical::Double value)
+void ManualModelBuilder::setObjectiveFunctionConstant(double value)
 {
     m_objectiveConstant = value;
 }
 
 void ManualModelBuilder::addVariable(const Variable & variable,
-    Numerical::Double costCoefficient,
+    double costCoefficient,
     unsigned int nonzeros,
-    const Numerical::Double * values,
+    const double * values,
     const unsigned int * indices)
 {
     m_variables.push_back(variable);
@@ -69,7 +69,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
 }
 
 void ManualModelBuilder::addVariable(const Variable & variable,
-    Numerical::Double costCoefficient,
+    double costCoefficient,
     const SparseVector &vector)
 {
     m_variables.push_back(variable);
@@ -84,7 +84,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     SparseVector::NonzeroIterator iter = vector.beginNonzero();
     SparseVector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; ++iter) {
-        IndexValuePair pair = {*iter, iter.getIndex()};
+        IndexValuePair pair = {Numerical::DoubleToIEEEDouble(*iter), iter.getIndex()};
         m_columns[lastIndex].push_back(pair);
         if (maxIndex < iter.getIndex()) {
             maxIndex = iter.getIndex();
@@ -104,7 +104,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     unsigned int variableIndex = m_variables.size() - 1;
     iter = vector.beginNonzero();
     for (; iter != iterEnd; ++iter) {
-        IndexValuePair pair = {*iter, variableIndex};
+        IndexValuePair pair = {Numerical::DoubleToIEEEDouble(*iter), variableIndex};
         unsigned int rowIndex = iter.getIndex();
         m_nonZerosInRows[ rowIndex ]++;
         m_rows[ rowIndex ].push_back(pair);
@@ -113,7 +113,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
 }
 
 void ManualModelBuilder::addVariable(const Variable & variable,
-    Numerical::Double costCoefficient,
+    double costCoefficient,
     unsigned int nonzeros,
     ...)
 {
@@ -129,10 +129,10 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     const unsigned int lastIndex = m_columns.size() - 1;
     unsigned int index;
     unsigned int rowIndex;
-    Numerical::Double value;
+    double value;
     unsigned int maxIndex = 0;
     for (index = 0; index < nonzeros; index++) {
-        Numerical::Double dvalue;
+        double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
@@ -155,7 +155,7 @@ void ManualModelBuilder::addVariable(const Variable & variable,
     va_start(arguments, nonzeros);
     unsigned int variableIndex = m_variables.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        Numerical::Double dvalue;
+        double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         rowIndex = va_arg(arguments, unsigned int);
@@ -171,7 +171,7 @@ void ManualModelBuilder::setConstraint(unsigned int index, const Constraint & co
 }
 
 void ManualModelBuilder::addConstraint(const Constraint & constraint,
-                                       const Numerical::Double * values,
+                                       const double * values,
                                        const unsigned int * indices,
                                        unsigned int nonzeros,
                                        Variable *defaultVariablePtr)
@@ -232,7 +232,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     SparseVector::NonzeroIterator iter = vector.beginNonzero();
     SparseVector::NonzeroIterator iterEnd = vector.endNonzero();
     for (; iter != iterEnd; ++iter) {
-        IndexValuePair pair = {*iter, iter.getIndex()};
+        IndexValuePair pair = {Numerical::DoubleToIEEEDouble(*iter), iter.getIndex()};
         m_rows[lastIndex].push_back(pair);
         if (maxIndex < iter.getIndex()) {
             maxIndex = iter.getIndex();
@@ -252,7 +252,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int constraintIndex = m_constraints.size() - 1;
     iter = vector.beginNonzero();
     for (; iter != iterEnd; ++iter) {
-        IndexValuePair pair = {*iter, constraintIndex};
+        IndexValuePair pair = {Numerical::DoubleToIEEEDouble(*iter), constraintIndex};
         unsigned int columnIndex = iter.getIndex();
         m_nonZerosInColumns[ columnIndex ]++;
         m_columns[ columnIndex ].push_back(pair);
@@ -274,9 +274,9 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     unsigned int index;
     unsigned int maxIndex = 0;
     unsigned int columnIndex;
-    Numerical::Double value;
+    double value;
     for (index = 0; index < nonzeros; index++) {
-        Numerical::Double dvalue;
+        double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
@@ -300,7 +300,7 @@ void ManualModelBuilder::addConstraint(const Constraint & constraint,
     va_start(arguments, nonzeros);
     unsigned int constraintIndex = m_constraints.size() - 1;
     for (index = 0; index < nonzeros; index++) {
-        Numerical::Double dvalue;
+        double dvalue;
         dvalue = va_arg(arguments, double);
         value = dvalue;
         columnIndex = va_arg(arguments, unsigned int);
@@ -315,7 +315,7 @@ void ManualModelBuilder::setVariable(unsigned int index, const Variable & variab
     m_variables[index] = variable;
 }
 
-void ManualModelBuilder::setCostCoefficient(unsigned int index, Numerical::Double cost)
+void ManualModelBuilder::setCostCoefficient(unsigned int index, double cost)
 {
     m_costVector[index] = cost;
 }
@@ -392,7 +392,7 @@ void ManualModelBuilder::buildCostVector(DenseVector *costVector) const
     }
 }
 
-Numerical::Double ManualModelBuilder::getObjectiveConstant() const
+double ManualModelBuilder::getObjectiveConstant() const
 {
     if(m_objectiveType == MINIMIZE){
         return m_objectiveConstant;

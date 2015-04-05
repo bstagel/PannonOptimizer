@@ -25,6 +25,12 @@ public:
                 const DenseVector &pivotRowOfBasisInverse);
 
     void checkAndFix();
+
+    bool weightsAreReady() const {
+        return m_weightsReady;
+    }
+
+    void initWeights();
 private:
 
     std::vector<Numerical::Double> m_weights;
@@ -38,7 +44,6 @@ private:
 
     bool m_weightsReady;
 
-    void initWeights();
 };
 
 

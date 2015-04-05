@@ -11,6 +11,8 @@
 #include <utils/exceptions.h>
 #include <vector>
 
+#include <simplex/pricing/dualsteepestedgepricing.h>
+
 class DualDantzigPricing: public DualPricing
 {
 public:
@@ -19,7 +21,8 @@ public:
                        const IndexList<> &reducedCostFeasibilities,
                        const std::vector<int> & basisHead,
                        const SimplexModel & simplexModel,
-                       const Basis &basis);
+                       const Basis &basis,
+                       bool shadowSteepestEdgeWeights);
     virtual ~DualDantzigPricing();
 
     int performPricingPhase1();
@@ -34,9 +37,14 @@ public:
     void checkAndFix() {
 
     }
+
+    DualSteepestEdgePricing * getShadowSteepestEdge() {
+        return m_shadowSteepestEdge;
+    }
+
 private:
 
-
+    DualSteepestEdgePricing * m_shadowSteepestEdge;
 };
 
 #endif	/* DUALDANTZIGPRICING_H */

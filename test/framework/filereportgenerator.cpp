@@ -11,7 +11,7 @@ void FileReportGenerator::getFile(const std::string & directory,
 #ifdef __linux__
     delim = '/';
 #endif
-#ifdef WIN32
+#ifdef __WIN32__
     delim = '\\';
 #endif
     if (path[ path.size() - 1 ] != delim) {
@@ -33,7 +33,7 @@ void FileReportGenerator::clearDirectory(const std::string &directory) const
 #ifdef __linux__
     system((std::string("rm ") + fixPath(directory) + "*").c_str());
 #endif
-#ifdef WIN32
+#ifdef __WIN32__
     system((std::string("del ") + fixPath(directory) + "* /q").c_str());
 #endif
 }
@@ -64,7 +64,7 @@ std::string FileReportGenerator::fixPath(const std::string & path) const
 #ifdef __linux__
     delim = '/';
 #endif
-#ifdef WIN32
+#ifdef __WIN32__
     delim = '\\';
 #endif
     if (result[ result.size() - 1 ] != delim) {

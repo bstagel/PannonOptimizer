@@ -52,10 +52,10 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
 
     int maxIndex = -1;
     int minIndex = -1;
-    double maxWeightedReducedCost = 0;
-    double minWeightedReducedCost = 0;
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
+    Numerical::Double maxWeightedReducedCost = 0;
+    Numerical::Double minWeightedReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
 
     unsigned int variableIndex;
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
@@ -63,7 +63,7 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
             continue;
         }
 
-        double weight = Numerical::sqrt(m_weights[variableIndex]);
+        auto weight = Numerical::sqrt(m_weights[variableIndex]);
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
             if (m_phase1ReducedCosts[variableIndex] / weight < minWeightedReducedCost) {
@@ -99,7 +99,7 @@ int PrimalSteepestEdgePricing::performPricingPhase1()
         }
     }
 
-    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -125,10 +125,10 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
     //    double maxReducedCost = m_optimalityTolerance;
     //    double minReducedCost = -m_optimalityTolerance;
 
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
-    double maxWeightedReducedCost = 0;
-    double minWeightedReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
+    Numerical::Double maxWeightedReducedCost = 0;
+    Numerical::Double minWeightedReducedCost = 0;
 
     auto iter = m_variableStates.getIterator();
     auto iterEnd = m_variableStates.getIterator();
@@ -139,8 +139,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -155,8 +155,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight > maxWeightedReducedCost) {
             maxIndex = variableIndex;
             maxReducedCost = reducedCost;
@@ -170,8 +170,8 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -184,7 +184,7 @@ int PrimalSteepestEdgePricing::performPricingPhase2()
     }
     //    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
     //    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
-    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -215,12 +215,12 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
     // gamma_q = alpha^t_q * alpha_q + 1
 
     m_weights[incomingIndex] = incomingAlpha->euclidNorm2() + 1.0;
-    double incomingGamma = m_weights[incomingIndex];
+    auto incomingGamma = m_weights[incomingIndex];
 
     SparseVector temp = SparseVector::createVectorFromDenseArray( &incomingAlpha->at(0), incomingAlpha->length() );
     m_basis.Btran(temp);
 
-    double alpha_q_p = incomingAlpha->at(outgoingIndex);
+    auto alpha_q_p = incomingAlpha->at(outgoingIndex);
     m_weights[outgoingVariable] = (1.0 / (alpha_q_p * alpha_q_p)) * m_weights[incomingIndex];
 
     SparseVector multiplier = SparseVector::createUnitVector( incomingAlpha->length(), outgoingIndex );
@@ -237,12 +237,12 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
             continue;
         }
 
-        double weight = m_weights[variableIndex];
+        auto weight = m_weights[variableIndex];
 
         if (variableIndex < matrix.columnCount()) {
-            double alpha_p_j = matrix.column(variableIndex).dotProduct(multiplier);
+            auto alpha_p_j = matrix.column(variableIndex).dotProduct(multiplier);
 
-            double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+            auto updatedAlpha_j_p = alpha_p_j / alpha_q_p;
             if (updatedAlpha_j_p == 0.0) {
                 continue;
             }
@@ -251,25 +251,25 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
 
             weight = Numerical::stableAdd(weight, updatedAlpha_j_p * updatedAlpha_j_p * incomingGamma);
 
-            double dotp = temp.dotProduct(matrix.column(variableIndex));
+            auto dotp = temp.dotProduct(matrix.column(variableIndex));
 
             if (dotp != 0.0) {
                 weight = Numerical::stableAdd(weight, -2.0 * updatedAlpha_j_p * dotp);
             }
-            double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
+            auto alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
             if (weight < alternativeWeight) {
                 weight = alternativeWeight;
             }
 
 
         } else {
-            double alpha_p_j = multiplier.at(variableIndex - columns);
+            auto alpha_p_j = multiplier.at(variableIndex - columns);
             //end = clock();
             //time += end - start;
             //LPINFO("dot product: " << alpha_p_j);
             //std::cin.get();
 
-            double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+            auto updatedAlpha_j_p = alpha_p_j / alpha_q_p;
             if (updatedAlpha_j_p == 0.0) {
                 continue;
             }
@@ -277,13 +277,13 @@ void PrimalSteepestEdgePricing::update(int incomingIndex,
 
             weight = Numerical::stableAdd(weight, updatedAlpha_j_p * updatedAlpha_j_p * incomingGamma);
             //start = clock();
-            double dotp = temp.at(variableIndex - columns);
+            auto dotp = temp.at(variableIndex - columns);
             //end = clock();
             //time += end - start;
             if (dotp != 0.0) {
                 weight = Numerical::stableAdd(weight, -2.0 * updatedAlpha_j_p * dotp);
             }
-            double alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
+            auto alternativeWeight = Numerical::stableAdd(updatedAlpha_j_p * updatedAlpha_j_p, 1.0);
             if (weight < alternativeWeight) {
                 weight = alternativeWeight;
             }
@@ -317,13 +317,13 @@ void PrimalSteepestEdgePricing::recomputeSteepestEdgeWeights()
             SparseVector column = m_simplexModel.getMatrix().column( variableIndex );
 
             m_basis.Ftran(column);
-            double weight = column.euclidNorm();
+            auto weight = column.euclidNorm();
             weight = weight * weight + 1;
             m_weights[ variableIndex ] = weight;
         } else {
             SparseVector column = SparseVector::createUnitVector(rowCount, variableIndex - columnCount);
             m_basis.Ftran(column);
-            double weight = column.euclidNorm();
+            auto weight = column.euclidNorm();
             weight = weight * weight + 1;
             m_weights[ variableIndex ] = weight;
         }

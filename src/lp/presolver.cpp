@@ -135,7 +135,7 @@ void Presolver::printStatistics() {
     LPINFO("[Presolver] Presolve time: " << m_timer->getTotalElapsed() / 1000000);
 }
 
-void Presolver::fixVariable(int index, double value) {
+void Presolver::fixVariable(int index, Numerical::Double value) {
 
     SparseVector::NonzeroIterator it = m_model->getVariable(index).getVector()->beginNonzero();
     SparseVector::NonzeroIterator itEnd = m_model->getVariable(index).getVector()->endNonzero();

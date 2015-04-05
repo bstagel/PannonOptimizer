@@ -139,7 +139,7 @@ void PfiBasis::dumbToStream(ostream &os) const
         auto iter = eta.eta->beginNonzero();
         auto iterEnd = eta.eta->endNonzero();
         for (; iter != iterEnd; ++iter) {
-            os << "\t\t\t{" << iter.getIndex() << "; " << (double)*iter << "}" << std::endl;
+            os << "\t\t\t{" << iter.getIndex() << "; " << Numerical::DoubleToIEEEDouble(*iter) << "}" << std::endl;
         }
 
         os << "\t\t}" << std::endl;
@@ -156,7 +156,7 @@ void PfiBasis::dumbToStream(ostream &os) const
         auto iter = eta.eta->beginNonzero();
         auto iterEnd = eta.eta->endNonzero();
         for (; iter != iterEnd; ++iter) {
-            os << "\t\t\t{" << iter.getIndex() << "; " << (double)*iter << "}" << std::endl;
+            os << "\t\t\t{" << iter.getIndex() << "; " << Numerical::DoubleToIEEEDouble(*iter) << "}" << std::endl;
         }
 
         os << "\t\t}" << std::endl;
@@ -394,7 +394,7 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
     }
 #endif //!NDEBUG
     //The ftran operation.
-    auto denseVector = vector.m_data;
+    Numerical::Double * denseVector = vector.m_data;
 
     // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
     std::vector<ETM>::const_iterator iter = m_basis->begin();
@@ -405,12 +405,12 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         if (pivotValue == 0.0) {
             continue;
         }
-        auto ptrEta = iter->eta->m_data;
+        Numerical::Double * ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
-            auto & originalValue = denseVector[*ptrIndex];
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
@@ -434,12 +434,12 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
         if (pivotValue == 0.0) {
             continue;
         }
-        auto ptrEta = iter->eta->m_data;
+        Numerical::Double * ptrEta = iter->eta->m_data;
         unsigned int * ptrIndex = iter->eta->m_indices;
         const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
-            auto & originalValue = denseVector[*ptrIndex];
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {

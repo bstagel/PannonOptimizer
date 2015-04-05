@@ -219,7 +219,7 @@ std::string Model::getHash() const {
     generator.addBuffer(&intTemp, sizeof(intTemp));
 
     double doubleTemp;
-    doubleTemp = this->m_costConstant;
+    doubleTemp = Numerical::DoubleToIEEEDouble(this->m_costConstant);
     generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
 
     // cost vector
@@ -231,7 +231,7 @@ std::string Model::getHash() const {
     for (; nonzIter != nonzIterEnd; ++nonzIter) {
         intTemp = nonzIter.getIndex();
         generator.addBuffer(&intTemp, sizeof(intTemp));
-        doubleTemp = *nonzIter;
+        doubleTemp = Numerical::DoubleToIEEEDouble(*nonzIter);
         generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
     }
 
@@ -242,9 +242,9 @@ std::string Model::getHash() const {
         generator.addString( varIter->getName() );
         intTemp = varIter->getType();
         generator.addBuffer(&intTemp, sizeof(intTemp));
-        doubleTemp = varIter->getLowerBound();
+        doubleTemp = Numerical::DoubleToIEEEDouble(varIter->getLowerBound());
         generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
-        doubleTemp = varIter->getUpperBound();
+        doubleTemp = Numerical::DoubleToIEEEDouble(varIter->getUpperBound());
         generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
     }
     // constraints
@@ -254,9 +254,9 @@ std::string Model::getHash() const {
         generator.addString( constrIter->getName() );
         intTemp = constrIter->getType();
         generator.addBuffer(&intTemp, sizeof(intTemp));
-        doubleTemp = constrIter->getLowerBound();
+        doubleTemp = Numerical::DoubleToIEEEDouble(constrIter->getLowerBound());
         generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
-        doubleTemp = constrIter->getUpperBound();
+        doubleTemp = Numerical::DoubleToIEEEDouble(constrIter->getUpperBound());
         generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
     }
     // matrix
@@ -270,7 +270,7 @@ std::string Model::getHash() const {
         for (; nonzIterSparse != nonzIterEndSparse; ++nonzIterSparse) {
             intTemp = nonzIterSparse.getIndex();
             generator.addBuffer(&intTemp, sizeof(intTemp));
-            doubleTemp = *nonzIterSparse;
+            doubleTemp = Numerical::DoubleToIEEEDouble(*nonzIterSparse);
             generator.addBuffer(&doubleTemp, sizeof(doubleTemp));
         }
     }

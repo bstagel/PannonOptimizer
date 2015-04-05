@@ -7,7 +7,7 @@ CONFIG -= qt
 DEFINES -= UNICODE QT_LARGEFILE_SUPPORT
 
 TARGET = NewPanOpt
-
+#LIBS += -lgmpxx -lgmp
 LIBS += -pthread
 
 CONFIG(release, debug|release) {
@@ -20,7 +20,7 @@ CONFIG(release, debug|release) {
 CONFIG(debug, debug|release) {
     #message("NewPanOpt: Debug mode!")
     #DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
+    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
     DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
@@ -183,7 +183,9 @@ HEADERS += include/debug.h \
     include/simplex/simplexthread.h \
     include/simplex/pricing/primalsteepestedgepricing.h \
     include/simplex/pricing/primaldevexpricing.h \
-    include/double.h
+    include/lp/hilbertmodelbuilder.h \
+    include/double.h \
+    include/lp/pascalmodelbuilder.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -260,7 +262,9 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/simplexthread.cpp \
     src/simplex/pricing/primalsteepestedgepricing.cpp \
     src/simplex/pricing/primaldevexpricing.cpp \
-    src/utils/multiplefloat.cpp
+    src/utils/multiplefloat.cpp \
+    src/lp/hilbertmodelbuilder.cpp \
+    src/lp/pascalmodelbuilder.cpp
 
 #OBJECTS_DIR = .o
 
