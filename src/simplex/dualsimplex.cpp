@@ -171,25 +171,25 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
         } else if (name == OUTGOING_NAME) {
             reply.m_integer = m_outgoingIndex;
         } else if (name == DUAL_INFEASIBILITY_STRING) {
-            reply.m_double = m_phaseIObjectiveValue;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_phaseIObjectiveValue);
         } else if (name == PRIMAL_INFEASIBILITY_STRING) {
-            reply.m_double = m_pricing->getPrimalInfeasibility();
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_pricing->getPrimalInfeasibility());
         } else if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
-                reply.m_double = m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_objectiveValue);
             } else {
-                reply.m_double = -m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(-m_objectiveValue);
             }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
-                reply.m_double = m_primalReducedCost;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_primalReducedCost);
             } else {
                 reply.m_double = 0;
             }
         } else if (name == PRIMAL_THETA_STRING) {
-            reply.m_double = m_primalTheta;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_primalTheta);
         } else if (name == DUAL_THETA_STRING) {
-            reply.m_double = m_dualTheta;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_dualTheta);
         } else {
             break;
         }
@@ -198,9 +198,9 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
     case IterationReportProvider::IRF_SOLUTION:
         if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
-                reply.m_double = m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_objectiveValue);
             } else {
-                reply.m_double = -m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(-m_objectiveValue);
             }
         } else {
             break;
@@ -283,7 +283,8 @@ void DualSimplex::price() {
                                                 m_reducedCostFeasibilities,
                                                 m_basisHead,
                                                 *m_simplexModel,
-                                                *m_basis);
+                                                *m_basis,
+                                                false); // TODO: kell-e shadow steepest edge vagy sem?
 
         }
         if (pricingType == "DEVEX") {

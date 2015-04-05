@@ -22,6 +22,7 @@ void HtmlReportGenerator::generateHead(std::ostream &output,
     output << "<!DOCTYPE html>" << std::endl;
     output << "<html>" << std::endl;
     output << "<head>" << std::endl;
+    output << "<meta charset=\"UTF-8\">" << std::endl;
 
     /*output << "<style>" << std::endl;
     output << "table, th, td {" << std::endl;

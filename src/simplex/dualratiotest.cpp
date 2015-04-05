@@ -574,8 +574,22 @@ void DualRatiotest::computeFunctionPhase2(const DenseVector &alpha,
         absPrimalSteplength = functionSlope / Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
 
         const Variable & variable = m_model.getVariable(actualBreakpoint->variableIndex);
-        functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)) *
-                (variable.getUpperBound() - variable.getLowerBound());
+
+        /*if (std::isnan((Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)) *
+                       (variable.getUpperBound() - variable.getLowerBound())).getDouble())) {
+            double a = Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)).getDouble();
+            double b = (variable.getUpperBound() - variable.getLowerBound()).getDouble();
+            LPERROR(a << " * " << b << " = " << a * b);
+            exit(1);
+        }*/
+        Numerical::Double a = Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
+        Numerical::Double b = (variable.getUpperBound() - variable.getLowerBound());
+
+        Numerical::Double c = a * b;
+        functionSlope -= c;
+        //functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex)) *
+        //        (variable.getUpperBound() - variable.getLowerBound());
+
 
         if (functionSlope <= 0) {
             if(t_actual < workingTolerance){

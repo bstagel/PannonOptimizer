@@ -239,7 +239,7 @@ void DualSteepestEdgePricing::checkAndFix()
 
 }
 
-void DualSteepestEdgePricing::initWeights() {
+void DualSteepestEdgePricing::initWeights() {  
     // LPINFO("init weights");
     unsigned int rowCount = m_simplexModel.getRowCount();
     unsigned int columnCount = m_simplexModel.getColumnCount();

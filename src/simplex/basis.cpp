@@ -102,7 +102,7 @@ SparseVector* Basis::createEta(const SparseVector& vector, int pivotPosition)
         SparseVector::NonzeroIterator endit = vector.endNonzero();
         for (; it < endit; ++it) {
             if (it.getIndex() == (unsigned int) pivotPosition) {
-                eta->newNonZero(1 / atPivot, pivotPosition);
+                eta->newNonZero(1.0 / atPivot, pivotPosition);
             } else {
                 eta->newNonZero(-(*it) / atPivot, it.getIndex());
                 //                if(fabs(-(*it) / atPivot) < Numerical::AbsoluteTolerance){

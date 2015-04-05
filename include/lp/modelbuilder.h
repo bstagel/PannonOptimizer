@@ -46,7 +46,7 @@ public:
      * 
      * @return 
      */
-    virtual Numerical::Double getObjectiveConstant() const = 0;
+    virtual double getObjectiveConstant() const = 0;
     
     /**
      * 

@@ -1641,7 +1641,7 @@ void MpsModelBuilder::buildCostVector(DenseVector *costVector) const {
     }
 }
 
-Numerical::Double MpsModelBuilder::getObjectiveConstant() const {
+double MpsModelBuilder::getObjectiveConstant() const {
     return m_costConstant;
 }
 

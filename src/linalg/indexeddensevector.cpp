@@ -114,7 +114,7 @@ Numerical::Double IndexedDenseVector::l1Norm() const
     Numerical::Double sum = 0.0;
     unsigned int index;
     for (index = 0; index < m_length; index++) {
-        sum += fabs(m_data[index]);
+        sum += Numerical::fabs(m_data[index]);
     }
     return sum;
 }

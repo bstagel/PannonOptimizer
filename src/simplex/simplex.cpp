@@ -158,7 +158,7 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
         if(m_exportType == "PARAMETER_STUDY"){
             result.push_back(IterationReportField(EXPORT_PROBLEM_NAME, 20, 0, IterationReportField::IRF_LEFT,
                                                   IterationReportField::IRF_STRING, *this));
-           result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
+            result.push_back(IterationReportField(EXPORT_SOLUTION,  20, 0, IterationReportField::IRF_RIGHT,
                                                   IterationReportField::IRF_FLOAT, *this,
                                                   10, IterationReportField::IRF_SCIENTIFIC));
             result.push_back(IterationReportField(EXPORT_FALLBACK,  20, 0, IterationReportField::IRF_RIGHT,
@@ -266,7 +266,7 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
         if(name == EXPORT_PROBLEM_NAME){
             reply.m_string = new std::string(m_simplexModel->getName());
         } else if(name == EXPORT_SOLUTION){
-            reply.m_double = m_objectiveValue;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_objectiveValue);
         } else if(name == EXPORT_FALLBACK){
             reply.m_integer = m_fallbacks;
         } else if(name == EXPORT_SINGULARITY){
@@ -390,13 +390,13 @@ void Simplex::setSimplexState(const Simplex & simplex)
     }
     temp.clear();
     //BASIC
-//    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
-//    for(;it != endit; ++it){
-//        temp.push_back(it.getData());
-//    }
-//    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
-//        m_variableStates.insert(BASIC,it.getData(),&ZERO);
-//    }
+    //    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
+    //    for(;it != endit; ++it){
+    //        temp.push_back(it.getData());
+    //    }
+    //    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
+    //        m_variableStates.insert(BASIC,it.getData(),&ZERO);
+    //    }
 
     for(auto it = m_basisHead.begin(); it != m_basisHead.end(); ++it){
         m_variableStates.insert(BASIC, *it, &(m_basicVariableValues.at(it - m_basisHead.begin())));
@@ -518,9 +518,9 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
     for(unsigned int i=0; i<m_basicVariableValues.length(); i++){
         m_variableStates.setAttachedData(m_basisHead[i], &m_basicVariableValues.at(i));
     }
-//    for (; iter != iterEnd; ++iter) {
-//        iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
-//    }
+    //    for (; iter != iterEnd; ++iter) {
+    //        iter.setAttached( &m_basicVariableValues.at( iter.getData() ) );
+    //    }
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_AT_LB);
     for (; iter != iterEnd; ++iter) {
         iter.setAttached( &m_simplexModel->getVariable( iter.getData() ).getLowerBound() );
@@ -702,10 +702,10 @@ void Simplex::reinvert() {
     m_basis->invert();
     m_inversionTimer.stop();
 
-//    Checker::checkBasisWithFtran(*this);
-//    Checker::checkBasisWithBtran(*this);
-//    Checker::checkBasisWithNonbasicReducedCost(*this);
-//    Checker::checkBasisWithReducedCost(*this);
+    //    Checker::checkBasisWithFtran(*this);
+    //    Checker::checkBasisWithBtran(*this);
+    //    Checker::checkBasisWithNonbasicReducedCost(*this);
+    //    Checker::checkBasisWithReducedCost(*this);
 
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();
@@ -714,10 +714,10 @@ void Simplex::reinvert() {
 
     //if only degenerate iterations since last inversion, reduced cost values are not recomputed
     //If an exception is thrown incoming or outgoing index is -1, and the reduced costs must be recomputed
-//    if(!m_degenerate || m_outgoingIndex == -1 || m_incomingIndex == -1){
-//        computeReducedCosts();
-//        m_degenerate = true;
-//    }
+    //    if(!m_degenerate || m_outgoingIndex == -1 || m_incomingIndex == -1){
+    //        computeReducedCosts();
+    //        m_degenerate = true;
+    //    }
     if(m_expand != "INACTIVE"){
         if(m_recomputeReducedCosts){
             computeReducedCosts();
@@ -748,7 +748,7 @@ void Simplex::computeBasicSolution() {
             } else {
                 m_basicVariableValues.set(it.getData() - columnCount,
                                           Numerical::stableAdd(m_basicVariableValues.at(it.getData() - columnCount), - *(it.getAttached())));
-//                                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
+                //                                                          m_basicVariableValues.at(it.getData() - columnCount) - *(it.getAttached()));
             }
         }
     }
@@ -782,6 +782,7 @@ void Simplex::computeReducedCosts() {
         }
     }
     //Compute simplex multiplier
+
     m_basis->Btran(simplexMultiplier);
 
     //For each variable
@@ -794,6 +795,13 @@ void Simplex::computeReducedCosts() {
         Numerical::Double reducedCost;
         if(i < columnCount){
             reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
+
+            if (costVector.at(i) != 0.0){
+                const Numerical::Double value1 = costVector.at(i);
+                const Numerical::Double value2 = -simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
+                const Numerical::Double value1abs = Numerical::fabs(value1);
+                const Numerical::Double value2abs = Numerical::fabs(value2);
+            }
 
         } else {
             //reducedCost = -1 * simplexMultiplier.at(i - columnCount);
@@ -879,9 +887,9 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
             //continue;
         }
 
-       // LPINFO(lowerBound << " <= " << value << " <= " << upperBound);
-       // LPINFO(columnIndex << ": " << lower << " <= delta <= " << upper << "   " << (upper - lower) << "   " <<
-       //        log10(fabs(lower)) << "  " << log10(fabs(upper)));
+        // LPINFO(lowerBound << " <= " << value << " <= " << upperBound);
+        // LPINFO(columnIndex << ": " << lower << " <= delta <= " << upper << "   " << (upper - lower) << "   " <<
+        //        log10(fabs(lower)) << "  " << log10(fabs(upper)));
 
         if (Numerical::fabs(lower) != Numerical::Infinity && lower != 0.0) {
             sumMinLog += Numerical::log10(Numerical::fabs(lower));

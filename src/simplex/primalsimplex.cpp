@@ -117,21 +117,21 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
         } else if (name == OUTGOING_NAME) {
             reply.m_integer = m_outgoingIndex;
         } else if (name == PRIMAL_INFEASIBILITY_STRING) {
-            reply.m_double = m_phaseIObjectiveValue;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_phaseIObjectiveValue);
         } else if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
-                reply.m_double = m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_objectiveValue);
             } else {
-                reply.m_double = -m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(-m_objectiveValue);
             }
         } else if (name == PRIMAL_REDUCED_COST_STRING) {
             if(m_incomingIndex != -1){
-                reply.m_double = m_primalReducedCost;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_primalReducedCost);
             } else {
                 reply.m_double = 0;
             }
         } else if (name == PRIMAL_THETA_STRING) {
-            reply.m_double = m_primalTheta;
+            reply.m_double = Numerical::DoubleToIEEEDouble(m_primalTheta);
         } else {
             break;
         }
@@ -140,9 +140,9 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
     case IterationReportProvider::IRF_SOLUTION:
         if (name == OBJ_VAL_STRING) {
             if(m_simplexModel->getObjectiveType() == MINIMIZE){
-                reply.m_double = m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(m_objectiveValue);
             } else {
-                reply.m_double = -m_objectiveValue;
+                reply.m_double = Numerical::DoubleToIEEEDouble(-m_objectiveValue);
             }
         } else {
             break;

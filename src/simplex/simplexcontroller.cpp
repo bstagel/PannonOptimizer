@@ -351,7 +351,6 @@ void SimplexController::sequentialSolve(const Model &model)
                         }
                     }
                 }
-
                 m_currentSimplex->computeFeasibility();
             }
             try{

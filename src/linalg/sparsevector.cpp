@@ -391,7 +391,7 @@ Numerical::Double SparseVector::l1Norm() const
     unsigned int index;
     Numerical::Double sum = 0.0;
     for (index = 0; index < m_nonZeros; index++) {
-        sum += fabs(m_data[index]);
+        sum += Numerical::fabs(m_data[index]);
     }
     return sum;
 }
@@ -638,7 +638,7 @@ Numerical::Double SparseVector::absMaxElement() const
         decltype(m_data) dataPtr = m_data;
         decltype(m_data) dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = fabs(*dataPtr);
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
             if (absValue > result) {
                 result = absValue;
             }
@@ -657,12 +657,12 @@ Numerical::Double SparseVector::scaleAndGetResults(const std::vector<Numerical::
     Numerical::Double min = Numerical::Infinity;
     Numerical::Double max = 0;
     if (m_nonZeros > 0) {
-        decltype(m_data) dataPtr = m_data;
-        const decltype(m_data) dataEnd = m_data + m_nonZeros;
+        auto dataPtr = m_data;
+        const auto dataEnd = m_data + m_nonZeros;
         const unsigned int * indexPtr = m_indices;
         for (; dataPtr < dataEnd; dataPtr++, indexPtr++) {
             *dataPtr *= lambda * multipliers[*indexPtr];
-            const Numerical::Double absValue = fabs(*dataPtr);
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
             if (min > absValue) {
@@ -688,10 +688,10 @@ Numerical::Double SparseVector::absMaxSumsAndMinMax(Numerical::Double * squareSu
     Numerical::Double min = Numerical::Infinity;
     Numerical::Double max = 0;
     if (m_nonZeros > 0) {
-        decltype(m_data) dataPtr = m_data;
-        decltype(m_data) dataEnd = m_data + m_nonZeros;
+        auto dataPtr = m_data;
+        const auto dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = fabs(*dataPtr);
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
             if (min > absValue) {
@@ -712,10 +712,10 @@ Numerical::Double SparseVector::absMaxSums(Numerical::Double * squareSumPtr) con
     Numerical::Double absSum = 0;
     Numerical::Double squareSum = 0;
     if (m_nonZeros > 0) {
-        decltype(m_data) dataPtr = m_data;
-        decltype(m_data) dataEnd = m_data + m_nonZeros;
+        auto dataPtr = m_data;
+        auto dataEnd = m_data + m_nonZeros;
         for (; dataPtr < dataEnd; dataPtr++) {
-            const Numerical::Double absValue = fabs(*dataPtr);
+            const Numerical::Double absValue = Numerical::fabs(*dataPtr);
             absSum += absValue;
             squareSum += absValue * absValue;
         }

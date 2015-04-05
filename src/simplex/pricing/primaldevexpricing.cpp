@@ -48,10 +48,10 @@ int PrimalDevexPricing::performPricingPhase1()
 
     int maxIndex = -1;
     int minIndex = -1;
-    double maxWeightedReducedCost = 0;
-    double minWeightedReducedCost = 0;
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
+    Numerical::Double maxWeightedReducedCost = 0;
+    Numerical::Double minWeightedReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
 
     unsigned int variableIndex;
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
@@ -59,7 +59,7 @@ int PrimalDevexPricing::performPricingPhase1()
             continue;
         }
 
-        double weight = Numerical::sqrt(m_weights[variableIndex]);
+        auto weight = Numerical::sqrt(m_weights[variableIndex]);
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
             if (m_phase1ReducedCosts[variableIndex] / weight < minWeightedReducedCost) {
@@ -95,7 +95,7 @@ int PrimalDevexPricing::performPricingPhase1()
         }
     }
 
-    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -121,10 +121,10 @@ int PrimalDevexPricing::performPricingPhase2()
     //    double maxReducedCost = m_optimalityTolerance;
     //    double minReducedCost = -m_optimalityTolerance;
 
-    double maxReducedCost = 0;
-    double minReducedCost = 0;
-    double maxWeightedReducedCost = 0;
-    double minWeightedReducedCost = 0;
+    Numerical::Double maxReducedCost = 0;
+    Numerical::Double minReducedCost = 0;
+    Numerical::Double maxWeightedReducedCost = 0;
+    Numerical::Double minWeightedReducedCost = 0;
 
     auto iter = m_variableStates.getIterator();
     auto iterEnd = m_variableStates.getIterator();
@@ -135,8 +135,8 @@ int PrimalDevexPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -151,8 +151,8 @@ int PrimalDevexPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight > maxWeightedReducedCost) {
             maxIndex = variableIndex;
             maxReducedCost = reducedCost;
@@ -166,8 +166,8 @@ int PrimalDevexPricing::performPricingPhase2()
         if (m_used[variableIndex] == true) {
             continue;
         }
-        const double weight = Numerical::sqrt(m_weights[variableIndex]);
-        const double reducedCost = m_reducedCosts.at(variableIndex);
+        const auto weight = Numerical::sqrt(m_weights[variableIndex]);
+        const auto reducedCost = m_reducedCosts.at(variableIndex);
         if (reducedCost / weight < minWeightedReducedCost) {
             minIndex = variableIndex;
             minReducedCost = reducedCost;
@@ -180,7 +180,7 @@ int PrimalDevexPricing::performPricingPhase2()
     }
     //    LPINFO("PRICING: min: "<<minReducedCost<<" max: "<<maxReducedCost);
     //    LPINFO("PRICING: minId: "<<minIndex<<" maxId: "<<maxIndex);
-    if (fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
+    if (Numerical::fabs( minWeightedReducedCost ) > maxWeightedReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
         return minIndex;
@@ -209,16 +209,16 @@ void PrimalDevexPricing::update(int incomingIndex,
     const unsigned int columns = matrix.columnCount();
     const unsigned int rows = matrix.rowCount();
 
-    double exactIncomingWeight = getExactDevexWeigth(*incomingAlpha, incomingIndex);
-    double estimatedIncomingWeight = m_weights[incomingIndex];
-    double ratio = exactIncomingWeight / estimatedIncomingWeight;
+    auto exactIncomingWeight = getExactDevexWeigth(*incomingAlpha, incomingIndex);
+    auto estimatedIncomingWeight = m_weights[incomingIndex];
+    auto ratio = exactIncomingWeight / estimatedIncomingWeight;
     if (ratio > 3.0 || ratio < 1.0 / 3.0) {
         setReferenceFramework();
         //LPINFO("Set reference framework");
         return;
     }
 
-    double alpha_q_p = (*incomingAlpha)[outgoingIndex];
+    auto alpha_q_p = (*incomingAlpha)[outgoingIndex];
     SparseVector multiplier = SparseVector::createUnitVector(rows, outgoingIndex);
     m_basis.Btran(multiplier);
 
@@ -226,18 +226,18 @@ void PrimalDevexPricing::update(int incomingIndex,
     // pl nem itt kell letrehozni ezt a ket vektort
     // kell egy indexvektor is majd, ami jeloli, hogy hol vannak nem nullak
     // a ket vektorban
-    std::vector<double> positiveSums(columns, 0.0);
-    std::vector<double> negativeSums(columns, 0.0);
+    std::vector<Numerical::Double> positiveSums(columns, 0.0);
+    std::vector<Numerical::Double> negativeSums(columns, 0.0);
 
     auto multIter = multiplier.beginNonzero();
     auto multIterEnd = multiplier.endNonzero();
     for (; multIter != multIterEnd; ++multIter) {
         const unsigned int rowIndex = multIter.getIndex();
-        const double mul = *multIter;
+        const auto mul = *multIter;
         auto rowIter = matrix.row(rowIndex).beginNonzero();
         auto rowIterEnd = matrix.row(rowIndex).endNonzero();
         for (; rowIter != rowIterEnd; ++rowIter) {
-            const double prod = mul * *rowIter;
+            const auto prod = mul * *rowIter;
             if (prod < 0.0) {
                 negativeSums[ rowIter.getIndex() ] += prod;
             } else {
@@ -254,14 +254,14 @@ void PrimalDevexPricing::update(int incomingIndex,
         if (unlikely(index == incomingIndex || index == (int)outgoingVariable)) {
             continue;
         }
-        const double alpha_p_j = Numerical::stableAdd( *posIter, *negIter );
+        const auto alpha_p_j = Numerical::stableAdd( *posIter, *negIter );
         if (alpha_p_j == 0.0) {
             continue;
         }
-        const double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+        const auto updatedAlpha_j_p = alpha_p_j / alpha_q_p;
 
-        double weight = m_weights[index];
-        double weight2 = updatedAlpha_j_p * updatedAlpha_j_p * exactIncomingWeight;
+        auto weight = m_weights[index];
+        auto weight2 = updatedAlpha_j_p * updatedAlpha_j_p * exactIncomingWeight;
         m_weights[index] = weight > weight2 ? weight : weight2;
     }
 
@@ -274,14 +274,14 @@ void PrimalDevexPricing::update(int incomingIndex,
         if (m_variableStates.where(index) == Simplex::BASIC) {
             continue;
         }
-        double alpha_p_j = *multIter;
-        double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
-        double weight = m_weights[index];
-        double weight2 = updatedAlpha_j_p * updatedAlpha_j_p * exactIncomingWeight;
+        Numerical::Double alpha_p_j = *multIter;
+        Numerical::Double updatedAlpha_j_p = alpha_p_j / alpha_q_p;
+        Numerical::Double weight = m_weights[index];
+        Numerical::Double weight2 = updatedAlpha_j_p * updatedAlpha_j_p * exactIncomingWeight;
         m_weights[index] = weight > weight2 ? weight : weight2;
     }
 
-    double weight2 = exactIncomingWeight / (alpha_q_p * alpha_q_p);
+    auto weight2 = exactIncomingWeight / (alpha_q_p * alpha_q_p);
     if (weight2 > 1.0) {
         m_weights[ outgoingIndex ] = weight2;
     } else {
@@ -395,7 +395,7 @@ void PrimalDevexPricing::setReferenceFramework()
     m_weightsReady = true;
 }
 
-double PrimalDevexPricing::getExactDevexWeigth(const DenseVector &vector,
+Numerical::Double PrimalDevexPricing::getExactDevexWeigth(const DenseVector &vector,
                                                           unsigned int index)
 {
     Numerical::Double result = 0.0;

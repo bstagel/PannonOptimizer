@@ -10,7 +10,8 @@ DualDantzigPricing::DualDantzigPricing(const DenseVector &basicVariableValues,
                                        const IndexList<> & reducedCostFeasibilities,
                                        const std::vector<int> & basisHead,
                                        const SimplexModel & simplexModel,
-                                       const Basis & basis):
+                                       const Basis & basis,
+                                       bool shadowSteepestEdgeWeights):
     DualPricing(basicVariableValues,
                 basicVariableFeasibilities,
                 reducedCostFeasibilities,
@@ -18,7 +19,16 @@ DualDantzigPricing::DualDantzigPricing(const DenseVector &basicVariableValues,
                 simplexModel,
                 basis)
 {
-
+    if (shadowSteepestEdgeWeights) {
+        m_shadowSteepestEdge = new DualSteepestEdgePricing(basicVariableValues,
+                                                           basicVariableFeasibilities,
+                                                           reducedCostFeasibilities,
+                                                           basisHead,
+                                                           simplexModel,
+                                                           basis);
+    } else {
+        m_shadowSteepestEdge = nullptr;
+    }
 }
 
 DualDantzigPricing::~DualDantzigPricing()
@@ -28,6 +38,9 @@ DualDantzigPricing::~DualDantzigPricing()
 
 int DualDantzigPricing::performPricingPhase1() {
     initPhase1();
+    if (m_shadowSteepestEdge && !m_shadowSteepestEdge->weightsAreReady()) {
+        m_shadowSteepestEdge->initWeights();
+    }
     //TODO: A sorok szamat hivjuk mindenutt rowCountnak, az oszlopokat meg columnCount-nak, ne keverjunk
 //    const unsigned int variableCount = m_simplexModel.getMatrix().rowCount();
     Numerical::Double max = 0;
@@ -61,6 +74,10 @@ int DualDantzigPricing::performPricingPhase1() {
 
 int DualDantzigPricing::performPricingPhase2() {
     initPhase2();
+    if (m_shadowSteepestEdge && !m_shadowSteepestEdge->weightsAreReady()) {
+        m_shadowSteepestEdge->initWeights();
+    }
+
 
 //    IndexList<>::Iterator iter, iterEnd;
     Numerical::Double max = -1.0;
@@ -97,7 +114,7 @@ int DualDantzigPricing::performPricingPhase2() {
         }
     }
 
-   // LPINFO("pricing: " << max << "  " << m_outgoingIndex);
+    //LPINFO("pricing: " << max << "  " << m_outgoingIndex);
     m_reducedCost = max;
     return m_outgoingIndex;
 
@@ -109,9 +126,11 @@ void DualDantzigPricing::update(int incomingIndex,
                                 const DenseVector &pivotRow,
                                 const DenseVector &pivotRowOfBasisInverse)
 {
-    __UNUSED(incomingIndex);
-    __UNUSED(outgoingIndex);
-    __UNUSED(incomingAlpha);
-    __UNUSED(pivotRow);
-    __UNUSED(pivotRowOfBasisInverse);
+    if (m_shadowSteepestEdge) {
+        m_shadowSteepestEdge->update(incomingIndex,
+                                     outgoingIndex,
+                                     incomingAlpha,
+                                     pivotRow,
+                                     pivotRowOfBasisInverse);
+    }
 }

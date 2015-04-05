@@ -36,7 +36,7 @@ public:
      * 
      * @param value
      */
-    void setObjectiveFunctionConstant(Numerical::Double value);
+    void setObjectiveFunctionConstant(double value);
 
     /**
      * 
@@ -47,9 +47,9 @@ public:
      * @param indices
      */
     void addVariable(const Variable & variable,
-        Numerical::Double costCoefficient,
+        double costCoefficient,
         unsigned int nonzeros,
-        const Numerical::Double * values,
+        const double * values,
         const unsigned int * indices);
 
     /**
@@ -59,7 +59,7 @@ public:
      * @param vector
      */
     void addVariable(const Variable & variable,
-        Numerical::Double costCoefficient,
+        double costCoefficient,
         const SparseVector & vector);
 
     /**
@@ -70,7 +70,7 @@ public:
      * @param ...
      */
     void addVariable(const Variable & variable,
-        Numerical::Double costCoefficient,
+        double costCoefficient,
         unsigned int nonzeros,
         ...);
 
@@ -89,7 +89,7 @@ public:
      * @param indices
      */
     void addConstraint(const Constraint & constraint,
-                       const Numerical::Double * values,
+                       const double * values,
                        const unsigned int * indices,
                        unsigned int nonzeros,
                        Variable * defaultVariablePtr = nullptr
@@ -125,7 +125,7 @@ public:
      * @param index
      * @param cost
      */
-    void setCostCoefficient(unsigned int index, Numerical::Double cost);
+    void setCostCoefficient(unsigned int index, double cost);
 
     /**
      * 
@@ -191,7 +191,7 @@ public:
      * 
      * @return 
      */
-    Numerical::Double getObjectiveConstant() const;
+    double getObjectiveConstant() const;
 
     /**
      * 
@@ -221,7 +221,7 @@ private:
 
     struct IndexValuePair
     {
-        Numerical::Double m_value;
+        double m_value;
         unsigned int m_index;
 
         bool operator==(const IndexValuePair & pair) const
@@ -251,7 +251,7 @@ private:
     /**
      * Constant of the objective function
      */
-    Numerical::Double m_objectiveConstant;
+    double m_objectiveConstant;
 
     /**
      * List of the variables
@@ -266,7 +266,7 @@ private:
     /**
      * Vector of the coefficients of the objective function
      */
-    std::vector<Numerical::Double> m_costVector;
+    std::vector<double> m_costVector;
 
     /**
      */
@@ -290,7 +290,7 @@ private:
      * @param index
      * @return 
      */
-    static IndexValuePair createPair(Numerical::Double value, unsigned int index)
+    static IndexValuePair createPair(double value, unsigned int index)
     {
         IndexValuePair pair;
         pair.m_index = index;
