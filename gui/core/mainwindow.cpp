@@ -7,6 +7,18 @@ MainWindow::MainWindow(QWidget *parent) :
     this->resize(800, 600);
     this->setContextMenuPolicy(Qt::PreventContextMenu);
 
+    QString solverPath = e_solverPath;
+    if(!QUrl(solverPath).isValid()) {
+        fileDialog.setNameFilter("LP problem files (*.mps *.lp)");
+        fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+        fileDialog.setFileMode(QFileDialog::ExistingFile);
+        while(fileDialog.selectedUrls().count() <= 0) {
+            fileDialog.exec();
+        }
+        solverPath = fileDialog.selectedFiles().at(0);
+    }
+    panOpt = new PanOptHandler(solverPath);
+
     this->menuBar = new QMenuBar(this);
     menuBar->clear();
 
@@ -85,8 +97,6 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setStatusBar(statusBar);
     statusBar->showMessage("Ready");
 
-    fileDialog.setNameFilter("LP problem files (*.mps *.lp)");
-
     //Connecting operation signals to slots
     connect(actions["newProblem"], SIGNAL(triggered()), this, SLOT(newProblem()));
     connect(actions["loadProblem"], SIGNAL(triggered()), this, SLOT(loadProblem()));
@@ -96,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actions["cancelSolve"], SIGNAL(triggered()), this, SLOT(cancelSolve()));
     connect(actions["exportSolution"], SIGNAL(triggered()), this, SLOT(exportSolution()));
 
-    connect(&panOpt, SIGNAL(finished()), this, SLOT(obtainSolution()));
+    connect(panOpt, SIGNAL(solverFinished()), this, SLOT(obtainSolution()));
 
     newProblem();
 }
@@ -113,6 +123,10 @@ void MainWindow::newProblem() {
 }
 
 void MainWindow::loadProblem() {
+    fileDialog.setNameFilter("LP problem files (*.mps *.lp)");
+    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    fileDialog.setFileMode(QFileDialog::ExistingFile);
+    fileDialog.exec();
     parseProblem();
 }
 
@@ -125,8 +139,8 @@ void MainWindow::exitProgram() {
 }
 
 void MainWindow::startSolve() {
-    statusBar->showMessage(QString("Solving problem ")+QString::fromStdString(panOpt.getModel()->getName())+QString("..."));
-    panOpt.run();
+    statusBar->showMessage(QString("Solving problem ")+QString::fromStdString(panOpt->getModel()->getName())+QString("..."));
+    panOpt->start();
 
     actions["startSolve"]->setEnabled(false);
     actions["cancelSolve"]->setEnabled(true);
@@ -137,6 +151,7 @@ void MainWindow::startSolve() {
 }
 
 void MainWindow::cancelSolve() {
+    panOpt->kill();
     actions["startSolve"]->setEnabled(true);
     actions["cancelSolve"]->setEnabled(false);
     actions["exportSolution"]->setEnabled(true);
@@ -150,11 +165,8 @@ void MainWindow::exportSolution() {
 }
 
 void MainWindow::parseProblem() {
-    fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-    fileDialog.setFileMode(QFileDialog::ExistingFile);
-    fileDialog.exec();
     if(fileDialog.selectedUrls().count() > 0) {
-        if(panOpt.loadProblem(fileDialog.selectedFiles().at(0))) {
+        if(panOpt->loadProblem(fileDialog.selectedFiles().at(0))) {
             actions["startSolve"]->setEnabled(true);
             actions["cancelSolve"]->setEnabled(false);
             actions["exportSolution"]->setEnabled(false);
@@ -162,11 +174,29 @@ void MainWindow::parseProblem() {
             tools["cancelSolve"]->setEnabled(false);
             tools["exportSolution"]->setEnabled(false);
 
-            statusBar->showMessage(QString("Problem ")+QString::fromStdString(panOpt.getModel()->getName())+QString(" loaded successfully."));
+            statusBar->showMessage(QString("Problem ")+QString::fromStdString(panOpt->getModel()->getName())+QString(" loaded successfully."));
         }
     }
 }
 
 void MainWindow::obtainSolution() {
-    statusBar->showMessage(QString("Solution found for problem ")+QString::fromStdString(panOpt.getModel()->getName()));
+    QString output = panOpt->process()->readAllStandardError();
+    if(output.contains("OPTIMAL SOLUTION found!")) {
+        int pos = output.indexOf("Total iterations:");
+        output = output.right(output.length() - pos - 18);
+        pos = output.indexOf("[REPORT ]");
+        QString iterNum = output.left(pos - 2);
+        pos = output.indexOf("Objective value:");
+        output = output.right(output.length() - pos - 17);
+        QString solution = output;
+        statusBar->showMessage(QString("Solution found for problem ")+QString::fromStdString(panOpt->getModel()->getName())+QString(" in ")+iterNum+QString(" iterations (")+solution+QString(")"));
+    } else {
+        statusBar->showMessage(QString("No solution could be found for problem ")+QString::fromStdString(panOpt->getModel()->getName()));
+    }
+    actions["startSolve"]->setEnabled(true);
+    actions["cancelSolve"]->setEnabled(false);
+    actions["exportSolution"]->setEnabled(true);
+    tools["startSolve"]->setEnabled(true);
+    tools["cancelSolve"]->setEnabled(false);
+    tools["exportSolution"]->setEnabled(true);
 }

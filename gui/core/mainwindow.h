@@ -48,7 +48,7 @@ private:
     QVBoxLayout *tabLayout;
     QGridLayout *sourceLayout, *paramLayout, *matrixLayout, *solutionLayout;
 
-    PanOptHandler panOpt;
+    PanOptHandler* panOpt;
 
     QFileDialog fileDialog;
     QMap<QString, QAction*> actions;

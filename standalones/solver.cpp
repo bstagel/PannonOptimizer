@@ -200,15 +200,12 @@ bool setParameter(ParameterHandler& handler, const std::string& arg, const char 
 }
 
 int main(int argc, char** argv) {
-
-    setbuf(stdout, 0);
+    //setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
-
     bool outputRedirected = false;
 
     ParameterHandler& linalgHandler = LinalgParameterHandler::getInstance();
     ParameterHandler& simplexHandler = SimplexParameterHandler::getInstance();
-
     if(argc < 2){
         printHelp();
     } else if(argc > 1){

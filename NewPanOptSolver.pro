@@ -10,7 +10,7 @@ TARGET = NewPanOptSolver
 
 LIBS += -pthread
 #linux specific...
-LIBS += -lgmpxx -lgmp
+#LIBS += -lgmpxx -lgmp
 #LIBS += -rdynamic -ldl
 
 CONFIG(release, debug|release) {
