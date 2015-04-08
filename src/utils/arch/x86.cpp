@@ -743,11 +743,13 @@ void ArchitectureX86::loadParameters()
 {
     NodeFile node;
     try {
+        generateParameterFile();
         node.loadFromFile("archX86.PAR");
     } catch (const FileNotFoundException & ex) {
         generateParameterFile();
         return;
     }
+
     NodeFile::Node root = node.getDocumentNode();
     if (root.getValue("Architecture") != "X86") {
         // TODO: invalid architecture exception
