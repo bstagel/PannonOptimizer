@@ -5,29 +5,37 @@
 #include <lp/mpsproblem.h>
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
-#include <simplex/simplexcontroller.h>
 
+#include <gui/core/constants.h>
+
+#include <QProcess>
 #include <QThread>
 #include <QUrl>
 
 class PanOptHandler : public QThread {
+    Q_OBJECT
 public:
     enum LPFormat {
         MPS = 0,
         LP
     };
 
-    PanOptHandler();
+    PanOptHandler(QString solverPath);
     ~PanOptHandler();
     void run();
     bool loadProblem(QString filename, LPFormat format = MPS);
+    void kill();
+    QProcess* process() { return m_process; }
 
     Model* getModel() { return m_model; }
 signals:
     void solverFinished();
+    void solverError();
 private:
     Model* m_model;
-    SimplexController* m_controller;
+    QProcess* m_process;
+    QString m_problemPath;
+    QString m_solverPath;
     bool m_problemLoaded;
     bool m_running;
 };

@@ -127,11 +127,6 @@ void DualPricing::initPhase1() {
         }
     }
 
-    unsigned int nonzeros = 0;
-    for (index = 0; index < matrix.rowCount(); index++) {
-        nonzeros += m_phase1ReducedCosts[index] != 0.0;
-    }
-
     DenseVector temp(matrix.rowCount());
     for (index = 0; index < matrix.rowCount(); index++) {
         temp.set(index, m_phase1ReducedCostSummarizers[index].getResult(true, false));
