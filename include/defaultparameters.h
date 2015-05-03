@@ -16,6 +16,12 @@ public:
     static const int ELBOWROOM;
 
     //Simplex Parameters
+
+    class NumericalInstability {
+    public:
+        static const bool ENABLE_NUMERICAL_INSTABILITY_DETECTION;
+    };
+
     //Parallel
     class Parallel {
     public:

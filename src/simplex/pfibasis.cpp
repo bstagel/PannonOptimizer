@@ -21,6 +21,9 @@ double aprExpDiffSquareSum = 0;
 double aprExpDiffSum = 0;
 int aprExpCounter = 0;
 
+static unsigned int errorCheckModulus = 1000000;
+static double errorCheckDivider = 1e14;
+
 thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
 thread_local IndexedDenseVector* PfiBasis::m_updateHelper = nullptr;
@@ -616,6 +619,81 @@ void PfiBasis::Ftran(SparseVector &vector, FTRAN_MODE mode) const {
         }
         ptrValue++;
         index++;
+    }
+}
+
+void PfiBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
+{
+    __UNUSED(mode);
+#ifndef NDEBUG
+    //In debug mode the dimensions of the basis and the given vector v are compared.
+    //If the dimension mismatches, then the operation cannot be performed.
+    //This can't happen in the "normal" case, so in release mode this check is unnecessary.
+    if (vector.length() != m_basisHead->size()) {
+        LPERROR("FTRAN failed, vector dimension mismatch! ");
+        LPERROR("Dimension of the vector to be transformed: " << vector.length());
+        LPERROR("Dimension of the basis: " << m_basisHead->size());
+    }
+#endif //!NDEBUG
+    //The ftran operation.
+    Numerical::Double * denseVector = vector.m_data;
+
+    // 2. lepes: vegigmegyunk minden eta vektoron es elvegezzuk a hozzaadast
+    std::vector<ETM>::const_iterator iter = m_basis->begin();
+    std::vector<ETM>::const_iterator iterEnd = m_basis->end();
+
+    for (; iter != iterEnd; ++iter) {
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                } else {
+                    val = pivotValue * *ptrEta;
+                }
+                originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );
+            }
+            ptrIndex++;
+            ptrEta++;
+        }
+    }
+
+    // 3. lepes: vegigmegyunk minden update eta vektoron es elvegezzuk a hozzaadast
+    iter = m_updates->begin();
+    iterEnd = m_updates->end();
+
+    for (; iter != iterEnd; ++iter) {
+        const Numerical::Double pivotValue = denseVector[ iter->index ];
+        if (pivotValue == 0.0) {
+            continue;
+        }
+        Numerical::Double * ptrEta = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+        const unsigned int pivotPosition = iter->index;
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double & originalValue = denseVector[*ptrIndex];
+            if (*ptrEta != 0.0) {
+                Numerical::Double val;
+                if (*ptrIndex != pivotPosition) {
+                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                } else {
+                    val = pivotValue * *ptrEta;
+                }
+                originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );;
+            }
+            ptrIndex++;
+            ptrEta++;
+        }
     }
 }
 

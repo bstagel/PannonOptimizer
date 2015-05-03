@@ -108,6 +108,7 @@ public:
     virtual void Ftran(DenseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
     virtual void Ftran(SparseVector &vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 
+    virtual void FtranCheck(DenseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
 
     /**
      * Does the BTRAN operation on a vector.

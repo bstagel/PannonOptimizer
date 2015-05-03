@@ -141,6 +141,8 @@ public:
 
     virtual void Ftran(SparseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
 
+    virtual void FtranCheck(DenseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const = 0;
+
     /**
      * The basic BTRAN operation.
      * The operation v * B^-1 is called BTRAN.
