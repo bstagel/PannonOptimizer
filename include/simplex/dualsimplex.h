@@ -168,6 +168,8 @@ private:
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     void resetTolerances();
+
+    void detectExcessivelyInstability();
 };
 
 #endif /* DUALSIMPLEX_H */

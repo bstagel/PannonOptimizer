@@ -171,6 +171,8 @@
 #define ENABLE_THREAD_SYNCHRONIZATION_COMMENT "# The number of worker threads during solution (0 means the number of CPU cores)"
 #define NUMBER_OF_THREADS_COMMENT "# The number of worker threads during solution (0 means the number of CPU cores)"
 
+#define ENABLE_NUMERICAL_INSTABILITY_DETEICTION_COMMENT ""
+
 /********************************************
  * BLOCK COMMENTS
  * *****************************************/

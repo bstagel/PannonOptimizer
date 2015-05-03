@@ -1048,6 +1048,11 @@ void LuBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
 }
 
+void LuBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
+{
+
+}
+
 void LuBasis::checkSingularity() {
     if(m_factorizedPart < m_basisHead->size()){
         LPINFO("Singular basis!");

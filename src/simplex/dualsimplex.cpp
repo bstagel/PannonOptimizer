@@ -428,6 +428,7 @@ void DualSimplex::update() {
         }
 
         m_basis->Ftran(m_pivotColumn);
+        detectExcessivelyInstability();
 
         //Log the outgoing variable information
         Simplex::VARIABLE_STATE outgoingState;
@@ -712,4 +713,37 @@ void DualSimplex::resetTolerances() {
 //        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
+}
+
+void DualSimplex::detectExcessivelyInstability()
+{
+    if ( SimplexParameterHandler::getInstance().getBoolParameterValue(
+             "NumericalInstability.enable_numerical_instability_detection") == false) {
+        return;
+    }
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    DenseVector pivotColumn(rowCount);
+    if(m_incomingIndex < (int)columnCount){
+        pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
+    } else {
+        pivotColumn.set(m_incomingIndex - columnCount, 1);
+    }
+
+    m_basis->FtranCheck(pivotColumn);
+    Numerical::Double norm1 = pivotColumn.euclidNorm();
+    Numerical::Double norm2 = m_pivotColumn.euclidNorm();
+    Numerical::Double ratio = (norm1 > norm2 ? norm1 : norm2) / (norm1 > norm2 ? norm2 : norm1);
+    //LPINFO("RATIO: " << ratio << " " << (1.0 - ratio));
+    if (1.0 - ratio < -1.0) {
+        LPERROR("Error: Instable problem!");
+        std::cin.get();
+    }
+    static Numerical::Double min = 0.0;
+    if (min > 1.0 - ratio) {
+        min = 1.0 - ratio;
+        //LPINFO("MIN: " << min);
+        //std::cin.get();
+    }
+    //std::cin.get();
 }

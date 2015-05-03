@@ -88,6 +88,13 @@ void SimplexParameterHandler::writeParameterFile(){
 
 void SimplexParameterHandler::initParameters()
 {
+    //NumericalInstability
+    createParameter("NumericalInstability.enable_numerical_instability_detection",
+                    Entry::BOOL,
+                    ENABLE_NUMERICAL_INSTABILITY_DETEICTION_COMMENT);
+    setParameterValue("NumericalInstability.enable_numerical_instability_detection",
+                      DefaultParameters::NumericalInstability::ENABLE_NUMERICAL_INSTABILITY_DETECTION);
+
     //Parallel
     createParameter("Parallel.enable_parallelization",
                     Entry::BOOL,

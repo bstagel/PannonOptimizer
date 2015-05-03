@@ -11,6 +11,8 @@ const double DefaultParameters::SPARSITY_RATIO = 0.45;
 const int DefaultParameters::ELBOWROOM = 5;
 
 //Simplex Parameters
+//NumericalStability
+const bool DefaultParameters::NumericalInstability::ENABLE_NUMERICAL_INSTABILITY_DETECTION = false;
 //Parallel
 const bool DefaultParameters::Parallel::ENABLE_PARALLELIZATION = false;
 const bool DefaultParameters::Parallel::ENABLE_THREAD_SYNCHRONIZATION = true;
