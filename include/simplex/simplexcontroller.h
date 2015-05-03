@@ -88,6 +88,13 @@ public:
     const std::vector<Numerical::Double> getDualSolution() const;
 
     /**
+     * This function returns with the reduced costs vector.
+     *
+     * @return the y dual solution vector.
+     */
+    const DenseVector getReducedCosts() const;
+
+    /**
      * Getter of the solveTimer member.
      * @return SimplexController::sm_solveTimer
      */
@@ -98,6 +105,12 @@ public:
      * @return The number of iterations.
      */
     unsigned int getIterationCount() const { return m_iterations; }
+
+    /**
+     * Returns whether the solution is optimal or not.
+     */
+    inline bool isOptimal() const { return m_isOptimal; }
+
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.
@@ -252,6 +265,12 @@ private:
      * Counter for the iterations.
      */
     unsigned int m_iterations;
+
+    /**
+     * Optimality flag for the solution
+     */
+
+    bool m_isOptimal;
 
     /**
      * Function that solves the LP problem given by the parameter using a main thread.

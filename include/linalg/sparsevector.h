@@ -14,7 +14,7 @@
 class DenseVector;
 class IndexedDenseVector;
 
-extern bool DEBUG_MODE;
+//extern bool DEBUG_MODE;
 
 /**
  *

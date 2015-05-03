@@ -73,29 +73,29 @@ void IndexedDenseVector::set(unsigned int index, Numerical::Double value)
         m_nonzeroIndices[m_nonZeros] = index;
         m_nonZeros++;
     } else if (old != 0.0 && value == 0.0) {
-        if (DEBUG_MODE) {
-            std::cout << "lenullazom ezt: " << *(m_indexIndices[index]) << std::endl;
-        }
+//        if (DEBUG_MODE) {
+//            std::cout << "lenullazom ezt: " << *(m_indexIndices[index]) << std::endl;
+//        }
         *(m_indexIndices[index]) = m_nonzeroIndices[m_nonZeros - 1];
         m_indexIndices[m_nonzeroIndices[m_nonZeros - 1]] = m_indexIndices[index];
         m_indexIndices[index] = nullptr;
         m_nonZeros--;
     }
 
-    if (DEBUG_MODE) {
-        unsigned int i;
-        std::cout << "SET (" << index << ", " << value << ")" << std::endl;
-        std::cout << "nonzeros: " << m_nonZeros << std::endl;
-        std::cout << "nonzero indices: ";
-        for (i = 0; i < m_nonZeros; i++) {
-            std::cout << m_nonzeroIndices[i] << " ";
-        }
-        std::cout << std::endl;
-        for (i = 0; i < m_length; i++) {
-            std::cout << m_data[i] << " ";
-        }
-        std::cout << std::endl;
-    }
+//    if (DEBUG_MODE) {
+//        unsigned int i;
+//        std::cout << "SET (" << index << ", " << value << ")" << std::endl;
+//        std::cout << "nonzeros: " << m_nonZeros << std::endl;
+//        std::cout << "nonzero indices: ";
+//        for (i = 0; i < m_nonZeros; i++) {
+//            std::cout << m_nonzeroIndices[i] << " ";
+//        }
+//        std::cout << std::endl;
+//        for (i = 0; i < m_length; i++) {
+//            std::cout << m_data[i] << " ";
+//        }
+//        std::cout << std::endl;
+//    }
 
 }
 
@@ -462,27 +462,27 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
     CLEAR_DOUBLES(result.m_data, length);
     panOptMemset(result.m_indexIndices, 0, sizeof( unsigned int * ) * count);
 
-    if (DEBUG_MODE) {
-        unsigned int i;
-        std::cout << "input nonzero indices: ";
-        for (i = 0; i < count; i++) {
-            std::cout << indices[i] << " ";
-        }
-        std::cout << "input nonzeros: ";
-        for (i = 0; i < count; i++) {
-            std::cout << data[i] << " ";
-        }
+//    if (DEBUG_MODE) {
+//        unsigned int i;
+//        std::cout << "input nonzero indices: ";
+//        for (i = 0; i < count; i++) {
+//            std::cout << indices[i] << " ";
+//        }
+//        std::cout << "input nonzeros: ";
+//        for (i = 0; i < count; i++) {
+//            std::cout << data[i] << " ";
+//        }
 
-        std::cout << std::endl;
-    }
+//        std::cout << std::endl;
+//    }
 
     unsigned int nonZeroIndex;
     for (nonZeroIndex = 0; nonZeroIndex < count; nonZeroIndex++) {
         unsigned int index = indices[nonZeroIndex];
-        if (DEBUG_MODE) {
-            std::cout << "next index: " << index << " -> " << data[nonZeroIndex] << std::endl;
+//        if (DEBUG_MODE) {
+//            std::cout << "next index: " << index << " -> " << data[nonZeroIndex] << std::endl;
 
-        }
+//        }
         if (data[nonZeroIndex] != 0.0) {
             result.m_data[index] = data[nonZeroIndex];
             result.m_indexIndices[index] = result.m_nonzeroIndices + nonZeroIndex;
@@ -493,22 +493,22 @@ IndexedDenseVector IndexedDenseVector::createVectorFromSparseArray(const Numeric
 
     }
 
-    if (DEBUG_MODE) {
-        unsigned int i;
-        std::cout << "nonzeros: " << result.m_nonZeros << std::endl;
-        std::cout << "nonzero indices: ";
-        for (i = 0; i < result.m_nonZeros; i++) {
-            std::cout << result.m_nonzeroIndices[i] << " ";
-        }
-        std::cout << std::endl;
-        for (i = 0; i < result.m_length; i++) {
-            std::cout << result.m_data[i] << " ";
-        }
-        for (i = 0; i < result.m_nonZeros; i++) {
-            std::cout << *result.m_indexIndices[ i ] << " ";
-        }
-        std::cout << std::endl << "---------------------------" << std::endl;
-    }
+//    if (DEBUG_MODE) {
+//        unsigned int i;
+//        std::cout << "nonzeros: " << result.m_nonZeros << std::endl;
+//        std::cout << "nonzero indices: ";
+//        for (i = 0; i < result.m_nonZeros; i++) {
+//            std::cout << result.m_nonzeroIndices[i] << " ";
+//        }
+//        std::cout << std::endl;
+//        for (i = 0; i < result.m_length; i++) {
+//            std::cout << result.m_data[i] << " ";
+//        }
+//        for (i = 0; i < result.m_nonZeros; i++) {
+//            std::cout << *result.m_indexIndices[ i ] << " ";
+//        }
+//        std::cout << std::endl << "---------------------------" << std::endl;
+//    }
 
     return result;
 }

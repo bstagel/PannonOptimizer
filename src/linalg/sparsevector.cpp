@@ -94,7 +94,7 @@ void addSparseToSparseTemplate(Numerical::Double lambda,
 
 }
 
-bool DEBUG_MODE = false;
+//bool DEBUG_MODE = false;
 
 template<class ADD>
 void addDenseToSparseTemplate(Numerical::Double lambda,
@@ -148,22 +148,22 @@ void addIndexedDenseToSparseTemplate(Numerical::Double lambda,
     unsigned int nonZeroIndex;
     unsigned int nonZeros = vector1->m_nonZeros;
 
-    if (DEBUG_MODE) {
-        std::cout << "nonzeros: " << vector2.m_nonZeros << std::endl;
-        std::cout << "nonzero index: " << vector2.m_nonzeroIndices[0] << std::endl;
-        for (int i = 0; i < vector2.m_length; i++) {
-            std::cout << vector2.m_data[i] << " ";
-        }
-        std::cout << std::endl;
-    }
+//    if (DEBUG_MODE) {
+//        std::cout << "nonzeros: " << vector2.m_nonZeros << std::endl;
+//        std::cout << "nonzero index: " << vector2.m_nonzeroIndices[0] << std::endl;
+//        for (int i = 0; i < vector2.m_length; i++) {
+//            std::cout << vector2.m_data[i] << " ";
+//        }
+//        std::cout << std::endl;
+//    }
     for (nonZeroIndex = 0; nonZeroIndex < vector2.m_nonZeros; nonZeroIndex++) {
         const unsigned int index = vector2.m_nonzeroIndices[nonZeroIndex];
         const Numerical::Double sum = ADD::add(tls_fullLengthVector[index],
                                     vector2.m_data[index] * lambda);
 
-        if (DEBUG_MODE) {
-            std::cout << "sum = " << sum << std::endl;
-        }
+//        if (DEBUG_MODE) {
+//            std::cout << "sum = " << sum << std::endl;
+//        }
 
         if (tls_fullLengthVector[index] == 0.0 && sum != 0.0) {
             tls_indexVector[nonZeros] = index;

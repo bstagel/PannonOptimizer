@@ -468,6 +468,11 @@ protected:
     const std::vector<Numerical::Double> getDualSolution() const;
 
     /**
+     * Description can be found in SimplexController::getReducedCosts().
+     */
+    const DenseVector getReducedCosts() const;
+
+    /**
      * Setter for the mathematical model of the LP problem.
      *
      * @param model is the other Model object

@@ -25,6 +25,10 @@ thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
 thread_local IndexedDenseVector* PfiBasis::m_updateHelper = nullptr;
 
+std::vector<std::vector<ETM>*> PfiBasis::m_updatesManager;
+std::vector<IndexedDenseVector*> PfiBasis::m_updateHelperManager;
+std::mutex PfiBasis::m_updateLock;
+
 PfiBasis::PfiBasis() :
     Basis(),
     m_nontriangularMethod(getNontriangularMethod(SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_method"))),
@@ -32,28 +36,113 @@ PfiBasis::PfiBasis() :
                                  SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.PFI.nontriangular_pivot_rule"))),
     m_threshold(SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.pivot_threshold"))
 {
-    m_basis = new std::vector<ETM>();
-
     m_transformationCount = 0;
     m_transformationAverage = 0;
     m_mNumAverage = 0;
-
-    m_cColumns = new std::vector<const SparseVector*>();
-    m_cPivotIndexes = new std::vector<int>();
-    m_mmRows = new std::vector<SparseVector*>();
-    m_mmRowIndices = new std::vector<int>();
-    m_mmColumns = new std::vector<SparseVector*>();
-    m_mmColumnIndices = new std::vector<int>();
-    m_mmGraphOut = new std::vector<std::vector<int> >();
-    m_mmGraphUsed = new std::vector<char>();
-    m_stack = new std::vector<PathNode>();
-    m_mmBlocks = new std::vector<int>();
-    m_rowSwapHash = new std::vector<int>();
-    m_columnSwapHash = new std::vector<int>();
-    m_columnSwapLog = new std::vector<int>();
+    const int & numberOfThreads = SimplexParameterHandler::getInstance().getIntegerParameterValue("Parallel.number_of_threads");
+    m_updatesManager.reserve(numberOfThreads);
+    m_updateHelperManager.reserve(numberOfThreads);
 }
 
 PfiBasis::~PfiBasis() {
+    //Already released in the simplex controller to support MILP usage
+    //    releaseModel();
+
+    while(!m_updatesManager.empty()){
+        delete m_updatesManager.back();
+        m_updatesManager.pop_back();
+    }
+
+    while(!m_updateHelperManager.empty()){
+        delete m_updateHelperManager.back();
+        m_updateHelperManager.pop_back();
+    }
+}
+
+
+void PfiBasis::registerThread() {
+    if(m_updates == nullptr){
+        if(m_updatesManager.empty()){
+            m_updates = new std::vector<ETM>();
+            m_updates->reserve(SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency"));
+        }else{
+            m_updateLock.lock();
+            m_updates = m_updatesManager.back();
+            m_updatesManager.pop_back();
+            m_updateLock.unlock();
+        }
+    }
+
+    if(m_updateHelper == nullptr){
+        if(m_updatesManager.empty()){
+            m_updateHelper = new IndexedDenseVector(m_basisSize);
+        }else{
+            m_updateLock.lock();
+            m_updateHelper = m_updateHelperManager.back();
+            m_updateHelperManager.pop_back();
+            m_updateLock.unlock();
+        }
+    }
+}
+
+void PfiBasis::releaseThread() {
+    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
+        delete iter->eta;
+    }
+    m_updates->clear();
+    m_updateLock.lock();
+    m_updatesManager.push_back(m_updates);
+    m_updates = nullptr;
+    m_updateHelperManager.push_back(m_updateHelper);
+    m_updateHelper = nullptr;
+    m_updateLock.unlock();
+}
+
+void PfiBasis::clearUpdates() {
+    if(m_updates == nullptr){
+        throw PanOptException("Thread is not registered to manage basis updates!");
+    }
+    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
+        delete iter->eta;
+    }
+    m_updates->clear();
+}
+
+void PfiBasis::prepareForModel(const Model &model)
+{
+    m_basisSize = model.getMatrix().rowCount();
+    m_basis = new std::vector<ETM>();
+    m_basis->reserve(m_basisSize);
+    m_cColumns = new std::vector<const SparseVector*>();
+    m_cColumns->reserve(m_basisSize);
+    m_cPivotIndexes = new std::vector<int>();
+    m_cPivotIndexes->reserve(m_basisSize);
+    m_mmRows = new std::vector<SparseVector*>();
+    m_mmRows->reserve(m_basisSize);
+    m_mmRowIndices = new std::vector<int>();
+    m_mmRowIndices->reserve(m_basisSize);
+    m_mmColumns = new std::vector<SparseVector*>();
+    m_mmColumns->reserve(m_basisSize);
+    m_mmColumnIndices = new std::vector<int>();
+    m_mmColumnIndices->reserve(m_basisSize);
+    m_mmGraphOut = new std::vector<std::vector<int> >();
+    m_mmGraphOut->reserve(m_basisSize);
+    m_mmGraphUsed = new std::vector<char>();
+    m_mmGraphUsed->reserve(m_basisSize);
+    m_stack = new std::vector<PathNode>();
+    m_stack->reserve(m_basisSize);
+    m_mmBlocks = new std::vector<int>();
+    m_mmBlocks->reserve(m_basisSize);
+    m_rowSwapHash = new std::vector<int>();
+    m_rowSwapHash->reserve(m_basisSize);
+    m_columnSwapHash = new std::vector<int>();
+    m_columnSwapHash->reserve(m_basisSize);
+    m_columnSwapLog = new std::vector<int>();
+    m_columnSwapLog->reserve(m_basisSize);
+}
+
+void PfiBasis::releaseModel()
+{
     //TODO set nullptr to deleted pointers (also initialization)
     for(unsigned int i=0; i<m_mmRows->size(); i++){
         delete (*m_mmRows)[i];
@@ -92,38 +181,6 @@ PfiBasis::~PfiBasis() {
     }
     delete m_basis;
     m_basis = nullptr;
-}
-
-
-void PfiBasis::registerThread() {
-    if(m_updates == nullptr){
-        m_updates = new std::vector<ETM>();
-    }
-
-    if(m_updateHelper == nullptr){
-        m_updateHelper = new IndexedDenseVector();
-    }
-}
-
-void PfiBasis::releaseThread() {
-    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
-        delete iter->eta;
-    }
-    delete m_updates;
-    m_updates = nullptr;
-
-    delete m_updateHelper;
-    m_updateHelper = nullptr;
-}
-
-void PfiBasis::clearUpdates() {
-    if(m_updates == nullptr){
-        throw PanOptException("Thread is not registered to manage basis updates!");
-    }
-    for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
-        delete iter->eta;
-    }
-    m_updates->clear();
 }
 
 void PfiBasis::dumbToStream(ostream &os) const

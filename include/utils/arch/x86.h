@@ -262,7 +262,7 @@ extern "C" void _denseToDenseAddAVX_nocache_64_linux(
  * Windows, 64 bit
  ****************************************/
 #define CPUID(eax, ebx, ecx, edx, results) \
-    _cpuinfo_64_windows(eax, ebx, ecx, edx, results);
+//    _cpuinfo_64_windows(eax, ebx, ecx, edx, results);
 #define SET_FPU_TO_64 doNothing_seriously_nothing
 #define AVX_ENABLED_BY_OS _avx_enabled_by_64
 /*#define MEMCPY_CACHE_SSE2 _memcpy_sse2_64_windows_cread_cwrite

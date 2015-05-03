@@ -46,7 +46,8 @@ SimplexController::SimplexController():
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0),
-    m_iterations(0)
+    m_iterations(0),
+    m_isOptimal(false)
 {
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
@@ -57,7 +58,6 @@ SimplexController::SimplexController():
         LPERROR("Wrong parameter: factorization_type");
         throw ParameterException("Wrong factorization type parameter");
     }
-
 }
 
 SimplexController::~SimplexController()
@@ -230,7 +230,16 @@ const std::vector<Numerical::Double> SimplexController::getDualSolution() const
                                                    m_dualSimplex->getDualSolution();
 }
 
+const DenseVector SimplexController::getReducedCosts() const
+{
+    return m_currentAlgorithm == Simplex::PRIMAL ? m_primalSimplex->getReducedCosts() :
+                                                   m_dualSimplex->getReducedCosts();
+}
+
 void SimplexController::solve(const Model &model) {
+    m_isOptimal = false;
+    m_basis->prepareForModel(model);
+
     m_iterations = 0;
     if (m_enableParallelization) {
         if(m_enableThreadSynchronization){
@@ -261,6 +270,7 @@ void SimplexController::solve(const Model &model) {
             sequentialSolve(model);
         }
     }
+    m_basis->releaseModel();
 }
 
 void SimplexController::sequentialSolve(const Model &model)
@@ -302,7 +312,7 @@ void SimplexController::sequentialSolve(const Model &model)
 
         sm_solveTimer.reset();
         sm_solveTimer.start();
-        LPINFO("START: ")
+//        LPINFO("START: ")
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
@@ -394,6 +404,7 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
+        m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
@@ -697,6 +708,7 @@ void SimplexController::parallelSolve(const Model &model)
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
+        m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary

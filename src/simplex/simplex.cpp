@@ -695,6 +695,10 @@ const std::vector<Numerical::Double> Simplex::getDualSolution() const {
     //TODO
 }
 
+const DenseVector Simplex::getReducedCosts() const {
+    return m_reducedCosts;
+}
+
 
 void Simplex::reinvert() {
     releaseLocks();
@@ -796,12 +800,12 @@ void Simplex::computeReducedCosts() {
         if(i < columnCount){
             reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
 
-            if (costVector.at(i) != 0.0){
-                const Numerical::Double value1 = costVector.at(i);
-                const Numerical::Double value2 = -simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
-                const Numerical::Double value1abs = Numerical::fabs(value1);
-                const Numerical::Double value2abs = Numerical::fabs(value2);
-            }
+//            if (costVector.at(i) != 0.0){
+//                const Numerical::Double value1 = costVector.at(i);
+//                const Numerical::Double value2 = -simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
+//                const Numerical::Double value1abs = Numerical::fabs(value1);
+//                const Numerical::Double value2abs = Numerical::fabs(value2);
+//            }
 
         } else {
             //reducedCost = -1 * simplexMultiplier.at(i - columnCount);

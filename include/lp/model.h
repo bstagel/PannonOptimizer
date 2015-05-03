@@ -95,6 +95,24 @@ public:
 
     void setSubstitueVectors(std::vector<DenseVector *> *substituteVectors);
 
+    /********************************************************************
+     * CLP Like API for integration purposes
+     *******************************************************************/
+
+    void changeRowName(int rowIndex, std::string& name);
+
+    void changeColumnName(int columnIndex, std::string& name);
+
+    void changeConstraintLower(const double* rowLower);
+
+    void changeConstraintUpper(const double* rowUpper);
+
+    void changeVariableLower(const double* colLower);
+
+    void changeVariableUpper(const double* colUpper);
+
+    void changeObjectiveCoefficients(const double* objCoefficients);
+
 protected:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
