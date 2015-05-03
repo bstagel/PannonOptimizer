@@ -9,6 +9,7 @@
 
 #include <lp/model.h>
 #include <lp/mpsproblem.h>
+#include <lp/lpproblem.h>
 #include <lp/presolver.h>
 #include <simplex/dualsimplex.h>
 #include <simplex/primalsimplex.h>
@@ -21,13 +22,21 @@
 
 #include <linalg/indexeddensevector.h>
 
-void solve(std::string filename) {
+void solve(std::string filename, bool dump_vars = false) {
 
     Model model;
-    MpsModelBuilder* builder = new MpsModelBuilder();
-    builder->loadFromFile(filename.c_str());
-    model.build(*builder);
-    delete builder;
+
+    if(filename.size() > 3 && filename.substr(filename.size() - 3, 3) == ".LP") {
+        LpModelBuilder* builder = new LpModelBuilder();
+        builder->loadFromFile(filename);
+        model.build(*builder);
+        delete builder;
+    } else {
+        MpsModelBuilder* builder = new MpsModelBuilder();
+        builder->loadFromFile(filename.c_str());
+        model.build(*builder);
+        delete builder;
+    }
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
         Presolver presolver(&model);
@@ -49,6 +58,13 @@ void solve(std::string filename) {
     SimplexController simplexController;
 
     simplexController.solve(model);
+
+    if(dump_vars) {
+        const DenseVector& solution = simplexController.getPrimalSolution();
+        for(unsigned i = 0; i < model.variableCount(); i++) {
+            LPINFO(model.getVariable(i).getName() << " : " << solution[i]);
+        }
+    }
 }
 
 void printHelp() {
@@ -203,6 +219,7 @@ int main(int argc, char** argv) {
     //setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
     bool outputRedirected = false;
+    bool dump_vars = false;
 
     ParameterHandler& linalgHandler = LinalgParameterHandler::getInstance();
     ParameterHandler& simplexHandler = SimplexParameterHandler::getInstance();
@@ -227,6 +244,8 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+            } else if(arg.compare("-dv") == 0) {
+                dump_vars = true;
             } else if(arg.compare("-f") == 0 || arg.compare("--file") == 0){
                 if(argc < i+2 ){
                     printMissingOperandError(argv);
@@ -298,7 +317,7 @@ int main(int argc, char** argv) {
         if(solvables[i].first.compare("d") == 0){
             solveDir(solvables[i].second);
         } else if(solvables[i].first.compare("f") == 0){
-            solve(solvables[i].second);
+            solve(solvables[i].second, dump_vars);
         } else if(solvables[i].first.compare("fl") == 0){
             solveFileList(solvables[i].second);
         }

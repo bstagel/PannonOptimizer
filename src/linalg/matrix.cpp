@@ -105,7 +105,7 @@ void Matrix::build(const MatrixBuilder & builder)
     if (builder.hasColumnwiseRepresentation() == false) {
         for (columnIndex = 0; columnIndex < builder.getColumnCount(); columnIndex++) {
             SparseVector * column = m_columnWise[columnIndex];
-            column->prepareForData(nonzerosInRows[columnIndex], builder.getRowCount());
+            column->prepareForData(nonzerosInColumns[columnIndex], builder.getRowCount());
         }
         for (rowIndex = 0; rowIndex < builder.getRowCount(); rowIndex++) {
             SparseVector::NonzeroIterator iter = m_rowWise[rowIndex]->beginNonzero();

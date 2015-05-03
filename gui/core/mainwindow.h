@@ -13,6 +13,19 @@
 #include <QGridLayout>
 #include <QFileDialog>
 #include <QLabel>
+#include <QRadioButton>
+#include <QTextEdit>
+#include <QSplitter>
+#include <QGroupBox>
+#include <QtCore>
+#include <QtGui>
+#include <QComboBox>
+#include <QTableView>
+#include <QStandardItemModel>
+#include <QStandardItem>
+#include <QHeaderView>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 
 #include "constants.h"
 #include "gui/modules/panopthandler.h"
@@ -20,6 +33,15 @@
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
+
+private slots:
+    void onMPSlistSelected(QString item);
+private:
+    void initProblemTab();
+    void initMatrixTab();
+    void drawMatrix();
+
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -38,6 +60,8 @@ public slots:
 
     void obtainSolution();
 
+
+
 private:
 
     QMenuBar *menuBar;
@@ -47,12 +71,14 @@ private:
     QStatusBar *statusBar;
     QVBoxLayout *tabLayout;
     QGridLayout *sourceLayout, *paramLayout, *matrixLayout, *solutionLayout;
-
+    QTextEdit *textEdit;
     PanOptHandler* panOpt;
 
     QFileDialog fileDialog;
     QMap<QString, QAction*> actions;
     QMap<QString, QToolButton*> tools;
+    QGraphicsScene* scene;
+    QGraphicsView* matrixView;
 };
 
 #endif // MAINWINDOW_H

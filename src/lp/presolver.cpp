@@ -117,6 +117,7 @@ Presolver::Presolver(Model *model):
 }
 
 Presolver::~Presolver() {
+    /* Itt jártam. Anikó 2015. majdnem május*/
     clearModules();
 }
 

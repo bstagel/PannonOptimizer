@@ -186,7 +186,8 @@ HEADERS += include/debug.h \
     include/lp/hilbertmodelbuilder.h \
     include/double.h \
     include/lp/pascalmodelbuilder.h \
-    include/lp/pnsinterface.h
+    include/lp/pnsinterface.h \
+    include/lp/lpproblem.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -266,7 +267,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/utils/multiplefloat.cpp \
     src/lp/hilbertmodelbuilder.cpp \
     src/lp/pascalmodelbuilder.cpp \
-    src/lp/pnsinterface.cpp
+    src/lp/pnsinterface.cpp \
+    src/lp/lpproblem.cpp
 
 #OBJECTS_DIR = .o
 
