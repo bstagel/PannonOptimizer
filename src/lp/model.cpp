@@ -319,3 +319,39 @@ void Model::setSubstitueVectors(std::vector<DenseVector *> * substituteVectors) 
     m_substituteVectors = substituteVectors;
     m_presolved = true;
 }
+
+void Model::changeRowName(int rowIndex, std::string& name){
+    m_constraints[rowIndex].setName(name.c_str());
+}
+
+void Model::changeColumnName(int columnIndex, std::string& name){
+    m_variables[columnIndex].setName(name.c_str());
+}
+
+void Model::changeConstraintLower(const double* rowLower){
+    for(unsigned int i=0; i<m_constraints.size(); i++){
+        m_constraints[i].setLowerBound(rowLower[i]);
+    }
+}
+
+void Model::changeConstraintUpper(const double* rowUpper){
+    for(unsigned int i=0; i<m_constraints.size(); i++){
+        m_constraints[i].setUpperBound(rowUpper[i]);
+    }
+}
+
+void Model::changeVariableLower(const double* colLower){
+    for(unsigned int i=0; i<m_variables.size(); i++){
+        m_variables[i].setLowerBound(colLower[i]);
+    }
+}
+
+void Model::changeVariableUpper(const double* colUpper){
+    for(unsigned int i=0; i<m_variables.size(); i++){
+        m_variables[i].setUpperBound(colUpper[i]);
+    }
+}
+
+void Model::changeObjectiveCoefficients(const double* objCoefficients){
+    m_costVector.createVectorFromDenseArray(objCoefficients,m_variables.size());
+}

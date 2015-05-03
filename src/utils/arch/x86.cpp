@@ -112,7 +112,12 @@ bool ArchitectureX86::cpuidSupported()
 #ifdef ENVIRONMENT_32
     return cpuinfo_supported_32();
 #else
+#ifdef UNIX
     return true;
+#else
+    //TODO: Support Win 64
+    return false;
+#endif
 #endif
 #endif
     return false;

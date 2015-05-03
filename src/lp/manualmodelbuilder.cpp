@@ -353,7 +353,7 @@ const Constraint & ManualModelBuilder::getConstraint(unsigned int index) const
 void ManualModelBuilder::buildRow(unsigned int index, SparseVector *rowVector,
     std::vector<unsigned int> *) const
 {
-    unsigned int dimension = m_constraints.size();
+    unsigned int dimension = m_variables.size();
     rowVector->prepareForData(m_rows[index].size(), dimension);
     std::list< IndexValuePair >::const_iterator iter = m_rows[index].begin();
     std::list< IndexValuePair >::const_iterator iterEnd = m_rows[index].end();
@@ -365,7 +365,7 @@ void ManualModelBuilder::buildRow(unsigned int index, SparseVector *rowVector,
 void ManualModelBuilder::buildColumn(unsigned int index, SparseVector *columnVector,
     std::vector<unsigned int> *) const
 {
-    unsigned int dimension = m_variables.size();
+    unsigned int dimension = m_constraints.size();
     columnVector->prepareForData(m_columns[index].size(), dimension);
     std::list< IndexValuePair >::const_iterator iter = m_columns[index].begin();
     std::list< IndexValuePair >::const_iterator iterEnd = m_columns[index].end();
@@ -374,20 +374,21 @@ void ManualModelBuilder::buildColumn(unsigned int index, SparseVector *columnVec
     }
 }
 
+#include "utils/thirdparty/prettyprint.h"
+
 void ManualModelBuilder::buildCostVector(DenseVector *costVector) const
 {
-    unsigned int dimension = m_variables.size();
-    LPINFO(m_costVector.size() << "  " << dimension);
     auto iter = m_costVector.begin();
     auto iterEnd = m_costVector.end();
+    costVector->reInit(m_costVector.size());
     unsigned int index;
     if(m_objectiveType == MINIMIZE){
         for (index = 0; iter != iterEnd; ++iter, index++) {
-            costVector->set(*iter, index);
+            costVector->set( index, *iter);
         }
     } else {
         for (index = 0; iter != iterEnd; ++iter, index++) {
-            costVector->set(-(*iter), index);
+            costVector->set( index, -(*iter));
         }
     }
 }

@@ -67,6 +67,16 @@ void LuBasis::releaseThread() {
 
 }
 
+void LuBasis::prepareForModel(const Model &model)
+{
+    __UNUSED(model);
+}
+
+void LuBasis::releaseModel()
+{
+
+}
+
 void LuBasis::invert()
 {
     m_transformationCount = 0;

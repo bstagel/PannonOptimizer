@@ -49,6 +49,16 @@ public:
     void registerThread();
     void releaseThread();
 
+    /**
+     * Static memory allocations
+     */
+    void prepareForModel(const Model& model);
+
+    /**
+     * Static memory release
+     */
+    void releaseModel();
+
 private:
 
     std::vector<DoubleETM>* m_lower;

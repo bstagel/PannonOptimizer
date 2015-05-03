@@ -14,14 +14,14 @@ CONFIG(release, debug|release) {
     #message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
-    DESTDIR = ../build-NewPanOpt/release
+    #DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     #message("NewPanOpt: Debug mode!")
     #DEFINES += NDEBUG
-    QMAKE_CXXFLAGS_DEBUG += -g -std=c++11 -Wextra -Wall
-    DESTDIR = ../build-NewPanOpt/debug
+    QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
+    #DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
 
@@ -185,7 +185,8 @@ HEADERS += include/debug.h \
     include/simplex/pricing/primaldevexpricing.h \
     include/lp/hilbertmodelbuilder.h \
     include/double.h \
-    include/lp/pascalmodelbuilder.h
+    include/lp/pascalmodelbuilder.h \
+    include/lp/pnsinterface.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -264,7 +265,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/simplex/pricing/primaldevexpricing.cpp \
     src/utils/multiplefloat.cpp \
     src/lp/hilbertmodelbuilder.cpp \
-    src/lp/pascalmodelbuilder.cpp
+    src/lp/pascalmodelbuilder.cpp \
+    src/lp/pnsinterface.cpp
 
 #OBJECTS_DIR = .o
 

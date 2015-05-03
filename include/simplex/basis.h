@@ -176,6 +176,16 @@ public:
     virtual void releaseThread() = 0;
 
     /**
+     * Static memory allocations
+     */
+    virtual void prepareForModel(const Model& model) = 0;
+
+    /**
+     * Static memory release
+     */
+    virtual void releaseModel() = 0;
+
+    /**
      * Dumps the content of the inverse representation to the stream.
      */
     virtual void dumbToStream(std::ostream & ) const {}
@@ -253,6 +263,12 @@ protected:
      * For details see SimplexParameterHandler.
      */
     const double & m_inversion;
+
+    /**
+     * Size of the actual model basis.
+     */
+    int m_basisSize;
+
 
     /**
      * This function sets the new basis head, after inversion it updates the variable states too.

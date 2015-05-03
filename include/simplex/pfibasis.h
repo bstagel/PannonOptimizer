@@ -126,6 +126,16 @@ public:
     void clearUpdates();
 
     /**
+     * Static memory allocations
+     */
+    void prepareForModel(const Model &model);
+
+    /**
+     * Static memory release
+     */
+    void releaseModel();
+
+    /**
      * Dumps the content of the inverse to the stream os.
      * @param os
      */
@@ -151,6 +161,14 @@ private:
      * Stores the basis inverse in the PFI form (as a vector of ETMs).
      */
     static thread_local std::vector<ETM>* m_updates;
+
+    static thread_local IndexedDenseVector* m_updateHelper;
+
+    static std::vector<std::vector<ETM>*> m_updatesManager;
+
+    static std::vector<IndexedDenseVector*> m_updateHelperManager;
+
+    static std::mutex m_updateLock;
 
     /**
      * Stores the original variable indices for each column in the submatrix.
@@ -228,8 +246,6 @@ private:
     Numerical::Double m_transformationAverage;
     Numerical::Double m_mNumAverage;
     static thread_local int m_inversionCount;
-
-    static thread_local IndexedDenseVector* m_updateHelper;
 
     //Run parameters
     //Non-triangular method parameter
