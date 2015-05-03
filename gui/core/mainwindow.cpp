@@ -84,9 +84,16 @@ MainWindow::MainWindow(QWidget *parent) :
     mainTabs->addTab(new QWidget(mainTabs), "Matrix");
     mainTabs->addTab(new QWidget(mainTabs), "Solution");
 
+
+    initProblemTab();
+    initMatrixTab();
+
     sourceLayout = new QGridLayout();
 
-    paramLayout = new QGridLayout();
+    /* paramLayout = new QGridLayout(mainTabs->widget(0));
+    myButton = new QRadioButton(mainTabs->widget(0));
+    myButton->setText("MY BUTTON");
+    paramLayout->addWidget(myButton, 0, 0, Qt::AlignTop);*/
 
     matrixLayout = new QGridLayout();
 
@@ -128,6 +135,7 @@ void MainWindow::loadProblem() {
     fileDialog.setFileMode(QFileDialog::ExistingFile);
     fileDialog.exec();
     parseProblem();
+    drawMatrix();
 }
 
 void MainWindow::saveProblem() {
@@ -200,3 +208,147 @@ void MainWindow::obtainSolution() {
     tools["cancelSolve"]->setEnabled(false);
     tools["exportSolution"]->setEnabled(true);
 }
+
+void MainWindow::onMPSlistSelected(QString item)
+{
+    QTextEdit* textArea= mainTabs->findChild<QTextEdit*>("textArea");
+    if(textArea!=0)
+        textArea->setText(item);
+
+
+}
+
+void MainWindow::initProblemTab()
+{
+    QWidget* problemTab=mainTabs->widget(0);
+    QHBoxLayout * problemTabLayout = new QHBoxLayout(problemTab);
+
+    QSplitter* splitter = new QSplitter;
+    splitter->setOrientation(Qt::Vertical);
+    problemTabLayout->addWidget(splitter);
+
+
+
+    QWidget* felsoPanel=new QWidget;
+    QHBoxLayout * felsoPanelLayout = new QHBoxLayout(felsoPanel);
+
+    QWidget* jobbPanel=new QWidget;
+    QVBoxLayout * jobbPanelLayout = new QVBoxLayout(jobbPanel);
+
+
+
+    QTextEdit* textArea=new QTextEdit();
+    textArea->setObjectName("textArea");
+    textArea->setText("Irj ide vmit");
+    felsoPanelLayout->addWidget(textArea);
+    felsoPanelLayout->addWidget(jobbPanel,0);
+
+
+    jobbPanel->setFixedWidth(200);
+    QList<int> list;
+
+    splitter->addWidget(felsoPanel);
+
+    QGroupBox* log=new QGroupBox;
+    log->setTitle("Log");
+    QLabel* newLabel = new QLabel("- Problem 'sample' has been parsed successfully!", log);
+    newLabel->setMargin(20);
+
+    splitter->addWidget(felsoPanel);
+    splitter->addWidget(log);
+
+
+
+    list= splitter->sizes();
+    list.replace(0,splitter->height()/0.2);
+    list.replace(1,splitter->height()/0.8);
+    splitter->setSizes(list);
+
+    //Mindig felül legyen az ablakocska
+    Qt::WindowFlags flags = windowFlags();
+    this->setWindowFlags(flags | Qt::WindowStaysOnTopHint);
+
+
+
+    //Jobb oldali felületek
+    QComboBox * mps = new QComboBox;
+    jobbPanelLayout->addWidget(mps,0,Qt::AlignTop);
+    mps->addItem("MPS");
+    mps->addItem("LP");
+    connect(mps,SIGNAL(currentIndexChanged(QString)),this,SLOT(onMPSlistSelected(QString)));
+    QTableView * stat= new QTableView;
+    jobbPanelLayout->addWidget(stat, 0, Qt::AlignTop);
+
+    QStandardItemModel* model= new QStandardItemModel();
+
+    QStringList ql;
+
+    QList<QStandardItem*> row;
+    /*row<< new QStandardItem("Name");
+    row<< new QStandardItem("Rows");
+    row<< new QStandardItem("Columns");
+    row<< new QStandardItem("Non zeros");
+    row<< new QStandardItem("Density");
+    model->appendColumn(row);*/
+
+    ql.append("Name");
+    ql.append("Rows");
+    ql.append("Columns");
+    ql.append("Non zeros");
+    ql.append("Density");
+    model->setVerticalHeaderLabels(ql);
+
+    row= QList<QStandardItem*>();
+    row<< new QStandardItem("sample");
+    row<< new QStandardItem("3");
+    row<< new QStandardItem("4");
+    row<< new QStandardItem("9");
+    row<< new QStandardItem("75%");
+    for (int i = 0; i < 5; ++i) {
+        row[i]->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    }
+
+    model->appendColumn(row);
+
+
+    stat->setModel(model);
+    stat->horizontalHeader()->hide();
+
+
+
+}
+
+void MainWindow::initMatrixTab()
+{
+    QWidget* matrixTab=mainTabs->widget(2);
+    QHBoxLayout * matrixTabLayout = new QHBoxLayout(matrixTab);
+    matrixView = new QGraphicsView;
+    matrixView->resize(600,400);
+    matrixTabLayout->addWidget(matrixView);
+    scene = new QGraphicsScene;
+    scene->addRect(QRectF(0,0,matrixView->width(),matrixView->height()));
+
+    matrixView->setScene(scene);
+}
+
+void MainWindow::drawMatrix()
+{
+    const Matrix& matrix = panOpt->getModel()->getMatrix();
+    double ratio = matrix.columnCount() / matrix.rowCount();
+    int height = 400;
+    int width = 600;
+    if(ratio >= 1.5) {
+        height = width / ratio;
+    } else width = ratio * height;
+    int blockSize = 1;
+    if(matrix.rowCount() < height) blockSize = height / matrix.rowCount();
+    scene = new QGraphicsScene;
+    for(int i = 0; i < matrix.rowCount(); i++) {
+        for(SparseVector::NonzeroIterator it = matrix.row(i).beginNonzero();it < matrix.row(i).endNonzero(); ++it) {
+            scene->addRect(QRectF(it.getIndex() * blockSize, i * blockSize, blockSize, blockSize), QPen(), QBrush(QColor(0,0,0)));
+        }
+    }
+    scene->addRect(QRectF(0,0,matrixView->width(),matrixView->height()));
+    matrixView->setScene(scene);
+}
+

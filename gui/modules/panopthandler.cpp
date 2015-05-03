@@ -15,7 +15,7 @@ void PanOptHandler::run() {
         m_process = new QProcess();
         qDebug()<<"Process: "<<m_solverPath<<" -f "<<m_problemPath;
         QStringList args;
-        args.append("-f");
+        args.append("-dv -f");
         args.append(m_problemPath);
         m_process->setArguments(args);
         m_process->setProgram(QUrl(m_solverPath).path());
@@ -43,10 +43,17 @@ void PanOptHandler::kill() {
 bool PanOptHandler::loadProblem(QString filename, LPFormat format) {
     if(!m_running) {
         m_model = new Model();
-        MpsModelBuilder* builder = new MpsModelBuilder();
-        builder->loadFromFile(filename.toStdString());
-        m_model->build(*builder);
-        delete builder;
+        if(filename.length() > 3 && filename.right(3).toUpper() == ".LP") {
+            LpModelBuilder* builder = new LpModelBuilder();
+            builder->loadFromFile(filename.toStdString());
+            m_model->build(*builder);
+            delete builder;
+        } else {
+            MpsModelBuilder* builder = new MpsModelBuilder();
+            builder->loadFromFile(filename.toStdString());
+            m_model->build(*builder);
+            delete builder;
+        }
 
         m_problemPath = filename;
         m_problemLoaded = true;

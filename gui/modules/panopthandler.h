@@ -3,6 +3,7 @@
 
 #include <lp/model.h>
 #include <lp/mpsproblem.h>
+#include <lp/lpproblem.h>
 #include <simplex/simplexparameterhandler.h>
 #include <linalg/linalgparameterhandler.h>
 
