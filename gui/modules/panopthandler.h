@@ -16,15 +16,16 @@
 class PanOptHandler : public QThread {
     Q_OBJECT
 public:
-    enum LPFormat {
-        MPS = 0,
-        LP
+
+    struct ParseResult {
+        QString str;
+        int line;
     };
 
     PanOptHandler(QString solverPath);
     ~PanOptHandler();
     void run();
-    bool loadProblem(QString filename, LPFormat format = MPS);
+    ParseResult loadProblem(QString filename);
     void kill();
     QProcess* process() { return m_process; }
 

@@ -70,7 +70,7 @@ void LpModelBuilder::loadFromFile(const std::string &fileName)
     if(m_terminated) {
         std::cout<<"LP READER:"<<std::endl;
         std::cout<<"Error at "<<fileName<<" (Line "<<m_error.m_errorLine<<")"<<std::endl<<m_error.m_errorStr<<std::endl;
-        exit(-1);
+        return;
     }
 
 //    std::cout<<"Cost vector: ";
@@ -90,7 +90,12 @@ void LpModelBuilder::loadFromFile(const std::string &fileName)
 //    for(std::list<LpVar>::iterator it = m_lpVars.begin(); it != m_lpVars.end(); ++it) {
 //        std::cout<<(*it).m_lowerBound<<"<= "<<(*it).m_varName;
 //        std::cout<<" <="<<(*it).m_upperBound<<std::endl;
-//    }
+    //    }
+}
+
+LpModelBuilder::LpError LpModelBuilder::getError()
+{
+    return m_error;
 }
 
 void LpModelBuilder::clear()
@@ -134,10 +139,9 @@ void LpModelBuilder::buildRow(unsigned int index, SparseVector *rowVector, std::
     LpRow* rowSource = m_rows[index];
     rowVector->reInit(getColumnCount());
     rowVector->addVector(1, rowSource->m_vector);
-    int i = 0;
     SparseVector::NonzeroIterator itEnd = rowSource->m_vector.endNonzero();
-    for(SparseVector::NonzeroIterator it = rowSource->m_vector.beginNonzero(); it != itEnd; ++it, i++) {
-       (*nonzeros)[i]++;
+    for(SparseVector::NonzeroIterator it = rowSource->m_vector.beginNonzero(); it != itEnd; ++it) {
+       (*nonzeros)[it.getIndex()]++;
     }
 }
 
