@@ -64,6 +64,7 @@ void solve(std::string filename, bool dump_vars = false) {
         for(unsigned i = 0; i < model.variableCount(); i++) {
             LPINFO(model.getVariable(i).getName() << " : " << solution[i]);
         }
+        LPINFO("-");
     }
 }
 

@@ -24,6 +24,8 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QHeaderView>
+#include <QLineEdit>
+#include <QCheckBox>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
@@ -36,11 +38,14 @@ class MainWindow : public QMainWindow
 
 
 private slots:
-    void onMPSlistSelected(QString item);
+    void loadFromEditor();
 private:
     void initProblemTab();
+    void initParametersTab();
     void initMatrixTab();
     void drawMatrix();
+    void initSolutionTab();
+    void writeSolution(QStringList vars);
 
 
 public:
@@ -72,13 +77,24 @@ private:
     QVBoxLayout *tabLayout;
     QGridLayout *sourceLayout, *paramLayout, *matrixLayout, *solutionLayout;
     QTextEdit *textEdit;
+    QTextEdit *solutionText;
+    QTableView *solutionStats;
+    QComboBox *format;
+    QTableView *problemStats;
+    QLabel *logLabel;
     PanOptHandler* panOpt;
 
     QFileDialog fileDialog;
+    QString selectedFileName;
     QMap<QString, QAction*> actions;
     QMap<QString, QToolButton*> tools;
     QGraphicsScene* scene;
     QGraphicsView* matrixView;
+
+    //parameters
+        //Tolerances
+        QWidget* parameterTab;
+        QHBoxLayout * parameterTabLayout;
 };
 
 #endif // MAINWINDOW_H

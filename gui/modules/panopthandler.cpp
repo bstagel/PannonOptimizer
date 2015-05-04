@@ -15,7 +15,8 @@ void PanOptHandler::run() {
         m_process = new QProcess();
         qDebug()<<"Process: "<<m_solverPath<<" -f "<<m_problemPath;
         QStringList args;
-        args.append("-dv -f");
+        args.append("-dv");
+        args.append("-f");
         args.append(m_problemPath);
         m_process->setArguments(args);
         m_process->setProgram(QUrl(m_solverPath).path());
@@ -40,12 +41,20 @@ void PanOptHandler::kill() {
     }
 }
 
-bool PanOptHandler::loadProblem(QString filename, LPFormat format) {
+PanOptHandler::ParseResult PanOptHandler::loadProblem(QString filename) {
+    ParseResult result;
+    result.str = "";
+    result.line = -1;
     if(!m_running) {
         m_model = new Model();
         if(filename.length() > 3 && filename.right(3).toUpper() == ".LP") {
             LpModelBuilder* builder = new LpModelBuilder();
             builder->loadFromFile(filename.toStdString());
+            if(builder->getError().m_errorStr != "") {
+                result.line = builder->getError().m_errorLine;
+                result.str = QString::fromStdString(builder->getError().m_errorStr);
+                return result;
+            }
             m_model->build(*builder);
             delete builder;
         } else {
@@ -57,6 +66,9 @@ bool PanOptHandler::loadProblem(QString filename, LPFormat format) {
 
         m_problemPath = filename;
         m_problemLoaded = true;
-    } else return false;
-    return true;
+    } else {
+        result.str = "The solver is still running!";
+        result.line = 0;
+    }
+    return result;
 }

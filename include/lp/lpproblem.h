@@ -23,11 +23,20 @@
 
 class LpModelBuilder: public ModelBuilder {
 public:
+
+    struct LpError {
+        int m_errorType;
+        int m_errorLine;
+        std::string m_errorStr;
+    };
+
     LpModelBuilder();
 
     virtual ~LpModelBuilder();
 
     void loadFromFile(const std::string & fileName);
+
+    LpError getError();
 
     void clear();
 
@@ -147,12 +156,6 @@ private:
         std::string m_varName;
         Numerical::Double m_lowerBound;
         Numerical::Double m_upperBound;
-    };
-
-    struct LpError {
-        int m_errorType;
-        int m_errorLine;
-        std::string m_errorStr;
     };
 
     std::ifstream* m_inputFile;

@@ -14,14 +14,14 @@ CONFIG(release, debug|release) {
     #message("NewPanOpt: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
-    #DESTDIR = ../build-NewPanOpt/release
+    DESTDIR = ../build-NewPanOpt/release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     #message("NewPanOpt: Debug mode!")
     #DEFINES += NDEBUG
     QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
-    #DESTDIR = ../build-NewPanOpt/debug
+    DESTDIR = ../build-NewPanOpt/debug
     OBJECTS_DIR = .o_debug
 }
 
