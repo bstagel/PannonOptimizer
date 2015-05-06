@@ -221,11 +221,6 @@ protected:
     bool m_lastFeasible;
 
     /**
-     * Indicates whether the basis was changed or not.
-     */
-    bool m_baseChanged;
-
-    /**
      * Computes the time of the basis inversions.
      */
     Timer m_inversionTimer;

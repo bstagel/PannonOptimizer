@@ -167,9 +167,10 @@ public:
      * @constructor
      * @param list The original list.
      */
-    IndexList(const IndexList & list) {
-        copy(list);
-    }
+    IndexList(const IndexList & list) = delete;
+//    {
+//        copy(list);
+//    }
 
     /**
      * Assignment operator of IndexList.
@@ -212,11 +213,12 @@ public:
      * @param list The original list object.
      * @return Reference of the actual list object.
      */
-    IndexList & operator=(const IndexList & list) {
-        clear();
-        copy(list);
-        return *this;
-    }
+    IndexList & operator=(const IndexList & list) = delete;
+//    {
+//        clear();
+//        copy(list);
+//        return *this;
+//    }
 
     /**
      * Destructor of IndexList.
@@ -451,7 +453,6 @@ public:
             insert(partitionIndex, elements[index], attached[index]);
         }
     }
-
 
     /**
      * Iterator class for listing elements of a linked list.
@@ -882,6 +883,23 @@ public:
     }
 
     /**
+     * Checks whether index is a member of any partition in the list.
+     * @param index element to search for
+     * @return sucess of the search
+     */
+    inline bool contains (unsigned int index) {
+        Iterator it;
+        Iterator endit;
+        getIterators(&it, &endit ,0 , m_partitionCount);
+        for (; it != endit; ++it) {
+            if (index == it.getData()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Removes all indices from a specified partition.
      *
      * @param index The index of the partition to be cleared.
@@ -974,6 +992,7 @@ private:
      *
      * @param list
      */
+    //TODO: Joco nézd át pls
     void copy(const IndexList & list) {
         if (list.m_count == 0) {
             m_partitionCount = 0;

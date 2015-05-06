@@ -26,9 +26,7 @@ PrimalSimplex::PrimalSimplex(Basis *basis):
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0)
-{
-
-}
+{}
 
 PrimalSimplex::~PrimalSimplex()
 {
@@ -159,7 +157,7 @@ Entry PrimalSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIEL
 void PrimalSimplex::computeFeasibility() {
     if(m_feasibilityChecker == nullptr){
         m_feasibilityChecker = new PrimalFeasibilityChecker(*m_simplexModel,
-                                                            &m_variableStates,
+                                                            m_basicVariableValues,
                                                             &m_basicVariableFeasibilities,
                                                             m_basisHead);
         m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
@@ -248,7 +246,6 @@ void PrimalSimplex::selectPivot() {
                                           m_basisHead,
                                           m_basicVariableFeasibilities,
                                           m_variableStates);
-
     }
     m_outgoingIndex = -1;
 
@@ -296,32 +293,31 @@ void PrimalSimplex::selectPivot() {
 }
 
 void PrimalSimplex::update() {
-    std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
-    std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
+    if (!m_ratiotest->isWolfeActive()) {
+        std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
+        std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-    for(; it < itend; ++it){
-        //        LPWARNING("BOUNDFLIPPING at: "<<*it);
-        const Variable& variable = m_simplexModel->getVariable(*it);
-        if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
-            //            LPINFO("LB->UB");
-            Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
-            m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
+        for(; it < itend; ++it){
+            //        LPWARNING("BOUNDFLIPPING at: "<<*it);
+            const Variable& variable = m_simplexModel->getVariable(*it);
+            if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
+                //            LPINFO("LB->UB");
+                Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
+                m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
+                m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
-        } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
-            //            LPINFO("UB->LB");
-            Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
-            m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
-        } else {
-            throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
+            } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
+                //            LPINFO("UB->LB");
+                Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
+                m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
+                m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
+            } else {
+                throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
+            }
         }
     }
 
-
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
-        //Save whether the basis is to be changed
-        m_baseChanged = true;
 
         Simplex::VARIABLE_STATE outgoingState;
         Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
@@ -350,15 +346,19 @@ void PrimalSimplex::update() {
 
         m_pricing->update( m_incomingIndex, m_outgoingIndex, &m_pivotColumn, 0);
 
-        m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
-
         m_objectiveValue += m_primalReducedCost * m_primalTheta;
+
+        //beta' = beta - theta * alpha for current depth only
+        if (m_ratiotest->isWolfeActive()) {
+            wolfeSpecialUpdate();
+        } else {
+            m_basicVariableValues.addVector(-1 * m_primalTheta, m_pivotColumn);
+        }
 
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
         SparseVector gathered;
         gathered = m_pivotColumn;
         m_basis->append(gathered, m_outgoingIndex, m_incomingIndex, outgoingState);
-
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
     }
@@ -368,6 +368,66 @@ void PrimalSimplex::update() {
     //Do this only in phase one
     if(!m_feasible){
         computeFeasibility();
+    }
+}
+
+void PrimalSimplex::wolfeSpecialUpdate()
+{
+    IndexList<>& degenerateAtLB = m_ratiotest->getDegenerateAtLB();
+    IndexList<>& degenerateAtUB = m_ratiotest->getDegenerateAtUB();
+    IndexList<>::PartitionIterator it;
+    IndexList<>::PartitionIterator endit;
+    //update D_Lb
+    degenerateAtLB.getIterators(&it,&endit,m_ratiotest->getDegenDepth());
+    for (; it != endit; ++it) {
+        int basisIndex = it.getData();
+        if (basisIndex != m_outgoingIndex) {
+            m_basicVariableValues.set(basisIndex,m_basicVariableValues[basisIndex] - m_primalTheta * m_pivotColumn.at(basisIndex));
+        }
+    }
+    //update D_Ub
+    degenerateAtUB.getIterators(&it,&endit,m_ratiotest->getDegenDepth());
+    for (; it != endit; ++it) {
+        int basisIndex = it.getData();
+        if (basisIndex != m_outgoingIndex) {
+            m_basicVariableValues.set(basisIndex,m_basicVariableValues[basisIndex] - m_primalTheta * m_pivotColumn.at(basisIndex));
+        }
+    }
+
+    if (degenerateAtLB.where(m_outgoingIndex) < degenerateAtLB.getPartitionCount()) {
+        degenerateAtLB.remove(m_outgoingIndex);
+    } else if (degenerateAtUB.where(m_outgoingIndex) < degenerateAtUB.getPartitionCount()) {
+        degenerateAtUB.remove(m_outgoingIndex);
+    } else {
+        LPINFO("Index is in neither of the D sets");
+        LPINFO("m_outgoingIndex "<<m_outgoingIndex);
+        LPINFO("theta_p "<<m_primalTheta);
+        LPINFO("xb: "<<m_basicVariableValues[m_outgoingIndex]);
+//        LPINFO(degenerateAtLB);
+//        LPINFO(degenerateAtUB);
+        exit(-1);
+    }
+    const Variable & var = m_simplexModel->getVariable(m_incomingIndex);
+    Numerical::Double ref_ub = Numerical::fabs(var.getUpperBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+    Numerical::Double ref_lb = Numerical::fabs(var.getLowerBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+    if ( ref_ub < ref_lb) {
+        degenerateAtUB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
+        if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB ) {
+            LPERROR("wrong state");
+            exit(-1);
+        }
+    } else {
+        degenerateAtLB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
+//        LPINFO("m_outgoingIndex "<<m_outgoingIndex);
+//        LPINFO("x_b "<<m_basicVariableValues[m_outgoingIndex]);
+//        Numerical::Double lb = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound();
+//        Numerical::Double ub = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getUpperBound();
+//        LPINFO("lb: "<<lb<<" ub: "<<ub);
+//        LPINFO("alpha: "<<m_pivotColumn.at(m_outgoingIndex));
+        if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB ) {
+            LPERROR("wrong state");
+            exit(-1);
+        }
     }
 }
 

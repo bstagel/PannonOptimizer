@@ -48,6 +48,7 @@ const char * DefaultParameters::Ratiotest::NONLINEAR_PRIMAL_PHASEI_FUNCTION = "P
 const char * DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEI_FUNCTION = "PIECEWISE";
 const char * DefaultParameters::Ratiotest::NONLINEAR_DUAL_PHASEII_FUNCTION = "PIECEWISE";
 const bool DefaultParameters::Ratiotest::ENABLE_FAKE_FEASIBILITY = false;
+const bool DefaultParameters::Ratiotest::ENABLE_WOLFE_ADHOC = false;
 const double DefaultParameters::Ratiotest::Expand::MULTIPLIER = 0.01;
 const int DefaultParameters::Ratiotest::Expand::DIVIDER = 10000;
 const char * DefaultParameters::Ratiotest::Expand::TYPE = "EXPANDING";

@@ -7,16 +7,14 @@
 #include <utils/thirdparty/prettyprint.h>
 
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
-                                                   IndexList<const Numerical::Double *> *variableStates,
+                                                   const DenseVector & basicVariableValues,
                                                    IndexList<> * basicVariableFeasibilities,
                                                    const std::vector<int>& basisHead):
     m_model(model),
-    m_variableStates(variableStates),
+    m_basicVariableValues(basicVariableValues),
     m_basicVariableFeasibilities(basicVariableFeasibilities),
     m_basisHead(basisHead)
-{
-
-}
+{}
 
 bool PrimalFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phaseI objective value
@@ -33,7 +31,8 @@ bool PrimalFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
         const Variable & basicVariable = m_model.getVariable(m_basisHead[basisIndex]);
         lbOfVariable = basicVariable.getLowerBound();
         ubOfVariable = basicVariable.getUpperBound();
-        valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead[basisIndex]));
+//        valueOfVariable = *(m_variableStates->getAttachedData(m_basisHead[basisIndex]));
+        valueOfVariable = m_basicVariableValues[basisIndex];
 
     //basic variables with M type infeasibility
         if ( (valueOfVariable + tolerance) < lbOfVariable)  {

@@ -203,7 +203,7 @@ void DualSteepestEdgePricing::update(int incomingIndex,
         m_updateCounters[index]++;
         if (newWeight <= 0) {
             m_recomuteIndices.push_back(index);
-            LPWARNING("Recompute the weight of row " << index << ", because the weight = " << newWeight);
+//            LPWARNING("Recompute the weight of row " << index << ", because the weight = " << newWeight);
 
         }
     }

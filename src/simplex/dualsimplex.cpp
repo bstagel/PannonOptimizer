@@ -415,8 +415,6 @@ void DualSimplex::update() {
 
     //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
-        //Save whether the basis is to be changed
-        m_baseChanged = true;
 
         //Compute the transformed column
         m_pivotColumn.reInit(rowCount);
@@ -542,9 +540,6 @@ void DualSimplex::update() {
     //Update the feasibility sets in phase I
     if(!m_feasible){
         computeFeasibility();
-        //        m_feasibilityChecker->updateFeasibilities(m_ratiotest->getUpdateFeasibilitySets(),
-        //                                                  m_ratiotest->getBecomesFeasible());
-        //        Checker::checkFeasibilitySets(*this,true,m_workingTolerance);
     }
 
     checkReferenceObjective(secondPhase);

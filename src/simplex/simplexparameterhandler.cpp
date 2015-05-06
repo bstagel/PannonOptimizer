@@ -267,6 +267,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Ratiotest.enable_fake_feasibility",
                       DefaultParameters::Ratiotest::ENABLE_FAKE_FEASIBILITY);
 
+    createParameter("Ratiotest.enable_wolfe_adhoc",
+                    Entry::BOOL,
+                    RATIOTEST_ENABLE_WOLFE_ADHOC_COMMENT);
+    setParameterValue("Ratiotest.enable_wolfe_adhoc",
+                      DefaultParameters::Ratiotest::ENABLE_WOLFE_ADHOC);
+
     createParameter("Ratiotest.Expand.multiplier",
                     Entry::DOUBLE,
                     RATIOTEST_EXPAND_MULTIPLIER_COMMENT);
