@@ -19,7 +19,6 @@
 #include <algorithm>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";
-const static char * ITERATION_INVERSION_NAME = "Inv";
 
 const static char * SOLUTION_INVERSION_TIMER_NAME = "Inversion time";
 const static char * SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME = "Compute basic solution time";
@@ -62,7 +61,6 @@ Simplex::Simplex(Basis* basis):
     m_outgoingIndex(-1),
     m_feasible(false),
     m_feasibleIteration(false),
-    m_baseChanged(false),
     //Parameter references
     m_reinversionFrequency(SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
@@ -114,9 +112,6 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        IterationReportField inversionField(ITERATION_INVERSION_NAME, 4, 1, IterationReportField::IRF_RIGHT,
-                                            IterationReportField::IRF_STRING, *this);
-        result.push_back(inversionField);
         IterationReportField iterationField(ITERATION_INDEX_NAME, 10, 1, IterationReportField::IRF_RIGHT,
                                             IterationReportField::IRF_INT, *this);
         result.push_back(iterationField);
@@ -234,13 +229,7 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
 
     case IterationReportProvider::IRF_ITERATION:
     {
-        if (name == ITERATION_INVERSION_NAME) {
-            if( ((m_iterationIndex-1) % m_reinversionFrequency) == 0){
-                reply.m_string = new std::string("*I*");
-            } else {
-                reply.m_string = new std::string("");
-            }
-        }else if (name == ITERATION_INDEX_NAME) {
+        if (name == ITERATION_INDEX_NAME) {
             reply.m_integer = m_iterationIndex;
         }
         break;
@@ -412,10 +401,6 @@ void Simplex::setSimplexState(const Simplex & simplex)
 
 void Simplex::iterate(int iterationIndex)
 {
-    // TOROLD
-    //m_objectiveValue.setDebugMode(true);
-
-
     m_iterationIndex = iterationIndex;
     m_feasibleIteration = m_feasible;
 
@@ -430,7 +415,6 @@ void Simplex::iterate(int iterationIndex)
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
-
     computeWorkingTolerance();
 
     if(!m_feasible){
@@ -758,7 +742,6 @@ void Simplex::computeBasicSolution() {
     }
 
     //    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
-    //    Vector checkVector;
 
     m_basis->Ftran(m_basicVariableValues);
 

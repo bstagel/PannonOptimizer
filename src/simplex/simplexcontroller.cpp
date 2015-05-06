@@ -11,6 +11,7 @@
 #include <simplex/simplexthread.h>
 
 const static char * ITERATION_TIME_NAME = "Time";
+const static char * ITERATION_INVERSION_NAME = "Inv";
 
 const static char * SOLUTION_ITERATION_NAME = "Total iterations";
 const static char * SOLUTION_SOLVE_TIMER_NAME = "Total solution time";
@@ -93,6 +94,9 @@ std::vector<IterationReportField> SimplexController::getIterationReportFields(
                                        IterationReportField::IRF_FLOAT, *this,
                                        4, IterationReportField::IRF_FIXED);
         result.push_back(timeField);
+        IterationReportField inversionField(ITERATION_INVERSION_NAME, 4, 1, IterationReportField::IRF_RIGHT,
+                                            IterationReportField::IRF_STRING, *this);
+        result.push_back(inversionField);
         break;
     }
 
@@ -166,11 +170,19 @@ Entry SimplexController::getIterationEntry(const string &name, ITERATION_REPORT_
         break;
 
     case IterationReportProvider::IRF_ITERATION:
+    {
         if (name == ITERATION_TIME_NAME) {
             reply.m_double = sm_solveTimer.getCPURunningTime();
+        } else if (name == ITERATION_INVERSION_NAME) {
+            if (m_freshBasis) {
+                reply.m_string = new std::string("*I*");
+            } else {
+                reply.m_string = new std::string("");
+            }
         }
-        break;
 
+        break;
+    }
     case IterationReportProvider::IRF_SOLUTION:
         if (name == SOLUTION_ITERATION_NAME) {
             reply.m_integer = m_iterationIndex;
@@ -312,7 +324,6 @@ void SimplexController::sequentialSolve(const Model &model)
 
         sm_solveTimer.reset();
         sm_solveTimer.start();
-//        LPINFO("START: ")
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
@@ -338,7 +349,12 @@ void SimplexController::sequentialSolve(const Model &model)
                 m_currentSimplex->saveBasis(m_iterationIndex);
             }
 
-            if((int)reinversionCounter == reinversionFrequency){
+            //if wolfe is active no inversion should be done (reordering the basishead causes undefined behaviour in the procedure)
+            if((int)reinversionCounter >= reinversionFrequency && !((m_currentAlgorithm == Simplex::PRIMAL &&
+                                                                   m_primalSimplex->m_ratiotest != NULL) ?
+                    m_primalSimplex->m_ratiotest->isWolfeActive() :
+                 (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != NULL) ?
+                    (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
 
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
@@ -366,6 +382,7 @@ void SimplexController::sequentialSolve(const Model &model)
             try{
                 //iterate
                 m_currentSimplex->iterate(m_iterationIndex);
+
                 m_iterations++;
 
                 if(!m_currentSimplex->m_feasible){

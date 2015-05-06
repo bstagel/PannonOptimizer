@@ -26,7 +26,7 @@ public:
      * @constructor
      */
     PrimalFeasibilityChecker(const SimplexModel& model,
-                             IndexList<const Numerical::Double *>* variableStates,
+                             const DenseVector & basicVariableValues,
                              IndexList<>* basicVariableFeasibilities,
                              const std::vector<int> &basisHead);
 
@@ -54,9 +54,11 @@ private:
     const SimplexModel& m_model;
 
     /**
-     * Index list storing the state (being at lower/upper bound) of the nonbasic variables.
+     * This vector(X_B) stores the basic variable values.
+     * Do not set to const reference, because in Wolfe's 'ad hoc' method the ratiotest should be able to
+     * change the basic variable values thus it is a virtual perturbation.
      */
-    IndexList<const Numerical::Double*>* m_variableStates;
+    const DenseVector& m_basicVariableValues;
 
     /**
      * Index list storing the feasibilities of the basic variables, which are computed by this class.

@@ -55,6 +55,12 @@ public:
     virtual ~DualRatiotest(){}
 
     /**
+     * Getter of m_wolfeActive member
+     * @return DualRatiotest::m_wolfeActive
+     */
+    inline bool isWolfeActive() const {return m_wolfeActive;}
+
+    /**
      * Getter of the updateFeasibilitySets member.
      *
      * @return DualRatiotest::m_updateFeasibilitySets.
@@ -211,6 +217,11 @@ private:
      * When defining the ratios we compute with sigma*alpha values.
      */
     int m_sigma;
+
+    /**
+     * Indicates whether Wolfe's ad hoc method is active.
+     */
+    bool m_wolfeActive;
 
     /**
      * The variable index of the incoming variable.

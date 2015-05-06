@@ -73,6 +73,7 @@
 # PIECEWISE_THRESHOLD: Piecewise linear function with numerical threshold )"
 
 #define RATIOTEST_ENABLE_FAKE_FEASIBILITY_COMMENT "# Enable fake feasibility handling in Primal / Dual Phase I and II"
+#define RATIOTEST_ENABLE_WOLFE_ADHOC_COMMENT "# Enable Wolfe's 'ad hoc' method, measure of perturbation is from (e_feas, 2e_feas)"
 #define RATIOTEST_EXPAND_MULTIPLIER_COMMENT "# EXPAND multiplier initializing value"
 #define RATIOTEST_EXPAND_DIVIDER_COMMENT "# EXPAND divider initializing value"
 #define RATIOTEST_EXPAND_AVOIDTHETAMIN_COMMENT "# Choosing alternative pivot to avoid the selection of thetamin"

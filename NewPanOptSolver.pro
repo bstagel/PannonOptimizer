@@ -9,7 +9,6 @@ CONFIG += console
 TARGET = NewPanOptSolver
 
 LIBS += -pthread
-#linux specific...
 #LIBS += -lgmpxx -lgmp
 #LIBS += -rdynamic -ldl
 

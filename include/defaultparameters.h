@@ -97,6 +97,7 @@ public:
         static const char * NONLINEAR_DUAL_PHASEI_FUNCTION;
         static const char * NONLINEAR_DUAL_PHASEII_FUNCTION;
         static const bool ENABLE_FAKE_FEASIBILITY;
+        static const bool ENABLE_WOLFE_ADHOC;
 
         class Expand {
         public:
