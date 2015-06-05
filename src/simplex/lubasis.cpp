@@ -1050,7 +1050,8 @@ void LuBasis::Btran(SparseVector &vector, BTRAN_MODE mode) const
 
 void LuBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
 {
-
+__UNUSED(vector);
+__UNUSED(mode);
 }
 
 void LuBasis::checkSingularity() {

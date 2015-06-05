@@ -54,7 +54,7 @@ void PnsInterface::loadProblem (  const int numcols, const int numrows,
 
 void PnsInterface::setLogLevel(int value)
 {
-    SimplexParameterHandler::getInstance().setParameterValue("Global.debug_level", value);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.debug_level", value<0?0:value);
 }
 
 void PnsInterface::setRowName(int rowIndex, std::string & name)
