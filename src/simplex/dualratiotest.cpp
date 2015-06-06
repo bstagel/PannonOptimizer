@@ -1009,10 +1009,10 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
         bool sameForDepth = false;
         IndexList<>::PartitionIterator it;
         IndexList<>::PartitionIterator endit;
-         bool increaseDepth = false;
+        bool increaseDepth = false;
 
         //D_Lb
-         LPINFO("m_degenDepth: "<<m_degenDepth);
+//         LPINFO("m_degenDepth: "<<m_degenDepth);
         m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
         std::vector<unsigned> positionsToMove;
         for (; it != endit; ++it) {
@@ -1021,7 +1021,7 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
             Numerical::Double dj = m_reducedCosts.at(variableIndex);
             LPINFO("asd- it.get: "<<it.getData())
             if (Numerical::equal( dj, 0,degeneracyTolerance)) {
-                LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
+//                LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
                 increaseDepth = true;
                 if (sameForDepth) {
                     m_reducedCosts.set(variableIndex, dj + delta);
