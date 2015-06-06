@@ -583,7 +583,7 @@ void DualSimplex::wolfeSpecialUpdate()
         exit(-1);
     }
     const Variable & var = m_simplexModel->getVariable(m_incomingIndex);
-    if (var.getType() != Variable::FIXED && Numerical::fabs(m_pivotRow.at(m_incomingIndex)) > m_pivotTolerance) {
+    if (var.getType() != Variable::FIXED) {
         if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB) {
             degenerateAtLB.insert(m_ratiotest->getDegenDepth(), m_incomingIndex);
         } else if (m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB) {

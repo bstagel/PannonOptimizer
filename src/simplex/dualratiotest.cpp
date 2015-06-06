@@ -7,6 +7,7 @@
 #include <simplex/simplex.h>
 #include <random>
 #include <prettyprint.h>
+#define LPINOF LPINFO
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
                              DenseVector &reducedCosts,
@@ -51,8 +52,8 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_breakpointHandler.init(2*dimension);
     m_boundflips.reserve(dimension);
     if (m_wolfe) {
-        m_degenerateAtLB.init(m_model.getColumnCount(), m_model.getColumnCount());
-        m_degenerateAtUB.init(m_model.getColumnCount(), m_model.getColumnCount());
+        m_degenerateAtLB.init(dimension, dimension);
+        m_degenerateAtUB.init(dimension, dimension);
     }
 }
 
@@ -965,35 +966,40 @@ bool DualRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
 void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVector &alpha, Numerical::Double workingTolerance)
 {
-    //    LPINFO("wolfeadhocmethod called");
-        //Wolfe's 'ad hoc' method, small pivot candidates are excluded
+//        LPINFO("wolfeadhocmethod called");
+        //Wolfe's 'ad hoc' method, small pivot candidates are excluded in the ratiotest
         Numerical::Double degeneracyTolerance = m_optimalityTolerance;
         //step 0: init Wolfe, compute degeneracy sets
         if (!m_wolfeActive) {
-    //        LPINFO("Wolfe: start");
+//            LPINFO("Wolfe: start");
+//            LPINFO("lengsz: "<<m_reducedCosts.length());
             for (unsigned variableIndex = 0; variableIndex < m_reducedCosts.length(); ++variableIndex) {
+//                LPINFO("varindex: "<<variableIndex);
                 Numerical::Double dj = m_reducedCosts.at(variableIndex);
-                if (Numerical::equal(dj, 0, degeneracyTolerance) &&
-                        Numerical::fabs(alpha.at(variableIndex)) > m_pivotTolerance) {
+                if (Numerical::equal(dj, 0, degeneracyTolerance) ) {
                     if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB) {
                         m_degenerateAtLB.insert(0,variableIndex);
                     } else if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB) {
                         m_degenerateAtUB.insert(0,variableIndex);
-                    } else {
-                       LPINFO("state: "<<m_variableStates.where(variableIndex));
-                       exit(-1);
                     }
-                } else if (dj + m_optimalityTolerance < 0 || dj - m_optimalityTolerance > 0) {
+                } else if (dj + m_optimalityTolerance < 0 && m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB) {
                     m_wolfeActive = false;
-                    LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
-                    LPINFO("m_state: "<<m_variableStates.where(variableIndex));
-                    exit(-1);
+//                    LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+//                    LPINFO("m_state: "<<m_variableStates.where(variableIndex));
+//                    exit(-1);
+                    throw FallbackException("Infeasible variable in phase 2");
+                } else if (dj - m_optimalityTolerance > 0 && m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB) {
+                    m_wolfeActive = false;
+//                    LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+//                    LPINFO("m_state: "<<m_variableStates.where(variableIndex));
+//                    exit(-1);
                     throw FallbackException("Infeasible variable in phase 2");
                 }
             }
             m_degenDepth = 0;
             m_wolfeActive = true;
         }
+
         //step 1: vitual perturbation from interval (e_opt, 2*e_opt)
         //TODO: addVector a set helyett?
         std::uniform_real_distribution<double> distribution(m_optimalityTolerance, 2*m_optimalityTolerance);
@@ -1006,14 +1012,16 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
          bool increaseDepth = false;
 
         //D_Lb
+         LPINFO("m_degenDepth: "<<m_degenDepth);
         m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
         std::vector<unsigned> positionsToMove;
         for (; it != endit; ++it) {
     //        LPINFO("visiting dlb");
             unsigned int variableIndex = it.getData();
             Numerical::Double dj = m_reducedCosts.at(variableIndex);
+            LPINFO("asd- it.get: "<<it.getData())
             if (Numerical::equal( dj, 0,degeneracyTolerance)) {
-    //            LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
+                LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
                 increaseDepth = true;
                 if (sameForDepth) {
                     m_reducedCosts.set(variableIndex, dj + delta);
@@ -1024,7 +1032,7 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
                 positionsToMove.push_back(variableIndex);
             } else if (dj + m_optimalityTolerance < 0) {
                 m_wolfeActive = false;
-                LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+                LPINFO("step 1 fallback at d_j: "<<m_reducedCosts.at(variableIndex));
                 LPINFO("m_state: "<<m_variableStates.where(variableIndex));
                 exit(-1);
                 throw FallbackException("Infeasible variable in phase 2");
@@ -1054,6 +1062,9 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
                 positionsToMove.push_back(variableIndex);
             }else if (dj - m_optimalityTolerance > 0) {
                 m_wolfeActive = false;
+                LPINFO("step 1 fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+                LPINFO("m_state: "<<m_variableStates.where(variableIndex));
+                exit(-1);
                 throw FallbackException("Infeasible variable in phase 2");
             }
         }
@@ -1067,9 +1078,8 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
             m_degenDepth++;
     //        LPINFO("Wolfe: depth increased to "<<m_degenDepth);
         }
-
         do{
-    //        LPINFO("Performing Wolfe");
+//            LPINFO("Performing Wolfe");
             //step 2: perform Wolfe ratiotest with ratios whose depth was increased
             bool pivotFound = performWolfeRatiotest(alpha);
             //step 3: apply special update
@@ -1107,7 +1117,7 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
                 positionsToMove.clear();
 
                 m_degenDepth--;
-    //            LPINFO("Wolfe: depth decreased to "<<m_degenDepth);
+//                LPINFO("Wolfe: depth decreased to "<<m_degenDepth);
             }
         }while(true);
         //stop Wolfe

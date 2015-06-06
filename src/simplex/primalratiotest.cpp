@@ -667,7 +667,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVector &alpha, Numerical::Double reducedCost, Numerical::Double workingTolerance)
 {
 //    LPINFO("wolfeadhocmethod called");
-    //Wolfe's 'ad hoc' method, small pivot candidates are excluded
+    //Wolfe's 'ad hoc' method, small pivot candidates are excluded in the ratiotest
     Numerical::Double degeneracyTolerance = m_feasibilityTolerance;
     //step 0: init Wolfe, compute degeneracy sets
     if (!m_wolfeActive) {
@@ -676,11 +676,9 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
             Numerical::Double lb = m_model.getVariable(m_basishead[basisIndex]).getLowerBound();
             Numerical::Double ub = m_model.getVariable(m_basishead[basisIndex]).getUpperBound();
             Numerical::Double xb = m_basicVariableValues[basisIndex];
-            if (Numerical::equal(xb, lb, degeneracyTolerance) &&
-                    Numerical::fabs(alpha.at(basisIndex)) > m_pivotTolerance ) {
+            if (Numerical::equal(xb, lb, degeneracyTolerance) ) {
                 m_degenerateAtLB.insert(0,basisIndex);
-            } else if (Numerical::equal(xb, ub, degeneracyTolerance) &&
-                       Numerical::fabs(alpha.at(basisIndex)) > m_pivotTolerance) {
+            } else if (Numerical::equal(xb, ub, degeneracyTolerance) ) {
                 m_degenerateAtUB.insert(0,basisIndex);
             }else if (xb + m_feasibilityTolerance < lb || xb - m_feasibilityTolerance > ub) {
                 m_wolfeActive = false;
