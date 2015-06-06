@@ -644,6 +644,12 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
         m_outgoingVariableIndex = breakpoint->variableIndex;
         m_primalSteplength = m_sigma * breakpoint->value;
+        if (m_primalSteplength >= 10E-4) {
+            LPINFO("m_primalSteplength "<<m_primalSteplength);
+            LPINFO("alpha: "<<alpha.at(m_outgoingVariableIndex));
+            LPINFO("lb: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getLowerBound());
+            LPINFO("ub: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound());
+        }
 //        LPINFO("Wolfe: variable "<<m_outgoingVariableIndex<<" leaving with: "<<m_primalSteplength);
 
         Numerical::Double ref_ub = Numerical::fabs(m_primalSteplength - (m_basicVariableValues.at(m_outgoingVariableIndex) -
@@ -660,6 +666,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
 void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVector &alpha, Numerical::Double reducedCost, Numerical::Double workingTolerance)
 {
+//    LPINFO("wolfeadhocmethod called");
     //Wolfe's 'ad hoc' method, small pivot candidates are excluded
     Numerical::Double degeneracyTolerance = m_feasibilityTolerance;
     //step 0: init Wolfe, compute degeneracy sets
@@ -698,10 +705,12 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
     m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
     std::vector<unsigned> positionsToMove;
     for (; it != endit; ++it) {
+//        LPINFO("visiting dlb");
         unsigned int basisIndex = it.getData();
         Numerical::Double lb = m_model.getVariable(m_basishead[basisIndex]).getLowerBound();
         Numerical::Double xb = m_basicVariableValues[basisIndex];
         if (Numerical::equal( xb, lb,degeneracyTolerance)) {
+//            if (xb <= lb) {
 //            LPINFO("D_lb candidate index: "<<basisIndex<<" xb: "<<xb<<" lb: "<<lb);
             increaseDepth = true;
             if (sameForDepth) {
@@ -725,10 +734,12 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
     //D_Ub
     m_degenerateAtUB.getIterators(&it,&endit,m_degenDepth);
     for (; it != endit; ++it) {
+//        LPINFO("visiting dub");
         unsigned int basisIndex = it.getData();
         Numerical::Double ub = m_model.getVariable(m_basishead[basisIndex]).getUpperBound();
         Numerical::Double xb = m_basicVariableValues[basisIndex];
         if (Numerical::equal(xb,ub,degeneracyTolerance)) {
+//            if (xb >= ub) {
 //            LPINFO("D_ub candidate index: "<<basisIndex<<" xb: "<<xb<<" ub: "<<ub);
             increaseDepth = true;
             if (sameForDepth) {
@@ -755,6 +766,7 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
     }
 
     do{
+//        LPINFO("Performing Wolfe");
         //step 2: perform Wolfe ratiotest with ratios whose depth was increased
         bool pivotFound = performWolfeRatiotest(alpha);
         //step 3: apply special update

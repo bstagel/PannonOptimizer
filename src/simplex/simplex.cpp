@@ -72,6 +72,7 @@ Simplex::Simplex(Basis* basis):
     m_saveFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.SaveBasis.filename")),
     m_loadFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.filename")),
     m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.format")),
+    m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
     m_masterTolerance(0),
     m_toleranceStep(0),
     m_workingTolerance(0),

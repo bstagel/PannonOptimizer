@@ -43,7 +43,7 @@ public:
      * @constructor
      */
     DualRatiotest(const SimplexModel & model,
-                  const DenseVector& reducedCosts,
+                  DenseVector &reducedCosts,
                   const IndexList<>& reducedCostFeasibilities,
                   const IndexList<const Numerical::Double*>& variableStates);
 
@@ -53,12 +53,6 @@ public:
      * @destructor
      */
     virtual ~DualRatiotest(){}
-
-    /**
-     * Getter of m_wolfeActive member
-     * @return DualRatiotest::m_wolfeActive
-     */
-    inline bool isWolfeActive() const {return m_wolfeActive;}
 
     /**
      * Getter of the updateFeasibilitySets member.
@@ -126,6 +120,46 @@ public:
     void performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 const DenseVector &alpha,
                                 Numerical::Double workingTolerance);
+
+    //Wolfe
+    /**
+     * Performs ratiotest according to Wolfe's 'ad hoc' method.
+     * @param alpha The alpha value needed to define ratios.
+     * @return true if a pivot row p is found.
+     */
+    bool performWolfeRatiotest(const DenseVector &alpha);
+
+    /**
+     * This function performs Wolfe's 'ad hoc' method.
+     * @param outgoingVariableIndex The index of the outgoing variable.
+     * @param alpha The alpha value needed to define ratios.
+     * @throw FallbackException if any variable is infeasible
+     */
+    void wolfeAdHocMethod(int outgoingVariableIndex, const DenseVector &alpha, Numerical::Double workingTolerance);
+
+    /**
+     * Getter of degenerate at lb member, this is required in PrimalSimplex Wolfe special update.
+     * @return  reference of member m_degenerateAtLB
+     */
+    inline IndexList<>& getDegenerateAtLB(){return m_degenerateAtLB;}
+
+    /**
+     * Getter of degenerate at ub member, this is required in PrimalSimplex Wolfe special update.
+     * @return  reference of member m_degenerateAtUB
+     */
+    inline IndexList<>& getDegenerateAtUB(){return m_degenerateAtUB;}
+
+    /**
+     * Getter of degeneracy depth member.
+     * @return m_degenDepth
+     */
+    inline unsigned int getDegenDepth()const{return m_degenDepth;}
+
+    /**
+     * Returns whether Wolfe's 'ad hoc' method was used during the ratiotest.
+     * @return true if Wolfe is on, otherwise false.
+     */
+    inline bool isWolfeActive() const {return m_wolfeActive;}
 
     //Ratiotest study
     /**
@@ -199,8 +233,10 @@ private:
 
     /**
      * Vector of the reduced costs so that the ratios can be defined.
+     * Do not set to const reference, because in Wolfe's 'ad hoc' method the ratiotest should be able to
+     * change the reduced cost values thus it is a virtual perturbation.
      */
-    const DenseVector& m_reducedCosts;
+    DenseVector& m_reducedCosts;
 
     /**
      * Index list storing the feasibilities of the reduced costs defined by the DualFeasibilityChecker.
@@ -219,9 +255,28 @@ private:
     int m_sigma;
 
     /**
-     * Indicates whether Wolfe's ad hoc method is active.
+     * This holds the indices of the basicvariables, whose value is equal (with tolerance) to their lower bounds.
+     *
+     * This is a degeneracy set required in Wolfe's 'ad hoc' method.
+     */
+    IndexList <> m_degenerateAtLB;
+
+    /**
+     * This holds the indices of the basicvariables, whose value is equal (with tolerance) to their upper bounds.
+     *
+     * This is a degeneracy set required in Wolfe's 'ad hoc' method.
+     */
+    IndexList <> m_degenerateAtUB;
+
+    /**
+     * This is is true if Wolfe's 'ad hoc' method is active (degeneracy is present).
      */
     bool m_wolfeActive;
+
+    /**
+     * Depth of degeneracy in Wolfe's 'ad hoc' method.
+     */
+    unsigned int m_degenDepth;
 
     /**
      * The variable index of the incoming variable.
@@ -361,6 +416,12 @@ private:
      * see SimplexParameterHandler for details.
      */
      const bool & m_avoidThetaMin;
+
+     /**
+      * Parameter reference of run-time parameter "enable_wolfe_adhoc",
+      * see SimplexParameterHandler for details.
+      */
+      const bool & m_wolfe;
 
     /**
      * This is the value of the tolerance increment in the expand procedure.
