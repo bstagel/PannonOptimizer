@@ -111,6 +111,11 @@ private:
     virtual void update();
 
     /**
+     * Function for updating the solution if Wolfe's 'ad hoc' method is used.
+     */
+    void wolfeSpecialUpdate();
+
+    /**
      * Updates the reduced cost values.
      */
     virtual void updateReducedCosts();

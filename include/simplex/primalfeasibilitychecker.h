@@ -55,8 +55,6 @@ private:
 
     /**
      * This vector(X_B) stores the basic variable values.
-     * Do not set to const reference, because in Wolfe's 'ad hoc' method the ratiotest should be able to
-     * change the basic variable values thus it is a virtual perturbation.
      */
     const DenseVector& m_basicVariableValues;
 

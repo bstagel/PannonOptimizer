@@ -317,6 +317,7 @@ void PrimalSimplex::update() {
         }
     }
 
+    //Perform the basis change
     if(m_outgoingIndex != -1 && m_incomingIndex != -1){
 
         Simplex::VARIABLE_STATE outgoingState;
@@ -408,25 +409,27 @@ void PrimalSimplex::wolfeSpecialUpdate()
         exit(-1);
     }
     const Variable & var = m_simplexModel->getVariable(m_incomingIndex);
-    Numerical::Double ref_ub = Numerical::fabs(var.getUpperBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
-    Numerical::Double ref_lb = Numerical::fabs(var.getLowerBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
-    if ( ref_ub < ref_lb) {
-        degenerateAtUB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
-        if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB ) {
-            LPERROR("wrong state");
-            exit(-1);
-        }
-    } else {
-        degenerateAtLB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
-//        LPINFO("m_outgoingIndex "<<m_outgoingIndex);
-//        LPINFO("x_b "<<m_basicVariableValues[m_outgoingIndex]);
-//        Numerical::Double lb = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound();
-//        Numerical::Double ub = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getUpperBound();
-//        LPINFO("lb: "<<lb<<" ub: "<<ub);
-//        LPINFO("alpha: "<<m_pivotColumn.at(m_outgoingIndex));
-        if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB ) {
-            LPERROR("wrong state");
-            exit(-1);
+    if (var.getType() != Variable::FREE && Numerical::fabs(m_pivotColumn.at(m_outgoingIndex)) > m_pivotTolerance) {
+        Numerical::Double ref_ub = Numerical::fabs(var.getUpperBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+        Numerical::Double ref_lb = Numerical::fabs(var.getLowerBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+        if ( ref_ub < ref_lb) {
+            degenerateAtUB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
+            if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB ) {
+                LPERROR("wrong state");
+                exit(-1);
+            }
+        } else {
+            degenerateAtLB.insert(m_ratiotest->getDegenDepth(), m_outgoingIndex);
+    //        LPINFO("m_outgoingIndex "<<m_outgoingIndex);
+    //        LPINFO("x_b "<<m_basicVariableValues[m_outgoingIndex]);
+    //        Numerical::Double lb = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound();
+    //        Numerical::Double ub = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getUpperBound();
+    //        LPINFO("lb: "<<lb<<" ub: "<<ub);
+    //        LPINFO("alpha: "<<m_pivotColumn.at(m_outgoingIndex));
+            if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB ) {
+                LPERROR("wrong state");
+                exit(-1);
+            }
         }
     }
 }

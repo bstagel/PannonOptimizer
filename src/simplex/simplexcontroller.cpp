@@ -344,7 +344,6 @@ void SimplexController::sequentialSolve(const Model &model)
         for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
 
-
             if(m_saveBasis){
                 m_currentSimplex->saveBasis(m_iterationIndex);
             }

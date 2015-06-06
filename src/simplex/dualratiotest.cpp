@@ -5,10 +5,11 @@
 #include <simplex/dualratiotest.h>
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/simplex.h>
+#include <random>
 #include <prettyprint.h>
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,
-                             const DenseVector &reducedCosts,
+                             DenseVector &reducedCosts,
                              const IndexList<>& reducedCostFeasibilities,
                              const IndexList<const Numerical::Double *> &variableStates) :
     m_model(model),
@@ -39,6 +40,7 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_enableFakeFeasibility(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_fake_feasibility")),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_avoidThetaMin(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.Expand.avoidthetamin")),
+    m_wolfe(SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.enable_wolfe_adhoc")),
     m_toleranceStep(m_optimalityTolerance * (1 - SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier")) /
                     SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
     m_degenerate(false)
@@ -48,8 +50,10 @@ DualRatiotest::DualRatiotest(const SimplexModel & model,
     m_updateFeasibilitySets.reserve(2*dimension);
     m_breakpointHandler.init(2*dimension);
     m_boundflips.reserve(dimension);
-
-//    m_dualSteplength.setDebugMode(true);
+    if (m_wolfe) {
+        m_degenerateAtLB.init(m_model.getColumnCount(), m_model.getColumnCount());
+        m_degenerateAtUB.init(m_model.getColumnCount(), m_model.getColumnCount());
+    }
 }
 
 void DualRatiotest::generateSignedBreakpointsPhase1(const DenseVector& alpha)
@@ -711,184 +715,405 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
         m_sigma = 1;
     }
 
-    if(m_expand != "INACTIVE"){
-        generateExpandedBreakpointsPhase2(alpha,workingTolerance);
-    }else{
-        generateSignedBreakpointsPhase2(alpha);
-    }
-    //Slope check should be enabled in debug mode
-#ifndef NDEBUG
-    if (functionSlope < 0) {
-        LPERROR("SLOPE IS NEGATIVE ERROR - TERMINATING!!! s: "<<functionSlope);
-    }
-#endif
+    if (m_wolfeActive) {
+        wolfeAdHocMethod(outgoingVariableIndex,alpha,workingTolerance);
+    } else {
+        if(m_expand != "INACTIVE"){
+            generateExpandedBreakpointsPhase2(alpha,workingTolerance);
+        }else{
+            generateSignedBreakpointsPhase2(alpha);
+        }
+        //Slope check should be enabled in debug mode
+    #ifndef NDEBUG
+        if (functionSlope < 0) {
+            LPERROR("SLOPE IS NEGATIVE ERROR - TERMINATING!!! s: "<<functionSlope);
+        }
+    #endif
 
-    //free variables always enter the basis
-    if (m_incomingVariableIndex == -1) {
-        if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
-            m_breakpointHandler.initSorting();
-            //Handle fake feasible breakpoints
-            if(m_expand == "INACTIVE" && m_enableFakeFeasibility){
-                const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
-                int fakeFeasibilityCounter = 0;
-                while ( breakpoint->value < 0) {
-                    if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > m_optimalityTolerance){
-                        throw FallbackException("Infeasible variable in phase 2");
-                    }
-                    fakeFeasibilityCounter++;
-
-                    const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
-
-                    functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
-                            (variable.getUpperBound() - variable.getLowerBound());
-                    ++iterationCounter;
-
-                    if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
-                        breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
-                    } else {
-                        break;
-                    }
-                }
-
-                if(fakeFeasibilityCounter > 0){
-                    m_fakeFeasibilityActivationPhase2++;
-                    m_fakeFeasibilityCounterPhase2+=fakeFeasibilityCounter;
-                }
-
-                if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
-                    LPINFO("Fake feasible slope: "<<functionSlope);
-                    m_incomingVariableIndex = -1;
-                    m_dualSteplength = 0;
-                    return;
-                }
-            }else if(m_expand != "INACTIVE" && m_enableFakeFeasibility){
-                const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
-                //original slope isn't updated, we investigate if there are too many fake feasible breakpoints
-                auto slope = functionSlope;
-                unsigned iteration = iterationCounter;
-                while (breakpoint->value < 0){
-                    const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
-                    slope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
-                            (variable.getUpperBound() - variable.getLowerBound());
-                    iteration++;
-                    if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
-                        breakpoint = m_breakpointHandler.getBreakpoint(iteration);
-                    } else {
-                        break;
-                    }
-                }
-                //if slope gone negative, fake feasible variable with biggest |alpha| is incoming
-                if(slope < 0 || iteration == m_breakpointHandler.getNumberOfBreakpoints()){
-                    int maxAlphaId = m_breakpointHandler.getBreakpoint(0)->variableIndex;
-                    for(unsigned i=1; i < (iteration-iterationCounter); i++){
-                        int variableIndex = m_breakpointHandler.getBreakpoint(i)->variableIndex;
-                        if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
-                            maxAlphaId = variableIndex;
-                        }
-                    }
-                    LPINFO("Fake feasible variable");
-                    m_dualSteplength = m_sigma * m_reducedCosts.at(maxAlphaId) / Numerical::fabs(alpha.at(maxAlphaId));
-                    m_incomingVariableIndex = maxAlphaId;
-                    return;
-                }
-            }
-
-            if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
-                switch (m_nonlinearDualPhaseIIFunction) {
-                case ONE_STEP:{
+        //free variables always enter the basis
+        if (m_incomingVariableIndex == -1) {
+            if (m_breakpointHandler.getNumberOfBreakpoints() > 0) {
+                m_breakpointHandler.initSorting();
+                //Handle fake feasible breakpoints
+                if(m_expand == "INACTIVE" && m_enableFakeFeasibility){
                     const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+                    int fakeFeasibilityCounter = 0;
+                    while ( breakpoint->value < 0) {
+                        if (Numerical::fabs(m_reducedCosts.at(breakpoint->variableIndex)) > m_optimalityTolerance){
+                            throw FallbackException("Infeasible variable in phase 2");
+                        }
+                        fakeFeasibilityCounter++;
 
-                    m_incomingVariableIndex = breakpoint->variableIndex;
-                    m_dualSteplength = m_sigma * breakpoint->value;
-                    break;
-                }
+                        const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
 
-                case PIECEWISE_LINEAR_FUNCTION:{
-                    computeFunctionPhase2(alpha,iterationCounter,functionSlope,workingTolerance);
-                    break;
-                }
+                        functionSlope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
+                                (variable.getUpperBound() - variable.getLowerBound());
+                        ++iterationCounter;
 
-                case STABLE_PIVOT:{
-                    computeFunctionPhase2(alpha,iterationCounter,functionSlope,workingTolerance);
-                    if( Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance ) {
-                        useNumericalThresholdPhase2(iterationCounter, alpha);
-                    }
-                    break;
-                }
-                }
-                //Harris, expand
-                if(m_expand != "INACTIVE"){
-                    const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios = m_breakpointHandler.getExpandSecondPass();
-#ifndef NDEBUG
-                    if(secondPassRatios.size() == 0){
-                        LPWARNING("No second pass ratios found!!");
-                        exit(-1);
-                    }
-#endif
-                    int maxBreakpointId = 0;
-                    int maxAlphaId = secondPassRatios[0]->variableIndex;
-                    int variableIndex = -1;
-
-                    //choosing best pivot candidate
-                    for(unsigned i=1; i < secondPassRatios.size(); i++){
-                        variableIndex = secondPassRatios[i]->variableIndex;
-                        if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
-                            maxAlphaId = variableIndex;
-                            maxBreakpointId = i;
+                        if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+                            breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+                        } else {
+                            break;
                         }
                     }
-                    Numerical::Double thetaMin = 0;
-                    if(m_expand == "EXPANDING"){
-                        thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
+
+                    if(fakeFeasibilityCounter > 0){
+                        m_fakeFeasibilityActivationPhase2++;
+                        m_fakeFeasibilityCounterPhase2+=fakeFeasibilityCounter;
+                    }
+
+                    if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
+                        LPINFO("Fake feasible slope: "<<functionSlope);
+                        m_incomingVariableIndex = -1;
+                        m_dualSteplength = 0;
+                        return;
+                    }
+                }else if(m_expand != "INACTIVE" && m_enableFakeFeasibility){
+                    const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+                    //original slope isn't updated, we investigate if there are too many fake feasible breakpoints
+                    auto slope = functionSlope;
+                    unsigned iteration = iterationCounter;
+                    while (breakpoint->value < 0){
+                        const Variable & variable = m_model.getVariable(breakpoint->variableIndex);
+                        slope -= Numerical::fabs(alpha.at(breakpoint->variableIndex)) *
+                                (variable.getUpperBound() - variable.getLowerBound());
+                        iteration++;
+                        if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+                            breakpoint = m_breakpointHandler.getBreakpoint(iteration);
+                        } else {
+                            break;
+                        }
+                    }
+                    //if slope gone negative, fake feasible variable with biggest |alpha| is incoming
+                    if(slope < 0 || iteration == m_breakpointHandler.getNumberOfBreakpoints()){
+                        int maxAlphaId = m_breakpointHandler.getBreakpoint(0)->variableIndex;
+                        for(unsigned i=1; i < (iteration-iterationCounter); i++){
+                            int variableIndex = m_breakpointHandler.getBreakpoint(i)->variableIndex;
+                            if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
+                                maxAlphaId = variableIndex;
+                            }
+                        }
+                        LPINFO("Fake feasible variable");
+                        m_dualSteplength = m_sigma * m_reducedCosts.at(maxAlphaId) / Numerical::fabs(alpha.at(maxAlphaId));
+                        m_incomingVariableIndex = maxAlphaId;
+                        return;
+                    }
+                }
+
+                if(iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()){
+                    switch (m_nonlinearDualPhaseIIFunction) {
+                    case ONE_STEP:{
+                        const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
+
+                        m_incomingVariableIndex = breakpoint->variableIndex;
+                        m_dualSteplength = m_sigma * breakpoint->value;
+                        break;
+                    }
+
+                    case PIECEWISE_LINEAR_FUNCTION:{
+                        computeFunctionPhase2(alpha,iterationCounter,functionSlope,workingTolerance);
+                        break;
+                    }
+
+                    case STABLE_PIVOT:{
+                        computeFunctionPhase2(alpha,iterationCounter,functionSlope,workingTolerance);
+                        if( Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance ) {
+                            useNumericalThresholdPhase2(iterationCounter, alpha);
+                        }
+                        break;
+                    }
                     }
                     //Harris, expand
-                    if(secondPassRatios[maxBreakpointId]->value <= thetaMin){
-                        if(m_avoidThetaMin){
-                            int candidateBreakpointId = -1;
-                            Numerical::Double maxAlpha = 0;
-                            Numerical::Double limit = (m_expand == "HARRIS") ? (Numerical::Double)0.0 : thetaMin;
-                            //choosing best pivot candidate with ratio value > thetamin
-                            for(unsigned i=0; i < secondPassRatios.size(); i++){
-                                variableIndex = secondPassRatios[i]->variableIndex;
-                                if((secondPassRatios[i]->value > limit) &&
-                                        Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(maxAlpha)){
-                                    maxAlpha = alpha.at(variableIndex);
-                                    candidateBreakpointId = i;
-                                }
-                            }
-                            if(maxAlpha != 0){
-                                //                                LPINFO("Alternative maximal pivot element!");
-                                //                                LPINFO("t: "<<secondPassRatios[candidateBreakpointId]->value<<" alpha: "<<alpha.at(candidateAlphaId)<<
-                                //                                       " vs "<<secondPassRatios[maxBreakpointId]->value<<" alpha: "<<alpha.at(maxAlphaId)<<
-                                //                                       " thetamin: "<<thetaMin);
-                                m_degenerate = false;
-                                m_dualSteplength = m_sigma * secondPassRatios[candidateBreakpointId]->value;
-                                m_incomingVariableIndex = secondPassRatios[candidateBreakpointId]->variableIndex;
-                                return;
+                    if(m_expand != "INACTIVE"){
+                        const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios = m_breakpointHandler.getExpandSecondPass();
+    #ifndef NDEBUG
+                        if(secondPassRatios.size() == 0){
+                            LPWARNING("No second pass ratios found!!");
+                            exit(-1);
+                        }
+    #endif
+                        int maxBreakpointId = 0;
+                        int maxAlphaId = secondPassRatios[0]->variableIndex;
+                        int variableIndex = -1;
+
+                        //choosing best pivot candidate
+                        for(unsigned i=1; i < secondPassRatios.size(); i++){
+                            variableIndex = secondPassRatios[i]->variableIndex;
+                            if(Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(alpha.at(maxAlphaId))){
+                                maxAlphaId = variableIndex;
+                                maxBreakpointId = i;
                             }
                         }
-                        //                       LPINFO("ThetaMin selected: "<<m_thetaMin);
-                        m_degenerate = true;
-                        m_dualSteplength = m_sigma * thetaMin;
-                    } else {
+                        Numerical::Double thetaMin = 0;
+                        if(m_expand == "EXPANDING"){
+                            thetaMin = m_toleranceStep / Numerical::fabs(alpha.at(maxAlphaId));
+                        }
+                        //Harris, expand
+                        if(secondPassRatios[maxBreakpointId]->value <= thetaMin){
+                            if(m_avoidThetaMin){
+                                int candidateBreakpointId = -1;
+                                Numerical::Double maxAlpha = 0;
+                                Numerical::Double limit = (m_expand == "HARRIS") ? (Numerical::Double)0.0 : thetaMin;
+                                //choosing best pivot candidate with ratio value > thetamin
+                                for(unsigned i=0; i < secondPassRatios.size(); i++){
+                                    variableIndex = secondPassRatios[i]->variableIndex;
+                                    if((secondPassRatios[i]->value > limit) &&
+                                            Numerical::fabs(alpha.at(variableIndex)) > Numerical::fabs(maxAlpha)){
+                                        maxAlpha = alpha.at(variableIndex);
+                                        candidateBreakpointId = i;
+                                    }
+                                }
+                                if(maxAlpha != 0){
+                                    //                                LPINFO("Alternative maximal pivot element!");
+                                    //                                LPINFO("t: "<<secondPassRatios[candidateBreakpointId]->value<<" alpha: "<<alpha.at(candidateAlphaId)<<
+                                    //                                       " vs "<<secondPassRatios[maxBreakpointId]->value<<" alpha: "<<alpha.at(maxAlphaId)<<
+                                    //                                       " thetamin: "<<thetaMin);
+                                    m_degenerate = false;
+                                    m_dualSteplength = m_sigma * secondPassRatios[candidateBreakpointId]->value;
+                                    m_incomingVariableIndex = secondPassRatios[candidateBreakpointId]->variableIndex;
+                                    return;
+                                }
+                            }
+                            //                       LPINFO("ThetaMin selected: "<<m_thetaMin);
+                            m_degenerate = true;
+                            m_dualSteplength = m_sigma * thetaMin;
+                        } else {
+                            m_degenerate = false;
+                            m_dualSteplength = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                        }
+                        m_incomingVariableIndex = maxAlphaId;
+                    } else if(m_dualSteplength != 0){
                         m_degenerate = false;
-                        m_dualSteplength = m_sigma * secondPassRatios[maxBreakpointId]->value;
+                    } else{
+                        m_degenerate = true;
+//                        LPINFO("Degeneracy at: "<<m_outgoingVariableIndex);
+                        if (m_wolfe) {
+                            wolfeAdHocMethod(outgoingVariableIndex,alpha,workingTolerance);
+                        }
                     }
-                    m_incomingVariableIndex = maxAlphaId;
-                } else if(m_dualSteplength != 0){
-                    m_degenerate = false;
-                } else{
-                    m_degenerate = true;
                 }
+            } else {
+                LPWARNING(" - Ratiotest - No breakpoint found!");
+                m_incomingVariableIndex = -1;
             }
-        } else {
-            LPWARNING(" - Ratiotest - No breakpoint found!");
+        }
+        //Ask for another row
+        if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
             m_incomingVariableIndex = -1;
+            m_dualSteplength = 0;
         }
     }
-    //Ask for another row
-    if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
-        m_incomingVariableIndex = -1;
-        m_dualSteplength = 0;
+}
+
+bool DualRatiotest::performWolfeRatiotest(const DenseVector &alpha)
+{
+    m_breakpointHandler.clear();
+    Numerical::Double epsilon = 0;
+    if(m_ePivotGeneration){
+        epsilon = m_pivotTolerance;
     }
+
+    IndexList<>::PartitionIterator it;
+    IndexList<>::PartitionIterator endit;
+    //variables in this set have finite LB
+    m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
+    for (; it != endit; ++it) {
+        unsigned int variableIndex = it.getData();
+        Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
+
+        if (0 > m_reducedCosts.at(variableIndex) ) {
+            LPINFO("m_reducedCosts.at(variableIndex) < 0: "<<m_reducedCosts.at(variableIndex));
+            exit(-1);
+        }
+        if ( signedAlpha > epsilon) {
+            m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
+        }
+    }
+
+    //variables in this set have finite UB
+    m_degenerateAtUB.getIterators(&it,&endit,m_degenDepth);
+    for (; it != endit; ++it) {
+        unsigned int variableIndex = it.getData();
+        Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
+
+        if (0 < m_reducedCosts.at(variableIndex) ) {
+            LPERROR("m_reducedCosts.at(variableIndex) > 0: "<<m_reducedCosts.at(variableIndex));
+            exit(-1);
+        }
+        if ( signedAlpha < -epsilon) {
+            m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
+        }
+    }
+
+    m_breakpointHandler.finalizeBreakpoints();
+
+    if ( m_breakpointHandler.getNumberOfBreakpoints() > 0 ) {
+        m_breakpointHandler.initSorting();
+        const BreakpointHandler::BreakPoint * breakpoint = m_breakpointHandler.getBreakpoint(0);
+
+        m_incomingVariableIndex = breakpoint->variableIndex;
+        m_dualSteplength = m_sigma * breakpoint->value;
+        if (m_dualSteplength >= 10E-4 || Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance) {
+            LPINFO("m_dualSteplength "<<m_dualSteplength);
+            LPINFO("alpha: "<<alpha.at(m_incomingVariableIndex));
+            LPINFO("d_j: "<<m_reducedCosts.at(m_incomingVariableIndex));
+        }
+        return true;
+    }
+    return false;
+}
+
+void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVector &alpha, Numerical::Double workingTolerance)
+{
+    //    LPINFO("wolfeadhocmethod called");
+        //Wolfe's 'ad hoc' method, small pivot candidates are excluded
+        Numerical::Double degeneracyTolerance = m_optimalityTolerance;
+        //step 0: init Wolfe, compute degeneracy sets
+        if (!m_wolfeActive) {
+    //        LPINFO("Wolfe: start");
+            for (unsigned variableIndex = 0; variableIndex < m_reducedCosts.length(); ++variableIndex) {
+                Numerical::Double dj = m_reducedCosts.at(variableIndex);
+                if (Numerical::equal(dj, 0, degeneracyTolerance) &&
+                        Numerical::fabs(alpha.at(variableIndex)) > m_pivotTolerance) {
+                    if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_LB) {
+                        m_degenerateAtLB.insert(0,variableIndex);
+                    } else if (m_variableStates.where(variableIndex) == Simplex::NONBASIC_AT_UB) {
+                        m_degenerateAtUB.insert(0,variableIndex);
+                    } else {
+                       LPINFO("state: "<<m_variableStates.where(variableIndex));
+                       exit(-1);
+                    }
+                } else if (dj + m_optimalityTolerance < 0 || dj - m_optimalityTolerance > 0) {
+                    m_wolfeActive = false;
+                    LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+                    LPINFO("m_state: "<<m_variableStates.where(variableIndex));
+                    exit(-1);
+                    throw FallbackException("Infeasible variable in phase 2");
+                }
+            }
+            m_degenDepth = 0;
+            m_wolfeActive = true;
+        }
+        //step 1: vitual perturbation from interval (e_opt, 2*e_opt)
+        //TODO: addVector a set helyett?
+        std::uniform_real_distribution<double> distribution(m_optimalityTolerance, 2*m_optimalityTolerance);
+        std::default_random_engine engine;
+        Numerical::Double delta = distribution(engine);
+        //perturbation with the same delta value for a given depth
+        bool sameForDepth = false;
+        IndexList<>::PartitionIterator it;
+        IndexList<>::PartitionIterator endit;
+         bool increaseDepth = false;
+
+        //D_Lb
+        m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
+        std::vector<unsigned> positionsToMove;
+        for (; it != endit; ++it) {
+    //        LPINFO("visiting dlb");
+            unsigned int variableIndex = it.getData();
+            Numerical::Double dj = m_reducedCosts.at(variableIndex);
+            if (Numerical::equal( dj, 0,degeneracyTolerance)) {
+    //            LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
+                increaseDepth = true;
+                if (sameForDepth) {
+                    m_reducedCosts.set(variableIndex, dj + delta);
+                } else {
+                    Numerical::Double delta = distribution(engine);
+                    m_reducedCosts.set(variableIndex, dj + delta);
+                }
+                positionsToMove.push_back(variableIndex);
+            } else if (dj + m_optimalityTolerance < 0) {
+                m_wolfeActive = false;
+                LPINFO("fallback at d_j: "<<m_reducedCosts.at(variableIndex));
+                LPINFO("m_state: "<<m_variableStates.where(variableIndex));
+                exit(-1);
+                throw FallbackException("Infeasible variable in phase 2");
+            }
+        }
+        //increase the depth of degeneracy
+        for (unsigned i = 0; i < positionsToMove.size(); i++) {
+            m_degenerateAtLB.move(positionsToMove[i],m_degenDepth+1);
+        }
+        positionsToMove.clear();
+
+        //D_Ub
+        m_degenerateAtUB.getIterators(&it,&endit,m_degenDepth);
+        for (; it != endit; ++it) {
+    //        LPINFO("visiting dub");
+            unsigned int variableIndex = it.getData();
+            Numerical::Double dj = m_reducedCosts.at(variableIndex);
+            if (Numerical::equal(dj,0,degeneracyTolerance)) {
+    //            LPINFO("D_ub candidate index: "<<variableIndex<<" dj: "<<dj);
+                increaseDepth = true;
+                if (sameForDepth) {
+                    m_reducedCosts.set(variableIndex, dj - delta);
+                } else {
+                    Numerical::Double delta = distribution(engine);
+                    m_reducedCosts.set(variableIndex, dj - delta);
+                }
+                positionsToMove.push_back(variableIndex);
+            }else if (dj - m_optimalityTolerance > 0) {
+                m_wolfeActive = false;
+                throw FallbackException("Infeasible variable in phase 2");
+            }
+        }
+        //increase the depth of degeneracy
+        for (unsigned i = 0; i < positionsToMove.size(); i++) {
+            m_degenerateAtUB.move(positionsToMove[i],m_degenDepth+1);
+        }
+        positionsToMove.clear();
+
+        if (increaseDepth) {
+            m_degenDepth++;
+    //        LPINFO("Wolfe: depth increased to "<<m_degenDepth);
+        }
+
+        do{
+    //        LPINFO("Performing Wolfe");
+            //step 2: perform Wolfe ratiotest with ratios whose depth was increased
+            bool pivotFound = performWolfeRatiotest(alpha);
+            //step 3: apply special update
+            if (pivotFound) {
+    //            LPINFO("Wolfe: special update with variable: "<<m_incomingVariableIndex<<" theta: "<<
+    //                   m_dualSteplength);
+                if (m_degenDepth == 0) {
+                    LPERROR("degendepth 0");
+                    exit(-1);
+                }
+                return;
+            //step 4: no pivot row, reset perturbed values to bounds, decrease depth
+            } else {
+                if (m_degenDepth == 0) break;
+                m_degenerateAtLB.getIterators(&it, &endit, m_degenDepth);
+                for (; it != endit; ++it) {
+                    unsigned int variableIndex = it.getData();
+                    m_reducedCosts.set(variableIndex, 0);
+                    positionsToMove.push_back(variableIndex);
+                }
+                for (unsigned i = 0; i < positionsToMove.size(); i++) {
+                    m_degenerateAtLB.move(positionsToMove[i], m_degenDepth-1);
+                }
+                positionsToMove.clear();
+
+                m_degenerateAtUB.getIterators(&it, &endit, m_degenDepth);
+                for (; it != endit; ++it) {
+                    unsigned int variableIndex = it.getData();
+                    m_reducedCosts.set(variableIndex, 0);
+                    positionsToMove.push_back(variableIndex);
+                }
+                for (unsigned i = 0; i < positionsToMove.size(); i++) {
+                    m_degenerateAtUB.move(positionsToMove[i], m_degenDepth-1);
+                }
+                positionsToMove.clear();
+
+                m_degenDepth--;
+    //            LPINFO("Wolfe: depth decreased to "<<m_degenDepth);
+            }
+        }while(true);
+        //stop Wolfe
+        m_wolfeActive = false;
+        m_degenerateAtLB.clearAllPartitions();
+        m_degenerateAtUB.clearAllPartitions();
+    //    LPINFO("Wolfe: stop");
+        performRatiotestPhase2(outgoingVariableIndex,alpha,workingTolerance);
 }

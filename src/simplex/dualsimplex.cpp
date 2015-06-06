@@ -375,41 +375,39 @@ void DualSimplex::selectPivot() {
 void DualSimplex::update() {
     unsigned int rowCount = m_simplexModel->getRowCount();
     unsigned int columnCount = m_simplexModel->getColumnCount();
-
-    std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
-    std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
-
     bool secondPhase = m_feasible;
-
     setReferenceObjective(secondPhase);
+    if (!m_ratiotest->isWolfeActive()) {
+        std::vector<unsigned int>::const_iterator it = m_ratiotest->getBoundflips().begin();
+        std::vector<unsigned int>::const_iterator itend = m_ratiotest->getBoundflips().end();
 
-    it = m_ratiotest->getBoundflips().begin();
-    for(; it < itend; ++it){
-        //                LPWARNING("BOUNDFLIPPING at: "<<*it);
-        DenseVector alpha(rowCount);
-        if(*it < columnCount){
-            alpha = m_simplexModel->getMatrix().column(*it);
-        } else {
-            alpha.set(*it - columnCount, 1);
-        }
+        for(; it < itend; ++it){
+            //                LPWARNING("BOUNDFLIPPING at: "<<*it);
+            DenseVector alpha(rowCount);
+            if(*it < columnCount){
+                alpha = m_simplexModel->getMatrix().column(*it);
+            } else {
+                alpha.set(*it - columnCount, 1);
+            }
 
-        m_basis->Ftran(alpha);
+            m_basis->Ftran(alpha);
 
-        const Variable& variable = m_simplexModel->getVariable(*it);
-        //Alpha is not available, since we are in the dual
-        if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
-            Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
-            m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
-            m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
+            const Variable& variable = m_simplexModel->getVariable(*it);
+            //Alpha is not available, since we are in the dual
+            if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_LB) {
+                Numerical::Double boundDistance = variable.getUpperBound() - variable.getLowerBound();
+                m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+                m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
+                m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
-        } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
-            Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
-            m_basicVariableValues.addVector(-1 * boundDistance, alpha);
-            m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
-            m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
-        } else {
-            throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
+            } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
+                Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
+                m_basicVariableValues.addVector(-1 * boundDistance, alpha);
+                m_objectiveValue += m_reducedCosts.at(*it) * boundDistance;
+                m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
+            } else {
+                throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
+            }
         }
     }
 
@@ -512,7 +510,11 @@ void DualSimplex::update() {
 
 
         //Update the reduced costs
-        updateReducedCosts();
+        if (m_ratiotest->isWolfeActive()) {
+            wolfeSpecialUpdate();
+        } else {
+            updateReducedCosts();
+        }
         //Perform the basis change
         SparseVector scattered;
         scattered = m_pivotColumn;
@@ -534,7 +536,6 @@ void DualSimplex::update() {
                 m_reducedCostFeasibilities.insert(Simplex::FEASIBLE,outgoingVariableIndex);
             }
         }
-
     }
 
     //Update the feasibility sets in phase I
@@ -543,6 +544,54 @@ void DualSimplex::update() {
     }
 
     checkReferenceObjective(secondPhase);
+}
+
+void DualSimplex::wolfeSpecialUpdate()
+{
+    IndexList<>& degenerateAtLB = m_ratiotest->getDegenerateAtLB();
+    IndexList<>& degenerateAtUB = m_ratiotest->getDegenerateAtUB();
+    IndexList<>::PartitionIterator it;
+    IndexList<>::PartitionIterator endit;
+    //update D_Lb
+    degenerateAtLB.getIterators(&it,&endit,m_ratiotest->getDegenDepth());
+    for (; it != endit; ++it) {
+        int variableIndex = it.getData();
+        if (variableIndex != m_incomingIndex) {
+            m_reducedCosts.set(variableIndex, m_reducedCosts.at(variableIndex) - m_dualTheta * m_pivotRow.at(variableIndex));
+        }
+    }
+    //update D_Ub
+    degenerateAtUB.getIterators(&it,&endit,m_ratiotest->getDegenDepth());
+    for (; it != endit; ++it) {
+        int variableIndex = it.getData();
+        if (variableIndex != m_incomingIndex) {
+            m_reducedCosts.set(variableIndex, m_reducedCosts.at(variableIndex) - m_dualTheta * m_pivotRow.at(variableIndex));
+        }
+    }
+
+    if (degenerateAtLB.where(m_incomingIndex) < degenerateAtLB.getPartitionCount()) {
+        degenerateAtLB.remove(m_incomingIndex);
+    } else if (degenerateAtUB.where(m_incomingIndex) < degenerateAtUB.getPartitionCount()) {
+        degenerateAtUB.remove(m_incomingIndex);
+    } else {
+        LPINFO("Index is in neither of the D sets");
+        LPINFO("m_incomingIndex "<<m_incomingIndex);
+        LPINFO("theta_d "<<m_dualTheta);
+        LPINFO("dj: "<<m_reducedCosts[m_incomingIndex]);
+//        LPINFO(degenerateAtLB);
+//        LPINFO(degenerateAtUB);
+        exit(-1);
+    }
+    const Variable & var = m_simplexModel->getVariable(m_incomingIndex);
+    if (var.getType() != Variable::FIXED && Numerical::fabs(m_pivotRow.at(m_incomingIndex)) > m_pivotTolerance) {
+        if ( m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB) {
+            degenerateAtLB.insert(m_ratiotest->getDegenDepth(), m_incomingIndex);
+        } else if (m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB) {
+            degenerateAtUB.insert(m_ratiotest->getDegenDepth(), m_incomingIndex);
+        }
+    }
+    m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
+    m_reducedCosts.set( m_incomingIndex, 0.0 );
 }
 
 void DualSimplex::setReferenceObjective(bool secondPhase) {

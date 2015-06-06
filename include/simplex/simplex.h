@@ -321,6 +321,13 @@ protected:
      */
     const std::string & m_loadFormat;
 
+    /**
+     * Reference of the "e_pivot" tolerance run-time parameter.
+     *
+     * @see SimplexParameterHandler
+     */
+    const double & m_pivotTolerance;
+
     //Tolerance handling
     /**
      * Master tolerance given in the parameter file.
