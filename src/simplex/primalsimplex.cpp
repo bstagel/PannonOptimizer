@@ -409,7 +409,7 @@ void PrimalSimplex::wolfeSpecialUpdate()
         exit(-1);
     }
     const Variable & var = m_simplexModel->getVariable(m_incomingIndex);
-    if (var.getType() != Variable::FREE && Numerical::fabs(m_pivotColumn.at(m_outgoingIndex)) > m_pivotTolerance) {
+    if (var.getType() != Variable::FREE) {
         Numerical::Double ref_ub = Numerical::fabs(var.getUpperBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         Numerical::Double ref_lb = Numerical::fabs(var.getLowerBound() - *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
         if ( ref_ub < ref_lb) {
