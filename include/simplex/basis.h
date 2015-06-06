@@ -57,6 +57,11 @@ struct ETM
      * Index of the nontrivial column.
      */
     unsigned int index;
+
+    /**
+     * Index of the original matrix column.
+     */
+    unsigned int matrixColumnIndex;
 };
 
 /**
@@ -152,6 +157,10 @@ public:
     virtual void Btran(DenseVector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
 
     virtual void Btran(SparseVector & vector, BTRAN_MODE mode = DEFAULT_BTRAN) const = 0;
+
+    virtual void BtranCheck(DenseVector &vector) const = 0;
+
+    virtual void analyzeStability() const = 0;
 
     /**
      * Pure virtual function to print general information about the basis transformation to the output.

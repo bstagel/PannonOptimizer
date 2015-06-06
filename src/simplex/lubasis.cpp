@@ -1054,6 +1054,16 @@ __UNUSED(vector);
 __UNUSED(mode);
 }
 
+void LuBasis::BtranCheck(DenseVector &vector) const
+{
+
+}
+
+void LuBasis::analyzeStability() const
+{
+
+}
+
 void LuBasis::checkSingularity() {
     if(m_factorizedPart < m_basisHead->size()){
         LPINFO("Singular basis!");
