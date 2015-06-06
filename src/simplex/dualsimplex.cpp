@@ -12,6 +12,7 @@
 #include <simplex/simplexcontroller.h>
 
 #include <simplex/simplexparameterhandler.h>
+#include <simplex/numericalmonitor.h>
 
 const static char * INCOMING_NAME = "Incoming";
 const static char * OUTGOING_NAME = "Outgoing";
@@ -423,8 +424,9 @@ void DualSimplex::update() {
             m_pivotColumn.set(m_incomingIndex - columnCount, 1);
         }
 
+
         m_basis->Ftran(m_pivotColumn);
-        detectExcessivelyInstability();
+
 
         //Log the outgoing variable information
         Simplex::VARIABLE_STATE outgoingState;
@@ -500,7 +502,6 @@ void DualSimplex::update() {
 
         m_objectiveValue += beta * m_dualTheta;
 
-
         //Do some updates before the basis change
         //Update the pricing
 
@@ -516,9 +517,13 @@ void DualSimplex::update() {
             updateReducedCosts();
         }
         //Perform the basis change
+
         SparseVector scattered;
         scattered = m_pivotColumn;
+
         m_basis->append(scattered, m_outgoingIndex, m_incomingIndex, outgoingState);
+
+        detectExcessivelyInstability();
 
         if (m_pricing) {
             m_pricing->checkAndFix();
@@ -754,31 +759,59 @@ void DualSimplex::resetTolerances() {
     //reset the EXPAND tolerance
     m_recomputeReducedCosts = true;
     if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-//        LPINFO("Resetting EXPAND tolerance!");
+        //        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }
 
 void DualSimplex::detectExcessivelyInstability()
 {
-    if ( SimplexParameterHandler::getInstance().getBoolParameterValue(
-             "NumericalInstability.enable_numerical_instability_detection") == false) {
-        return;
+    static bool enabledDetection = SimplexParameterHandler::getInstance().getBoolParameterValue(
+                "NumericalInstability.enable_numerical_instability_detection");
+    if ( enabledDetection == false) {
+         return;
+    }
+    if (!NumericalMonitor::runPrimaryDetector()) {
+        //return;
     }
     unsigned int columnCount = m_simplexModel->getColumnCount();
     unsigned int rowCount = m_simplexModel->getRowCount();
     DenseVector pivotColumn(rowCount);
+    //
     if(m_incomingIndex < (int)columnCount){
         pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
     } else {
         pivotColumn.set(m_incomingIndex - columnCount, 1);
     }
 
+    pivotColumn = this->m_simplexModel->getRhs();
+    DenseVector pivotColumn2 = pivotColumn;
+
+
+
+    m_basis->Ftran(pivotColumn2);
+    //m_basis->FtranCheck(pivotColumn);
+    for (int i = 0; i < pivotColumn.length(); i++) {
+        Numerical::Double v = pivotColumn.at(i);
+        Numerical::Double mul = 1.0 + (rand() % 1000000) / (double)1e14;
+        Numerical::Double add = (rand() % 1000000) / (double)1e10;
+       // std::cout << v << " " << (v + add) << "  " << (add) << std::endl;
+        pivotColumn.set(i, v * mul);
+    }
+    //std::cin.get();
     m_basis->FtranCheck(pivotColumn);
     Numerical::Double norm1 = pivotColumn.euclidNorm();
-    Numerical::Double norm2 = m_pivotColumn.euclidNorm();
+    Numerical::Double norm2 = pivotColumn2.euclidNorm();
     Numerical::Double ratio = (norm1 > norm2 ? norm1 : norm2) / (norm1 > norm2 ? norm2 : norm1);
-    //LPINFO("RATIO: " << ratio << " " << (1.0 - ratio));
+    LPINFO("RATIO: " << ratio << " " << (1.0 - ratio));
+    static double maxRatio = 0;
+    if (fabs(1.0 - ratio) > maxRatio && (fabs(1.0 - ratio) > 0.0)) {
+        maxRatio = fabs(1.0 - ratio);
+        LPERROR("------------------MAX: " << maxRatio << "  " << fabs(1.0 - ratio));
+        std::ofstream ofs("ratio.txt");
+        ofs << maxRatio << std::endl;
+        ofs.close();
+    }
     if (1.0 - ratio < -1.0) {
         LPERROR("Error: Instable problem!");
         std::cin.get();
@@ -789,5 +822,109 @@ void DualSimplex::detectExcessivelyInstability()
         //LPINFO("MIN: " << min);
         //std::cin.get();
     }
+
+    // -----------------------------------
+
+    Numerical::Double btranRatio = 0.0;
+    for (int i = 0; i < rowCount; i++) {
+        break;
+        DenseVector u1(rowCount);
+        for (int j = 0; j < rowCount; j++) {
+            if (m_basisHead[j] < columnCount) {
+                u1.set(j, m_simplexModel->getMatrix().get(i,  m_basisHead[j]  ) );
+            } else {
+                u1.set(j, (m_basisHead[j] - columnCount) == i);
+            }
+        }
+        DenseVector u2 = u1;
+        m_basis->Btran(u1);
+        /*{
+            for (int j = 0; j < u1.length(); j++) {
+                std::cout << u1.at(j) << " ";
+            }
+            std::cout << std::endl;
+            //std::cin.get();
+        }*/
+        m_basis->BtranCheck(u2);
+        //std::cout << u2.length() << std::endl;
+        /*{
+            for (int j = 0; j < u2.length(); j++) {
+                //std::cout << (j < u2.length()) << ": ";
+                std::cout << u2.at(j) << " ";
+            }
+            std::cout << std::endl;
+            std::cin.get();
+        }*/
+        norm1 = u1.euclidNorm();
+        norm2 = u2.euclidNorm();
+        ratio = (norm1 > norm2 ? norm1 : norm2) / (norm1 > norm2 ? norm2 : norm1);
+        if (fabs(1.0 - ratio) > btranRatio) {
+            btranRatio = fabs(1.0 - ratio);
+        }
+        /*static double maxRatio2 = 0.0;
+        if (fabs(1.0 - ratio) > maxRatio2 && (fabs(1.0 - ratio) > 0.0)) {
+            maxRatio2 = fabs(1.0 - ratio);
+            LPERROR("------------------MAX RATIO 2: " << maxRatio2 << "  " << fabs(1.0 - ratio));
+            std::ofstream ofs("ratio2.txt");
+            ofs << maxRatio2 << std::endl;
+            ofs.close();
+        }*/
+    }
+    LPINFO("BTRAN RATIO: " << btranRatio);
+
+    // -----------------------------------
+
+
+    DenseVector v;
+    double max = 0.0;
+    for (int i = 0; i < m_basisHead.size(); i++) {
+        break;
+        if ( m_basisHead[i] < m_simplexModel->getMatrix().columnCount() ) {
+            v = this->m_simplexModel->getMatrix().column( m_basisHead[i] );
+            // DenseVector v2 = DenseVector::createVectorFromSparseArray(  )
+            DenseVector v2 = v;
+            //m_basis->Ftran(v);
+            v = DenseVector::createUnitVector( v.length(), i );
+            m_basis->FtranCheck(v2);
+            Numerical::Double norm1 = v.euclidNorm();
+            Numerical::Double norm2 = v2.euclidNorm();
+            v2.addVector(-1,v);
+            Numerical::Double ratio = (norm1 > norm2 ? norm1 : norm2) / (norm1 > norm2 ? norm2 : norm1);
+            //LPINFO("second ratio: " << (1.0 - ratio) << "   " << v2.euclidNorm());
+            //i = m_basisHead.size();
+            if (fabs(1.0 - ratio) > max) {
+                max = fabs(1.0 - ratio);
+            }
+        }
+
+    }
+    //if (max > 1e-02) {
+        LPINFO("FTRAN ratio: " << max);
+      //  std::cin.get();
+    //}
+    std::ofstream ofs("basis.txt");
+    m_basis->dumbToStream(ofs);
+    ofs.close();
+
+    // -----------------------
+    max = 0.0;
+    for (int i = 0; i < rowCount; i++) {
+        break;
+        DenseVector v = DenseVector::createUnitVector(rowCount, i);
+        m_basis->Ftran(v);
+        double sum = 0.0;
+        for (int j = 0; j < rowCount; j++) {
+            sum += fabs(v.at(j));
+         //   std::cout << v.at(j) << " ";
+        }
+        if (sum > max) {
+            max = sum;
+        }
+
+        // std::cout << endl;
+    }
+    std::cout << "max = " << max << std::endl;
+    //std::cin.get();
+
     //std::cin.get();
 }

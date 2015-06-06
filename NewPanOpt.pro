@@ -270,7 +270,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/lp/hilbertmodelbuilder.cpp \
     src/lp/pascalmodelbuilder.cpp \
     src/lp/pnsinterface.cpp \
-    src/lp/lpproblem.cpp
+    src/lp/lpproblem.cpp \
+    src/simplex/numericalmonitor.cpp
 
 #OBJECTS_DIR = .o
 

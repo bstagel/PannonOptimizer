@@ -44,6 +44,9 @@ public:
     virtual void Btran(SparseVector &vector, BTRAN_MODE mode = DEFAULT_BTRAN) const;
 
     virtual void FtranCheck(DenseVector & vector, FTRAN_MODE mode = DEFAULT_FTRAN) const;
+    virtual void BtranCheck(DenseVector &vector) const;
+
+    virtual void analyzeStability() const;
 
     /**
      * Thread handling

@@ -12,6 +12,7 @@
 
 #include <utils/thirdparty/prettyprint.h>
 #include <utils/architecture.h>
+#include <utils/erroranalyzerdouble.h>
 
 double expDiffSquareSum = 0;
 double expDiffSum = 0;
@@ -22,7 +23,7 @@ double aprExpDiffSum = 0;
 int aprExpCounter = 0;
 
 static unsigned int errorCheckModulus = 1000000;
-static double errorCheckDivider = 1e14;
+static double errorCheckDivider = 1e16;
 
 thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
@@ -31,6 +32,25 @@ thread_local IndexedDenseVector* PfiBasis::m_updateHelper = nullptr;
 std::vector<std::vector<ETM>*> PfiBasis::m_updatesManager;
 std::vector<IndexedDenseVector*> PfiBasis::m_updateHelperManager;
 std::mutex PfiBasis::m_updateLock;
+
+Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
+    double sum = a + b;
+    long double sum2 = (long double)a + (long double)b;
+    long double lost = fabs(sum2 - sum);
+    static long double max = 0;
+    if (lost > max) {
+        LPINFO(max << " " << a << " " << b);
+        max = lost;
+       // std::cin.get();
+    }
+    return lost * (1 << 14); //10000;
+    // levonjuk a nagyobb abszolut erteku elem eredeti erteket
+
+    //long double lost = (long double)sum - (Numerical::fabs(a) > Numerical::fabs(b) ? a : b);
+    //LPINFO("LOST: " << lost << "    " << a << "   " << b);
+    // ezt kivonjuk a kisebb abszolut erteku elem eredeti ertekebol
+    //return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
+}
 
 PfiBasis::PfiBasis() :
     Basis(),
@@ -474,6 +494,7 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
+                    lostValueAdd(originalValue, pivotValue * *ptrEta);
                     val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
                 } else {
                     val = pivotValue * *ptrEta;
@@ -503,6 +524,7 @@ void PfiBasis::Ftran(DenseVector &vector, FTRAN_MODE mode) const {
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
+                    lostValueAdd(originalValue, pivotValue * *ptrEta);
                     val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
                 } else {
                     val = pivotValue * *ptrEta;
@@ -656,10 +678,12 @@ void PfiBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
-                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                    val = originalValue + (pivotValue * *ptrEta);
+                    val += lostValueAdd(originalValue, pivotValue * *ptrEta);
                 } else {
                     val = pivotValue * *ptrEta;
                 }
+                //originalValue = val;
                 originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );
             }
             ptrIndex++;
@@ -682,14 +706,18 @@ void PfiBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
         const unsigned int pivotPosition = iter->index;
         while (ptrIndex < ptrIndexEnd) {
             Numerical::Double & originalValue = denseVector[*ptrIndex];
+            Numerical::Double mul = 1.0 + ( ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );
+            //perturbated *= (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );
             if (*ptrEta != 0.0) {
                 Numerical::Double val;
                 if (*ptrIndex != pivotPosition) {
-                    val = Numerical::stableAddAbs(originalValue, pivotValue * *ptrEta);
+                    val =originalValue + (pivotValue * *ptrEta * mul);
+                    val += lostValueAdd(originalValue, pivotValue * *ptrEta * mul);
                 } else {
                     val = pivotValue * *ptrEta;
                 }
-                originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );;
+                originalValue = val;
+               // originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );;
             }
             ptrIndex++;
             ptrEta++;
@@ -697,12 +725,99 @@ void PfiBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
     }
 }
 
-Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
-    Numerical::Double sum = a + b;
-    // levonjuk a nagyobb abszolut erteku elem eredeti erteket
-    Numerical::Double lost = sum - (Numerical::fabs(a) > Numerical::fabs(b) ? a : b);
-    // ezt kivonjuk a kisebb abszolut erteku elem eredeti ertekebol
-    return (Numerical::fabs(a) > Numerical::fabs(b) ? b : a) - lost;
+void PfiBasis::BtranCheck(DenseVector &vector) const
+{
+
+#ifndef NDEBUG
+    //In debug mode the dimensions of the basis and the given vector v are compared.
+    //If the dimension mismatches, then the operation cannot be performed.
+    //This can't happen in the "normal" case, so in release mode this check is unnecessary.
+    if (vector.length() != m_basisHead->size()) {
+        LPERROR("BTRAN failed, vector dimension mismatch! ");
+        LPERROR("Dimension of the vector to be transformed: " << vector.length());
+        LPERROR("Dimension of the basis: " << m_basisHead->size());
+    }
+#endif //!NDEBUG
+    //The btran operation.
+    auto denseVector = vector.m_data;
+
+    // 2. perform the dot products on the update vectors
+    ETM * iterEnd = m_updates->data() - 1;
+    ETM * iter = iterEnd + m_updates->size();
+
+    unsigned int etaIndex = 0;
+    for (; iter != iterEnd; iter--, etaIndex++) {
+
+        Numerical::Summarizer summarizer;
+        Numerical::Double dotProduct = 0;
+
+        auto ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double old = dotProduct;
+            //summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            dotProduct += denseVector[*ptrIndex] * *ptrValue;
+            dotProduct += lostValueAdd(old, denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
+
+        //dotProduct = summarizer.getResult();
+
+        // store the dot product, and update the nonzero counter
+        const int pivot = iter->index;
+        denseVector[pivot] = dotProduct;
+    }
+
+    // 3. perform the dot products on the basic vectors
+    iterEnd = m_basis->data() - 1;
+    iter = iterEnd + m_basis->size();
+
+    etaIndex = 0;
+    for (; iter != iterEnd; iter--, etaIndex++) {
+        //unsigned int nonZeros = vector.nonZeros();
+
+        Numerical::Summarizer summarizer;
+        Numerical::Double dotProduct = 0;
+
+        auto ptrValue = iter->eta->m_data;
+        unsigned int * ptrIndex = iter->eta->m_indices;
+        const unsigned int * ptrIndexEnd = ptrIndex + iter->eta->m_nonZeros;
+
+        while (ptrIndex < ptrIndexEnd) {
+            Numerical::Double old = dotProduct;
+            //summarizer.add(denseVector[*ptrIndex] * *ptrValue);
+            dotProduct += denseVector[*ptrIndex] * *ptrValue;
+            dotProduct += lostValueAdd(old, denseVector[*ptrIndex] * *ptrValue);
+            ptrIndex++;
+            ptrValue++;
+        }
+
+        //dotProduct = summarizer.getResult();
+
+        // store the dot product, and update the nonzero counter
+        const int pivot = iter->index;
+        denseVector[pivot] = dotProduct;
+    }
+}
+
+void PfiBasis::analyzeStability() const
+{
+    std::vector<std::vector<ErrorAnalyzerDouble>> etas;
+    const unsigned int rowCount = m_model->getMatrix().rowCount();
+    const unsigned int columnCount = m_model->getMatrix().columnCount();
+
+    // create matrix inverze
+    for (auto columnIndex: *m_basisHead) {
+        SparseVector vec;
+        if (columnIndex < columnCount) {
+            vec = m_model->getMatrix().column(columnIndex);
+        } else {
+            vec = SparseVector::createUnitVector(rowCount, columnIndex - columnCount);
+        }
+    }
 }
 
 void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
@@ -719,7 +834,6 @@ void PfiBasis::Btran(DenseVector &vector, BTRAN_MODE mode) const
         LPERROR("Dimension of the basis: " << m_basisHead->size());
     }
 #endif //!NDEBUG
-
     //The btran operation.
     auto denseVector = vector.m_data;
 
@@ -955,6 +1069,7 @@ void PfiBasis::pivot(const SparseVector& column, int pivotRow, std::vector<ETM>*
     ETM newETM;
     newETM.eta = createEta(column, pivotRow);
     newETM.index = pivotRow;
+    //newETM.matrixColumnIndex = incoming;
     m_inverseNonzeros += newETM.eta->nonZeros();
     etaFile->emplace_back(newETM);
 }
