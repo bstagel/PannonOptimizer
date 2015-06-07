@@ -5,7 +5,6 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexmodel.h>
 #include <simplex/simplexparameterhandler.h>
-#include <utils/thirdparty/prettyprint.h>
 #include <fstream>
 
 thread_local const SimplexModel* Basis::m_model = nullptr;

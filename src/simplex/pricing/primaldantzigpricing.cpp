@@ -4,7 +4,6 @@
 
 #include <simplex/pricing/primaldantzigpricing.h>
 #include <simplex/simplex.h>
-#include <prettyprint.h>
 
 
 PrimalDantzigPricing::PrimalDantzigPricing(const DenseVector &basicVariableValues,

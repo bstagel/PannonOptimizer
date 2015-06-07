@@ -374,8 +374,6 @@ void ManualModelBuilder::buildColumn(unsigned int index, SparseVector *columnVec
     }
 }
 
-#include "utils/thirdparty/prettyprint.h"
-
 void ManualModelBuilder::buildCostVector(DenseVector *costVector) const
 {
     auto iter = m_costVector.begin();

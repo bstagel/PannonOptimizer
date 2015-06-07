@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QApplication>
 #include <QMainWindow>
 #include <QToolButton>
 #include <QPushButton>
@@ -31,6 +32,7 @@
 
 #include "constants.h"
 #include "gui/modules/panopthandler.h"
+#include "simplex/simplexparameterhandler.h"
 
 class MainWindow : public QMainWindow
 {
@@ -39,11 +41,11 @@ class MainWindow : public QMainWindow
 
 private slots:
     void loadFromEditor();
+    void drawMatrix();
 private:
     void initProblemTab();
     void initParametersTab();
     void initMatrixTab();
-    void drawMatrix();
     void initSolutionTab();
     void writeSolution(QStringList vars);
 
@@ -80,6 +82,7 @@ private:
     QTextEdit *solutionText;
     QTableView *solutionStats;
     QComboBox *format;
+    QComboBox *zoomBox;
     QTableView *problemStats;
     QLabel *logLabel;
     PanOptHandler* panOpt;
@@ -88,8 +91,10 @@ private:
     QString selectedFileName;
     QMap<QString, QAction*> actions;
     QMap<QString, QToolButton*> tools;
+    QVBoxLayout* matrixRightLayout;
     QGraphicsScene* scene;
     QGraphicsView* matrixView;
+    double matrixZoom;
 
     //parameters
         //Tolerances

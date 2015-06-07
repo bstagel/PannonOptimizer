@@ -16,8 +16,6 @@
 #include <ctime>
 #include <framework/report.h>
 
-#include <utils/thirdparty/prettyprint.h>
-
 class UnitTest;
 
 class Tester

@@ -6,7 +6,6 @@
 #include <simplex/simplexparameterhandler.h>
 #include <simplex/simplex.h>
 #include <random>
-#include <prettyprint.h>
 #define LPINOF LPINFO
 
 DualRatiotest::DualRatiotest(const SimplexModel & model,

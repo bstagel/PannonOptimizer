@@ -1,7 +1,5 @@
 #include <simplex/pricing/primaldevexpricing.h>
 #include <simplex/simplex.h>
-#include <prettyprint.h>
-
 
 PrimalDevexPricing::PrimalDevexPricing(const DenseVector &basicVariableValues,
                                        const IndexList<> & basicVariableFeasibilities,

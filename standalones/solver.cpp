@@ -80,6 +80,7 @@ void printHelp() {
                  "   -f, --file      \t Solve an MPS file.\n"<<
                  "  -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
                  "   -p, --parameter-file \t Generate the default parameter files.\n"<<
+                 "  -dv, --dump-variables \t Prints the variable values to the output after solution.\n"
                  "   -o, --output    \t Redirect the solver output to a file.\n"<<
                  "   -h, --help      \t Displays this help.\n"<<
                  "\n";
@@ -245,7 +246,7 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
-            } else if(arg.compare("-dv") == 0) {
+            } else if(arg.compare("-dv") == 0 || arg.compare("--dump-variables") == 0) {
                 dump_vars = true;
             } else if(arg.compare("-f") == 0 || arg.compare("--file") == 0){
                 if(argc < i+2 ){

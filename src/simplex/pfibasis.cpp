@@ -10,7 +10,6 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 
-#include <utils/thirdparty/prettyprint.h>
 #include <utils/architecture.h>
 #include <utils/erroranalyzerdouble.h>
 

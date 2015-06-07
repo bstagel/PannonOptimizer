@@ -4,8 +4,6 @@
 #include <utils/breakpointhandler.h>
 #include <simplex/simplexparameterhandler.h>
 
-#include <utils/thirdparty/prettyprint.h>
-
 BreakpointHandler::BreakpointHandler():
     m_sortingMethod(BreakpointHandler::SELECTION),
     m_unsorted(0),
@@ -50,7 +48,7 @@ unsigned BreakpointHandler::getNumberOfBreakpoints() const
 
 void BreakpointHandler::printBreakpoints() const
 {
-    LPINFO(m_breakpoints);
+    LPINFO("m_breakpoints");
 }
 
 void BreakpointHandler::finalizeBreakpoints()

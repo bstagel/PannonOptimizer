@@ -9,8 +9,6 @@
 
 #include <simplex/simplexparameterhandler.h>
 
-#include <utils/thirdparty/prettyprint.h>
-
 thread_local int LuBasis::m_inversionCount = 0;
 
 LuBasis::LuBasis() :

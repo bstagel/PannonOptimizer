@@ -4,7 +4,6 @@
 
 #include <simplex/pricing/primalsteepestedgepricing.h>
 #include <simplex/simplex.h>
-#include <prettyprint.h>
 
 
 PrimalSteepestEdgePricing::PrimalSteepestEdgePricing(const DenseVector &basicVariableValues,
