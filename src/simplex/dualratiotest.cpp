@@ -1016,7 +1016,7 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
         m_degenerateAtLB.getIterators(&it,&endit,m_degenDepth);
         std::vector<unsigned> positionsToMove;
         for (; it != endit; ++it) {
-    //        LPINFO("visiting dlb");
+            //        LPINFO("visiting dlb");
             unsigned int variableIndex = it.getData();
             Numerical::Double dj = m_reducedCosts.at(variableIndex);
             LPINFO("asd- it.get: "<<it.getData())
