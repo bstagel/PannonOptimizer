@@ -21,8 +21,8 @@ double aprExpDiffSquareSum = 0;
 double aprExpDiffSum = 0;
 int aprExpCounter = 0;
 
-static unsigned int errorCheckModulus = 1000000;
-static double errorCheckDivider = 1e16;
+static unsigned int errorCheckModulus = 10000;
+static double errorCheckDivider = 1e11;
 
 thread_local int PfiBasis::m_inversionCount = 0;
 thread_local std::vector<ETM>* PfiBasis::m_updates = nullptr;
@@ -38,7 +38,7 @@ Numerical::Double lostValueAdd(Numerical::Double a, Numerical::Double b) {
     long double lost = fabs(sum2 - sum);
     static long double max = 0;
     if (lost > max) {
-        LPINFO(max << " " << a << " " << b);
+      //  LPINFO(max << " " << a << " " << b);
         max = lost;
        // std::cin.get();
     }
@@ -715,8 +715,8 @@ void PfiBasis::FtranCheck(DenseVector &vector, Basis::FTRAN_MODE mode) const
                 } else {
                     val = pivotValue * *ptrEta;
                 }
-                originalValue = val;
-               // originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );;
+               // originalValue = val;
+                originalValue = val * (1.0 + ((rand() % errorCheckModulus) / errorCheckDivider) * (rand() % 2 ? 1 : -1) );;
             }
             ptrIndex++;
             ptrEta++;
@@ -811,7 +811,7 @@ void PfiBasis::analyzeStability() const
     // create matrix inverze
     for (auto columnIndex: *m_basisHead) {
         SparseVector vec;
-        if (columnIndex < columnCount) {
+        if (columnIndex < (int)columnCount) {
             vec = m_model->getMatrix().column(columnIndex);
         } else {
             vec = SparseVector::createUnitVector(rowCount, columnIndex - columnCount);
