@@ -189,7 +189,8 @@ HEADERS += include/debug.h \
     include/double.h \
     include/lp/pascalmodelbuilder.h \
     include/lp/pnsinterface.h \
-    include/lp/lpproblem.h
+    include/lp/lpproblem.h \
+    include/simplex/numericalmonitor.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
