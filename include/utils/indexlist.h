@@ -14,6 +14,9 @@
 #include <iostream>
 #include <typeinfo>
 #include <vector>
+
+//#define INDEXLIST_LOGGING
+
 using namespace std;
 
 struct unused { int operator*() const {return 0;}};
@@ -298,6 +301,10 @@ public:
      * @param partitions Number of linked lists.
      */
     void init(unsigned int count, unsigned int partitions) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("init( " + std::to_string(count) + ", " +
+                        std::to_string(partitions) + " )");
+#endif
         clear();
         Element<ATTACHED_TYPE> * pointerIterator;
         Element<ATTACHED_TYPE> * pointerIteratorEnd;
@@ -342,7 +349,14 @@ public:
      */
     inline void insert(unsigned int partitionIndex, unsigned int index, ATTACHED_TYPE attached = ATTACHED_TYPE())
     {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("insert( " + std::to_string(partitionIndex) + ", " +
+                        std::to_string(index) + " )");
+#endif
         //LPERROR(m_partitionCount << " / " << partitionIndex );
+        /*if (where(index) == partitionIndex) {
+            return;
+        }*/
         Element<ATTACHED_TYPE> * forward = m_heads[partitionIndex].m_next;
         m_heads[partitionIndex].m_next = m_dataArray + index;
         m_dataArray[index].m_next = forward;
@@ -359,6 +373,9 @@ public:
      * @param data The new attached data of the element.
      */
     inline void setAttachedData(unsigned int index, ATTACHED_TYPE data) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("setAttachedData( " + std::to_string(index) + " )");
+#endif
         m_dataArray[index].m_attached = data;
     }
 
@@ -369,6 +386,9 @@ public:
      * @return The attached data of the element.
      */
     inline ATTACHED_TYPE getAttachedData(unsigned int index) const {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("getAttachedData( " + std::to_string(index) + " )");
+#endif
         return m_dataArray[index].m_attached;
     }
     /**
@@ -380,7 +400,13 @@ public:
      */
     inline void remove(unsigned int index)
     {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("remove( " + std::to_string(index) + " )");
+#endif
         Element<ATTACHED_TYPE> & element = m_dataArray[index];
+        if (element.m_partitionIndex == m_partitionCount) {
+            return;
+        }
         element.m_partitionIndex = m_partitionCount;
         element.m_previous->m_next = element.m_next;
         element.m_next->m_previous = element.m_previous;
@@ -394,6 +420,10 @@ public:
      * @param attached The attached data to the index.
      */
     inline void move(unsigned int index, unsigned int targetPartition, ATTACHED_TYPE attached = ATTACHED_TYPE()) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("move( " + std::to_string(index) + ", " +
+                        std::to_string(targetPartition) + " )");
+#endif
         /*Element<ATTACHED_TYPE> & element = m_dataArray[value];
         element.m_partitionIndex = targetPartition;
 
@@ -403,6 +433,7 @@ public:
         forward->m_previous = &element;
         element.m_previous = m_heads + targetPartition;
         m_dataArray[value].m_attached = attached;*/
+        //if (where(index) )
         remove(index);
         insert(targetPartition, index, attached);
     }
@@ -416,6 +447,9 @@ public:
      * @see m_partitionIndex
      */
     inline unsigned int where(unsigned int index) const {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("where( " + std::to_string(index) + " )");
+#endif
         return m_dataArray[index].m_partitionIndex;
     }
 
@@ -426,6 +460,9 @@ public:
      * @return The data of the first element or -1 if the list is empty
      */
     inline int firstElement(unsigned int partitionIndex) const {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("firstElement( " + std::to_string(partitionIndex) + " )");
+#endif
         if (&(m_heads[partitionIndex]) == m_heads[partitionIndex].m_next){
             return -1;
         } else {
@@ -439,6 +476,9 @@ public:
      * @param partitionIndex The index of the partition
      */
     void reversePartition(unsigned int partitionIndex) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("reversePartition( " + std::to_string(partitionIndex) + " )");
+#endif
         PartitionIterator iter, iterEnd;
         getIterators(&iter, &iterEnd, partitionIndex);
         std::vector<unsigned int> elements;
@@ -816,16 +856,27 @@ public:
         operator _Iterator<ATTACHED_TYPE>() const {
             return _Iterator<ATTACHED_TYPE>(m_actual);
         }
+
+        void dump(std::ostream & os) const {
+            os << "m_acutal: " << m_actual << std::endl;
+
+        }
     };
 
     typedef _Iterator<ATTACHED_TYPE> Iterator;
     typedef _PartitionIterator<ATTACHED_TYPE> PartitionIterator;
 
     Iterator getIterator() const {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("getIterator()");
+#endif
         return Iterator();
     }
 
     PartitionIterator getPartitionIterator() const {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("getPartitionIterator()");
+#endif
         return PartitionIterator();
     }
 
@@ -841,6 +892,10 @@ public:
     void getIterators(Iterator * begin, Iterator * end, unsigned int partitionIndex,
                       unsigned int partitions = 1) const
     {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("getIterators( " + std::to_string(partitionIndex) +
+                        + ", partitions" + std::to_string(partitions) + " )");
+#endif
         unsigned int lastPartitionIndex = partitionIndex + partitions - 1;
         Element<ATTACHED_TYPE> * beginHead = m_heads + partitionIndex;
         Element<ATTACHED_TYPE> * endHead = m_heads + lastPartitionIndex;
@@ -866,8 +921,12 @@ public:
      */
     void getIterators(PartitionIterator * begin, PartitionIterator * end, unsigned int partitionIndex) const
     {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("getIterators( " + std::to_string(partitionIndex) + " )");
+#endif
         *begin = m_heads + partitionIndex;
-        *end = m_heads + partitionIndex;
+        //*end = m_heads + partitionIndex;
+        *end = *begin;
         begin->next();
     }
 
@@ -878,6 +937,9 @@ public:
      * @return True if the specified partition contains no indices.
      */
     inline bool isPartitionEmpty(unsigned int index) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("isPartitionEmpty( " + std::to_string(index) + " )");
+#endif
         Element<ATTACHED_TYPE> * element = m_heads + index;
         return element->m_next == element;
     }
@@ -888,6 +950,9 @@ public:
      * @return sucess of the search
      */
     inline bool contains (unsigned int index) {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("contains( " + std::to_string(index) + " )");
+#endif
         Iterator it;
         Iterator endit;
         getIterators(&it, &endit ,0 , m_partitionCount);
@@ -906,6 +971,10 @@ public:
      */
     inline void clearPartition(unsigned int index)
     {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("clearPartition( " + std::to_string(index) + " )");
+#endif
+
         Iterator iter, endIter;
         getIterators(&iter, &endIter, index, 1);
         for (; iter != endIter; ++iter) {
@@ -922,6 +991,9 @@ public:
      * Removes all indices from the list.
      */
     void clearAllPartitions() {
+#ifdef INDEXLIST_LOGGING
+        m_log.push_back("clearAllPartitions");
+#endif
         unsigned int index;
         Element<ATTACHED_TYPE> * element = m_heads;
         for (index = 0; index < m_partitionCount; index++, element++) {
@@ -930,6 +1002,16 @@ public:
             }
         }
     }
+
+#ifdef INDEXLIST_LOGGING
+    void enableLogging(bool enable) {
+        m_enableLog = enable;
+    }
+
+    const std::vector<std::string> & getLog() const {
+        return m_log;
+    }
+#endif
 
 private:
 
@@ -954,6 +1036,18 @@ private:
      * The size of array is m_count.
      */
     Element<ATTACHED_TYPE> * m_dataArray;
+
+#ifdef INDEXLIST_LOGGING
+    /**
+     * Enables or disables logging.
+     */
+    bool m_enableLog;
+
+    /**
+     * Contains the log.
+     */
+    mutable std::vector<std::string> m_log;
+#endif
 
     /**
      * Releases the arrays, and sets to zero each variable.
