@@ -791,10 +791,10 @@ void DualSimplex::detectExcessivelyInstability()
 
     m_basis->Ftran(pivotColumn2);
     //m_basis->FtranCheck(pivotColumn);
-    for (int i = 0; i < pivotColumn.length(); i++) {
+    for (unsigned int i = 0; i < pivotColumn.length(); i++) {
         Numerical::Double v = pivotColumn.at(i);
         Numerical::Double mul = 1.0 + (rand() % 1000000) / (double)1e14;
-        Numerical::Double add = (rand() % 1000000) / (double)1e10;
+        //Numerical::Double add = (rand() % 1000000) / (double)1e10;
        // std::cout << v << " " << (v + add) << "  " << (add) << std::endl;
         pivotColumn.set(i, v * mul);
     }
@@ -826,11 +826,11 @@ void DualSimplex::detectExcessivelyInstability()
     // -----------------------------------
 
     Numerical::Double btranRatio = 0.0;
-    for (int i = 0; i < rowCount; i++) {
+    for (unsigned int i = 0; i < rowCount; i++) {
         break;
         DenseVector u1(rowCount);
-        for (int j = 0; j < rowCount; j++) {
-            if (m_basisHead[j] < columnCount) {
+        for (unsigned int j = 0; j < rowCount; j++) {
+            if (m_basisHead[j] < (int)columnCount) {
                 u1.set(j, m_simplexModel->getMatrix().get(i,  m_basisHead[j]  ) );
             } else {
                 u1.set(j, (m_basisHead[j] - columnCount) == i);
@@ -877,9 +877,9 @@ void DualSimplex::detectExcessivelyInstability()
 
     DenseVector v;
     double max = 0.0;
-    for (int i = 0; i < m_basisHead.size(); i++) {
+    for (unsigned int i = 0; i < m_basisHead.size(); i++) {
         break;
-        if ( m_basisHead[i] < m_simplexModel->getMatrix().columnCount() ) {
+        if ( m_basisHead[i] < (int)m_simplexModel->getMatrix().columnCount() ) {
             v = this->m_simplexModel->getMatrix().column( m_basisHead[i] );
             // DenseVector v2 = DenseVector::createVectorFromSparseArray(  )
             DenseVector v2 = v;
@@ -908,12 +908,12 @@ void DualSimplex::detectExcessivelyInstability()
 
     // -----------------------
     max = 0.0;
-    for (int i = 0; i < rowCount; i++) {
+    for (unsigned int i = 0; i < rowCount; i++) {
         break;
         DenseVector v = DenseVector::createUnitVector(rowCount, i);
         m_basis->Ftran(v);
         double sum = 0.0;
-        for (int j = 0; j < rowCount; j++) {
+        for (unsigned int j = 0; j < rowCount; j++) {
             sum += fabs(v.at(j));
          //   std::cout << v.at(j) << " ";
         }
