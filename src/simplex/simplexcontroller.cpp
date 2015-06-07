@@ -7,7 +7,6 @@
 #include <simplex/lubasis.h>
 #include <utils/thread.h>
 #include <thread>
-#include <prettyprint.h>
 #include <simplex/simplexthread.h>
 
 const static char * ITERATION_TIME_NAME = "Time";

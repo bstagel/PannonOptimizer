@@ -4,7 +4,6 @@
 #include <simplex/primalfeasibilitychecker.h>
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
-#include <utils/thirdparty/prettyprint.h>
 
 PrimalFeasibilityChecker::PrimalFeasibilityChecker(const SimplexModel& model,
                                                    const DenseVector & basicVariableValues,

@@ -15,7 +15,6 @@
 #include <simplex/basisheadpanopt.h>
 #include <simplex/checker.h>
 #include <lp/presolver.h>
-#include <utils/thirdparty/prettyprint.h>
 #include <algorithm>
 
 const static char * ITERATION_INDEX_NAME = "Iteration";

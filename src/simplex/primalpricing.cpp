@@ -5,7 +5,6 @@
 
 #include <simplex/primalpricing.h>
 #include <simplex/simplexparameterhandler.h>
-#include <utils/thirdparty/prettyprint.h>
 
 PrimalPricing::PrimalPricing(const DenseVector &basicVariableValues,
                              const IndexList<> & basicVariableFeasibilities,

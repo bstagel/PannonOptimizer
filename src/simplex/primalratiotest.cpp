@@ -6,7 +6,6 @@
 #include <simplex/simplex.h>
 #include <simplex/simplexparameterhandler.h>
 #include <random>
-#include <prettyprint.h>
 
 PrimalRatiotest::PrimalRatiotest(const SimplexModel &model,
                                  DenseVector &basicVariableValues,

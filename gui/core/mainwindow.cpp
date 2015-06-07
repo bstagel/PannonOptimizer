@@ -129,6 +129,9 @@ MainWindow::~MainWindow() { }
 
 void MainWindow::newProblem() {
     textEdit->setText("");
+    logLabel->setText("");
+    statusBar->showMessage("Ready");
+
     actions["startSolve"]->setEnabled(false);
     actions["cancelSolve"]->setEnabled(false);
     actions["exportSolution"]->setEnabled(false);
@@ -144,6 +147,20 @@ void MainWindow::loadProblem() {
     fileDialog.exec();
     if(fileDialog.selectedUrls().count() > 0 && fileDialog.selectedFiles().at(0).contains(".")) {
         selectedFileName = fileDialog.selectedFiles().at(0);
+
+        newProblem();
+        QFile file(selectedFileName);
+        if(file.size() < 1000000 && file.open(QFile::ReadOnly | QFile::Text)) {
+            textEdit->setReadOnly(true);
+            textEdit->setText("Loading...");
+            QTextStream in(&file);
+            QApplication::setOverrideCursor(Qt::WaitCursor);
+            textEdit->setPlainText(in.readAll());
+            QApplication::restoreOverrideCursor();
+            file.close();
+            textEdit->setReadOnly(false);
+        }
+
         parseProblem();
     }
 }
@@ -169,6 +186,7 @@ void MainWindow::startSolve() {
 }
 
 void MainWindow::cancelSolve() {
+    statusBar->showMessage("Ready");
     panOpt->kill();
     actions["startSolve"]->setEnabled(true);
     actions["cancelSolve"]->setEnabled(false);
@@ -219,6 +237,7 @@ void MainWindow::parseProblem() {
     } else {
         statusBar->showMessage(QString("Parse error at line ")+QString::number(loadResult.line)+QString(": ")+loadResult.str);
     }
+    logLabel->setText(statusBar->currentMessage());
 }
 
 void MainWindow::obtainSolution() {
@@ -390,35 +409,110 @@ void MainWindow::initProblemTab()
 
 void MainWindow::initMatrixTab()
 {
-    QWidget* matrixTab=mainTabs->widget(2);
+    matrixZoom = 1;
+    QWidget* matrixTab = mainTabs->widget(2);
     QHBoxLayout * matrixTabLayout = new QHBoxLayout(matrixTab);
+    QWidget* leftSideWidget =new QWidget;
+    QWidget* rightSideWidget =new QWidget;
+    leftSideWidget->setFixedWidth(200);
+    matrixTabLayout->addWidget(leftSideWidget);
+    matrixTabLayout->addWidget(rightSideWidget);
+    QVBoxLayout* matrixLeftLayout = new QVBoxLayout(leftSideWidget);
+    matrixRightLayout = new QVBoxLayout(rightSideWidget);
+    QLabel* zoomLabel = new QLabel;
+    zoomLabel->setText("Zoom");
+    zoomBox = new QComboBox;
+    QStringList zoomStr;
+    zoomStr.append("1x");
+    zoomStr.append("2x");
+    zoomStr.append("4x");
+    zoomStr.append("8x");
+    zoomStr.append("16x");
+    zoomBox->addItems(zoomStr);
+    QWidget* zoomPanel = new QWidget;
+    QVBoxLayout* zoomLayout = new QVBoxLayout(zoomPanel);
+    matrixLeftLayout->addWidget(zoomPanel, 0, Qt::AlignTop);
+    zoomLayout->addWidget(zoomLabel, 0, Qt::AlignTop);
+    zoomLayout->addWidget(zoomBox, 0, Qt::AlignTop);
+    zoomPanel->setFixedHeight(60);
+
     matrixView = new QGraphicsView;
-    matrixView->resize(600,400);
-    matrixTabLayout->addWidget(matrixView);
+    matrixView->resize(900 * matrixZoom, 600 * matrixZoom);
+    matrixRightLayout->addWidget(matrixView);
     scene = new QGraphicsScene;
-    scene->addRect(QRectF(0,0,matrixView->width(),matrixView->height()));
 
     matrixView->setScene(scene);
+
+    connect(zoomBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(drawMatrix()));
 }
 
 void MainWindow::drawMatrix()
 {
+    matrixZoom = (zoomBox->currentText().left(zoomBox->currentText().indexOf('x'))).toDouble();
+    if(panOpt->getModel() == NULL) return;
+
+    QGraphicsScene* tempS = scene;
+    QGraphicsView* temp = matrixView;
+
     const Matrix& matrix = panOpt->getModel()->getMatrix();
     double ratio = matrix.columnCount() / matrix.rowCount();
-    unsigned height = 400;
-    unsigned width = 600;
+    unsigned height = 600 * matrixZoom;
+    unsigned width = 900 * matrixZoom;
     if(ratio >= 1.5) {
         height = width / ratio;
     } else width = ratio * height;
-    int blockSize = 1;
-    if(matrix.rowCount() < height) blockSize = height / matrix.rowCount();
-    scene = new QGraphicsScene;
-    for(unsigned i = 0; i < matrix.rowCount(); i++) {
-        for(SparseVector::NonzeroIterator it = matrix.row(i).beginNonzero();it < matrix.row(i).endNonzero(); ++it) {
-            scene->addRect(QRectF(it.getIndex() * blockSize, i * blockSize, blockSize, blockSize), QPen(), QBrush(QColor(0,0,0)));
+    if(matrix.rowCount() < height) {
+        int blockSize = 1;
+        blockSize = height / matrix.rowCount();
+        tempS = scene;
+        scene = new QGraphicsScene;
+        temp = matrixView;
+        matrixView = new QGraphicsView;
+        matrixView->resize(900 * matrixZoom,600 * matrixZoom);
+        matrixRightLayout->removeWidget(temp);
+        tempS->deleteLater();
+        temp->deleteLater();
+        delete temp;
+        matrixRightLayout->addWidget(matrixView);
+
+        for(unsigned i = 0; i < matrix.rowCount(); i++) {
+            SparseVector::NonzeroIterator itEnd = matrix.row(i).endNonzero();
+            for(SparseVector::NonzeroIterator it = matrix.row(i).beginNonzero(); it < itEnd; ++it) {
+                scene->addRect(QRectF(it.getIndex() * blockSize, i * blockSize, blockSize, blockSize), QPen(), QBrush(QColor(0,0,0)));
+            }
+        }
+
+    } else {
+        double blocksPerPix = 1;
+        blocksPerPix = (double)matrix.rowCount() / (double)height;
+        if((double)matrix.columnCount() / (double)width > blocksPerPix) blocksPerPix = (double)matrix.columnCount() / (double)width;
+        Matrix graphMatrix(height, width);
+
+        tempS = scene;
+        scene = new QGraphicsScene;
+        temp = matrixView;
+        matrixView = new QGraphicsView;
+        matrixView->resize(900 * matrixZoom,600 * matrixZoom);
+        matrixRightLayout->removeWidget(temp);
+        tempS->deleteLater();
+        temp->deleteLater();
+        matrixRightLayout->addWidget(matrixView);
+
+        for(unsigned i = 0; i < matrix.rowCount(); i++) {
+            SparseVector::NonzeroIterator itEnd = matrix.row(i).endNonzero();
+            for(SparseVector::NonzeroIterator it = matrix.row(i).beginNonzero(); it < itEnd; ++it) {
+                graphMatrix.set((int)((double)i / blocksPerPix), (int)((double)(it.getIndex()) / blocksPerPix), 1);
+            }
+        }
+
+        for(unsigned i = 0; i < graphMatrix.rowCount(); i++) {
+            SparseVector::NonzeroIterator itEnd = graphMatrix.row(i).endNonzero();
+            for(SparseVector::NonzeroIterator it = graphMatrix.row(i).beginNonzero();it < itEnd; ++it) {
+                scene->addRect(QRectF(it.getIndex(), i, 1, 1), QPen(), QBrush(QColor(0,0,0)));
+            }
         }
     }
-    scene->addRect(QRectF(0,0,matrixView->width(),matrixView->height()));
+
     matrixView->setScene(scene);
 }
 
@@ -504,11 +598,16 @@ void MainWindow::loadFromEditor()
         QTextStream stream( &tempFile );
         stream << textEdit->toPlainText() << endl;
         tempFile.close();
+        if(filename.length() > 3 && filename.right(3).toUpper() == ".LP") {
+            format->setCurrentIndex(0);
+        } else {
+            format->setCurrentIndex(1);
+        }
         selectedFileName = filename;
         parseProblem();
-        logLabel->setText(statusBar->currentMessage());
     }
 }
+
 
 void MainWindow::initParametersTab()
 {
@@ -528,23 +627,23 @@ void MainWindow::initParametersTab()
     QGridLayout *tolLayout=new QGridLayout;
 
     QLabel* e_pivot_label=new QLabel(tr("e_pivot"));
-    QLineEdit* e_pivot=new QLineEdit;
+    QLineEdit* e_pivot=new QLineEdit("1e-006");
     tolLayout->addWidget(e_pivot_label,1,0);
     tolLayout->addWidget(e_pivot,1,1);
 
     QLabel* e_feasibility_label=new QLabel(tr("e_feasibility"));
-    QLineEdit* e_feasibility=new QLineEdit;
+    QLineEdit* e_feasibility=new QLineEdit("1e-008");
     tolLayout->addWidget(e_feasibility_label,2,0);
     tolLayout->addWidget(e_feasibility,2,1);
 
     QLabel* e_optimally_label=new QLabel(tr("e_optimally"));
-    QLineEdit* e_optimally=new QLineEdit;
+    QLineEdit* e_optimally=new QLineEdit("1e-008");
     tolLayout->addWidget(e_optimally_label,3,0);
     tolLayout->addWidget(e_optimally,3,1);
 
     verticalTol->setLayout(tolLayout);
     //sizepolicy
-    QSizePolicy sizePolicy((QSizePolicy::Policy)QSizePolicy::Minimum,(QSizePolicy::Policy)QSizePolicy::Fixed);
+    QSizePolicy sizePolicy((QSizePolicy::Policy)QSizePolicy::DefaultType,(QSizePolicy::Policy)QSizePolicy::Fixed);
     sizePolicy.setHorizontalStretch(0);
     sizePolicy.setVerticalStretch(0);
     verticalTol->setSizePolicy( sizePolicy );
@@ -959,6 +1058,85 @@ void MainWindow::initParametersTab()
     tg->addLayout(rpg);
 
     parameterTabLayout->addWidget(pageTabs);
+
+    //ParameterHandler
+        //Tolerances
+    SimplexParameterHandler::getInstance().setParameterValue("Tolerances.e_pivot",1e-006);
+    SimplexParameterHandler::getInstance().setParameterValue("Tolerances.e_feasibility",1e-008);
+    SimplexParameterHandler::getInstance().setParameterValue("Tolerances.e_optimality",1e-008);
+
+        //Starting
+    SimplexParameterHandler::getInstance().setParameterValue("Starting.Presolve.enable",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Starting.Scaling.enable",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Starting.Scaling.type","BENICHOU");
+    SimplexParameterHandler::getInstance().setParameterValue("Starting.Basis.starting_nonbasic_states","NONBASIC_TO_LOWER");
+    SimplexParameterHandler::getInstance().setParameterValue("Starting.Basis.starting_basis_strategy","LOGICAL");
+
+       //Factorization
+    SimplexParameterHandler::getInstance().setParameterValue("Factorization.type","PFI");
+    SimplexParameterHandler::getInstance().setParameterValue("Factorization.reinversion_frequency",30);
+    SimplexParameterHandler::getInstance().setParameterValue("Factorization.pivot_threshold",0.1);
+    SimplexParameterHandler::getInstance().setParameterValue("Factorization.PFI.nontriangular_method","BLOCK_ORDER");
+    SimplexParameterHandler::getInstance().setParameterValue("Factorization.PFI.nontriangular_pivot_rule","THRESHOLD_PIVOT");
+
+        //Pricing
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.type","DANTZIG");
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseI_clusters",1);
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseI_visit_clusters",1);
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseI_improving_candidates",0);
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseII_clusters",1);
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseII_visit_clusters",1);
+    SimplexParameterHandler::getInstance().setParameterValue("Pricing.Simpri.phaseII_improving_candidates",0);
+
+        //Ratiotest
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.e_pivot_generation",true);
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.nonlinear_primal_phaseI_function","PIECEWISE");
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.nonlinear_dual_phaseI_function","PIECEWISE");
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.nonlinear_dual_phaseII_function","PIECEWISE");
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.Expand.multiplier",0.01);
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.Expand.divider",10000);
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.Expand.avoidthetamin",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Ratiotest.Expand.type","EXPANDING");
+
+        //Perturbation
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.perturb_cost_vector","INACTIVE");
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.perturb_target","ALL");
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.perturb_logical",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.e_cost_vector",1e-006);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.xi_multiplier",100);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.psi",1e-005);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.weighting","INACTIVE");
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.perturb_rhs",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.e_rhs",1e-006);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.shift_bounds",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Perturbation.e_bounds",1e-006);
+
+        //Global
+    SimplexParameterHandler::getInstance().setParameterValue("Global.starting_algorithm","DUAL");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.switch_algorithm","INACTIVE");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.repeat_solution",0);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.debug_level",1);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.iteration_limit",200000);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.time_limit",3600);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.batch_output",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.batch_size",10);
+
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.basis",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.filename","basis");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.format","PBF");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.last_basis",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.iteration",0);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.SaveBasis.periodically",0);
+
+    SimplexParameterHandler::getInstance().setParameterValue("Global.LoadBasis.basis",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.LoadBasis.filename","basis");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.LoadBasis.format","PBF");
+
+    SimplexParameterHandler::getInstance().setParameterValue("Global.Export.enable",false);
+    SimplexParameterHandler::getInstance().setParameterValue("Global.Export.filename","exported_result.txt");
+    SimplexParameterHandler::getInstance().setParameterValue("Global.Export.type","REVISION_CHECK");
+
+    SimplexParameterHandler::getInstance().writeParameterFile();
 
 }
 

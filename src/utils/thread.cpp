@@ -1,5 +1,4 @@
 #include <utils/thread.h>
-#include <utils/thirdparty/prettyprint.h>
 
 std::mutex ThreadSupervisor::sm_mutex;
 
