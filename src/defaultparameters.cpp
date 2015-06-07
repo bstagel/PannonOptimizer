@@ -29,7 +29,7 @@ const char * DefaultParameters::Starting::Basis::STARTING_NONBASIC_STATES = "NON
 const char * DefaultParameters::Starting::Basis::STARTING_BASIS_STRATEGY = "LOGICAL";
 //Basis factorization
 const char * DefaultParameters::Factorization::TYPE = "PFI";
-const int DefaultParameters::Factorization::REINVERSION_FREQUENCY = 30;
+const int DefaultParameters::Factorization::REINVERSION_FREQUENCY = 100;
 const double DefaultParameters::Factorization::PIVOT_THRESHOLD = 0.1;
 const char * DefaultParameters::Factorization::PFI::NONTRIANGULAR_METHOD = "BLOCK_ORDER";
 const char * DefaultParameters::Factorization::PFI::NONTRIANGULAR_PIVOT_RULE = "THRESHOLD_PIVOT";
