@@ -186,10 +186,10 @@ public:
      * @constructor
      * @param list The original list.
      */
-    IndexList(const IndexList & list) = delete;
-//    {
-//        copy(list);
-//    }
+    IndexList(const IndexList & list)
+    {
+        copy(list);
+    }
 
     /**
      * Assignment operator of IndexList.
@@ -232,12 +232,12 @@ public:
      * @param list The original list object.
      * @return Reference of the actual list object.
      */
-    IndexList & operator=(const IndexList & list) = delete;
-//    {
-//        clear();
-//        copy(list);
-//        return *this;
-//    }
+    IndexList & operator=(const IndexList & list)
+    {
+        clear();
+        copy(list);
+        return *this;
+    }
 
     /**
      * Destructor of IndexList.
@@ -1124,9 +1124,10 @@ private:
         myPointerIteratorEnd = m_heads + m_partitionCount;
         hisPointerIterator = list.m_heads;
         unsigned int index = 0;
-        for (; myPointerIterator < myPointerIteratorEnd; myPointerIterator++,
-             hisPointerIterator++, index++) {
+        for (; myPointerIterator < myPointerIteratorEnd; ++myPointerIterator,
+             ++hisPointerIterator, index++) {
             myPointerIterator->m_data = index;
+            myPointerIterator->m_isHeader = true;
             if (hisPointerIterator->m_next != hisPointerIterator) {
                 myPointerIterator->m_next = m_dataArray + (hisPointerIterator->m_next - list.m_dataArray);
                 myPointerIterator->m_previous = m_dataArray + (hisPointerIterator->m_previous - list.m_dataArray);
@@ -1144,6 +1145,7 @@ private:
         for (; myPointerIterator < myPointerIteratorEnd; myPointerIterator++,
              hisPointerIterator++, index++) {
             myPointerIterator->m_data = index;
+            myPointerIterator->m_isHeader = false;
             if (hisPointerIterator->m_next == 0) {
                 myPointerIterator->m_next = 0;
                 myPointerIterator->m_previous = 0;

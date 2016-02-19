@@ -1070,7 +1070,7 @@ __UNUSED(mode);
 
 void LuBasis::BtranCheck(DenseVector &vector) const
 {
-
+    __UNUSED(vector);
 }
 
 void LuBasis::analyzeStability() const
