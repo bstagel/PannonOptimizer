@@ -140,3 +140,14 @@ const double * PnsInterface::getReducedCost() const
 {
     return m_simplex->getReducedCosts().begin().operator->();
 }
+
+SimplexState * PnsInterface::getSimplexState() const
+{
+    return nullptr;
+}
+
+int PnsInterface::dual(SimplexState *startingState)
+{
+    __UNUSED(startingState);
+    return 0;
+}

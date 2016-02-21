@@ -14,6 +14,11 @@
 */
 //=================================================================================================
 
+/**
+ * @file pnsinterface.h This file contains the API of the PnsInterface class.
+ * @author Peter Tar
+ */
+
 #ifndef PNSINTERFACE_H
 #define PNSINTERFACE_H
 
@@ -22,7 +27,13 @@
 class SimplexController;
 class ManualModelBuilder;
 class Model;
+class SimplexState;
 
+/**
+ * This class provides an interface to the PNS Solver allowing efficient usage of the Pannon Optimizer.
+ *
+ * @class PnsInterface
+ */
 class PnsInterface {
 public:
     PnsInterface();
@@ -100,6 +111,18 @@ public:
      * Gives the reduced costs
      */
     const double * getReducedCost() const;
+
+    // Interface to support warm start.
+
+    /**
+     * Gives the actual state of the solver.
+     */
+    SimplexState * getSimplexState() const;
+
+    /**
+     * Dual solve with warm start from the given state.
+     */
+    int dual(SimplexState * startingState);
 
 private:
     SimplexController* m_simplex;
