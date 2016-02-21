@@ -84,7 +84,7 @@ public:
     /**
      * Construct the PfiBasis object with a model assigned to it.
      *
-     * @construtor
+     * @constructor
      * @param model The assigned model.
      */
     PfiBasis();
