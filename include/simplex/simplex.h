@@ -25,13 +25,14 @@
 #include <globals.h>
 
 #include <lp/method.h>
-#include <simplex/simplexmodel.h>
 #include <utils/numerical.h>
 #include <utils/indexlist.h>
 #include <utils/iterationreport.h>
 #include <utils/iterationreportprovider.h>
 #include <utils/timer.h>
+#include <simplex/simplexmodel.h>
 #include <simplex/pricing.h>
+#include <simplex/simplexstate.h>
 
 class SimplexController;
 class StartingBasisFinder;
@@ -510,6 +511,11 @@ protected:
      * @param simplex The target Simplex object to copy the state to.
      */
     void setSimplexState(const Simplex &simplex);
+
+    /**
+     * Set the basis to an arbitary simplex state to start the algorithm from.
+     */
+    void setSimplexState(SimplexState *simplexState);
 
     /**
      * Saves the current basis to a file.

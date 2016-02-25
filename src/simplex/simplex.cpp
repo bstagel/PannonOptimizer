@@ -344,7 +344,7 @@ void Simplex::setModel(const Model &model) {
         m_simplexModel->perturbRHS();
     }
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.shift_bounds") != false){
-        m_simplexModel->shiftBounds();
+        m_simplexModel->shiftBounds(sm_repeatSolution);
     }
     ++sm_repeatSolution;
 }
@@ -403,15 +403,8 @@ void Simplex::setSimplexState(const Simplex & simplex)
         m_variableStates.insert(NONBASIC_FREE,*it, &ZERO);
     }
     temp.clear();
-    //BASIC
-    //    simplex.m_variableStates.getIterators(&it,&endit,BASIC);
-    //    for(;it != endit; ++it){
-    //        temp.push_back(it.getData());
-    //    }
-    //    for(auto it = temp.rbegin(); it != temp.rend(); ++it){
-    //        m_variableStates.insert(BASIC,it.getData(),&ZERO);
-    //    }
 
+    //BASIC
     for(auto it = m_basisHead.begin(); it != m_basisHead.end(); ++it){
         m_variableStates.insert(BASIC, *it, &(m_basicVariableValues.at(it - m_basisHead.begin())));
     }
@@ -422,6 +415,32 @@ void Simplex::setSimplexState(const Simplex & simplex)
 
     m_objectiveValue = simplex.m_objectiveValue;
 
+}
+
+void Simplex::setSimplexState(SimplexState *simplexState)
+{
+
+    m_basisHead = simplexState->getBasisHead();
+    m_basicVariableValues = simplexState->getBasicVariableValues();
+    m_variableStates = simplexState->getVariableStates();
+    IndexList<const Numerical::Double*>::Iterator it;
+    IndexList<const Numerical::Double*>::Iterator endit;
+
+    for(unsigned i = 0; i < m_basisHead.size(); ++i){
+        m_variableStates.setAttachedData(m_basisHead[i], &m_basicVariableValues.at(i));
+    }
+
+    m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB,4);
+    for (; it != endit; ++it) {
+        if (m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_LB ||
+                   m_variableStates.where(it.getData()) == Simplex::NONBASIC_FIXED) {
+            m_variableStates.setAttachedData(it.getData(), &(m_simplexModel->getVariable(it.getData()).getLowerBound()));
+        } else if (m_variableStates.where(it.getData()) == Simplex::NONBASIC_AT_UB) {
+            m_variableStates.setAttachedData(it.getData(), &(m_simplexModel->getVariable(it.getData()).getUpperBound()));
+        } else if (m_variableStates.where(it.getData()) == Simplex::NONBASIC_FREE) {
+            m_variableStates.setAttachedData(it.getData(), &ZERO);
+        }
+    }
 }
 
 void Simplex::iterate(int iterationIndex)
@@ -768,7 +787,6 @@ void Simplex::computeBasicSolution() {
     }
 
     //    This also sets the basic solution since the pointers of the basic variables point to the basic variable values vector
-
     m_basis->Ftran(m_basicVariableValues);
 
     m_variableStates.getIterators(&it, &itend, Simplex::BASIC);

@@ -346,7 +346,7 @@ void BasisHeadPanOpt::finishReading() {
             //LPINFO("FIXED " << variableIndex);
             //std::cin.get();
             m_variableStatesPtr->insert( Simplex::NONBASIC_FIXED,
-                                         variableIndex, &ZERO );
+                                         variableIndex, &m_variables[variableIndex]->getLowerBound() );
         } else {
             throw PanOptException("Illegal variable state: " + stateStr);
         }

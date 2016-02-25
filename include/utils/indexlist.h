@@ -1146,6 +1146,8 @@ private:
              hisPointerIterator++, index++) {
             myPointerIterator->m_data = index;
             myPointerIterator->m_isHeader = false;
+            myPointerIterator->m_attached = 0;
+            myPointerIterator->m_partitionIndex = hisPointerIterator->m_partitionIndex;
             if (hisPointerIterator->m_next == 0) {
                 myPointerIterator->m_next = 0;
                 myPointerIterator->m_previous = 0;

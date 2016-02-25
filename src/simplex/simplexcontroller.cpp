@@ -63,7 +63,8 @@ SimplexController::SimplexController():
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0),
     m_iterations(0),
-    m_isOptimal(false)
+    m_isOptimal(false),
+    m_simplexState(nullptr)
 {
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
@@ -309,6 +310,7 @@ void SimplexController::solve(const Model &model)
         const int & repeatSolution = SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.repeat_solution");
         for(int i=0; i <= repeatSolution; ++i){
             sequentialSolve(model);
+            solveWithWarmStart(model,m_simplexState);
         }
     }
     m_basis->releaseModel();
@@ -384,7 +386,13 @@ void SimplexController::sequentialSolve(const Model &model)
                     }
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
-                        switchAlgorithm(model, iterationReport);
+                        //switchAlgorithm(model, iterationReport);
+                        if (!m_simplexState) {
+                            LPINFO("Saving simplexState!");
+                            m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
+                                                              m_currentSimplex->m_variableStates,
+                                                              m_currentSimplex->m_basicVariableValues);
+                        }
                     }
                 } else if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
@@ -839,6 +847,223 @@ void SimplexController::parallelSequentialSolve(const Model *model) {
     InitPanOpt::threadRelease();
     ThreadSupervisor::unregisterMyThread();
     delete wrapper;
+}
+
+void SimplexController::solveWithWarmStart(const Model &model, SimplexState *simplexState)
+{
+    LPINFO("Warm start solution");
+    IterationReport* iterationReport = new IterationReport();
+
+    iterationReport->addProviderForStart(*this);
+    iterationReport->addProviderForIteration(*this);
+    iterationReport->addProviderForSolution(*this);
+
+    if(m_enableExport){
+        iterationReport->addProviderForExport(*this);
+    }
+    ParameterHandler & simplexParameters = SimplexParameterHandler::getInstance();
+
+    const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
+    const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
+    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
+    unsigned int reinversionCounter = reinversionFrequency;
+    const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
+
+    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
+        m_currentAlgorithm = Simplex::PRIMAL;
+        m_primalSimplex = new PrimalSimplex(m_basis);
+        m_currentSimplex = m_primalSimplex;
+    } else if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
+        m_dualSimplex = new DualSimplex(m_basis);
+        m_currentSimplex = m_dualSimplex;
+    }
+
+    m_currentSimplex->setModel(model);
+    if (simplexState != NULL) {
+        m_currentSimplex->setSimplexState(simplexState);
+    }
+
+    try{
+
+        m_currentSimplex->setIterationReport(iterationReport);
+        m_basis->registerThread();
+        m_basis->setSimplexState(m_currentSimplex);
+
+        sm_solveTimer.reset();
+        sm_solveTimer.start();
+        if (simplexState == NULL) {
+            if (m_loadBasis){
+                m_currentSimplex->loadBasis();
+            }else{
+                m_currentSimplex->findStartingBasis();
+            }
+        }
+
+        iterationReport->addProviderForStart(*m_currentSimplex);
+        iterationReport->addProviderForIteration(*m_currentSimplex);
+        iterationReport->addProviderForSolution(*m_currentSimplex);
+        if(m_enableExport){
+            iterationReport->addProviderForExport(*m_currentSimplex);
+        }
+        iterationReport->createStartReport();
+        iterationReport->writeStartReport();
+
+        Numerical::Double lastObjective = 0;
+        //Simplex iterations
+        for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
+             (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
+
+            if(m_saveBasis){
+                m_currentSimplex->saveBasis(m_iterationIndex);
+            }
+
+            //if wolfe is active no inversion should be done (reordering the basishead causes undefined behaviour in the procedure)
+            if((int)reinversionCounter >= reinversionFrequency && !((m_currentAlgorithm == Simplex::PRIMAL &&
+                                                                   m_primalSimplex->m_ratiotest != NULL) ?
+                    m_primalSimplex->m_ratiotest->isWolfeActive() :
+                 (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != NULL) ?
+                    (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
+
+                m_currentSimplex->reinvert();
+
+                reinversionCounter = 0;
+                m_freshBasis = true;
+
+                if (switching == "SWITCH_BEFORE_INV") {
+                    if (m_iterationIndex > 1){
+                        switchAlgorithm(model, iterationReport);
+                    }
+                } else if (switching == "SWITCH_BEFORE_INV_PH2") {
+//                    if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
+//                        switchAlgorithm(model, iterationReport);
+//                    }
+                } else if (switching == "SWITCH_WHEN_NO_IMPR") {
+                    if(m_iterationIndex > 1){
+                        if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
+                            switchAlgorithm(model, iterationReport);
+                        }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){
+                            switchAlgorithm(model, iterationReport);
+                        }
+                    }
+                }
+                m_currentSimplex->computeFeasibility();
+            }
+            try{
+                //iterate
+                m_currentSimplex->iterate(m_iterationIndex);
+
+                m_iterations++;
+
+                if(!m_currentSimplex->m_feasible){
+                    lastObjective = m_currentSimplex->getPhaseIObjectiveValue();
+                }else{
+                    lastObjective = m_currentSimplex->getObjectiveValue();
+                }
+                reinversionCounter++;
+
+                m_iterationIndex++;
+                if(m_debugLevel>1 || (m_debugLevel==1 && m_freshBasis)){
+                    iterationReport->writeIterationReport();
+                }
+                m_freshBasis = false;
+            } catch ( const FallbackException & exception ) {
+                LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+                reinversionCounter = reinversionFrequency;
+            } catch ( const OptimizationResultException & exception ) {
+                m_currentSimplex->reset();
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    reinversionCounter = reinversionFrequency;
+                }
+            } catch ( const NumericalException & exception ) {
+                //Check the result with triggering reinversion
+                if(m_freshBasis){
+                    throw;
+                } else {
+                    LPINFO("Numerical error: "<<exception.getMessage());
+                    reinversionCounter = reinversionFrequency;
+                }
+            }
+        }
+    } catch ( const ParameterException & exception ) {
+        LPERROR("Parameter error: "<<exception.getMessage());
+    } catch ( const OptimalException & exception ) {
+        m_isOptimal = true;
+        LPINFO("OPTIMAL SOLUTION found! ");
+        // TODO: postsovle, post scaling
+        // TODO: Save optimal basis if necessary
+    } catch ( const PrimalInfeasibleException & exception ) {
+        LPINFO("The problem is PRIMAL INFEASIBLE.");
+    } catch ( const DualInfeasibleException & exception ) {
+        LPINFO("The problem is DUAL INFEASIBLE.");
+    } catch ( const PrimalUnboundedException & exception ) {
+        LPINFO("The problem is PRIMAL UNBOUNDED.");
+    } catch ( const DualUnboundedException & exception ) {
+        LPINFO("The problem is DUAL UNBOUNDED.");
+    } catch ( const NumericalException & exception ) {
+        LPINFO("Numerical error: "<<exception.getMessage());
+    } catch ( const SyntaxErrorException & exception ) {
+        exception.show();
+    } catch ( const InvalidIndexException & exception ) {
+        LPERROR("InvalidIndexException exception:"<< exception.getMessage() );
+    } catch ( const PanOptException & exception ) {
+        LPERROR("PanOpt exception:"<< exception.getMessage() );
+    } catch ( const std::bad_alloc & exception ) {
+        LPERROR("STL bad alloc exception: " << exception.what() );
+    } catch ( const std::bad_cast & exception ) {
+        LPERROR("STL bad cast exception: " << exception.what() );
+    } catch ( const std::bad_exception & exception ) {
+        LPERROR("STL bad exception exception: " << exception.what() );
+    } catch ( const std::bad_typeid & exception ) {
+        LPERROR("STL bad typeid exception: " << exception.what() );
+    } catch (const std::ios_base::failure & exception ) {
+        LPERROR("STL ios_base::failure exception: " << exception.what() );
+    } catch (const std::logic_error & exception ) {
+        LPERROR("STL logic error exception: " << exception.what() );
+    } catch ( const std::range_error & exception ) {
+        LPERROR("STL range error: " << exception.what() );
+    } catch ( const std::overflow_error & exception ) {
+        LPERROR("STL arithmetic overflow error: " << exception.what() );
+    } catch ( const std::underflow_error & exception ) {
+        LPERROR("STL arithmetic underflow error: " << exception.what() );
+#if __cplusplus > 199711L
+    } catch ( const std::system_error & exception ) {
+        //LPERROR("STL system error: \"" << exception.code().message() << "\" " << exception.what() );
+        LPERROR("STL system error: " << std::endl);
+        LPERROR("\tError: " << exception.what() << std::endl);
+        LPERROR("\tCode: " << exception.code().value() << std::endl);
+        LPERROR("\tCategory: " << exception.code().category().name() << std::endl);
+        LPERROR("\tMessage: " << exception.code().message() << std::endl);
+    } catch ( const std::bad_function_call & exception ) {
+        LPERROR("STL bad function call exception: " << exception.what() );
+#endif
+    } catch (const std::runtime_error & exception ) {
+        LPERROR("STL runtime error: " << exception.what() );
+    }
+    catch (const std::exception & exception) {
+        LPERROR("General STL exception: " << exception.what());
+    } catch (...) {
+        LPERROR("Unknown exception");
+    }
+    sm_solveTimer.stop();
+
+    iterationReport->createSolutionReport();
+    iterationReport->writeSolutionReport();
+
+    if(m_enableExport){
+        iterationReport->createExportReport();
+        iterationReport->writeExportReport(m_exportFilename);
+    }
+
+    m_basis->releaseThread();
+
+    if(iterationReport){
+        delete iterationReport;
+        iterationReport = NULL;
+    }
 }
 
 void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)

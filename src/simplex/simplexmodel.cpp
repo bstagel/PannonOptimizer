@@ -169,12 +169,10 @@ void SimplexModel::perturbCostVector(int initializeEngine)
 
     std::default_random_engine engine;
     DenseVector epsilonValues(getColumnCount()+getRowCount());
-    LPINFO("Cost vector perturbation...");
 #ifndef NDEBUG
     LPINFO("Cost vector perturbation method: " << perturbMethod <<
            " target: " << perturbTarget << " logical: " << perturbLogical);
 #endif
-
     unsigned numberOfPerturbations = 0;
     if(perturbLogical){
         numberOfPerturbations = getColumnCount() + getRowCount();

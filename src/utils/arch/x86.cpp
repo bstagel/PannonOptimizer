@@ -839,4 +839,3 @@ void ArchitectureX86::generateParameterFile() const
 }
 
 #endif
-

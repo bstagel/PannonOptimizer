@@ -1072,11 +1072,7 @@ __UNUSED(mode);
 
 void LuBasis::BtranCheck(DenseVector &vector) const
 {
-<<<<<<< 078a648f0ce751bfaf407e934b7edef9c969deb5
 __UNUSED(vector);
-=======
-    __UNUSED(vector);
->>>>>>> Added SimplexState class for simplex state import/export.
 }
 
 void LuBasis::analyzeStability() const
