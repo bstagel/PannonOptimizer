@@ -111,10 +111,6 @@ public:
      * Initializing constructor.
      *
      * @constructor
-     * @param model The model of the LP problem.
-     * @param basisHead The indices of the basic variables.
-     * @param variableStates Index list containing variable states (being at lower or upper bound)
-     * @param basicVariableValues The X_B vector.
      */
     Basis();
 
@@ -195,7 +191,6 @@ public:
      */
     void setSimplexState(Simplex *simplex);
 
-
     /**
      * Thread handling
      */
@@ -219,7 +214,7 @@ public:
 
 protected:
     /**
-     * The model if the LP problem.
+     * The model of the LP problem.
      */
     static thread_local const SimplexModel* m_model;
 

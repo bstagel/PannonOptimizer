@@ -140,7 +140,7 @@ __attribute__((constructor))
 void initPanOpt() {
     //initSignalHandler();
     setbuf(stdout, 0);
-    printf("INIT PanOpt!\n");
+    LPINFO("INIT PanOpt!\n");
 
     InitPanOpt::init();
 
@@ -148,7 +148,7 @@ void initPanOpt() {
 
 __attribute__((destructor))
 static void releasePanOpt() {
-    std::cout << "RELEASE PanOpt" << std::endl;
+    std::cerr << "RELEASE PanOpt" << std::endl;
 
     InitPanOpt::release();
 }

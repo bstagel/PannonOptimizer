@@ -421,32 +421,88 @@ void SimplexModel::perturbRHS()
     m_perturbedRhs = true;
 }
 
-void SimplexModel::shiftBounds()
-{
+void SimplexModel::shiftBounds(int initializeEngine)
+{    
+    m_originalLowerBounds.reserve(getColumnCount()+getRowCount());
+    m_originalUpperBounds.reserve(getColumnCount()+getRowCount());
+    for(unsigned i=0;i < getColumnCount()+getRowCount();i++){
+        m_originalLowerBounds[i] = getVariable(i).getLowerBound();
+        m_originalUpperBounds[i] = getVariable(i).getUpperBound();
+    }
     LPINFO("Bound shifting");
     //generate random epsilon values
-    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_bounds");
-    std::default_random_engine engine;
-    std::uniform_real_distribution<double> distribution(-epsilon,epsilon);
-    //TODO: Ezt mashogy kell lefoglalni, feltolteni
-    int rowCount = getMatrix().rowCount();
-    DenseVector epsilonValuesLower(rowCount);
-    DenseVector epsilonValuesUpper(rowCount);
-    for(unsigned i=0;i < getColumnCount();i++){
-        epsilonValuesLower.set(i,distribution(engine));
-        epsilonValuesUpper.set(i,distribution(engine));
+    //parameter references
+//    const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_bounds");
+    const bool & perturbLogical = SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_logical");
+    const double & psi = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.psi");
+    const double & tolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
+//    const double & xi = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.xi_multiplier") * tolerance;
+    const std::string & weighting = SimplexParameterHandler::getInstance().getStringParameterValue("Perturbation.weighting");
+    Numerical::Double fix = 100 * tolerance;
+
+    unsigned numberOfPerturbations = 0;
+    if(perturbLogical){
+        numberOfPerturbations = getColumnCount() + getRowCount();
+    }else{
+        numberOfPerturbations = getColumnCount();
     }
+
+    std::uniform_real_distribution<double> posDistribution(0.5,1);
+    std::uniform_real_distribution<double> negDistribution(-1,-0.5);
+    std::default_random_engine engine;
+    for(int i=0; i < 2 * initializeEngine; i++){
+        posDistribution(engine);
+        negDistribution(engine);
+    }
+
+    DenseVector epsilonValuesLower(getColumnCount()+getRowCount());
+    DenseVector epsilonValuesUpper(getColumnCount()+getRowCount());
     Numerical::Double lb = 0;
     Numerical::Double ub = 0;
 
-    for(unsigned i=0;i < getColumnCount();i++){
+    //fix + psi * |bound| is always positive, neg or pos ditributions determine the sign
+    for(unsigned i=0;i < numberOfPerturbations;i++){
         lb = getVariable(i).getLowerBound();
         ub = getVariable(i).getUpperBound();
         if (lb != -Numerical::Infinity){
-            m_variables[i].setLowerBound(lb+epsilonValuesLower.at(i));
+            epsilonValuesLower.set(i,negDistribution(engine) * (fix + psi * Numerical::fabs(getVariable(i).getLowerBound())));
         }
         if (ub != Numerical::Infinity){
-            m_variables[i].setUpperBound(ub+epsilonValuesUpper.at(i));
+            epsilonValuesUpper.set(i,posDistribution(engine) * (fix + psi * Numerical::fabs(getVariable(i).getUpperBound())));
+        }
+        if (epsilonValuesLower.at(i) > 0 || epsilonValuesUpper.at(i) < 0) {
+            LPERROR("e_lb: "<<epsilonValuesLower.at(i)<<" e_ub: "<<epsilonValuesUpper.at(i));
+            exit(-1);
+        }
+    }
+
+    //considering number of nonzeros (alpha column)
+    if(weighting == "WEIGHT" ){
+        bool staticVector = true;
+        if(staticVector){
+            std::vector<Numerical::Double> weightVector{0, 0.01, 0.1, 1, 2, 5, 10, 20, 30, 40, 100};
+            for(unsigned i=0; i < getRowCount(); ++i){
+                unsigned nonzeros = getMatrix().row(i).nonZeros();
+                if(nonzeros >= 9){
+                    epsilonValuesLower.set(i,weightVector[9] * epsilonValuesLower.at(i));
+                    epsilonValuesUpper.set(i,weightVector[9] * epsilonValuesUpper.at(i));
+                }else{
+                    epsilonValuesLower.set(i,weightVector[nonzeros] * epsilonValuesLower.at(i));
+                    epsilonValuesUpper.set(i,weightVector[nonzeros] * epsilonValuesUpper.at(i));
+                }
+            }
+        }
+    }
+
+    //perturbation
+    for(unsigned i = 0; i < numberOfPerturbations; i++){
+        lb = getVariable(i).getLowerBound();
+        ub = getVariable(i).getUpperBound();
+        if (lb != -Numerical::Infinity){
+            m_variables[i].setLowerBound(lb + epsilonValuesLower.at(i));
+        }
+        if (ub != Numerical::Infinity){
+            m_variables[i].setUpperBound(ub + epsilonValuesUpper.at(i));
         }
     }
 
@@ -466,13 +522,10 @@ void SimplexModel::resetModel()
         m_perturbedRhs = false;
     }
     if (m_perturbedBounds){
-        Numerical::Double lb = 0;
-        Numerical::Double ub = 0;
-        for(unsigned i=0;i < getColumnCount();i++){
-            lb = getVariable(i).getLowerBound();
-            ub = getVariable(i).getUpperBound();
-            m_variables[i].setLowerBound(lb);
-            m_variables[i].setUpperBound(ub);
+        LPINFO("Resetting bounds!");
+        for(unsigned i = 0; i < getColumnCount() + getRowCount(); i++){
+            m_variables[i].setLowerBound(m_originalLowerBounds[i]);
+            m_variables[i].setUpperBound(m_originalUpperBounds[i]);
         }
         m_perturbedBounds = false;
     }

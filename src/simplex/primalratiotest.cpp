@@ -659,12 +659,12 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
         m_outgoingVariableIndex = breakpoint->variableIndex;
         m_primalSteplength = m_sigma * breakpoint->value;
-        if (m_primalSteplength >= 10E-4) {
-            LPINFO("m_primalSteplength "<<m_primalSteplength);
-            LPINFO("alpha: "<<alpha.at(m_outgoingVariableIndex));
-            LPINFO("lb: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getLowerBound());
-            LPINFO("ub: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound());
-        }
+//        if (m_primalSteplength >= 10E-4) {
+//            LPINFO("m_primalSteplength "<<m_primalSteplength);
+//            LPINFO("alpha: "<<alpha.at(m_outgoingVariableIndex));
+//            LPINFO("lb: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getLowerBound());
+//            LPINFO("ub: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound());
+//        }
 //        LPINFO("Wolfe: variable "<<m_outgoingVariableIndex<<" leaving with: "<<m_primalSteplength);
 
         Numerical::Double ref_ub = Numerical::fabs(m_primalSteplength - (m_basicVariableValues.at(m_outgoingVariableIndex) -

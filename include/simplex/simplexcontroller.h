@@ -24,6 +24,7 @@
 #include <utils/iterationreportprovider.h>
 #include <simplex/primalsimplex.h>
 #include <simplex/dualsimplex.h>
+#include <simplex/simplexstate.h>
 
 /**
  * This class controlls the solver, and makes possible to switch between
@@ -283,10 +284,15 @@ private:
     unsigned int m_iterations;
 
     /**
-     * Optimality flag for the solution
+     * Optimality flag for the solution.
      */
 
     bool m_isOptimal;
+
+    /**
+     * For testing the warm start algorithm.
+     */
+    SimplexState * m_simplexState;
 
     /**
      * Function that solves the LP problem given by the parameter using a main thread.
@@ -308,6 +314,14 @@ private:
      * @param model The LP problem model to be solved.
      */
     void parallelSequentialSolve(const Model* model);
+
+    /**
+     * Function solving the LP problem with warm start (algorithm is started from arbitary basis).
+     *
+     * @param model The LP problem model to be solved.
+     * @param simplexState The simplex state describes the arbitrary basis to start the simplex algorithm from.
+     */
+    void solveWithWarmStart(const Model& model, SimplexState* simplexState = NULL);
 
     /**
      * This function can perform a switching among the solver algorithms (Simplex::ALGORITHM)

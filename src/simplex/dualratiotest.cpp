@@ -1034,7 +1034,7 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
             //        LPINFO("visiting dlb");
             unsigned int variableIndex = it.getData();
             Numerical::Double dj = m_reducedCosts.at(variableIndex);
-            LPINFO("asd- it.get: "<<it.getData())
+//            LPINFO("asd- it.get: "<<it.getData())
             if (Numerical::equal( dj, 0,degeneracyTolerance)) {
 //                LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
                 increaseDepth = true;

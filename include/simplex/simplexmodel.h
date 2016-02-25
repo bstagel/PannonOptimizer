@@ -160,17 +160,19 @@ public:
     void perturbCostVector(int initializeEngine);
 
     /**
+     * This function perturbs the variable bounds with random epislon values and so prevents degeneracy.
+     * Thanks to the perturbation the RHS is also perturbed. This is
+     * an efficenty strategy for the primal algorithm.
+     * @param initializeEngine number of times random engine should be initialized
+     */
+    void shiftBounds(int initializeEngine);
+
+    /**
      * The perturbation of the RHS vector with small epsilon values leads to antidegeneracy in the primal algorithm.
      * The basicvariable values are computed from the RHS, so those values are
      * also perturbed this way.
      */
     void perturbRHS();
-
-    /**
-     * This function shifts the bounds of the structural variables with random epsilon values.
-     * By doing so it leads to antidegeneracy in the primal algorithm.
-     */
-    void shiftBounds();
 
     /**
      * This function resets the model corresponding to the original cost vector, rhs and bounds if perturbations were done.
@@ -208,6 +210,16 @@ private:
      * This vector is the original (not perturbed) rhs vector.
      */
     DenseVector m_originalRhs;
+
+    /**
+     * This vector is the original (not perturbed) lower bounds.
+     */
+    std::vector<Numerical::Double> m_originalLowerBounds;
+
+    /**
+     * This vector is the original (not perturbed) upper bounds.
+     */
+    std::vector<Numerical::Double> m_originalUpperBounds;
 
     /**
      * True if the cost vector was perturbed.

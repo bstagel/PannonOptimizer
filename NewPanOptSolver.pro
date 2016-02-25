@@ -44,10 +44,10 @@ CONFIG(debug, debug|release) {
     #message("NewPanOptSolver: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -lgcc_eh
-#    POST_TARGETDEPS += ../debug/libNewPanOpt.a
-    POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
-#    LIBS += -L../debug/ -lNewPanOpt
-    LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt -L../panopt/lib/# -lqd
+    POST_TARGETDEPS += ../debug/libNewPanOpt.a
+#    POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
+    LIBS += -L../debug/ -lNewPanOpt
+#    LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt -L../panopt/lib/# -lqd
 #    DESTDIR = ../build-NewPanOptSolver/debug
     OBJECTS_DIR = .o_debug
 }

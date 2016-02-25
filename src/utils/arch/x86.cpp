@@ -35,7 +35,7 @@ ArchitectureX86::ArchitectureX86() {
 }
 
 void ArchitectureX86::detect() {
-    std::cout << "X86 detect" << std::endl;
+    std::cerr << "X86 detect" << std::endl;
     m_architectureName = "X86";
     if (cpuidSupported() == true) {
         setCPUData();
@@ -43,7 +43,7 @@ void ArchitectureX86::detect() {
         setFeatureList();
         setCPUTopologyData();
     } else {
-        std::cout << "CPUID not supported" << std::endl;
+        std::cerr << "CPUID not supported" << std::endl;
     }
     setMemoryData();
     setPrimitives();
