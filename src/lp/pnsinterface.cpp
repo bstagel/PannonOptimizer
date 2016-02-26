@@ -122,6 +122,7 @@ int PnsInterface::writeMps(const char *filename,
 
 int PnsInterface::dual()
 {
+    std::cout<<"SOLVING MODEL ("<<m_model->variableCount()<<" X "<<m_model->constraintCount()<<")";
     m_simplex->solve(*m_model);
     return 0;
 }

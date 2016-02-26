@@ -20,6 +20,8 @@
 
 #include <simplex/simplexstate.h>
 
+#define PLACEHOLDER_VAL 81291822
+
 SimplexState* SimplexState::sm_lastSimplexState = nullptr;
 
 SimplexState::SimplexState() :
@@ -104,7 +106,7 @@ std::vector<int> SimplexState::getBasisHead() const
         std::vector<int> basisHead = m_parent->getBasisHead();
         auto it = m_basisHeadDiff->beginNonzero();
         auto itEnd = m_basisHeadDiff->endNonzero();
-        for(; it != itEnd; ++it) basisHead[it.getIndex()] = *it;
+        for(; it != itEnd; ++it) basisHead[it.getIndex()] = *it == PLACEHOLDER_VAL ? 0 : *it;
         return basisHead;
     }
     return std::vector<int>();
@@ -118,7 +120,7 @@ IndexList<const Numerical::Double *> SimplexState::getVariableStates() const
         IndexList<const Numerical::Double*> variableStates = m_parent->getVariableStates();
         auto it = m_variableStatesDiff->beginNonzero();
         auto itEnd = m_variableStatesDiff->endNonzero();
-        for(; it != itEnd; ++it) variableStates.move(it.getIndex(), *it);
+        for(; it != itEnd; ++it) variableStates.move(it.getIndex(), *it == PLACEHOLDER_VAL ? 0 : *it);
         return variableStates;
     }
     return IndexList<const Numerical::Double*>();
@@ -132,10 +134,48 @@ DenseVector SimplexState::getBasicVariableValues() const
         DenseVector basicVariableValues = m_parent->getBasicVariableValues();
         auto it = m_basicVariableValuesDiff->beginNonzero();
         auto itEnd = m_basicVariableValuesDiff->endNonzero();
-        for(; it != itEnd; ++it) basicVariableValues.set(it.getIndex(), *it);
+        for(; it != itEnd; ++it) basicVariableValues.set(it.getIndex(), *it == PLACEHOLDER_VAL ? 0 : *it);
         return basicVariableValues;
     }
     return DenseVector();
+}
+
+void SimplexState::print() const
+{
+    LPINFO("SimplexState object (" << this << ")");
+    if(m_type == SIMPLEXSTATE_NULL) {
+        LPINFO("Uninitialized / not valid simplex state object.");
+        return;
+    } else if(m_type == SIMPLEXSTATE_FULL) {
+        LPINFO("Full simplex state.")
+        LPINFO("Basis head: ");
+        for(auto it = m_basisHead->begin(); it!=m_basisHead->end(); ++it) LPINFO((*it) << "; ");
+        LPINFO("Variable states: ");
+        IndexList<const Numerical::Double*>::Iterator it, itEnd;
+        m_variableStates->getIterators(&it, &itEnd, 0, 5);
+        for(; it != itEnd; ++it) LPINFO(it.getData() << ": " << it.getPartitionIndex());
+        LPINFO("Basic variable values: " << (*m_basicVariableValues));
+    } else if(m_type == SIMPLEXSTATE_DIFF) {
+        LPINFO("Simplex state difference.");
+        LPINFO("Parent is " << m_parent << ".");
+        LPINFO("Parent values:");
+        LPINFO("Basis head: ");
+        auto head = m_parent->getBasisHead();
+        for(auto it = head.begin(); it!=head.end(); ++it) LPINFO((*it) << "; ");
+        LPINFO("Variable states: ");
+        auto ilist = m_parent->getVariableStates();
+        IndexList<const Numerical::Double*>::Iterator it, itEnd;
+        ilist.getIterators(&it, &itEnd, 0, 5);
+        for(; it != itEnd; ++it) LPINFO(it.getData() << ": " << it.getPartitionIndex());
+        LPINFO("Basic variable values: " << m_parent->getBasicVariableValues());
+        LPINFO("Difference vectors:");
+        LPINFO("Basis head: ");
+        for(auto it = m_basisHeadDiff->beginNonzero(); it!=m_basisHeadDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+        LPINFO("Variable states: ");
+        for(auto it = m_variableStatesDiff->beginNonzero(); it!=m_variableStatesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+        LPINFO("Basic variable values: ");
+        for(auto it = m_basicVariableValuesDiff->beginNonzero(); it!=m_basicVariableValuesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+    }
 }
 
 void SimplexState::init(const std::vector<int> &basisHead, const IndexList<const Numerical::Double *> &variableStates,
@@ -181,18 +221,16 @@ void SimplexState::init(const std::vector<int> &basisHead, const IndexList<const
             auto itParent = parentBasisHead.begin();
             int index;
             for(index = 0; it != itEnd; ++it, ++itParent, index++) {
-                if(*it != *itParent) m_basisHeadDiff->set(index, *it);
+                if(*it != *itParent) m_basisHeadDiff->set(index, *it == 0 ? PLACEHOLDER_VAL : *it);
             }
         }
 
         // Record changes in the variable states.
         {
-            IndexList<const Numerical::Double*>::Iterator it, itEnd, itParent, itParentEnd;
+            IndexList<const Numerical::Double*>::Iterator it, itEnd;
             variableStates.getIterators(&it, &itEnd, 0, variableStates.getPartitionCount());
-            parentVariableStates.getIterators(&itParent, &itParentEnd, 0, parentVariableStates.getPartitionCount());
-            int index;
-            for(index = 0; it != itEnd; ++it, ++itParent, index++) {
-                if(it.getPartitionIndex() != itParent.getPartitionIndex()) m_variableStatesDiff->set(index, it.getPartitionIndex());
+            for(;it != itEnd; ++it) {
+                if(it.getPartitionIndex() != parentVariableStates.where(it.getData())) m_variableStatesDiff->set(it.getData(), it.getPartitionIndex() == 0 ? PLACEHOLDER_VAL : it.getPartitionIndex());
             }
         }
 
@@ -202,7 +240,7 @@ void SimplexState::init(const std::vector<int> &basisHead, const IndexList<const
             auto itParent = parentBasicVariableValues.begin();
             int index;
             for(index = 0; it != itEnd; ++it, ++itParent, index++) {
-                if(*it != *itParent) m_basicVariableValuesDiff->set(index, *it);
+                if(*it != *itParent) m_basicVariableValuesDiff->set(index, *it == 0 ? PLACEHOLDER_VAL : *it);
             }
         }
 

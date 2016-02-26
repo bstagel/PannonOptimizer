@@ -75,6 +75,40 @@ void solve(std::string filename, bool dump_vars = false) {
 
     simplexController.solve(model);
 
+//    LPINFO("SIMPLEXSTATE TEST");
+//    LPINFO("-----------------------------------");
+//    std::vector<int> bHead(5);
+//    bHead[0] = 1;
+//    bHead[1] = 5;
+//    bHead[2] = 3;
+//    bHead[3] = 8;
+//    bHead[4] = 0;
+//    IndexList<const Numerical::Double*> ilist(10, 5);
+//    ilist.move(0, Simplex::BASIC);
+//    ilist.move(1, Simplex::BASIC);
+//    ilist.move(2, Simplex::NONBASIC_AT_LB);
+//    ilist.move(3, Simplex::BASIC);
+//    ilist.move(4, Simplex::NONBASIC_AT_LB);
+//    ilist.move(5, Simplex::BASIC);
+//    ilist.move(6, Simplex::NONBASIC_AT_LB);
+//    ilist.move(7, Simplex::NONBASIC_AT_LB);
+//    ilist.move(8, Simplex::BASIC);
+//    ilist.move(9, Simplex::NONBASIC_AT_LB);
+//    DenseVector basicvar(5);
+//    basicvar.set(0, 10);
+//    basicvar.set(1, 8);
+//    basicvar.set(2, 9);
+//    basicvar.set(3, 3);
+//    basicvar.set(4, 2);
+//    SimplexState newState(bHead, ilist, basicvar);
+//    newState.print();
+//    bHead[2] = 4;
+//    ilist.move(3, Simplex::NONBASIC_AT_LB);
+//    ilist.move(4, Simplex::BASIC);
+//    basicvar.set(2, 100);
+//    SimplexState newState2(bHead, ilist, basicvar);
+//    newState2.print();
+
     if(dump_vars) {
         const DenseVector& solution = simplexController.getPrimalSolution();
         for(unsigned i = 0; i < model.variableCount(); i++) {
