@@ -149,6 +149,11 @@ public:
      */
     DenseVector getBasicVariableValues() const;
 
+    /**
+     * Prints the object data to the output.
+     */
+    void print() const;
+
 private:
 
     /**
