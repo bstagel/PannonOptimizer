@@ -294,9 +294,12 @@ void SimplexController::solve(const Model &model) {
         }
     } else {
         const int & repeatSolution = SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.repeat_solution");
-        for(int i=0; i <= repeatSolution; ++i){
+        for(int i = 0; i <= repeatSolution; ++i){
+
             sequentialSolve(model);
-            solveWithWarmStart(model,m_simplexState);
+            //for testing warm start
+            if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") ==
+                    "SWITCH_BEFORE_INV_PH2") solveWithWarmStart(model,m_simplexState);
         }
     }
     m_basis->releaseModel();
@@ -382,9 +385,10 @@ void SimplexController::sequentialSolve(const Model &model)
                     }
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
+                        //for testing warm start
                         //switchAlgorithm(model, iterationReport);
                         if (!m_simplexState) {
-                            LPINFO("Saving simplexState!");
+                            LPINFO("Saving simplexState at entering phase 2!");
                             m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
                                                               m_currentSimplex->m_variableStates,
                                                               m_currentSimplex->m_basicVariableValues);
@@ -443,6 +447,12 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
+        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_BEFORE_INV_PH2") {
+            LPINFO("Saving optimal simplex state!");
+            m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
+                                              m_currentSimplex->m_variableStates,
+                                              m_currentSimplex->m_basicVariableValues);
+        }
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
         // TODO: postsovle, post scaling
