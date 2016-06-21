@@ -212,7 +212,7 @@ public:
      */
     virtual void dumbToStream(std::ostream & ) const {}
 
-protected:
+public:
     /**
      * The model of the LP problem.
      */

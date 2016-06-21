@@ -265,6 +265,7 @@ const DenseVector SimplexController::getReducedCosts() const
 }
 
 void SimplexController::solve(const Model &model) {
+
     m_isOptimal = false;
     m_basis->prepareForModel(model);
 
@@ -294,14 +295,14 @@ void SimplexController::solve(const Model &model) {
         }
     } else {
         const int & repeatSolution = SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.repeat_solution");
-        for(int i = 0; i <= repeatSolution; ++i){
+        for(int i=0; i <= repeatSolution; ++i){
 
             sequentialSolve(model);
-            //for testing warm start
-            if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") ==
-                    "SWITCH_BEFORE_INV_PH2") solveWithWarmStart(model,m_simplexState);
         }
     }
+    std::cout<<"OPTIMAL BASIS - ";
+    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
+    cout << endl;
     m_basis->releaseModel();
 }
 
@@ -344,11 +345,16 @@ void SimplexController::sequentialSolve(const Model &model)
 
         sm_solveTimer.reset();
         sm_solveTimer.start();
+
         if (m_loadBasis){
             m_currentSimplex->loadBasis();
         }else{
             m_currentSimplex->findStartingBasis();
         }
+
+        std::cout<<"STARTING BASIS - ";
+        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
+        cout << endl;
 
         iterationReport->addProviderForStart(*m_currentSimplex);
         iterationReport->addProviderForIteration(*m_currentSimplex);
@@ -856,6 +862,11 @@ void SimplexController::parallelSequentialSolve(const Model *model) {
 void SimplexController::solveWithWarmStart(const Model &model, SimplexState *simplexState)
 {
     LPINFO("Warm start solution");
+    m_isOptimal = false;
+    m_basis->prepareForModel(model);
+
+    m_iterations = 0;
+
     IterationReport* iterationReport = new IterationReport();
 
     iterationReport->addProviderForStart(*this);
@@ -1062,12 +1073,18 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
         iterationReport->writeExportReport(m_exportFilename);
     }
 
+    std::cout<<"OPTIMAL BASIS - ";
+    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
+    cout << endl;
+
     m_basis->releaseThread();
 
     if(iterationReport){
         delete iterationReport;
         iterationReport = NULL;
     }
+
+    m_basis->releaseModel();
 }
 
 void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)
@@ -1104,4 +1121,12 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
     m_currentSimplex->reinvert();
     m_freshBasis = true;
     LPINFO("Algorithm switched!");
+}
+
+SimplexState * SimplexController::getSimplexState(SimplexState *parent) {
+    SimplexState * newState = new SimplexState(m_currentSimplex->m_basisHead,
+                                               m_currentSimplex->m_variableStates,
+                                               m_currentSimplex->m_basicVariableValues,
+                                               parent);
+    return newState;
 }
