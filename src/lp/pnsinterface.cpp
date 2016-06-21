@@ -23,11 +23,15 @@
 #include <simplex/simplexparameterhandler.h>
 #include <lp/manualmodelbuilder.h>
 #include <lp/model.h>
+#include <utils/timer.h>
 
 PnsInterface::PnsInterface():
     m_simplex(new SimplexController()),
+    m_state(nullptr),
     m_builder(nullptr),
-    m_model(new Model())
+    m_model(new Model()),
+    m_x(new Timer()),
+    m_y(new Timer())
 {
 
 }
@@ -122,8 +126,22 @@ int PnsInterface::writeMps(const char *filename,
 
 int PnsInterface::dual()
 {
-    std::cout<<"SOLVING MODEL ("<<m_model->variableCount()<<" X "<<m_model->constraintCount()<<")";
+    cout << "WARM START" << endl;
+    m_x->start();
+    if(!m_state) {
+        m_simplex->solve(*m_model);
+        m_state = m_simplex->getSimplexState();
+    } else {
+        m_simplex->solveWithWarmStart(*m_model, m_state);
+    }
+    m_x->stop();
+    cout<<"WARM START WAS "<<m_x->getCPUTotalElapsed() <<endl;
+    m_y->start();
+    cout << "NORMAL" <<endl;
     m_simplex->solve(*m_model);
+    m_state = m_simplex->getSimplexState();
+    m_y->stop();
+    cout<<"NORMAL WAS "<<m_y->getCPUTotalElapsed()<<endl;
     return 0;
 }
 

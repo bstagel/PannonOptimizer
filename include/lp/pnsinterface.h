@@ -28,6 +28,7 @@ class SimplexController;
 class ManualModelBuilder;
 class Model;
 class SimplexState;
+class Timer;
 
 /**
  * This class provides an interface to the PNS Solver allowing efficient usage of the Pannon Optimizer.
@@ -126,8 +127,10 @@ public:
 
 private:
     SimplexController* m_simplex;
+    SimplexState* m_state;
     ManualModelBuilder* m_builder;
     Model* m_model;
+    Timer* m_x, * m_y;
 };
 
 #endif // PNSINTERFACE_H

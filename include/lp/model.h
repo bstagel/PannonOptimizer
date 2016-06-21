@@ -129,7 +129,7 @@ public:
 
     void changeObjectiveCoefficients(const double* objCoefficients);
 
-protected:
+public:
     Matrix m_matrix;
     std::vector<Variable> m_variables;
     std::vector<Constraint> m_constraints;

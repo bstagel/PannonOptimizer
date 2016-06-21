@@ -128,6 +128,16 @@ public:
      */
     inline bool isOptimal() const { return m_isOptimal; }
 
+    SimplexState* getSimplexState(SimplexState* parent = nullptr);
+
+    /**
+     * Function solving the LP problem with warm start (algorithm is started from arbitary basis).
+     *
+     * @param model The LP problem model to be solved.
+     * @param simplexState The simplex state describes the arbitrary basis to start the simplex algorithm from.
+     */
+    void solveWithWarmStart(const Model& model, SimplexState* simplexState = NULL);
+
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.
@@ -314,14 +324,6 @@ private:
      * @param model The LP problem model to be solved.
      */
     void parallelSequentialSolve(const Model* model);
-
-    /**
-     * Function solving the LP problem with warm start (algorithm is started from arbitary basis).
-     *
-     * @param model The LP problem model to be solved.
-     * @param simplexState The simplex state describes the arbitrary basis to start the simplex algorithm from.
-     */
-    void solveWithWarmStart(const Model& model, SimplexState* simplexState = NULL);
 
     /**
      * This function can perform a switching among the solver algorithms (Simplex::ALGORITHM)

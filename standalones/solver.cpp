@@ -77,9 +77,22 @@ void solve(std::string filename, ofstream & out, bool dump_vars = false) {
     }
 
     //init simplexController
-    SimplexController simplexController;
+    SimplexController simplexController, warmStartController;
 
     simplexController.solve(model);
+
+    double* cUpper = new double[5];
+    cUpper[0] = Numerical::Infinity;
+    cUpper[1] = -0.1;
+    cUpper[2] = 4;
+    cUpper[3] = 5;
+    cUpper[4] = 15;
+    model.changeConstraintUpper(cUpper);
+    SimplexState* state = simplexController.getSimplexState();
+    for(int i = 0; i < state->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state->getBasicVariableValues().at(i) << endl;
+    warmStartController.solveWithWarmStart(model, state);
+    SimplexState* state2 = warmStartController.getSimplexState();
+    for(int i = 0; i < state2->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state2->getBasicVariableValues().at(i) << endl;
 
 //    LPINFO("SIMPLEXSTATE TEST");
 //    LPINFO("-----------------------------------");
