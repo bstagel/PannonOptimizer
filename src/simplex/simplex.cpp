@@ -410,15 +410,26 @@ void Simplex::setSimplexState(const Simplex & simplex)
 
 void Simplex::setSimplexState(SimplexState *simplexState)
 {
-
     m_basisHead = simplexState->getBasisHead();
     m_basicVariableValues = simplexState->getBasicVariableValues();
+    m_basicVariableValues.clear();
     m_variableStates = simplexState->getVariableStates();
     IndexList<const Numerical::Double*>::Iterator it;
     IndexList<const Numerical::Double*>::Iterator endit;
 
     for(unsigned i = 0; i < m_basisHead.size(); ++i){
         m_variableStates.setAttachedData(m_basisHead[i], &m_basicVariableValues.at(i));
+    }
+
+    //Variable state correction
+    for(unsigned i = 0; i < m_variableStates.getIndexCount(); i++) {
+        if(m_variableStates.where(i) != Simplex::BASIC) {
+            if(m_simplexModel->getVariable(i).getType() == Variable::FIXED) m_variableStates.move(i, Simplex::NONBASIC_FIXED);
+            else if(m_simplexModel->getVariable(i).getType() == Variable::BOUNDED) m_variableStates.move(i, Simplex::NONBASIC_AT_LB);
+            else if(m_simplexModel->getVariable(i).getType() == Variable::PLUS) m_variableStates.move(i, Simplex::NONBASIC_AT_LB);
+            else if(m_simplexModel->getVariable(i).getType() == Variable::MINUS) m_variableStates.move(i, Simplex::NONBASIC_AT_UB);
+            else if(m_simplexModel->getVariable(i).getType() == Variable::FREE) m_variableStates.move(i, Simplex::NONBASIC_FREE);
+        }
     }
 
     m_variableStates.getIterators(&it,&endit,Simplex::NONBASIC_AT_LB,4);
@@ -721,6 +732,7 @@ const DenseVector Simplex::getReducedCosts() const {
 
 void Simplex::reinvert() {
     releaseLocks();
+
     m_inversionTimer.start();
     m_basis->invert();
     m_inversionTimer.stop();
@@ -762,7 +774,6 @@ void Simplex::computeBasicSolution() {
     auto itend = m_variableStates.getIterator();
     //This iterates through Simplex::NONBASIC_AT_LB, Simplex::NONBASIC_AT_UB and Simplex::NONBASIC_FIXED
     m_variableStates.getIterators(&it, &itend, Simplex::NONBASIC_AT_LB,3);
-
     for(; it != itend; ++it) {
         if(*(it.getAttached()) != 0){
             if(it.getData() < columnCount){

@@ -278,6 +278,7 @@ void DualSimplex::computeFeasibility() {
     if(m_feasible){
         m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
     }
+
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
         if(m_phase1Iteration == -1){

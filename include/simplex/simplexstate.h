@@ -154,7 +154,7 @@ public:
      */
     void print() const;
 
-private:
+public:
 
     /**
      * Registers another SimplexState object as child.
