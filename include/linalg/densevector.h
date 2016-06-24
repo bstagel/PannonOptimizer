@@ -37,7 +37,7 @@ class DenseVector {
     friend class LuBasis;
 
     //TODO remove, debug only
-    friend class DualSimplex;
+    friend class Simplex;
 private:
 
     Numerical::Double * m_data;

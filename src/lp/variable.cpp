@@ -89,6 +89,7 @@ std::ostream & operator<<(std::ostream & os, const Variable & var)
 
 void Variable::check() const
 {
+    return;
     if (m_lowerBound == Numerical::Infinity) {
         std::ostringstream message;
         message << "Variable " << getName() << " has invalid lower bound: " <<

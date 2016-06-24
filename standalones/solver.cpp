@@ -81,16 +81,37 @@ void solve(std::string filename, ofstream & out, bool dump_vars = false) {
 
     simplexController.solve(model);
 
-    double* cUpper = new double[5];
-    cUpper[0] = Numerical::Infinity;
-    cUpper[1] = -0.1;
-    cUpper[2] = 4;
-    cUpper[3] = 5;
-    cUpper[4] = 15;
-    model.changeConstraintUpper(cUpper);
+    std::vector<int> bHead(5);
+    bHead[0] = 8;
+    bHead[1] = 11;
+    bHead[2] = 5;
+    bHead[3] = 3;
+    bHead[4] = 7;
+    IndexList<const Numerical::Double*> ilist(13, 5);
+    ilist.move(0, Simplex::NONBASIC_AT_LB);
+    ilist.move(1, Simplex::NONBASIC_AT_LB);
+    ilist.move(2, Simplex::NONBASIC_AT_LB);
+    ilist.move(3, Simplex::BASIC);
+    ilist.move(4, Simplex::NONBASIC_AT_LB);
+    ilist.move(5, Simplex::BASIC);
+    ilist.move(6, Simplex::NONBASIC_AT_LB);
+    ilist.move(7, Simplex::BASIC);
+    ilist.move(8, Simplex::BASIC);
+    ilist.move(9, Simplex::NONBASIC_AT_LB);
+    ilist.move(10, Simplex::NONBASIC_AT_LB);
+    ilist.move(11, Simplex::BASIC);
+    ilist.move(12, Simplex::NONBASIC_AT_LB);
+    DenseVector basicvar(5);
+    basicvar.set(0, 10);
+    basicvar.set(1, 8);
+    basicvar.set(2, 9);
+    basicvar.set(3, 3);
+    basicvar.set(4, 2);
+    SimplexState newState(bHead, ilist, basicvar);
+
     SimplexState* state = simplexController.getSimplexState();
     for(int i = 0; i < state->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state->getBasicVariableValues().at(i) << endl;
-    warmStartController.solveWithWarmStart(model, state);
+    warmStartController.solveWithWarmStart(model, &newState);
     SimplexState* state2 = warmStartController.getSimplexState();
     for(int i = 0; i < state2->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state2->getBasicVariableValues().at(i) << endl;
 

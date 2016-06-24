@@ -98,7 +98,7 @@ bool Simpri::getCandidateIndex(unsigned int * index) {
     if (unlikely(m_totalImprovingIndices > 0 &&
                  (m_investigatedClusters >= m_clustersForScan
                   || m_improvingIndices >= m_improvingIndicesToFound) )) {
-      //  LPINFO("\tSIMRPI: enough indices found");
+        //LPINFO("\tSIMRPI: enough indices found");
         return false;
     }
     *index = m_clusterIterator.getData();

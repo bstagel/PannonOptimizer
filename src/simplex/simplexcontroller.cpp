@@ -412,7 +412,9 @@ void SimplexController::sequentialSolve(const Model &model)
                         }
                     }
                 }
+
                 m_currentSimplex->computeFeasibility();
+
             }
             try{
                 //iterate
@@ -903,7 +905,6 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
     if (simplexState != NULL) {
         m_currentSimplex->setSimplexState(simplexState);
     }
-
     try{
 
         m_currentSimplex->setIterationReport(iterationReport);
@@ -967,7 +968,9 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
                         }
                     }
                 }
+
                 m_currentSimplex->computeFeasibility();
+
             }
             try{
                 //iterate

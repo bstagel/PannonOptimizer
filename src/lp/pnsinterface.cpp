@@ -126,22 +126,22 @@ int PnsInterface::writeMps(const char *filename,
 
 int PnsInterface::dual()
 {
-    cout << "WARM START" << endl;
-    m_x->start();
-    if(!m_state) {
-        m_simplex->solve(*m_model);
-        m_state = m_simplex->getSimplexState();
-    } else {
-        m_simplex->solveWithWarmStart(*m_model, m_state);
-    }
-    m_x->stop();
-    cout<<"WARM START WAS "<<m_x->getCPUTotalElapsed() <<endl;
-    m_y->start();
-    cout << "NORMAL" <<endl;
+//    cout << "WARM START" << endl;
+//    m_x->start();
+//    if(!m_state) {
+//        m_simplex->solve(*m_model);
+//        m_state = m_simplex->getSimplexState();
+//    } else {
+//        m_simplex->solveWithWarmStart(*m_model, m_state);
+//    }
+//    m_x->stop();
+//    cout<<"WARM START WAS "<<m_x->getCPUTotalElapsed() <<endl;
+//    m_y->start();
+//    cout << "NORMAL" <<endl;
     m_simplex->solve(*m_model);
-    m_state = m_simplex->getSimplexState();
-    m_y->stop();
-    cout<<"NORMAL WAS "<<m_y->getCPUTotalElapsed()<<endl;
+//    m_state = m_simplex->getSimplexState();
+//    m_y->stop();
+//    cout<<"NORMAL WAS "<<m_y->getCPUTotalElapsed()<<endl;
     return 0;
 }
 
