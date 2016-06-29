@@ -48,6 +48,7 @@ public:
      * @constructor
      */
     DualFeasibilityChecker(const SimplexModel& model,
+                           const std::vector<int>& basisHead,
                            IndexList<const Numerical::Double *>* variableStates,
                            IndexList<>* reducedCostFeasibilities,
                            const DenseVector& reducedCosts,
@@ -68,9 +69,10 @@ public:
      * By doing so it maintaines the feasibility property of the bounded variables at the end of dual phase 1.
      *
      * @param basicVariableValues The basic variable values needed to compute the basic solution vector.
+     * @param objValue the objective value should be updated accoding to the boundflips.
      * @param tolerance The dual feasibility tolerance.
      */
-    void feasibilityCorrection(DenseVector *basicVariableValues, Numerical::Double tolerance);
+    void feasibilityCorrection(DenseVector *basicVariableValues, Numerical::Double *objValue, Numerical::Double tolerance);
 
     /**
      * The aim of this function is to be able to update the reduced cost feasibilities in an efficient way.
@@ -94,6 +96,11 @@ private:
      * The model provides the class information such as the values or bounds of the variables.
      */
     const SimplexModel& m_model;
+
+    /**
+     * The basishead is required to get the variable indices for the feasibility correction.
+     */
+    const std::vector<int>& m_basisHead;
 
     /**
      * This index list stores the state (being at lower/upper bound) of the nonbasic variables.
