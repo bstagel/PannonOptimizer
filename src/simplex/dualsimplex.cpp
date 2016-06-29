@@ -258,6 +258,7 @@ Entry DualSimplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_
 void DualSimplex::computeFeasibility() {
     if(m_feasibilityChecker == nullptr){
         m_feasibilityChecker = new DualFeasibilityChecker(*m_simplexModel,
+                                                          m_basisHead,
                                                           &m_variableStates,
                                                           &m_reducedCostFeasibilities,
                                                           m_reducedCosts,
@@ -276,7 +277,7 @@ void DualSimplex::computeFeasibility() {
     //In phase II check whether the bounded variables are correct or not
     //Do the feasibility correction if we entered phase two
     if(m_feasible){
-        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues,m_workingTolerance);
+        m_feasibilityChecker->feasibilityCorrection(&m_basicVariableValues, &m_objectiveValue, m_workingTolerance);
     }
 
     //Becomes feasible

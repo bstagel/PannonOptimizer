@@ -63,8 +63,7 @@ SimplexController::SimplexController():
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0),
     m_iterations(0),
-    m_isOptimal(false),
-    m_simplexState(nullptr)
+    m_isOptimal(false)
 {
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
@@ -296,13 +295,9 @@ void SimplexController::solve(const Model &model) {
     } else {
         const int & repeatSolution = SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.repeat_solution");
         for(int i=0; i <= repeatSolution; ++i){
-
             sequentialSolve(model);
         }
     }
-    std::cout<<"OPTIMAL BASIS - ";
-    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
-    cout << endl;
     m_basis->releaseModel();
 }
 
@@ -352,10 +347,6 @@ void SimplexController::sequentialSolve(const Model &model)
             m_currentSimplex->findStartingBasis();
         }
 
-        std::cout<<"STARTING BASIS - ";
-        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
-        cout << endl;
-
         iterationReport->addProviderForStart(*m_currentSimplex);
         iterationReport->addProviderForIteration(*m_currentSimplex);
         iterationReport->addProviderForSolution(*m_currentSimplex);
@@ -391,14 +382,7 @@ void SimplexController::sequentialSolve(const Model &model)
                     }
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
                     if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
-                        //for testing warm start
-                        //switchAlgorithm(model, iterationReport);
-                        if (!m_simplexState) {
-                            LPINFO("Saving simplexState at entering phase 2!");
-                            m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
-                                                              m_currentSimplex->m_variableStates,
-                                                              m_currentSimplex->m_basicVariableValues);
-                        }
+                        switchAlgorithm(model, iterationReport);
                     }
                 } else if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
@@ -455,14 +439,14 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
-        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_BEFORE_INV_PH2") {
-            LPINFO("Saving optimal simplex state!");
-            m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
-                                              m_currentSimplex->m_variableStates,
-                                              m_currentSimplex->m_basicVariableValues);
-        }
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
+//        cout<<"Optimal basis: ";
+//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_basis->m_basisHead->at(k) << " ";
+//        cout<<endl;
+//        cout<<"Optimal solution: ";
+//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_currentSimplex->m_basicVariableValues.at(k) << " ";
+//        cout<<endl;
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
@@ -864,6 +848,12 @@ void SimplexController::parallelSequentialSolve(const Model *model) {
 void SimplexController::solveWithWarmStart(const Model &model, SimplexState *simplexState)
 {
     LPINFO("Warm start solution");
+//    cout<<"from basis: ";
+//    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<simplexState->getBasisHead().at(k) << " ";
+//    cout<<endl;
+//    cout<<"solution: ";
+//    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<simplexState->getBasicVariableValues().at(k) << " ";
+//    cout<<endl;
     m_isOptimal = false;
     m_basis->prepareForModel(model);
 
@@ -951,9 +941,9 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
                         switchAlgorithm(model, iterationReport);
                     }
                 } else if (switching == "SWITCH_BEFORE_INV_PH2") {
-//                    if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
-//                        switchAlgorithm(model, iterationReport);
-//                    }
+                    if (!m_currentSimplex->m_lastFeasible && m_currentSimplex->m_feasible){
+                        switchAlgorithm(model, iterationReport);
+                    }
                 } else if (switching == "SWITCH_WHEN_NO_IMPR") {
                     if(m_iterationIndex > 1){
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
@@ -963,9 +953,7 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
                         }
                     }
                 }
-
                 m_currentSimplex->computeFeasibility();
-
             }
             try{
                 //iterate
@@ -1011,6 +999,24 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
+//        cout<<"Optimal basis: ";
+//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_basis->m_basisHead->at(k) << " ";
+//        cout<<endl;
+//        cout<<"Optimal solution: ";
+//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_currentSimplex->m_basicVariableValues.at(k) << " ";
+//        cout<<endl;
+#ifndef NDEBUG
+        double objVal = - model.getCostConstant();
+        for(unsigned i = 0; i < model.getCostVector().length(); i++) {
+            objVal += model.getCostVector().at(i) * (*m_currentSimplex->m_variableStates.getAttachedData(i));
+        }
+        if (!Numerical::equal(objVal, m_currentSimplex->getObjectiveValue(), 10e-8)) {
+            LPERROR("Wrong objective value!");
+            cout<<"cost constant: "<< setw(11) << scientific << setprecision(8) <<model.getCostConstant()<<"\n";
+            cout<<"recomputed z: "<< setw(11) << scientific << setprecision(8) <<objVal<<"\n";
+            cout<<"simplex obj value: "<< setw(11) << scientific << setprecision(8) <<m_currentSimplex->getObjectiveValue()<<"\n";
+        }
+#endif
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
@@ -1075,10 +1081,6 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
         iterationReport->createExportReport();
         iterationReport->writeExportReport(m_exportFilename);
     }
-
-    std::cout<<"OPTIMAL BASIS - ";
-    for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout << m_basis->m_basisHead->at(k) << " ";
-    cout << endl;
 
     m_basis->releaseThread();
 

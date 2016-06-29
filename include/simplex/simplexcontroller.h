@@ -300,11 +300,6 @@ private:
     bool m_isOptimal;
 
     /**
-     * For testing the warm start algorithm.
-     */
-    SimplexState * m_simplexState;
-
-    /**
      * Function that solves the LP problem given by the parameter using a main thread.
      *
      * @param model The LP problem model to be solved.

@@ -25,18 +25,18 @@
 #include <simplex/pfibasis.h>
 
 DualFeasibilityChecker::DualFeasibilityChecker(const SimplexModel& model,
+                                               const std::vector<int>& basisHead,
                                                IndexList<const Numerical::Double *> *variableStates,
                                                IndexList<>* reducedCostFeasibilities,
                                                const DenseVector &reducedCosts,
                                                const Basis& basis):
     m_model(model),
+    m_basisHead(basisHead),
     m_variableStates(variableStates),
     m_reducedCostFeasibilities(reducedCostFeasibilities),
     m_reducedCosts(reducedCosts),
     m_basis(basis)
-{
-
-}
+{}
 
 bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
 //this function determines M/F/P sets, phase I objective function value
@@ -79,18 +79,19 @@ bool DualFeasibilityChecker::computeFeasibility(Numerical::Double tolerance){
     return ((setMit == setMendit) && (setPit == setPendit));
 }
 
-void DualFeasibilityChecker::feasibilityCorrection(DenseVector* basicVariableValues, Numerical::Double tolerance) {
+void DualFeasibilityChecker::feasibilityCorrection(DenseVector* basicVariableValues, Numerical::Double * objValue, Numerical::Double tolerance) {
     unsigned int rowCount = m_model.getRowCount();
     unsigned int columnCount = m_model.getColumnCount();
 
     DenseVector transformVector(basicVariableValues->length());
 
+    //the objective value should be corrected here, feas correction changes the x_b values, thus c_j * x_b changes too
+    //as well as the boundflips if the corresponding c_j is nonzero
     //TODO: Increase efficiency by checking only NONBASIC_AT_*B lists
     for(unsigned int variableIndex = 0; variableIndex < m_reducedCosts.length(); variableIndex++){
         const Variable& variable = m_model.getVariable(variableIndex);
         if (variable.getType() == Variable::BOUNDED){
             if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_LB && m_reducedCosts.at(variableIndex) < -tolerance){
-//                LPINFO("Do a bound flip LB -> UB (T+ set)");
                 //Do a bound flip LB -> UB (T+ set)
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
                 //Compute (l_j-u_j)*a_j
@@ -102,9 +103,13 @@ void DualFeasibilityChecker::feasibilityCorrection(DenseVector* basicVariableVal
                     logical.setNewNonzero(variableIndex - columnCount,1);
                     transformVector.addVector(-1 * theta, logical);
                 }
+                //correction if c_j is nonzero
+                Numerical::Double c_j = m_model.getCostVector().at(variableIndex);
+                if ( c_j != 0) {
+                    (*objValue) += theta * c_j;
+                }
             } else
                 if (m_variableStates->where(variableIndex) == Simplex::NONBASIC_AT_UB && m_reducedCosts.at(variableIndex) > tolerance){
-//                LPINFO("Do a bound flip UB -> LB (T- set)");
                 //Do a bound flip UB -> LB (T- set)
                 //Swap states
                 m_variableStates->move(variableIndex, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
@@ -117,12 +122,28 @@ void DualFeasibilityChecker::feasibilityCorrection(DenseVector* basicVariableVal
                     logical.setNewNonzero(variableIndex - columnCount,1);
                     transformVector.addVector(-1 * theta, logical);
                 }
+                //correction if c_j is nonzero
+                Numerical::Double c_j = m_model.getCostVector().at(variableIndex);
+                if ( c_j != 0) {
+                    (*objValue) += theta * c_j;
+                }
             }
         }
     }
     //Transform x_b
     m_basis.Ftran(transformVector);
     basicVariableValues->addVector(1, transformVector);
+
+    //Correcting z with delta x_b
+    DenseVector::NonzeroIterator it = transformVector.beginNonzero();
+    DenseVector::NonzeroIterator endit = transformVector.endNonzero();
+    for(; it < endit; ++it) {
+        unsigned variableIndex = m_basisHead.at(it.getIndex());
+        Numerical::Double c_j = m_model.getCostVector().at(variableIndex);
+        if (c_j != 0) {
+            (*objValue) += c_j * (*it);
+        }
+    }
 }
 
 bool DualFeasibilityChecker::updateFeasibilities(const std::vector<std::pair<int, char> > &updateFeasibilitySets,

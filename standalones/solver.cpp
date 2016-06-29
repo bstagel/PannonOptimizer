@@ -23,6 +23,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+#include <lp/manualmodelbuilder.h>
 #include <lp/model.h>
 #include <lp/mpsproblem.h>
 #include <lp/lpproblem.h>
@@ -41,6 +42,40 @@
 void solve(std::string filename, bool dump_vars = false) {
 
     Model model;
+    /*
+      min  z = −4x1 − 2x2 − 12x3
+      s.t. x1 + 3x2 − 2x3 ≤ 12
+          −3x1 + x2 + 2x3 = 0
+       −2 ≤ 4x1 − x2 + x3 ≤ 6
+         x1, x2 ≥ 0, 0 ≤ x3 ≤ 1
+     *
+    {
+        __UNUSED(filename);
+        ManualModelBuilder mb;
+        Variable var1;
+        var1.setBounds(0, Numerical::Infinity);
+        SparseVector a1;
+        a1.set(0,1);
+        a1.set(1,-3);
+        a1.set(2,4);
+        mb.addVariable(var1,-4,a1);
+        Variable var2;
+        var2.setBounds(0, Numerical::Infinity);
+        a1.set(0,3);
+        a1.set(1,1);
+        a1.set(2,-1);
+        mb.addVariable(var2,-2,a1);
+        Variable var3;
+        var3.setBounds(0, 1);
+        a1.set(0,-2);
+        a1.set(1,2);
+        a1.set(2,1);
+        mb.addVariable(var3,-12,a1);
+        mb.setConstraint(0,Constraint::createLessTypeConstraint("c1",12));
+        mb.setConstraint(2,Constraint::createEqualityTypeConstraint("c2",0));
+        mb.setConstraint(2,Constraint::createRangeTypeConstraint("c3",-2,6));
+        model.build(mb);
+    }*/
 
     if(filename.size() > 3 && filename.substr(filename.size() - 3, 3) == ".LP") {
         LpModelBuilder* builder = new LpModelBuilder();
@@ -71,77 +106,41 @@ void solve(std::string filename, bool dump_vars = false) {
     }
 
     //init simplexController
-    SimplexController simplexController, warmStartController;
-
+    SimplexController simplexController;
     simplexController.solve(model);
 
-    std::vector<int> bHead(5);
-    bHead[0] = 8;
-    bHead[1] = 11;
-    bHead[2] = 5;
-    bHead[3] = 3;
-    bHead[4] = 7;
-    IndexList<const Numerical::Double*> ilist(13, 5);
-    ilist.move(0, Simplex::NONBASIC_AT_LB);
-    ilist.move(1, Simplex::NONBASIC_AT_LB);
-    ilist.move(2, Simplex::NONBASIC_AT_LB);
-    ilist.move(3, Simplex::BASIC);
-    ilist.move(4, Simplex::NONBASIC_AT_LB);
-    ilist.move(5, Simplex::BASIC);
-    ilist.move(6, Simplex::NONBASIC_AT_LB);
-    ilist.move(7, Simplex::BASIC);
-    ilist.move(8, Simplex::BASIC);
-    ilist.move(9, Simplex::NONBASIC_AT_LB);
-    ilist.move(10, Simplex::NONBASIC_AT_LB);
-    ilist.move(11, Simplex::BASIC);
-    ilist.move(12, Simplex::NONBASIC_AT_LB);
-    DenseVector basicvar(5);
-    basicvar.set(0, 10);
-    basicvar.set(1, 8);
-    basicvar.set(2, 9);
-    basicvar.set(3, 3);
-    basicvar.set(4, 2);
-    SimplexState newState(bHead, ilist, basicvar);
-
-    SimplexState* state = simplexController.getSimplexState();
-    for(int i = 0; i < state->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state->getBasicVariableValues().at(i) << endl;
-    warmStartController.solveWithWarmStart(model, &newState);
-    SimplexState* state2 = warmStartController.getSimplexState();
-    for(int i = 0; i < state2->getBasicVariableValues().length(); i++) cout << " VAL " << i << " : " << state2->getBasicVariableValues().at(i) << endl;
-
-//    LPINFO("SIMPLEXSTATE TEST");
-//    LPINFO("-----------------------------------");
-//    std::vector<int> bHead(5);
+//    std::vector<int> bHead(3);
 //    bHead[0] = 1;
-//    bHead[1] = 5;
-//    bHead[2] = 3;
-//    bHead[3] = 8;
-//    bHead[4] = 0;
-//    IndexList<const Numerical::Double*> ilist(10, 5);
+//    bHead[1] = 0;
+//    bHead[2] = 5;
+//    IndexList<const Numerical::Double*> ilist(6, 5);
 //    ilist.move(0, Simplex::BASIC);
 //    ilist.move(1, Simplex::BASIC);
-//    ilist.move(2, Simplex::NONBASIC_AT_LB);
-//    ilist.move(3, Simplex::BASIC);
-//    ilist.move(4, Simplex::NONBASIC_AT_LB);
-//    ilist.move(5, Simplex::BASIC);
-//    ilist.move(6, Simplex::NONBASIC_AT_LB);
-//    ilist.move(7, Simplex::NONBASIC_AT_LB);
-//    ilist.move(8, Simplex::BASIC);
-//    ilist.move(9, Simplex::NONBASIC_AT_LB);
-//    DenseVector basicvar(5);
-//    basicvar.set(0, 10);
-//    basicvar.set(1, 8);
-//    basicvar.set(2, 9);
-//    basicvar.set(3, 3);
-//    basicvar.set(4, 2);
-//    SimplexState newState(bHead, ilist, basicvar);
-//    newState.print();
-//    bHead[2] = 4;
+//    ilist.move(2, Simplex::NONBASIC_AT_UB);
 //    ilist.move(3, Simplex::NONBASIC_AT_LB);
-//    ilist.move(4, Simplex::BASIC);
-//    basicvar.set(2, 100);
-//    SimplexState newState2(bHead, ilist, basicvar);
-//    newState2.print();
+//    ilist.move(4, Simplex::NONBASIC_AT_UB);
+//    ilist.move(5, Simplex::BASIC);
+//    DenseVector xb(3);
+//    xb.set(0,4);
+//    xb.set(0,2);
+//    xb.set(0,1);
+//    SimplexState newState(bHead, ilist, xb);
+
+//    double lb[3];
+//    lb[0] = 0;
+//    lb[1] = 0;
+//    lb[2] = -1;
+//    model.changeConstraintLower(lb);
+//    double ub[3];
+//    ub[0] = 12;
+//    ub[1] = 0;
+//    ub[2] = 3;
+//    model.changeConstraintUpper(ub);
+
+//    SimplexState* state = simplexController.getSimplexState();
+//    simplexController.solveWithWarmStart(model, state);
+//    simplexController.solveWithWarmStart(model, &newState);
+//    for(int i = 0; i < state->getBasicVariableValues().length(); i++) cout << " VAL " << simplexController.getBasisHead().at(i) << " : " << state->getBasicVariableValues().at(i) << endl;
 
     if(dump_vars) {
         const DenseVector& solution = simplexController.getPrimalSolution();
