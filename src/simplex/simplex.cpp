@@ -136,30 +136,32 @@ std::vector<IterationReportField> Simplex::getIterationReportFields(
 
     case IterationReportProvider::IRF_SOLUTION:
     {
-        IterationReportField inversionTimerField(SOLUTION_INVERSION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 0) {
+            IterationReportField inversionTimerField(SOLUTION_INVERSION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                                     IterationReportField::IRF_FLOAT, *this,
+                                                     4, IterationReportField::IRF_FIXED);
+            result.push_back(inversionTimerField);
+            IterationReportField computeBasicSolutionTimerField(SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                                                IterationReportField::IRF_FLOAT, *this,
+                                                                4, IterationReportField::IRF_FIXED);
+            result.push_back(computeBasicSolutionTimerField);
+            IterationReportField computeReducedCostsField(SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                                          IterationReportField::IRF_FLOAT, *this,
+                                                          4, IterationReportField::IRF_FIXED);
+            result.push_back(computeReducedCostsField);
+            IterationReportField priceTimerField(SOLUTION_PRICE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
                                                  IterationReportField::IRF_FLOAT, *this,
                                                  4, IterationReportField::IRF_FIXED);
-        result.push_back(inversionTimerField);
-        IterationReportField computeBasicSolutionTimerField(SOLUTION_COMPUTE_BASIC_SOLUTION_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                                            IterationReportField::IRF_FLOAT, *this,
-                                                            4, IterationReportField::IRF_FIXED);
-        result.push_back(computeBasicSolutionTimerField);
-        IterationReportField computeReducedCostsField(SOLUTION_COMPUTE_REDUCED_COSTS_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                                      IterationReportField::IRF_FLOAT, *this,
-                                                      4, IterationReportField::IRF_FIXED);
-        result.push_back(computeReducedCostsField);
-        IterationReportField priceTimerField(SOLUTION_PRICE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                             IterationReportField::IRF_FLOAT, *this,
-                                             4, IterationReportField::IRF_FIXED);
-        result.push_back(priceTimerField);
-        IterationReportField selectpivotTimerField(SOLUTION_SELECT_PIVOT_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                                   IterationReportField::IRF_FLOAT, *this,
-                                                   4, IterationReportField::IRF_FIXED);
-        result.push_back(selectpivotTimerField);
-        IterationReportField updateTimerField(SOLUTION_UPDATE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
-                                              IterationReportField::IRF_FLOAT, *this,
-                                              4, IterationReportField::IRF_FIXED);
-        result.push_back(updateTimerField);
+            result.push_back(priceTimerField);
+            IterationReportField selectpivotTimerField(SOLUTION_SELECT_PIVOT_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                                       IterationReportField::IRF_FLOAT, *this,
+                                                       4, IterationReportField::IRF_FIXED);
+            result.push_back(selectpivotTimerField);
+            IterationReportField updateTimerField(SOLUTION_UPDATE_TIMER_NAME, 20, 1, IterationReportField::IRF_RIGHT,
+                                                  IterationReportField::IRF_FLOAT, *this,
+                                                  4, IterationReportField::IRF_FIXED);
+            result.push_back(updateTimerField);
+        }
         break;
     }
 
@@ -334,7 +336,9 @@ void Simplex::setModel(const Model &model) {
         perturbTimer.start();
         m_simplexModel->perturbCostVector(sm_repeatSolution);
         perturbTimer.stop();
+#ifndef NDEBUG
         LPINFO("Perturbation time: " << std::setprecision(6) << perturbTimer.getCPUTotalElapsed());
+#endif
     }
     if (SimplexParameterHandler::getInstance().getBoolParameterValue("Perturbation.perturb_rhs") != false){
         m_simplexModel->perturbRHS();
@@ -577,7 +581,7 @@ void Simplex::saveBasis(int iterationIndex, int threadIndex)
     iterationIndex++;
     if ((iterationIndex  == m_saveIteration) ||
             (m_savePeriodically != 0 && ((iterationIndex % m_savePeriodically) == 0) )){
-        LPERROR("Saving basis "<<iterationIndex);
+        LPINFO("Saving basis at iteration "<<iterationIndex);
         stringstream numStream;
         numStream << iterationIndex;
         std::string saveFormat = m_saveFormat;
@@ -602,6 +606,7 @@ void Simplex::loadBasis()
     std::string loadFormat = m_loadFormat;
     std::string filename = m_loadFilename;
     filename.append(".").append(m_loadFormat);
+    LPINFO("Loading basis from file "<<filename);
 
     //TODO: Exception when file does not exit
     std::transform(loadFormat.begin(),loadFormat.end(),loadFormat.begin(),::toupper);

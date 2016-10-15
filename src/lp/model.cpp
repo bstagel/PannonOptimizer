@@ -54,6 +54,7 @@ void Model::build(const ModelBuilder & builder)
 
     m_matrix.sortVectors();
 
+    LPINFO("Input problem: "<<m_name<<" ("<<m_matrix.rowCount()<<" x "<<m_matrix.columnCount()<<")");
     /*m_matrix.reInit(builder.getRowCount(), builder.getColumnCount(), false);
 
     unsigned int rowIndex;

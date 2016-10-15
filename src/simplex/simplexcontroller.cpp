@@ -272,6 +272,8 @@ void SimplexController::solve(const Model &model) {
         if(m_enableThreadSynchronization){
             parallelSolve(model);
         }else{
+            LPWARNING("Not supported function, set enable_thread_synchronization parameter to true!");
+            return;
             ThreadSupervisor::registerMyThread();
             std::vector<std::thread*> threads(m_numberOfThreads, nullptr);
             //spawn threads
@@ -412,7 +414,9 @@ void SimplexController::sequentialSolve(const Model &model)
                 }
                 m_freshBasis = false;
             } catch ( const FallbackException & exception ) {
+#ifndef NDEBUG
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());
+#endif
                 reinversionCounter = reinversionFrequency;
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
@@ -837,6 +841,8 @@ void SimplexController::parallelSequentialSolve(const Model *model) {
 
 void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)
 {
+    LPWARNING("Switching algorithm during the solution is not supported yet!");
+    return;
     //init algorithms to be able to switch
     if (m_primalSimplex == NULL){
         m_primalSimplex = new PrimalSimplex(m_basis);
@@ -868,5 +874,7 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
     //Use setSimplexState of the basis instead (probably)
     m_currentSimplex->reinvert();
     m_freshBasis = true;
+#ifndef NDEBUG
     LPINFO("Algorithm switched!");
+#endif
 }

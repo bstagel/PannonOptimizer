@@ -367,7 +367,9 @@ void DualSimplex::selectPivot() {
         //Row disabling control
         if(m_incomingIndex == -1){
             //Ask for another row
+#ifndef NDEBUG
             LPERROR("Ask for another row, row is unstable: "<<m_outgoingIndex);
+#endif
             m_askForAnotherRowCounter ++;
             m_pricing->lockLastIndex();
             price();
@@ -626,12 +628,16 @@ void DualSimplex::setReferenceObjective(bool secondPhase) {
 void DualSimplex::checkReferenceObjective(bool secondPhase) {
     if(!secondPhase){
         if(Numerical::less(m_phaseIObjectiveValue,m_referenceObjective)){
+#ifndef NDEBUG
             LPWARNING("BAD ITERATION - PHASE I difference: "<<m_referenceObjective-m_phaseIObjectiveValue);
+#endif
             m_badIterations++;
         }
     } else {
         if(Numerical::less(m_objectiveValue,m_referenceObjective)){
+#ifndef NDEBUG
             LPWARNING("BAD ITERATION - PHASE II difference: "<<m_referenceObjective-m_objectiveValue);
+#endif
             m_badIterations++;
         }
     }
@@ -819,14 +825,18 @@ void DualSimplex::detectExcessivelyInstability()
     Numerical::Double norm1 = pivotColumn.euclidNorm();
     Numerical::Double norm2 = pivotColumn2.euclidNorm();
     Numerical::Double ratio = (norm1 > norm2 ? norm1 : norm2) / (norm1 > norm2 ? norm2 : norm1);
+#ifndef NDEBUG
     LPINFO("RATIO: " << ratio << " " << (1.0 - ratio));
+#endif
     static double maxRatio = 0;
     if (fabs(1.0 - ratio) > maxRatio && (fabs(1.0 - ratio) > 0.0)) {
         maxRatio = fabs(1.0 - ratio);
+#ifndef NDEBUG
         LPERROR("------------------MAX: " << maxRatio << "  " << fabs(1.0 - ratio));
         std::ofstream ofs("ratio.txt");
         ofs << maxRatio << std::endl;
         ofs.close();
+#endif
     }
     if (1.0 - ratio < -1.0) {
         LPERROR("Error: Instable problem!");
@@ -886,8 +896,9 @@ void DualSimplex::detectExcessivelyInstability()
             ofs.close();
         }*/
     }
+#ifndef NDEBUG
     LPINFO("BTRAN RATIO: " << btranRatio);
-
+#endif
     // -----------------------------------
 
 
@@ -915,12 +926,14 @@ void DualSimplex::detectExcessivelyInstability()
 
     }
     //if (max > 1e-02) {
+#ifndef NDEBUG
         LPINFO("FTRAN ratio: " << max);
       //  std::cin.get();
     //}
     std::ofstream ofs("basis.txt");
     m_basis->dumbToStream(ofs);
     ofs.close();
+#endif
 
     // -----------------------
     max = 0.0;
@@ -939,7 +952,9 @@ void DualSimplex::detectExcessivelyInstability()
 
         // std::cout << endl;
     }
+#ifndef NDEBUG
     std::cout << "max = " << max << std::endl;
+#endif
     //std::cin.get();
 
     //std::cin.get();

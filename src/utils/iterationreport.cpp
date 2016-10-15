@@ -207,7 +207,7 @@ void IterationReport::writeSimpleTable(const std::vector<IterationReportField> &
                                        const std::vector< Entry > & row,
                                        IterationReportProvider::ITERATION_REPORT_FIELD_TYPE type) const {
     if (type == IterationReportProvider::IRF_START) {
-        LPREPORT("***** STARTING REPORT *****", m_outputStream);
+        LPREPORT("***** STARTING SOLUTION *****", m_outputStream);
     } else if (type == IterationReportProvider::IRF_SOLUTION) {
         LPREPORT("***** SOLUTION REPORT *****", m_outputStream);
     }

@@ -429,35 +429,43 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
     const Variable & outgoingVariable = m_model->getVariable(outgoing);
     if (outgoingState == Simplex::NONBASIC_AT_LB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
+#ifndef NDEBUG
             LPERROR("Outgoing variable is rounded to its lower bound! "<<outgoing);
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
             LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
             LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
+#endif
             cerr.unsetf(ios_base::floatfield);
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
     } else if (outgoingState == Simplex::NONBASIC_AT_UB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound(),1.0e-4)){
+#ifndef NDEBUG
             LPERROR("Outgoing variable is rounded to its upper bound! "<<outgoing);
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
             LPERROR("Lower bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
             LPERROR("Upper bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getUpperBound());
+#endif
             cerr.unsetf(ios_base::floatfield);
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
     } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
+#ifndef NDEBUG
             LPERROR("Outgoing fixed variable is rounded to its bound! "<<outgoing);
             LPERROR("Current value: " << setw(19) << scientific << setprecision(16) << *(m_variableStates->getAttachedData(outgoing)));
             LPERROR("Bound: " << setw(19) << scientific << setprecision(16) << outgoingVariable.getLowerBound());
+#endif
             cerr.unsetf(ios_base::floatfield);
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_FIXED, &(outgoingVariable.getLowerBound()));
     } else {
+#ifndef NDEBUG
         LPERROR("Invalid outgoing variable state!");
+#endif
         cerr.unsetf(ios_base::floatfield);
         throw NumericalException(std::string("Invalid outgoing variable state"));
     }

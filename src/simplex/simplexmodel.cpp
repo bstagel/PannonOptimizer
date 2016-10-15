@@ -169,8 +169,11 @@ void SimplexModel::perturbCostVector(int initializeEngine)
 
     std::default_random_engine engine;
     DenseVector epsilonValues(getColumnCount()+getRowCount());
+    LPINFO("Cost vector perturbation...");
+#ifndef NDEBUG
     LPINFO("Cost vector perturbation method: " << perturbMethod <<
            " target: " << perturbTarget << " logical: " << perturbLogical);
+#endif
 
     unsigned numberOfPerturbations = 0;
     if(perturbLogical){
@@ -255,7 +258,9 @@ void SimplexModel::perturbCostVector(int initializeEngine)
             signDistribution(engine);
         }
         Numerical::Double fix = 100 * tolerance;
+#ifndef NDEBUG
         LPINFO("pos: "<<posDistribution(engine));
+#endif
         for(unsigned i=0;i < numberOfPerturbations;i++){
             if( m_costVector.at(i) < 0 && (perturbTarget == "ALL" || perturbTarget == "NONZEROS") ){
                 epsilonValues.set(i, negDistribution(engine) * (fix + Numerical::fabs(m_costVector.at(i)) * psi));
@@ -372,7 +377,9 @@ void SimplexModel::perturbCostVector(int initializeEngine)
             avg+=(Numerical::fabs(*it)-avg)/n;
         }
         Numerical::Double maxValue = 1E+3 * tolerance > psi * 10 * avg ? 1E+3 * (Numerical::Double)tolerance : psi * 10 * avg;
+#ifndef NDEBUG
         LPINFO("Setting to interval: (" << std::scientific << minValue << "," << maxValue << ")");
+#endif
         for(unsigned i=0; i < numberOfPerturbations; i++){
             Numerical::Double absEpsilon = Numerical::fabs(epsilonValues.at(i));
             Numerical::Double multiplier = 1;
@@ -402,7 +409,10 @@ void SimplexModel::perturbCostVector(int initializeEngine)
 
 void SimplexModel::perturbRHS()
 {
-    LPINFO("RHS perturbation");
+    LPWARNING("RHS perturbation is not supported yet!");
+    return;
+    //TODO: it crashes
+    LPINFO("RHS perturbation...");
     m_originalRhs = m_rhs;
     //generate random epsilon values
     const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_rhs");
@@ -423,7 +433,10 @@ void SimplexModel::perturbRHS()
 
 void SimplexModel::shiftBounds()
 {
-    LPINFO("Bound shifting");
+    LPWARNING("Bound shifting is not supported yet!");
+    return;
+    //TODO: it crashes
+    LPINFO("Bound shifting...");
     //generate random epsilon values
     const double & epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Perturbation.e_bounds");
     std::default_random_engine engine;
@@ -457,7 +470,6 @@ void SimplexModel::shiftBounds()
 void SimplexModel::resetModel()
 {
     if (m_perturbedCostVector){
-        LPINFO("Resetting cost vector!");
         m_costVector = m_originalCostVector;
         m_perturbedCostVector = false;
     }

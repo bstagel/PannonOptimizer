@@ -30,7 +30,7 @@ const std::vector<Numerical::Double> & Scaler::getColumnMultipliers() const {
 }
 
 void Scaler::scale(Matrix *matrix, const char * name) {
-    LPINFO("SCALER");
+    LPINFO("Scaling problem...");
 
     m_rowMultipliers.resize( matrix->rowCount(), 1.0 );
     m_columnMultipliers.resize( matrix->columnCount(), 1.0 );
@@ -42,7 +42,9 @@ void Scaler::scale(Matrix *matrix, const char * name) {
     timer.stop();
 
     //    LPINFO("Variance: " << variance);
+#ifndef NDEBUG
     LPINFO("Time: " << timer.getCPULastElapsed());
+#endif
 }
 
 void Scaler::benichou(Matrix * matrix, const char *name) {
@@ -60,7 +62,9 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
     variance = getVarianceBenichou(matrix, &rowMultipliers);
     std::vector<Numerical::Double> variances;
     variances.push_back(variance);
+#ifndef NDEBUG
     LPINFO("Variance: " << variance);
+#endif
 
     //std::ofstream ofs("benichou.csv", std::ios_base::app);
     //ofs << name << ";";
@@ -127,7 +131,9 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
         }
         variance = (squareSum - (absSum * absSum) / nonZeros) / nonZeros;
         variances.push_back(variance);
+#ifndef NDEBUG
         LPINFO("Variance: " << variance);
+#endif
         stepCount++;
     }
 
@@ -158,7 +164,9 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
 
     variance = getVarianceBenichou(matrix, &rowMultipliers);
     variances.push_back(variance);
+#ifndef NDEBUG
     LPINFO("Variance: " << variance);
+#endif
 
     // ez nem igazan segit, majd ha lesz steepest edge meg devex, akkor ujra
     // meg kell nezni
@@ -181,7 +189,9 @@ void Scaler::benichou(Matrix * matrix, const char *name) {
 
     variance = getVarianceBenichou(matrix, &rowMultipliers);
     variances.push_back(variance);
+#ifndef NDEBUG
     LPINFO("Variance: " << variance);
+#endif
 
     timer.stop();
     /*ofs << timer.getCPULastElapsed() << ";" << variances.size() << ";";

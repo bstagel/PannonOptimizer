@@ -1413,8 +1413,8 @@ void MpsModelBuilder::rowExists(const RowIndex & row) {
 
 }
 
-void MpsModelBuilder::loadFromFile(const std::string & fileName) {
-
+void MpsModelBuilder::loadFromFile(const std::string & fileName)
+{
     clear();
 
     m_invalidRowType.init(m_errorPrintLimit, m_levelCounters);

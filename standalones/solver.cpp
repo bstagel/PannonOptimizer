@@ -53,12 +53,18 @@ void solve(std::string filename, bool dump_vars = false) {
         model.build(*builder);
         delete builder;
     }
+    if(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 1) {
+        LPINFO("Number of nonzeros: "<<model.getMatrix().nonZeros());
+        LPINFO("Density: "<<model.getMatrix().density());
+    }
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
         Presolver presolver(&model);
         try {
             presolver.presolve();
+#ifndef NDEBUG
             presolver.printStatistics();
+#endif
 //            exit(-1);
         } catch(Presolver::PresolverException e) {
             LPERROR("[Presolver] " << e.getMessage());

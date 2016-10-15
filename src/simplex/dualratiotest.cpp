@@ -224,7 +224,9 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
                 }
             }
         } else{
+#ifndef NDEBUG
             LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
+#endif
         }
     } else {
         //Original version
@@ -246,7 +248,9 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * actualBreakpoint->value;
         } else{
+#ifndef NDEBUG
             LPERROR("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
+#endif
         }
     }
 }
@@ -256,7 +260,9 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                                                 Numerical::Double& functionSlope)
 {
     m_stablePivotActivationPhase1++;
+#ifndef NDEBUG
     LPINFO("Stable pivot activated in phase 1");
+#endif
 
     unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     unsigned int prevBreakpointId = iterationCounter;
@@ -341,7 +347,9 @@ void DualRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
 
     //No acceptable pivot found with positive step
     if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
+#ifndef NDEBUG
         LPWARNING("No stable pivot found in phase 1!");
+#endif
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0.0;
         m_phaseIObjectiveValue = m_initialPhaseIObjectiveValue;
@@ -462,7 +470,9 @@ void DualRatiotest::performRatiotestPhase1(const DenseVector& alpha,
         }
 
     } else{
+#ifndef NDEBUG
         LPWARNING(" - Ratiotest - No breakpoint found!");
+#endif
     }
     //Ask for another row
     if(m_incomingVariableIndex != -1 && Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance){
@@ -686,7 +696,9 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
             const BreakpointHandler::BreakPoint * prevBreakpoint = m_breakpointHandler.getBreakpoint(prevIterationCounter);
             int prevBreakpointId = prevBreakpoint->variableIndex;
             if (Numerical::fabs(alpha.at(prevBreakpointId)) > m_pivotTolerance) {
+#ifndef NDEBUG
                 LPINFO("Stable pivot chosen");
+#endif
                 m_incomingVariableIndex = prevBreakpointId;
                 m_dualSteplength = m_sigma * prevBreakpoint->value;
                 return;
@@ -696,13 +708,17 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
             m_incomingVariableIndex = -1;
             m_dualSteplength = 0;
             m_stablePivotNotFoundPhase2++;
+#ifndef NDEBUG
             LPWARNING("No stable pivot fbound in phase 2");
+#endif
         }
     } else {
         m_incomingVariableIndex = -1;
         m_dualSteplength = 0;
         m_stablePivotNotFoundPhase2++;
+#ifndef NDEBUG
         LPWARNING("No stable pivot found in phase 2");
+#endif
     }
 }
 
@@ -740,11 +756,11 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
             generateSignedBreakpointsPhase2(alpha);
         }
         //Slope check should be enabled in debug mode
-    #ifndef NDEBUG
+#ifndef NDEBUG
         if (functionSlope < 0) {
             LPERROR("SLOPE IS NEGATIVE ERROR - TERMINATING!!! s: "<<functionSlope);
         }
-    #endif
+#endif
 
         //free variables always enter the basis
         if (m_incomingVariableIndex == -1) {
@@ -779,7 +795,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
 
                     if( functionSlope < 0 || iterationCounter == m_breakpointHandler.getNumberOfBreakpoints()){
+#ifndef NDEBUG
                         LPINFO("Fake feasible slope: "<<functionSlope);
+#endif
                         m_incomingVariableIndex = -1;
                         m_dualSteplength = 0;
                         return;
@@ -809,7 +827,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                                 maxAlphaId = variableIndex;
                             }
                         }
+#ifndef NDEBUG
                         LPINFO("Fake feasible variable");
+#endif
                         m_dualSteplength = m_sigma * m_reducedCosts.at(maxAlphaId) / Numerical::fabs(alpha.at(maxAlphaId));
                         m_incomingVariableIndex = maxAlphaId;
                         return;
@@ -909,7 +929,9 @@ void DualRatiotest::performRatiotestPhase2(unsigned int outgoingVariableIndex,
                     }
                 }
             } else {
+#ifndef NDEBUG
                 LPWARNING(" - Ratiotest - No breakpoint found!");
+#endif
                 m_incomingVariableIndex = -1;
             }
         }
@@ -937,10 +959,12 @@ bool DualRatiotest::performWolfeRatiotest(const DenseVector &alpha)
         unsigned int variableIndex = it.getData();
         Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
 
+#ifndef NDEBUG
         if (0 > m_reducedCosts.at(variableIndex) ) {
             LPINFO("m_reducedCosts.at(variableIndex) < 0: "<<m_reducedCosts.at(variableIndex));
             exit(-1);
         }
+#endif
         if ( signedAlpha > epsilon) {
             m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
         }
@@ -952,10 +976,12 @@ bool DualRatiotest::performWolfeRatiotest(const DenseVector &alpha)
         unsigned int variableIndex = it.getData();
         Numerical::Double signedAlpha = m_sigma * alpha.at(variableIndex);
 
+#ifndef NDEBUG
         if (0 < m_reducedCosts.at(variableIndex) ) {
             LPERROR("m_reducedCosts.at(variableIndex) > 0: "<<m_reducedCosts.at(variableIndex));
             exit(-1);
         }
+#endif
         if ( signedAlpha < -epsilon) {
             m_breakpointHandler.insertBreakpoint(variableIndex, m_reducedCosts.at(variableIndex) / signedAlpha);
         }
@@ -969,11 +995,13 @@ bool DualRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
         m_incomingVariableIndex = breakpoint->variableIndex;
         m_dualSteplength = m_sigma * breakpoint->value;
+#ifndef NDEBUG
         if (m_dualSteplength >= 10E-4 || Numerical::fabs(alpha.at(m_incomingVariableIndex)) < m_pivotTolerance) {
             LPINFO("m_dualSteplength "<<m_dualSteplength);
             LPINFO("alpha: "<<alpha.at(m_incomingVariableIndex));
             LPINFO("d_j: "<<m_reducedCosts.at(m_incomingVariableIndex));
         }
+#endif
         return true;
     }
     return false;
@@ -986,8 +1014,6 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
         Numerical::Double degeneracyTolerance = m_optimalityTolerance;
         //step 0: init Wolfe, compute degeneracy sets
         if (!m_wolfeActive) {
-//            LPINFO("Wolfe: start");
-//            LPINFO("lengsz: "<<m_reducedCosts.length());
             for (unsigned variableIndex = 0; variableIndex < m_reducedCosts.length(); ++variableIndex) {
 //                LPINFO("varindex: "<<variableIndex);
                 Numerical::Double dj = m_reducedCosts.at(variableIndex);
@@ -1034,7 +1060,6 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
             //        LPINFO("visiting dlb");
             unsigned int variableIndex = it.getData();
             Numerical::Double dj = m_reducedCosts.at(variableIndex);
-            LPINFO("asd- it.get: "<<it.getData())
             if (Numerical::equal( dj, 0,degeneracyTolerance)) {
 //                LPINFO("D_lb candidate index: "<<variableIndex<<" dj: "<<dj);
                 increaseDepth = true;
@@ -1047,9 +1072,11 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
                 positionsToMove.push_back(variableIndex);
             } else if (dj + m_optimalityTolerance < 0) {
                 m_wolfeActive = false;
+#ifndef NDEBUG
                 LPINFO("step 1 fallback at d_j: "<<m_reducedCosts.at(variableIndex));
                 LPINFO("m_state: "<<m_variableStates.where(variableIndex));
                 exit(-1);
+#endif
                 throw FallbackException("Infeasible variable in phase 2");
             }
         }
@@ -1077,9 +1104,11 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
                 positionsToMove.push_back(variableIndex);
             }else if (dj - m_optimalityTolerance > 0) {
                 m_wolfeActive = false;
+#ifndef NDEBUG
                 LPINFO("step 1 fallback at d_j: "<<m_reducedCosts.at(variableIndex));
                 LPINFO("m_state: "<<m_variableStates.where(variableIndex));
                 exit(-1);
+#endif
                 throw FallbackException("Infeasible variable in phase 2");
             }
         }
@@ -1101,10 +1130,12 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
             if (pivotFound) {
     //            LPINFO("Wolfe: special update with variable: "<<m_incomingVariableIndex<<" theta: "<<
     //                   m_dualSteplength);
+#ifndef NDEBUG
                 if (m_degenDepth == 0) {
                     LPERROR("degendepth 0");
                     exit(-1);
                 }
+#endif
                 return;
             //step 4: no pivot row, reset perturbed values to bounds, decrease depth
             } else {

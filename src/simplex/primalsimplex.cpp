@@ -293,7 +293,9 @@ void PrimalSimplex::selectPivot() {
         //Column disabling control
         if(m_outgoingIndex == -1){
             //Ask for another column
+#ifndef NDEBUG
             LPWARNING("Ask for another column, column is unstable: "<<m_incomingIndex);
+#endif
             m_pricing->lockLastIndex();
             price();
         }
@@ -461,7 +463,9 @@ void PrimalSimplex::setReferenceObjective(bool secondPhase) {
 void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
     if(!secondPhase){
         if( Numerical::less(m_phaseIObjectiveValue,m_referenceObjective) ){
+#ifndef NDEBUG
             LPWARNING("BAD ITERATION - PHASE I");
+#endif
             m_badIterations++;
         } else if(m_referenceObjective == m_phaseIObjectiveValue){
             //            LPWARNING("DEGENERATE - PHASE I");
@@ -470,7 +474,9 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
         }
     } else {
         if(Numerical::less(m_objectiveValue,m_referenceObjective)){
+#ifndef NDEBUG
             LPWARNING("BAD ITERATION - PHASE II");
+#endif
             m_badIterations++;
         } else if(m_referenceObjective == m_objectiveValue){
             //            LPWARNING("DEGENERATE - PHASE II");

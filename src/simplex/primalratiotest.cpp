@@ -168,7 +168,9 @@ void PrimalRatiotest::computeFunctionPhase1(const DenseVector &alpha,
         m_primalSteplength = m_sigma * actualBreakpoint->value;
         m_outgoingVariableIndex = actualBreakpoint->variableIndex;
     } else {
+#ifndef NDEBUG
         LPWARNING("In phase 1 NO function defined, num of bpts: "<<m_breakpointHandler.getNumberOfBreakpoints());
+#endif
     }
 }
 
@@ -177,7 +179,9 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
                                           Numerical::Double& functionSlope)
 {
     m_stablePivotActivationPhase1++;
+#ifndef NDEBUG
     LPINFO("Stable pivot activated in phase 1");
+#endif
     unsigned int length = m_breakpointHandler.getNumberOfBreakpoints(),
     breakpointId = length-1-iterationCounter, prevBreakpointId = breakpointId, nextBreakpointId = breakpointId,
     prevIterationCounter = 0, nextIterationCounter = 0;
@@ -246,7 +250,9 @@ void PrimalRatiotest::useNumericalThresholdPhase1(unsigned int iterationCounter,
     }
 
     if ((prevObjValue == - Numerical::Infinity) && (nextObjValue == - Numerical::Infinity)) {
+#ifndef NDEBUG
         LPWARNING("No stable pivot found in phase 1!");
+#endif
         m_outgoingVariableIndex = -1;
         m_primalSteplength = 0.0;
         m_phaseIObjectiveValue = m_initialPhaseIObjectiveValue;
@@ -351,7 +357,9 @@ void PrimalRatiotest::performRatiotestPhase1(int incomingVariableIndex,
             }
         }
     } else {
+#ifndef NDEBUG
         LPWARNING(" - Ratiotest - No breakpoint found!");
+#endif
     }
 
     if(m_outgoingVariableIndex == -2){
@@ -583,7 +591,9 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                     m_outgoingVariableIndex = -1;
                     m_primalSteplength = 0;
                 } else {
+#ifndef NDEBUG
                     LPWARNING(" - Ratiotest - No breakpoint found!");
+#endif
                     m_outgoingVariableIndex = -1;
                 }
             }
@@ -608,12 +618,15 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
         Numerical::Double lb = m_model.getVariable(m_basishead[basisIndex]).getLowerBound();
         Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
 
+#ifndef NDEBUG
         if (lb > m_basicVariableValues.at(basisIndex) ) {
             LPINFO("lb: "<<lb);
             LPINFO("xb: "<<m_basicVariableValues.at(basisIndex));
             exit(-1);
         }
+#endif
         if ( signedAlpha > epsilon) {
+#ifndef NDEBUG
             if (Numerical::fabs((m_basicVariableValues.at(basisIndex) - lb) / signedAlpha) == Numerical::Infinity) {
                 LPINFO("lb: "<<lb);
                 LPINFO("m_basicVariableValues.at(basisIndex): "<<m_basicVariableValues.at(basisIndex));
@@ -622,6 +635,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
                 LPINFO("pos: "<<basisIndex<<" Xb: "<<m_basicVariableValues[basisIndex]<<" lb: "<<lb<<" alpha: "<<alpha.at(basisIndex));
                 exit(0);
             }
+#endif
             m_breakpointHandler.insertBreakpoint(basisIndex, (m_basicVariableValues.at(basisIndex) - lb) / signedAlpha);
         }
     }
@@ -633,12 +647,15 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
         Numerical::Double ub = m_model.getVariable(m_basishead[basisIndex]).getUpperBound();
         Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
 
+#ifndef NDEBUG
         if (ub < m_basicVariableValues.at(basisIndex) ) {
             LPERROR("xb "<<m_basicVariableValues.at(basisIndex));
             LPERROR("ub "<<ub);
             exit(-1);
         }
+#endif
         if ( signedAlpha < -epsilon) {
+#ifndef NDEBUG
             if (Numerical::fabs((m_basicVariableValues.at(basisIndex) - ub) / signedAlpha) == Numerical::Infinity) {
                 LPINFO("ub: "<<ub);
                 LPINFO("m_basicVariableValues.at(basisIndex): "<<m_basicVariableValues.at(basisIndex));
@@ -647,6 +664,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
                 LPINFO("pos: "<<basisIndex<<" Xb: "<<m_basicVariableValues[basisIndex]<<" ub: "<<ub<<" alpha: "<<alpha.at(basisIndex));
                 exit(0);
             }
+#endif
             m_breakpointHandler.insertBreakpoint(basisIndex, (m_basicVariableValues.at(basisIndex) - ub) / signedAlpha);
         }
     }
@@ -659,6 +677,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
 
         m_outgoingVariableIndex = breakpoint->variableIndex;
         m_primalSteplength = m_sigma * breakpoint->value;
+#ifndef NDEBUG
         if (m_primalSteplength >= 10E-4) {
             LPINFO("m_primalSteplength "<<m_primalSteplength);
             LPINFO("alpha: "<<alpha.at(m_outgoingVariableIndex));
@@ -666,6 +685,7 @@ bool PrimalRatiotest::performWolfeRatiotest(const DenseVector &alpha)
             LPINFO("ub: "<<m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound());
         }
 //        LPINFO("Wolfe: variable "<<m_outgoingVariableIndex<<" leaving with: "<<m_primalSteplength);
+#endif
 
         Numerical::Double ref_ub = Numerical::fabs(m_primalSteplength - (m_basicVariableValues.at(m_outgoingVariableIndex) -
                       m_model.getVariable(m_basishead[m_outgoingVariableIndex]).getUpperBound())
@@ -686,7 +706,6 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
     Numerical::Double degeneracyTolerance = m_feasibilityTolerance;
     //step 0: init Wolfe, compute degeneracy sets
     if (!m_wolfeActive) {
-//        LPINFO("Wolfe: start");
         for (unsigned basisIndex = 0; basisIndex < m_basicVariableValues.length(); ++basisIndex) {
             Numerical::Double lb = m_model.getVariable(m_basishead[basisIndex]).getLowerBound();
             Numerical::Double ub = m_model.getVariable(m_basishead[basisIndex]).getUpperBound();
@@ -786,10 +805,12 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
         if (pivotFound) {
 //            LPINFO("Wolfe: special update with variable: "<<m_outgoingVariableIndex<<" theta: "<<
 //                   m_primalSteplength);
+#ifndef NDEBUG
             if (m_degenDepth == 0) {
                 LPERROR("degendepth 0");
                 exit(-1);
             }
+#endif
             return;
         //step 4: no pivot row, reset perturbed values to bounds, decrease depth
         } else {

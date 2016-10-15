@@ -46,7 +46,6 @@ void SbfCrash::run()
 {
     Timer timer;
 
-    LPINFO("CRASH eleje");
     timer.start();
 
     m_basisHead->clear();

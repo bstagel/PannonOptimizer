@@ -89,7 +89,6 @@ void InitPanOpt::init() {
 #endif
     sm_architecture->loadParameters();
     sm_architecture->detect();
-
 }
 
 void InitPanOpt::threadInit() {
@@ -140,7 +139,9 @@ __attribute__((constructor))
 void initPanOpt() {
     //initSignalHandler();
     setbuf(stdout, 0);
-    printf("INIT PanOpt!\n");
+#ifndef NDEBUG
+    std::cout << "Initializing Pannon Optimizer." << std::endl;
+#endif
 
     InitPanOpt::init();
 
@@ -148,7 +149,9 @@ void initPanOpt() {
 
 __attribute__((destructor))
 static void releasePanOpt() {
-    std::cout << "RELEASE PanOpt" << std::endl;
+#ifndef NDEBUG
+    std::cout << "Releasing Pannon Optimizer." << std::endl;
+#endif
 
     InitPanOpt::release();
 }

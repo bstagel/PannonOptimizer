@@ -25,6 +25,7 @@
 #include <utils/platform.h>
 #include <utils/exceptions.h>
 #include <utils/nodefile.h>
+#include <simplex/simplexparameterhandler.h>
 
 #include <thread>
 
@@ -35,7 +36,9 @@ ArchitectureX86::ArchitectureX86() {
 }
 
 void ArchitectureX86::detect() {
+#ifndef NDEBUG
     std::cout << "X86 detect" << std::endl;
+#endif
     m_architectureName = "X86";
     if (cpuidSupported() == true) {
         setCPUData();
@@ -43,7 +46,9 @@ void ArchitectureX86::detect() {
         setFeatureList();
         setCPUTopologyData();
     } else {
+#ifndef NDEBUG
         std::cout << "CPUID not supported" << std::endl;
+#endif
     }
     setMemoryData();
     setPrimitives();
@@ -165,14 +170,17 @@ void ArchitectureX86::setCPUData() {
     memcpy(temp + 8, &regs.m_ecx, sizeof(unsigned int));
     temp[12] = 0;
     m_vendor = std::string(temp);
+#ifndef NDEBUG
     std::cout << "Vendor: " << m_vendor << std::endl;
     std::cout << "Largest function: " << m_largestFunction << std::endl;
-
+#endif
     regs.m_eax = 0x80000000;
     regs.m_ebx = regs.m_ecx = regs.m_edx = 0;
     regs = cpuid(regs);
     m_largestExtendedFunction = regs.m_eax;
+#ifndef NDEBUG
     std::cout << "Largest extended function: 0x" << std::hex << m_largestExtendedFunction << std::dec << std::endl;
+#endif
 
     // CPU name
     if (m_largestExtendedFunction < 0x80000004) {
@@ -194,20 +202,26 @@ void ArchitectureX86::setCPUData() {
     memcpy(temp + 32, &regs, sizeof(regs));
     temp[48] = 0;
     m_cpuName = std::string(temp);
-    std::cout << "CPU name: " << m_cpuName << std::endl;
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 0) {
+        LPINFO("CPU name: " << m_cpuName);
+    }
 }
 
 void ArchitectureX86::loadFeature(unsigned int reg, unsigned int bit,
                                   const std::string & name) {
     if (getBits(reg, bit, bit) == 1) {
+#ifndef NDEBUG
         std::cout << name << " ";
+#endif
         m_features.insert(name);
     }
 }
 
 void ArchitectureX86::setFeatureList() {
     Registers regs;
+#ifndef NDEBUG
     std::cout << "CPU features: ";
+#endif
 
     if (m_vendor == "AMDisbetter") {
 
@@ -411,13 +425,19 @@ void ArchitectureX86::setFeatureList() {
     if ( featureExists("AVX") && featureExists("OSXSAVE") ) {
         // check that the OS has enabled AVX
         if (/*AVX_ENABLED_BY_OS()*/true) {
+#ifndef NDEBUG
             std::cout << std::endl << "AVX enabled by OS" << std::endl;
+#endif
         } else {
+#ifndef NDEBUG
             std::cout << std::endl << "AVX disabled by OS" << std::endl;
+#endif
             m_features.erase( m_features.find("AVX") );
         }
     }
+#ifndef NDEBUG
     std::cout << std::endl;
+#endif
 }
 
 void ArchitectureX86::setCPUTopologyData()
@@ -454,7 +474,9 @@ void ArchitectureX86::setCPUTopologyData()
 
     unsigned int n = std::thread::hardware_concurrency();
 
-    std::cout << n << " concurrent threads are supported.\n";
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 0) {
+        LPINFO(n << " concurrent threads are supported.");
+    }
 
     if ( featureExists("HTT") ) {
         if (hasLeafB) {
@@ -538,8 +560,10 @@ void ArchitectureX86::loadCacheInfoIntel(int cacheId) {
             info.m_linePartitions *
             info.m_lineSize *
             info.m_sets;
+#ifndef NDEBUG
     std::cout << "\tLevel: " << info.m_level << std::endl;
     std::cout << "\tSize: " << (info.m_size / 1024) << " Kbyte" << std::endl;
+#endif
 
     if (sm_largestCacheSize < info.m_size) {
         sm_largestCacheSize = info.m_size;
@@ -554,7 +578,9 @@ void ArchitectureX86::setCacheDataIntel() {
     }
     unsigned int cacheCount = getCacheCountIntel();
     unsigned int index;
+#ifndef NDEBUG
     std::cout << "Caches:" << std::endl;
+#endif
     for (index = 0; index < cacheCount; index++) {
         loadCacheInfoIntel(index);
     }
@@ -651,7 +677,9 @@ void ArchitectureX86::setCacheDataAMD() {
     info.m_linePartitions = getBits(regs.m_ecx, 8, 15);
     info.m_lineSize = getBits(regs.m_ecx, 0, 7);
     m_caches.push_back(info);
+#ifndef NDEBUG
     showAMDCacheInfo(info);
+#endif
 
     // Instruction
     info.m_level = 1;
@@ -665,7 +693,9 @@ void ArchitectureX86::setCacheDataAMD() {
     info.m_linePartitions = getBits(regs.m_edx, 8, 15);
     info.m_lineSize = getBits(regs.m_edx, 0, 7);
     m_caches.push_back(info);
+#ifndef NDEBUG
     showAMDCacheInfo(info);
+#endif
 
     // Level 2
     if (m_largestExtendedFunction < 0x80000006) {
@@ -690,7 +720,9 @@ void ArchitectureX86::setCacheDataAMD() {
 
     info.m_linePartitions = getBits(regs.m_ecx, 8, 11);
     info.m_lineSize = getBits(regs.m_ecx, 0, 7);
+#ifndef NDEBUG
     showAMDCacheInfo(info);
+#endif
 
     // Level 3
     info.m_level = 3;
@@ -707,7 +739,9 @@ void ArchitectureX86::setCacheDataAMD() {
     info.m_associativity = getAMDL2L3CacheAssociativity(getBits(regs.m_ecx, 12, 15));
     info.m_linePartitions = getBits(regs.m_edx, 8, 11);
     info.m_lineSize = getBits(regs.m_edx, 0, 7);
+#ifndef NDEBUG
     showAMDCacheInfo(info);
+#endif
 
 }
 

@@ -267,8 +267,10 @@ void Presolver::removeConstraints(const std::vector<int>& removeIndices, int rem
 }
 
 void Presolver::presolve() {
-int nzr = m_model->getMatrix().nonZeros();
-LPINFO("nzr count: " << nzr);
+    int nzr = m_model->getMatrix().nonZeros();
+#ifndef NDEBUG
+    LPINFO("nzr count: " << nzr);
+#endif
     if(m_mode == NO_PRESOLVE)
         clearModules();
     if(m_mode == DEFAULT) {
@@ -325,5 +327,5 @@ LPINFO("nzr count: " << nzr);
 //    }
     m_model->setSubstitueVectors(m_substituteVectors);
     m_timer->stop();
-    LPINFO("removed nzr: " << nzr - m_model->getMatrix().nonZeros());
+    LPINFO("Presolving removed " << nzr - m_model->getMatrix().nonZeros()<<" nonzeros.");
 }
