@@ -202,9 +202,9 @@ void ArchitectureX86::setCPUData() {
     memcpy(temp + 32, &regs, sizeof(regs));
     temp[48] = 0;
     m_cpuName = std::string(temp);
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 0) {
-        LPINFO("CPU name: " << m_cpuName);
-    }
+#ifndef NDEBUG
+        std::cout << "CPU name: " << m_cpuName << "\n";
+#endif
 }
 
 void ArchitectureX86::loadFeature(unsigned int reg, unsigned int bit,
@@ -474,8 +474,8 @@ void ArchitectureX86::setCPUTopologyData()
 
     unsigned int n = std::thread::hardware_concurrency();
 
-    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 0) {
-        LPINFO(n << " concurrent threads are supported.");
+    if (SimplexParameterHandler::getInstance().getBoolParameterValue("Parallel.enable_parallelization")) {
+        std::cout << n << " concurrent threads are supported.\n";
     }
 
     if ( featureExists("HTT") ) {

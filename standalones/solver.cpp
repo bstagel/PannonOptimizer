@@ -38,7 +38,7 @@
 
 #include <linalg/indexeddensevector.h>
 
-void solve(std::string filename, bool dump_vars = false) {
+void solve(std::string filename, ofstream & out, bool dump_vars = false) {
 
     Model model;
 
@@ -82,27 +82,34 @@ void solve(std::string filename, bool dump_vars = false) {
     simplexController.solve(model);
 
     if(dump_vars) {
+        out << filename;
+        out << "\n*****OPTIMAL BASIS***** Position in the basis: index\n";
+        const std::vector<int>& basis = simplexController.getBasisHead();
+        for(unsigned i = 0; i < basis.size(); i++) {
+            out << i << ": " << basis[i] << "\n";
+        }
+        out << "\n*****SOLUTION***** Variable name(index) = value\n";
         const DenseVector& solution = simplexController.getPrimalSolution();
         for(unsigned i = 0; i < model.variableCount(); i++) {
-            LPINFO(model.getVariable(i).getName() << " : " << solution[i]);
+            out << model.getVariable(i).getName() << "(" << i << ") = " << solution[i] << "\n";
         }
-        LPINFO("-");
+        out<<"\n";
     }
 }
 
 void printHelp() {
-    std::cout << "Usage: NewPanOptDual [OPTION] [FILE] \n" <<
-                 "Solve [FILE] with the dual simplex method. \n"<<
+    std::cout << "Usage: PannonOptimizer [OPTION] [FILE] \n" <<
+                 "Solve [FILE] with the dual simplex method (by default). \n"<<
                  "\n"<<
                  "Algorithm specific parameters can be given in the .PAR parameter files. \n"<<
-                 "If these files not exist, use the `-p` argument to generate them. \n"<<
+                 "If these files do not exist, use the `-p` argument to generate them. \n"<<
                  "\n"<<
                  "   -$PARAMETER_NAME \t Specifies the value of a parameter .\n"<<
                  "   -d, --directory \t Solve every MPS file listed in the FILE directory.\n"<<
                  "   -f, --file      \t Solve an MPS file.\n"<<
-                 "  -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
+                 "   -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
                  "   -p, --parameter-file \t Generate the default parameter files.\n"<<
-                 "  -dv, --dump-variables \t Prints the variable values to the output after solution.\n"
+                 "   -s, --solution \t Prints the primal solution to the output file.\n"
                  "   -o, --output    \t Redirect the solver output to a file.\n"<<
                  "   -h, --help      \t Displays this help.\n"<<
                  "\n";
@@ -171,20 +178,20 @@ void generateParameterFiles() {
     }
 }
 
-void solveDir(std::string dirPath) {
+void solveDir(std::string dirPath, ofstream & out, bool dump_vars = false) {
     DIR *dir;
     struct dirent *ent;
     if ((dir = opendir (dirPath.c_str())) != NULL) {
         while ((ent = readdir (dir)) != NULL) {
             std::string entry(ent->d_name);
             if(entry.size()>=4){
-                LPINFO("ENTRY: "<<entry);
+                std::cout << "ENTRY: " << entry << "\n";
             }
             if(entry.size()>=4 && (entry.substr(entry.size()-4 , 4).compare(".MPS") == 0 ||
                                    entry.substr(entry.size()-4 , 4).compare(".mps") == 0) ){
                 std::string filePath = dirPath;
                 filePath.append({PATH_SEPARATOR}).append(entry);
-                solve(filePath);
+                solve(filePath, out, dump_vars);
             }
         }
         closedir (dir);
@@ -193,14 +200,14 @@ void solveDir(std::string dirPath) {
     }
 }
 
-void solveFileList(std::string fileListPath) {
+void solveFileList(std::string fileListPath, ofstream & out, bool dump_vars = false) {
     std::string line;
     std::ifstream fileList(fileListPath);
     if(fileList.is_open()) {
         while(getline(fileList,line) ) {
             std::cout << "LINE: "<<line << "\n";
             if(line.size()>=4 && line.substr(line.size()-4 , 4).compare(".MPS") == 0){
-                solve(line);
+                solve(line, out, dump_vars);
             } else {
                 std::cout << "Invalid record in the list: "<<line << "\n";
             }
@@ -244,6 +251,7 @@ int main(int argc, char** argv) {
     std::vector<std::pair<std::string, std::string> > solvables;
     bool outputRedirected = false;
     bool dump_vars = false;
+    ofstream out;
 
     ParameterHandler& linalgHandler = LinalgParameterHandler::getInstance();
     ParameterHandler& simplexHandler = SimplexParameterHandler::getInstance();
@@ -268,8 +276,19 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
-            } else if(arg.compare("-dv") == 0 || arg.compare("--dump-variables") == 0) {
-                dump_vars = true;
+            } else if(arg.compare("-s") == 0 || arg.compare("--solution") == 0) {
+                if(argc < i+2 ){
+                    printMissingOperandError(argv);
+                    return -1;
+                } else {
+                    dump_vars = true;
+                    out.open(argv[i+1]);
+                    if (!out.is_open()) {
+                        std::cout << "Unable to open solution file.\n";
+                        return -1;
+                    }
+                    i++;
+                }
             } else if(arg.compare("-f") == 0 || arg.compare("--file") == 0){
                 if(argc < i+2 ){
                     printMissingOperandError(argv);
@@ -339,14 +358,17 @@ int main(int argc, char** argv) {
 
     for(unsigned int i=0; i<solvables.size(); i++){
         if(solvables[i].first.compare("d") == 0){
-            solveDir(solvables[i].second);
+            solveDir(solvables[i].second, out, dump_vars);
         } else if(solvables[i].first.compare("f") == 0){
-            solve(solvables[i].second, dump_vars);
+            solve(solvables[i].second, out, dump_vars);
         } else if(solvables[i].first.compare("fl") == 0){
-            solveFileList(solvables[i].second);
+            solveFileList(solvables[i].second, out, dump_vars);
         }
     }
 
+    if(dump_vars) {
+        out.close();
+    }
     if(outputRedirected){
         fclose(stdout);
     }
