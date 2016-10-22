@@ -2864,7 +2864,7 @@ void SparseVectorTestSuite::addIndexedDenseVector()
                         _counter++;
 
                         if (_counter == 1299) {
-                            DEBUG_MODE = true;
+                            //DEBUG_MODE = true;
                             std::cout << std::endl;
                             std::cout << "ARRAY: " << array2[0] << " " << array2[1] << " " << array2[2] << std::endl;
                             std::cout << "indices: " << indices2[0] << " " << indices2[1] << " " << indices2[2] << std::endl;

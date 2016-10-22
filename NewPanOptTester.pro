@@ -15,8 +15,8 @@ CONFIG(release, debug|release) {
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
-    POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
-    LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt
+    POST_TARGETDEPS += ../release/libNewPanOpt.a
+    LIBS += -L../release/ -lNewPanOpt
     OBJECTS_DIR = .o_release
 
 }
@@ -24,8 +24,8 @@ CONFIG(debug, debug|release) {
     message("NewPanOptTester: Debug mode!")
     QMAKE_CXXFLAGS_DEBUG += -g -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++
-    POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
-    LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt
+    POST_TARGETDEPS += ../debug/libNewPanOpt.a
+    LIBS += -L../debug/ -lNewPanOpt
     OBJECTS_DIR = .o_debug
 
 }

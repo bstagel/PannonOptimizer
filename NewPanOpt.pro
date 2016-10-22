@@ -43,19 +43,20 @@ CONFIG(debug, debug|release) {
     OBJECTS_DIR = .o_debug
 }
 
-linux-g++:contains(QMAKE_HOST.arch, x86_64):{
-    #message(Linux 64 bit system)
-    QMAKE_CXXFLAGS += -rdynamic
-    QMAKE_EXTRA_COMPILERS += nasmproc64
-    ASM_SRCS_64 += src/utils/arch/x86/cpuinfo64.asm \
+contains(QMAKE_HOST.arch, x86_64):{
+    contains(QMAKE_HOST.os, Linux): {
+        message(Linux 64 bit system)
+        QMAKE_CXXFLAGS += -rdynamic
+        QMAKE_EXTRA_COMPILERS += nasmproc64
+        ASM_SRCS_64 += src/utils/arch/x86/cpuinfo64.asm \
                     src/utils/arch/x86/memcpy64.asm \
                     src/linalg/arch/x86/dotproduct64.asm \
                     src/linalg/arch/x86/addvector64.asm
-    #message($${DESTDIR}../$${OBJECTS_DIR})
-    nasmproc64.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
-    nasmproc64.commands = nasm -f elf64 ${QMAKE_FILE_NAME} -g3 -o ${QMAKE_FILE_OUT}
-    nasmproc64.input = ASM_SRCS_64
-
+        #message($${DESTDIR}../$${OBJECTS_DIR})
+        nasmproc64.output = ${DESTDIR}/../${OBJECTS_DIR}${QMAKE_FILE_BASE}.o
+        nasmproc64.commands = nasm -f elf64 ${QMAKE_FILE_NAME} -g3 -o ${QMAKE_FILE_OUT}
+        nasmproc64.input = ASM_SRCS_64
+    }
 }
 
 linux-g++:contains(QMAKE_HOST.arch, x86_32):{

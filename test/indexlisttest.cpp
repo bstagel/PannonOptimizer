@@ -67,7 +67,7 @@ void IndexListTestSuite::init() {
             }
         }
 
-        IndexList<int> list2(list);
+        /*IndexList<int> list2(list);
 
         if(curCount == 0 || curPartitions == 0)
         {
@@ -97,7 +97,7 @@ void IndexListTestSuite::init() {
                 TEST_ASSERT(curElement->m_data == index);
                 TEST_ASSERT(curElement->m_partitionIndex == curPartitions);
             }
-        }
+        }*/
     }
 }
 

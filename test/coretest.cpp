@@ -14,6 +14,14 @@
 
 #define DOT_PRODUCT_MAX_SIZE            1024
 
+extern "C" double _denseToDenseDotProduct_stable_AVX_64_linux(const double * a,
+                                                              const double * b,
+                                                              unsigned long long int len);
+
+//extern "C" double _denseToDenseDotProductSSE2_64_linux(const double * a,
+//                                                       const double * b,
+//                                                       unsigned long long int len);
+
 enum MEMCPY_SIZE_CASES {
     LARGE,
     SMALL,
@@ -21,11 +29,11 @@ enum MEMCPY_SIZE_CASES {
 };
 
 CoreTestSuite::CoreTestSuite(const char *name): UnitTest(name) {
-    ADD_TEST(CoreTestSuite::memcpy);
+    //ADD_TEST(CoreTestSuite::memcpy);
     //ADD_TEST(CoreTestSuite::memset);
     //ADD_TEST(CoreTestSuite::denseToDenseDotProduct);
     //ADD_TEST(CoreTestSuite::denseToSparseDotProduct);
-    //ADD_TEST(CoreTestSuite::denseToDenseAdd);
+    ADD_TEST(CoreTestSuite::denseToDenseAdd);
     //ADD_TEST(CoreTestSuite::denseToDenseAddPerformance);
 }
 
@@ -184,6 +192,7 @@ void CoreTestSuite::denseToDenseDotProduct() {
         }
         unsigned int function;
         for (function = 0; function <= 3; function++) {
+            double neg;
             result = rand() % 100 + 10;
             switch (function) {
             case 0: // default, platform independent implementation
@@ -205,6 +214,8 @@ void CoreTestSuite::denseToDenseDotProduct() {
                 break;
             case 3:
                 if (InitPanOpt::getInstance().getArchitecture().featureExists("AVX") ) {
+                    //result = _denseToDenseDotProduct_stable_AVX_64_linux(arrayA + 4, arrayB + 4, count);
+                    //result = _denseToDenseDotProductSSE2_64_linux(arrayA + 4, arrayB + 4, count, &neg);
                     result = DENSE_TO_DENSE_DOTPRODUCT_UNSTABLE_AVX(arrayA + 4, arrayB + 4, count);
                 }
                 break;
@@ -350,7 +361,7 @@ void CoreTestSuite::denseToDenseAdd()
     a[3] = 4;   b[3] = 4;
     a[4] = 5;   b[4] = 5;
     a[5] = 6;   b[5] = 6;
-    a[6] = 7;   b[6] = -7.5;
+    a[6] = 7;   b[6] = -7.7;
     a[7] = 8;   b[7] = 8;
     a[8] = 9;   b[8] = 9;
     a[9] = 10;  b[9] = 10;
@@ -377,7 +388,8 @@ void CoreTestSuite::denseToDenseAdd()
         for (i = 0; i < size; i++) {
             TEST_ASSERT(c[i] == Numerical::stableAdd(a[i], b[i] * lambda));
             if (c[i] != Numerical::stableAdd(a[i], b[i] * lambda)) {
-                LPERROR(c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+                LPERROR(i << ".: " << c[i] << " != " << Numerical::stableAdd(a[i], b[i] * lambda));
+                exit(1);
             }
         }
 

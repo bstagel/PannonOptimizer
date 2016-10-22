@@ -24,7 +24,8 @@
 #include <presolvertest.h>*/
 #include <coretest.h>
 #include <sparsevectortest.h>
-
+#include <addvectorbenchmark.h>
+#include <dotproductbenchmark.h>
 
 #include <iomanip>
 // Main test program
@@ -33,8 +34,10 @@
 int main(int, char** )
 {
     setbuf(stdout, 0);
-    Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
+//    Tester::addUnitTest(new SparseVectorTestSuite("SparseVector Test"));
     Tester::addUnitTest(new CoreTestSuite("Core Test"));
+   // Tester::addUnitTest(new AddVectorBenchmark("Add vector benchmark"));
+  //  Tester::addUnitTest(new DotProductBenchmark("Dot product benchmark"));
 //    Tester::addUnitTest(new VariableTestSuite("Variable Test"));
 //    Tester::addUnitTest(new ConstraintTestSuite("Constraint Test"));
 //    Tester::addUnitTest(new IndexListTestSuite("IndexList Test"));
