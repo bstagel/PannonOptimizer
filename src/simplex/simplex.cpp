@@ -349,6 +349,11 @@ void Simplex::setModel(const Model &model) {
     ++sm_repeatSolution;
 }
 
+const SimplexModel& Simplex::getModel() const
+{
+    return *m_simplexModel;
+}
+
 void Simplex::setSimplexState(const Simplex & simplex)
 {
     m_basisHead = simplex.m_basisHead;

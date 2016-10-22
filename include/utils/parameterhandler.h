@@ -72,6 +72,9 @@ public:
         m_values.insert(std::pair<std::string, Parameter>(name, Parameter(name,type,comment)));
     }
 
+    virtual bool validateParameterValue(const std::string& parameter,
+                                        const std::string& value) = 0;
+
     /**
      * Returns the type of the given parameter.
      *

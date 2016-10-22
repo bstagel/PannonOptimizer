@@ -35,7 +35,20 @@ public:
     * @throws -1 if the outputstream is not open
     */
     void writeParameterFile();
+
+    /**
+     * Creates the necessary parameters and sets their default values.
+     */
     void initParameters();
+
+    /**
+     * Checks if the given value is among the possible values for the given parameter.
+     * @param parameter name of the parameter.
+     * @param value value of the parameter.
+     * @return true if the value is valid.
+     */
+    bool validateParameterValue(const std::string& parameter,
+                                const std::string& value);
 
     /**
      * Loads the parameters from an external file.

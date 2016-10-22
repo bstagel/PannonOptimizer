@@ -53,6 +53,12 @@ public:
      */
     void initParameters();
 
+    /**
+     * Not implemented yet.
+     */
+    bool validateParameterValue(const std::string& parameter,
+                                const std::string& value);
+
 private:
 
     /**

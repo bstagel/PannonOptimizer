@@ -239,7 +239,12 @@ bool setParameter(ParameterHandler& handler, const std::string& arg, const char 
     } else if(handler.getParameterType(arg) == Entry::INTEGER) {
         handler.setParameterValue(arg, atoi(value));
     } else if(handler.getParameterType(arg) == Entry::STRING) {
-        handler.setParameterValue(arg, std::string(value));
+        if (handler.validateParameterValue(arg, value)) {
+            handler.setParameterValue(arg, std::string(value));
+        } else {
+            std::cout << "Invalid parameter value " << value << " for parameter " << arg << "\n";
+            exit(-1);
+        }
     } else {
         return false;
     }
@@ -247,6 +252,7 @@ bool setParameter(ParameterHandler& handler, const std::string& arg, const char 
 }
 
 int main(int argc, char** argv) {
+    std::cout << "Welcome to Pannon Optimizer v1.0!\n";
     //setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
     bool outputRedirected = false;

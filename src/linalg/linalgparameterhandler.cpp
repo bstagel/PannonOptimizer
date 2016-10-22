@@ -103,3 +103,10 @@ void LinalgParameterHandler::initParameters()
     setParameterValue("elbowroom", DefaultParameters::ELBOWROOM);
 
 }
+
+bool LinalgParameterHandler::validateParameterValue(const std::string &parameter, const std::string &value)
+{
+    __UNUSED(parameter);
+    __UNUSED(value);
+    return false;
+}

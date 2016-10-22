@@ -502,6 +502,101 @@ void SimplexParameterHandler::initParameters()
                       DefaultParameters::Global::Export::TYPE);
 }
 
+bool SimplexParameterHandler::validateParameterValue(const std::string &parameter, const std::string &value)
+{
+    if (parameter == "Starting.Scaling.type") {
+        if (value == "BENICHOU") return true;
+        else return false;
+    } else if (parameter == "Starting.Basis.starting_nonbasic_states") {
+        if (value == "NONBASIC_TO_LOWER") return true;
+        else if (value == "NONBASIC_TO_UPPER") return true;
+        else if (value == "NONBASIC_MIXED") return true;
+        else return false;
+    } else if (parameter == "Starting.Basis.starting_basis_strategy") {
+        if (value == "LOGICAL") return true;
+        else if (value == "CRASH") return true;
+        else return false;
+    } else if (parameter == "Factorization.type") {
+        if (value == "PFI") return true;
+        else if (value == "LU") return true;
+        else return false;
+    } else if (parameter == "Factorization.PFI.nontriangular_method") {
+        if (value == "SIMPLE_KERNEL") return true;
+        else if (value == "BLOCK_PIVOT") return true;
+        else if (value == "BLOCK_ORDER") return true;
+        else return false;
+    } else if (parameter == "Factorization.PFI.nontriangular_pivot_rule") {
+        if (value == "SIMPLE_PIVOT") return true;
+        else if (value == "THRESHOLD_PIVOT") return true;
+        else return false;
+    } else if (parameter == "Pricing.type") {
+        if (value == "DANTZIG") return true;
+        else if (value == "DEVEX") return true;
+        else if (value == "STEEPEST_EDGE") return true;
+        else return false;
+    } else if (parameter == "Ratiotest.nonlinear_primal_phaseI_function") {
+        if (value == "TRADITIONAL") return true;
+        else if (value == "PIECEWISE") return true;
+        else if (value == "PIECEWISE_THRESHOLD") return true;
+        else return false;
+    } else if (parameter == "Ratiotest.nonlinear_dual_phaseI_function") {
+        if (value == "TRADITIONAL") return true;
+        else if (value == "PIECEWISE") return true;
+        else if (value == "PIECEWISE_THRESHOLD") return true;
+        else return false;
+    } else if (parameter == "Ratiotest.nonlinear_dual_phaseII_function") {
+        if (value == "TRADITIONAL") return true;
+        else if (value == "PIECEWISE") return true;
+        else if (value == "PIECEWISE_THRESHOLD") return true;
+        else return false;
+    } else if (parameter == "Ratiotest.Expand.type") {
+        if (value == "INACTIVE") return true;
+        else if (value == "HARRIS") return true;
+        else if (value == "EXPANDING") return true;
+        else return false;
+    } else if (parameter == "Perturbation.perturb_cost_vector") {
+        if (value == "INACTIVE") return true;
+        else if (value == "RANDOM") return true;
+        else if (value == "FEASIBLE") return true;
+        else if (value == "SIGN") return true;
+        else if (value == "KOBERSTEIN") return true;
+        else return false;
+    } else if (parameter == "Perturbation.perturb_target") {
+        if (value == "NONZEROS") return true;
+        else if (value == "ZEROS") return true;
+        else if (value == "ALL") return true;
+        else return false;
+    } else if (parameter == "Perturbation.weighting") {
+        if (value == "INACTIVE") return true;
+        else if (value == "WEIGHT") return true;
+        else if (value == "SET_TO_INTERVAL") return true;
+        else return false;
+    } else if (parameter == "Global.starting_algorithm") {
+        if (value == "PRIMAL") return true;
+        else if (value == "DUAL") return true;
+        else return false;
+    } else if (parameter == "Global.switch_algorithm") {
+        if (value == "INACTIVE") return true;
+        else if (value == "SWITCH_BEFORE_INV") return true;
+        else if (value == "SWITCH_BEFORE_INV_PH2") return true;
+        else if (value == "SWITCH_WHEN_NO_IMPR") return true;
+        else return false;
+    } else if (parameter == "Global.SaveBasis.format") {
+        if (value == "PBF") return true;
+        else if (value == "BAS") return true;
+        else return false;
+    } else if (parameter == "Global.LoadBasis.format") {
+        if (value == "PBF") return true;
+        else if (value == "BAS") return true;
+        else return false;
+    } else if (parameter == "Global.Export.type") {
+        if (value == "PARAMETER_STUDY") return true;
+        if (value == "RATIOTEST_STUDY") return true;
+        else return false;
+    }
+    return true;
+}
+
 void SimplexParameterHandler::processParallelNode(const NodeFile::Node &node,
                                                   const std::string &name,
                                                   std::map<std::string, Parameter> *threadParameters)

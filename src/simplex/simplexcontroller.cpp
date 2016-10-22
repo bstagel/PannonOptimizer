@@ -263,7 +263,19 @@ const DenseVector SimplexController::getReducedCosts() const
                                                    m_dualSimplex->getReducedCosts();
 }
 
-void SimplexController::solve(const Model &model) {
+void SimplexController::solve(const Model &model)
+{
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
+        m_currentAlgorithm = Simplex::PRIMAL;
+        m_primalSimplex = new PrimalSimplex(m_basis);
+        m_currentSimplex = m_primalSimplex;
+        LPINFO("Solving problem with primal simplex method...");
+    } else if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
+        m_dualSimplex = new DualSimplex(m_basis);
+        m_currentSimplex = m_dualSimplex;
+        LPINFO("Solving problem with dual simplex method...");
+    }
     m_isOptimal = false;
     m_basis->prepareForModel(model);
 
@@ -321,16 +333,6 @@ void SimplexController::sequentialSolve(const Model &model)
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
-
-    if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
-        m_currentAlgorithm = Simplex::PRIMAL;
-        m_primalSimplex = new PrimalSimplex(m_basis);
-        m_currentSimplex = m_primalSimplex;
-    } else if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "DUAL") {
-        m_currentAlgorithm = Simplex::DUAL;
-        m_dualSimplex = new DualSimplex(m_basis);
-        m_currentSimplex = m_dualSimplex;
-    }
 
     try{
         m_currentSimplex->setModel(model);
@@ -440,7 +442,7 @@ void SimplexController::sequentialSolve(const Model &model)
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
-        LPINFO("OPTIMAL SOLUTION found! ");
+        LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {

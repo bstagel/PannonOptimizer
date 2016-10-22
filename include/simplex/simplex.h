@@ -498,6 +498,13 @@ protected:
     void setModel(const Model & model);
 
     /**
+     * Getter for the mathematical model of the LP problem.
+     *
+     * @return const reference of the SimplexModel object
+     */
+    const SimplexModel& getModel()const;
+
+    /**
      * This function saves the current state of the simplex algorithm, and copies it to the Simplex object given in parameter.
      *
      * @param simplex The target Simplex object to copy the state to.
