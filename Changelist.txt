@@ -1,5 +1,4 @@
-﻿TEST
-2013. 08. 23.
+﻿2013. 08. 23.
 Vector osztaly:
 
 Kikerult a kodbol a ConstIterator es a ConstNonzeroIterator. 
