@@ -93,6 +93,7 @@ public:
     class Pricing {
     public:
         static const char * TYPE;
+        static const bool COMBINED_OBJECTIVE;
 
         class Simpri {
         public:

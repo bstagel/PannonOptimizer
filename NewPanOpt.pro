@@ -22,23 +22,21 @@ QT -= gui
 CONFIG -= qt
 DEFINES -= UNICODE QT_LARGEFILE_SUPPORT
 
-TARGET = NewPanOpt
+TARGET = PannonOptimizer
 #LIBS += -lgmpxx -lgmp
 LIBS += -pthread
 
 CONFIG(release, debug|release) {
-    #message("NewPanOpt: Release mode!")
+    #message("PannonOptimizer: Release mode!")
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11 -mavx
-#    DESTDIR = ../build-NewPanOpt/release
     DESTDIR = release
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
-    #message("NewPanOpt: Debug mode!")
+    #message("PannonOptimizer: Debug mode!")
     #DEFINES += NDEBUG
     QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11 -Wextra -Wall
-#    DESTDIR = ../build-NewPanOpt/debug
     DESTDIR = debug
     OBJECTS_DIR = .o_debug
 }
@@ -90,7 +88,7 @@ win32:contains(QMAKE_HOST.arch, x86): {
 }
 
 macx {
-    #message("Ez egy Macintosh")
+    #message("Macintosh system")
     QMAKE_CXX = clang++
     QMAKE_CC = clang
     QMAKE_CXXFLAGS += -std=c++11 -stdlib=libc++

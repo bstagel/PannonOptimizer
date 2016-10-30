@@ -593,12 +593,12 @@ void DualRatiotest::computeFunctionPhase2(const DenseVector &alpha,
                                           Numerical::Double &functionSlope,
                                           Numerical::Double workingTolerance)
 {
-    unsigned int length = m_breakpointHandler.getNumberOfBreakpoints();
+    unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_actual = 0;
     Numerical::Double absPrimalSteplength = 0;
 
     const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
-    while (iterationCounter < length) {
+    while (iterationCounter < numberOfBreakpoints) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
 

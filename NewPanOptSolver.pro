@@ -32,21 +32,15 @@ CONFIG(release, debug|release) {
     DEFINES += NDEBUG
     QMAKE_CXXFLAGS_RELEASE += -O2 -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -lgcc_eh
-    POST_TARGETDEPS += ../release/libNewPanOpt.a
-#    POST_TARGETDEPS += ../build-NewPanOpt/release/libNewPanOpt.a
-    LIBS += -L../release/ -lNewPanOpt
-#    LIBS += -L../build-NewPanOpt/release/ -lNewPanOpt -L../panopt/lib/# -lqd
-#    DESTDIR = ../build-NewPanOptSolver/release
+    POST_TARGETDEPS += ../release/libPannonOptimizer.a
+    LIBS += -L../release/ -lPannonOptimizer # -lqd
     OBJECTS_DIR = .o_release
 }
 CONFIG(debug, debug|release) {
     QMAKE_CXXFLAGS_DEBUG += -g -O2 -std=c++11
     QMAKE_LFLAGS = -static-libgcc -static-libstdc++ -lgcc_eh
-    POST_TARGETDEPS += ../debug/libNewPanOpt.a
-#    POST_TARGETDEPS += ../build-NewPanOpt/debug/libNewPanOpt.a
-    LIBS += -L../debug/ -lNewPanOpt
-#    LIBS += -L../build-NewPanOpt/debug/ -lNewPanOpt -L../panopt/lib/# -lqd
-#    DESTDIR = ../build-NewPanOptSolver/debug
+    POST_TARGETDEPS += ../debug/libPannonOptimizer.a
+    LIBS += -L../debug/ -lPannonOptimizer # -lqd
     OBJECTS_DIR = .o_debug
 }
 

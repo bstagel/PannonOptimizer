@@ -52,6 +52,7 @@ const char * DefaultParameters::Factorization::PFI::NONTRIANGULAR_PIVOT_RULE = "
 
 //Pricing
 const char * DefaultParameters::Pricing::TYPE = "DANTZIG";
+const bool DefaultParameters::Pricing::COMBINED_OBJECTIVE = false;
 const int DefaultParameters::Pricing::Simpri::PHASEI_CLUSTERS = 1;
 const int DefaultParameters::Pricing::Simpri::PHASEI_VISIT_CLUSTERS = 1;
 const int DefaultParameters::Pricing::Simpri::PHASEI_IMPROVING_CANDIDATES = 0;

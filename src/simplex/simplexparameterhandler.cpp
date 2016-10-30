@@ -216,6 +216,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Pricing.type",
                       DefaultParameters::Pricing::TYPE);
 
+    createParameter("Pricing.combined_objective",
+                    Entry::BOOL,
+                    PRICING_COMBINED_OBJECTIVE_COMMENT);
+    setParameterValue("Pricing.combined_objective",
+                      DefaultParameters::Pricing::COMBINED_OBJECTIVE);
+
     createParameter("Pricing.Simpri.phaseI_clusters",
                     Entry::INTEGER,
                     PRICING_SIMPRI_PHASEI_CLUSTERS_COMMENT);

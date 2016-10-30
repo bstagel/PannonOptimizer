@@ -54,6 +54,8 @@
 # DEVEX: Devex rule \
 # STEEPEST_EDGE: Steepest edge rule)"
 
+#define PRICING_COMBINED_OBJECTIVE_COMMENT R"(# Consider ph-2 objective in ph-1 pricing)"
+
 #define PRICING_SIMPRI_COMMENT R"(	# Parameters of the SIMPRI partial pricing framework \
 # The range of vectors are divided into clusters during the pricing, which are \
 # scanned as a round robin in order to find improving candidates. \

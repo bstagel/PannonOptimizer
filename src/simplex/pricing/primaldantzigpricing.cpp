@@ -20,7 +20,7 @@
 
 #include <simplex/pricing/primaldantzigpricing.h>
 #include <simplex/simplex.h>
-
+#include <simplex/simplexparameterhandler.h>
 
 PrimalDantzigPricing::PrimalDantzigPricing(const DenseVector &basicVariableValues,
                                            const IndexList<> & basicVariableFeasibilities,
@@ -66,18 +66,21 @@ int PrimalDantzigPricing::performPricingPhase1()
     Numerical::Double maxReducedCost = 0;
     Numerical::Double minReducedCost = 0;
 
+    std::vector<unsigned> phase2Improving;
+    bool considerPhase2Improvement = SimplexParameterHandler::getInstance().getBoolParameterValue("Pricing.combined_objective");
+
     unsigned int variableIndex;
     while (m_phase1Simpri.getCandidateIndex(&variableIndex) ) {
         if ( m_used[variableIndex] == true ) {
             continue;
         }
-
         switch ( m_variableStates.where(variableIndex) ) {
         case Simplex::NONBASIC_AT_LB:
             if (m_phase1ReducedCosts[variableIndex] < minReducedCost) {
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
+                if (m_reducedCosts[minIndex] <= 0) phase2Improving.push_back(minIndex);
             }
             break;
         case Simplex::NONBASIC_AT_UB:
@@ -85,6 +88,7 @@ int PrimalDantzigPricing::performPricingPhase1()
                 maxIndex = variableIndex;
                 maxReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
+                if (m_reducedCosts[minIndex] >= 0) phase2Improving.push_back(maxIndex);
             }
             break;
         case Simplex::NONBASIC_FREE:
@@ -92,12 +96,12 @@ int PrimalDantzigPricing::performPricingPhase1()
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-
+                if (m_reducedCosts[minIndex] <= 0) phase2Improving.push_back(minIndex);
             } else if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
                 maxIndex = variableIndex;
                 maxReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-
+                if (m_reducedCosts[minIndex] >= 0) phase2Improving.push_back(maxIndex);
             }
             break;
         }
@@ -108,6 +112,32 @@ int PrimalDantzigPricing::performPricingPhase1()
 
 //    LPINFO("min: "<<minReducedCost<<" index: "<<minIndex);
 //    LPINFO("max: "<<maxReducedCost<<" index: "<<maxIndex);
+    if (considerPhase2Improvement && !phase2Improving.empty()) {
+        bool improving = false;
+        for (unsigned i = 0; i < phase2Improving.size(); ++i) {
+            if (i == phase2Improving[i]) {
+                improving = true;
+                break;
+            }
+        }
+        if (!improving) {
+            unsigned biggestPhase2Improving = 0;
+            for (unsigned i = 1; i < phase2Improving.size(); ++i) {
+                if (Numerical::fabs(m_phase1ReducedCosts[phase2Improving[i]]) >
+                        Numerical::fabs(m_phase1ReducedCosts[phase2Improving[biggestPhase2Improving]])) {
+                    biggestPhase2Improving = i;
+                }
+            }
+            m_incomingIndex = phase2Improving[biggestPhase2Improving];
+            m_reducedCost = m_phase1ReducedCosts[phase2Improving[biggestPhase2Improving]];
+//            LPINFO("Alternate candidate: "<<m_incomingIndex<<
+//                   " d_j ph-1: "<<m_reducedCost<<" d_j ph-2: "<<m_reducedCosts[phase2Improving[biggestPhase2Improving]]);
+//            unsigned candidate = Numerical::fabs( minReducedCost ) > maxReducedCost ? minIndex : maxIndex;
+//            LPWARNING("Instead of : "<<candidate<<
+//                   " d_j ph-1: "<<m_phase1ReducedCosts[candidate]<<" d_j ph-2: "<<m_reducedCosts[candidate]);
+            return phase2Improving[biggestPhase2Improving];
+        }
+    }
     if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
         m_reducedCost = minReducedCost;
         m_incomingIndex = minIndex;
