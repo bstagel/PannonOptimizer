@@ -40,6 +40,7 @@ PrimalDantzigPricing::PrimalDantzigPricing(const DenseVector &basicVariableValue
                   reducedCosts)
 {
     m_reducedCost = 0.0;
+    m_alternateCandidateCounter = 0;
 }
 
 
@@ -80,7 +81,7 @@ int PrimalDantzigPricing::performPricingPhase1()
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-                if (m_reducedCosts[minIndex] <= 0) phase2Improving.push_back(minIndex);
+                if (m_reducedCosts[variableIndex] <= 0) phase2Improving.push_back(variableIndex);
             }
             break;
         case Simplex::NONBASIC_AT_UB:
@@ -88,7 +89,7 @@ int PrimalDantzigPricing::performPricingPhase1()
                 maxIndex = variableIndex;
                 maxReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-                if (m_reducedCosts[minIndex] >= 0) phase2Improving.push_back(maxIndex);
+                if (m_reducedCosts[variableIndex] >= 0) phase2Improving.push_back(variableIndex);
             }
             break;
         case Simplex::NONBASIC_FREE:
@@ -96,26 +97,25 @@ int PrimalDantzigPricing::performPricingPhase1()
                 minIndex = variableIndex;
                 minReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-                if (m_reducedCosts[minIndex] <= 0) phase2Improving.push_back(minIndex);
+                if (m_reducedCosts[variableIndex] <= 0) phase2Improving.push_back(variableIndex);
             } else if (m_phase1ReducedCosts[variableIndex] > maxReducedCost) {
                 maxIndex = variableIndex;
                 maxReducedCost = m_phase1ReducedCosts[variableIndex];
                 m_phase1Simpri.improvingIndexFound();
-                if (m_reducedCosts[minIndex] >= 0) phase2Improving.push_back(maxIndex);
+                if (m_reducedCosts[variableIndex] >= 0) phase2Improving.push_back(variableIndex);
             }
             break;
         }
     }
 
-//    LPINFO("PRICING: minReducedCost: "<<minReducedCost<<" maxReducedCost: "<<maxReducedCost);
-//    LPINFO("PRICING: minIndex: "<<minIndex<<" maxIndex: "<<maxIndex);
+    unsigned candidate = Numerical::fabs( minReducedCost ) > maxReducedCost ? minIndex : maxIndex;
+    m_incomingIndex = candidate;
+    m_reducedCost = m_phase1ReducedCosts[candidate];
 
-//    LPINFO("min: "<<minReducedCost<<" index: "<<minIndex);
-//    LPINFO("max: "<<maxReducedCost<<" index: "<<maxIndex);
     if (considerPhase2Improvement && !phase2Improving.empty()) {
         bool improving = false;
         for (unsigned i = 0; i < phase2Improving.size(); ++i) {
-            if (i == phase2Improving[i]) {
+            if (candidate == phase2Improving[i]) {
                 improving = true;
                 break;
             }
@@ -128,25 +128,12 @@ int PrimalDantzigPricing::performPricingPhase1()
                     biggestPhase2Improving = i;
                 }
             }
+            ++m_alternateCandidateCounter;
             m_incomingIndex = phase2Improving[biggestPhase2Improving];
             m_reducedCost = m_phase1ReducedCosts[phase2Improving[biggestPhase2Improving]];
-//            LPINFO("Alternate candidate: "<<m_incomingIndex<<
-//                   " d_j ph-1: "<<m_reducedCost<<" d_j ph-2: "<<m_reducedCosts[phase2Improving[biggestPhase2Improving]]);
-//            unsigned candidate = Numerical::fabs( minReducedCost ) > maxReducedCost ? minIndex : maxIndex;
-//            LPWARNING("Instead of : "<<candidate<<
-//                   " d_j ph-1: "<<m_phase1ReducedCosts[candidate]<<" d_j ph-2: "<<m_reducedCosts[candidate]);
-            return phase2Improving[biggestPhase2Improving];
         }
     }
-    if (Numerical::fabs( minReducedCost ) > maxReducedCost) {
-        m_reducedCost = minReducedCost;
-        m_incomingIndex = minIndex;
-        return minIndex;
-    } else {
-        m_reducedCost = maxReducedCost;
-        m_incomingIndex = maxIndex;
-        return maxIndex;
-    }
+    return m_incomingIndex;
 }
 
 int PrimalDantzigPricing::performPricingPhase2()

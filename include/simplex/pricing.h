@@ -36,6 +36,18 @@ public:
      * Initializes the pricing module.
      */
     virtual void init() = 0;
+
+    /**
+     * Returns the number of alternate candidates choosen when combined_objective param is enabled.
+     * @return m_alternateCandidateCounter
+     */
+    unsigned getAlternateCandidateCounter()const {return m_alternateCandidateCounter;}
+protected:
+
+    /**
+     * Counter of alternate candidates when combined_objective param is enabled.
+     */
+    unsigned m_alternateCandidateCounter;
 };
 
 #endif // PRICING_H

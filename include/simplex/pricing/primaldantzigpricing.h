@@ -48,9 +48,7 @@ public:
                 int outgoingIndex,
                 const DenseVector *incomingAlpha,
                 const DenseVector *pivotRow);
-
 private:
-
     void release();
 
 };
