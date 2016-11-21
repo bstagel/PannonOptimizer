@@ -63,7 +63,8 @@ SimplexController::SimplexController():
     m_exportFilename(SimplexParameterHandler::getInstance().getStringParameterValue("Global.Export.filename")),
     m_triggeredReinversion(0),
     m_iterations(0),
-    m_isOptimal(false)
+    m_isOptimal(false),
+    m_minIndex(0)
 {
     std::string factorizationType = SimplexParameterHandler::getInstance().getStringParameterValue("Factorization.type");
     if (factorizationType == "PFI"){
@@ -278,7 +279,6 @@ void SimplexController::solve(const Model &model)
     }
     m_isOptimal = false;
     m_basis->prepareForModel(model);
-
     m_iterations = 0;
     if (m_enableParallelization) {
         if(m_enableThreadSynchronization){
@@ -330,9 +330,11 @@ void SimplexController::sequentialSolve(const Model &model)
 
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
     const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
-    const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
-    unsigned int reinversionCounter = reinversionFrequency;
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
+
+    const bool & adaptiveInversion = simplexParameters.getBoolParameterValue("Factorization.adaptive_inversion");
+    int reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
+    unsigned int reinversionCounter = reinversionFrequency;
 
     try{
         m_currentSimplex->setModel(model);
@@ -359,6 +361,7 @@ void SimplexController::sequentialSolve(const Model &model)
         iterationReport->writeStartReport();
 
         Numerical::Double lastObjective = 0;
+        int checkCounter = 10;
         //Simplex iterations
         for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
@@ -373,6 +376,54 @@ void SimplexController::sequentialSolve(const Model &model)
                     m_primalSimplex->m_ratiotest->isWolfeActive() :
                  (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != NULL) ?
                     (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
+
+                int checkFrequency = 1;//check at every checkFrequency^th inversion
+                if (adaptiveInversion && m_iterationIndex >= reinversionFrequency &&
+                        checkCounter >= checkFrequency) {
+                    std::vector<Numerical::Double> iterations = m_currentSimplex->getIterationTimes();
+                    if (m_predictedTimes.size() > 0) {
+//                        LPINFO("Actual time: "<<m_currentSimplex->getLastIterationTime());
+                        if (Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]) > 0.01 ) {
+                            LPWARNING("Inaccurate predicted time, diff: "<<Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]));
+                        }
+                    }
+                    m_predictedTimes.clear();
+                    int minFrequency = reinversionFrequency / 2;
+                    int maxFrequency = reinversionFrequency * 2;
+                    m_predictedTimes.resize(maxFrequency);
+                    m_minIndex = minFrequency;
+                    int minOfBiggers = reinversionFrequency;
+                    Numerical::Double lastNonzero = 0.001;
+                    for(int i = minFrequency; i < maxFrequency; ++i) {
+                        if (i < reinversionFrequency) {//decreasing reinv. freq.
+                            lastNonzero = iterations[i] > 0 ? iterations[i] : lastNonzero;
+                            m_predictedTimes[i] = (reinversionFrequency / (i+1)) * (m_currentSimplex->getLastInversionTime() + lastNonzero);
+                            if (m_predictedTimes[i] <= m_predictedTimes[m_minIndex]) {
+                                m_minIndex = i;
+                            }
+                        } else {//increasing reinv. freq.
+                            lastNonzero = iterations[i-reinversionFrequency] > 0 ? iterations[i-reinversionFrequency] : lastNonzero;
+                            Numerical::Double t_lastIteration = iterations[reinversionFrequency-1] > 0 ? iterations[reinversionFrequency-1] : lastNonzero;
+                            Numerical::Double inversion = (double)reinversionFrequency / (double)(i+1);
+                            m_predictedTimes[i] = std::floor(inversion * (m_currentSimplex->getLastInversionTime() + t_lastIteration + lastNonzero) * 1000)/1000;
+                            if (m_predictedTimes[i] <= m_predictedTimes[minOfBiggers]) {
+                                minOfBiggers = i;
+                            }
+                        }
+//                        if(i == reinversionFrequency-1) LPINFO("*");
+//                        LPINFO(m_predictedTimes[i]);
+                    }
+//                    LPINFO("diff "<<m_predictedTimes[minOfBiggers] - m_predictedTimes[m_minIndex]);
+                    Numerical::Double timeTolerance = 1.0;
+                    m_minIndex = m_predictedTimes[m_minIndex] * timeTolerance < m_predictedTimes[minOfBiggers] ? m_minIndex : minOfBiggers;
+                    reinversionFrequency = 1 + m_minIndex;
+//                    LPINFO("Choosen inversion frequency: "<<reinversionFrequency<<" predicted time: "<<m_predictedTimes[m_minIndex]);
+                }
+                if (checkCounter == 10) {
+                    checkCounter = 0;
+                } else {
+                    ++checkCounter;
+                }
 
                 m_currentSimplex->reinvert();
                 reinversionCounter = 0;
@@ -443,6 +494,27 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
+        LPINFO("Total inv time: "<<m_currentSimplex->totalInversionTime());
+        LPINFO("Total iter time: "<<m_currentSimplex->totalIterationTime());
+//        Numerical::Double avgInv = m_currentSimplex->totalInversionTime() / m_currentSimplex->getInversionCounter();
+//        Numerical::Double avgIter = m_currentSimplex->totalIterationTime() / m_iterations;
+//        LPWARNING("AVG inv time: "<<avgInv);
+//        LPWARNING("AVG iter time: "<<avgIter);
+//        std::vector<std::pair<Numerical::Double, Numerical::Double> > times = m_currentSimplex->getTimeValues();
+//        std::pair<Numerical::Double, Numerical::Double> deviation;
+//        deviation.first = 0.0;
+//        deviation.second = 0.0;
+//        for(unsigned i = 0; i < times.size(); ++i){
+//            deviation.first += pow(times[i].first - avgInv, 2);
+//            deviation.second += pow(times[i].second - avgIter, 2);
+//        }
+//        deviation.first /= times.size();
+//        deviation.second /= times.size();
+//        deviation.first = sqrt(deviation.first);
+//        deviation.second = sqrt(deviation.second);
+//        LPINFO("Inv dev: "<<deviation.first);
+//        LPINFO("Iter dev: "<<deviation.second);
+
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {

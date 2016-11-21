@@ -288,6 +288,10 @@ private:
 
     bool m_isOptimal;
 
+    std::vector<Numerical::Double> m_predictedTimes;
+
+    unsigned m_minIndex;
+
     /**
      * Function that solves the LP problem given by the parameter using a main thread.
      *

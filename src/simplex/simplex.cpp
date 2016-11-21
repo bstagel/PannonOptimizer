@@ -76,6 +76,9 @@ Simplex::Simplex(Basis* basis):
     m_outgoingIndex(-1),
     m_feasible(false),
     m_feasibleIteration(false),
+    m_inversionCounter(0),
+    m_lastInversion(0),
+    m_iterationTime(0.0),
     //Parameter references
     m_reinversionFrequency(SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
@@ -103,7 +106,6 @@ Simplex::Simplex(Basis* basis):
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
 {
-
 }
 
 Simplex::~Simplex() {
@@ -448,6 +450,9 @@ void Simplex::iterate(int iterationIndex)
 
     //The iteration is complete, count it in the iteration number
     m_iterationIndex++;
+
+    m_iterationTime += m_priceTimer.getCPULastElapsed() + m_selectPivotTimer.getCPULastElapsed() + m_updateTimer.getCPULastElapsed();
+    m_iterationTimes.push_back(m_iterationTime);
 }
 
 void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, bool releaseWriter) {
@@ -716,10 +721,12 @@ void Simplex::reinvert() {
     m_basis->invert();
     m_inversionTimer.stop();
 
-    //    Checker::checkBasisWithFtran(*this);
-    //    Checker::checkBasisWithBtran(*this);
-    //    Checker::checkBasisWithNonbasicReducedCost(*this);
-    //    Checker::checkBasisWithReducedCost(*this);
+    ++m_inversionCounter;
+    m_lastInversion = m_iterationIndex;
+
+    if (m_iterationIndex > 0) m_timeValues.push_back(std::pair<Numerical::Double, Numerical::Double>(m_inversionTimer.getCPULastElapsed(), m_iterationTime));
+    m_iterationTime = 0.0;
+    m_iterationTimes.clear();
 
     m_computeBasicSolutionTimer.start();
     computeBasicSolution();
@@ -807,21 +814,52 @@ void Simplex::computeReducedCosts() {
         //Compute the dot product and the reduced cost
         Numerical::Double reducedCost;
         if(i < columnCount){
-            reducedCost = Numerical::stableAdd(costVector.at(i), - simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
-
-//            if (costVector.at(i) != 0.0){
-//                const Numerical::Double value1 = costVector.at(i);
-//                const Numerical::Double value2 = -simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i));
-//                const Numerical::Double value1abs = Numerical::fabs(value1);
-//                const Numerical::Double value2abs = Numerical::fabs(value2);
-//            }
-
+            reducedCost = Numerical::stableAdd(costVector.at(i), -simplexMultiplier.dotProduct(m_simplexModel->getMatrix().column(i)));
         } else {
-            //reducedCost = -1 * simplexMultiplier.at(i - columnCount);
             reducedCost = Numerical::stableAdd(costVector.at(i), -simplexMultiplier.at(i - columnCount));
         }
         if(reducedCost != 0.0){
             m_reducedCosts.set(i, reducedCost);
+        }
+    }
+
+    bool checkWithFtran = false;
+    if (checkWithFtran) {
+        DenseVector d(rowCount + columnCount);
+        DenseVector c_B(rowCount);
+        for(unsigned i = 0; i < m_basisHead.size(); i++){
+            if(costVector.at(m_basisHead[i]) != 0.0){
+                c_B.set(i, costVector.at(m_basisHead[i]));
+            }
+        }
+
+        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
+            if(m_variableStates.where(i) == (int)Simplex::BASIC){
+                continue;
+            }
+            SparseVector alpha(rowCount);
+            Numerical::Double reducedCost = 0.0;
+            if (i < columnCount) {
+                alpha = m_simplexModel->getMatrix().column(i);
+                m_basis->Ftran(alpha);
+                reducedCost = Numerical::stableAdd(costVector.at(i), - c_B.dotProduct(alpha));
+            } else {
+                alpha.clear();
+                alpha.set(i - columnCount, 1.0);
+                m_basis->Ftran(alpha);
+                reducedCost = - c_B.dotProduct(alpha);
+            }
+            if(reducedCost != 0.0){
+                d.set(i, reducedCost);
+            }
+        }
+
+        Numerical::Double sumAbsoluteError = 0.0;
+        for(unsigned i = 0; i < m_reducedCosts.length(); ++i){
+            sumAbsoluteError += Numerical::fabs(d[i] - m_reducedCosts[i]);
+        }
+        if (sumAbsoluteError >= 1e-008) {
+            LPERROR("Inaccurate d, sum of absolute errors: "<<sumAbsoluteError);
         }
     }
 }

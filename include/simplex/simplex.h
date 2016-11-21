@@ -109,6 +109,17 @@ public:
      * @return Simplex::m_phase1Iteration
      */
     int getPhase1Iteration()const{return m_phase1Iteration;}
+
+    unsigned getInversionCounter()const{return m_inversionCounter;}
+    Numerical::Double totalInversionTime()const {return m_inversionTimer.getCPUTotalElapsed();}
+    Numerical::Double totalIterationTime()const {return m_priceTimer.getCPUTotalElapsed() +
+                                                        m_selectPivotTimer.getCPUTotalElapsed() +
+                                                        m_updateTimer.getCPUTotalElapsed();}
+    const std::vector<std::pair<Numerical::Double, Numerical::Double> >& getTimeValues() {return m_timeValues;}
+
+    const std::vector<Numerical::Double>& getIterationTimes() {return m_iterationTimes;}
+    Numerical::Double getLastInversionTime()const {return m_inversionTimer.getCPULastElapsed();}
+    Numerical::Double getLastIterationTime()const {return m_iterationTime;}
 protected:
 
     /**
@@ -235,6 +246,16 @@ protected:
      * Describes whether the basis in the previous iteration was feasible or not.
      */
     bool m_lastFeasible;
+
+    unsigned m_inversionCounter;
+
+    unsigned m_lastInversion;
+
+    Numerical::Double m_iterationTime;
+
+    std::vector<Numerical::Double> m_iterationTimes;
+
+    std::vector<std::pair<Numerical::Double, Numerical::Double> > m_timeValues;
 
     /**
      * Computes the time of the basis inversions.
