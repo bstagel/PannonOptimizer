@@ -979,7 +979,7 @@ void MpsModelBuilder::readColumns() {
                     }
 
                     if (likely(!wrong)) {
-                        if (likely(!cost1)) {
+                        if (likely(!cost1) && value1 != 0.0) {
                             actualColumn.m_nonzeros++;
                             *m_actualValue = value1;
                             m_actualValue++;
@@ -1000,7 +1000,7 @@ void MpsModelBuilder::readColumns() {
                             }
                             columnPattern[ rowIndexPtr1->m_row->m_index ] = true;
                         }
-                        if (rowIndexPtr2 != 0 && !cost2) {
+                        if (rowIndexPtr2 != 0 && !cost2 && value2 != 0.0) {
                             actualColumn.m_nonzeros++;
                             *m_actualValue = value2;
                             m_actualValue++;
@@ -1413,8 +1413,7 @@ void MpsModelBuilder::rowExists(const RowIndex & row) {
 
 }
 
-void MpsModelBuilder::loadFromFile(const std::string & fileName)
-{
+void MpsModelBuilder::loadFromFile(const std::string & fileName) {
     clear();
 
     m_invalidRowType.init(m_errorPrintLimit, m_levelCounters);
