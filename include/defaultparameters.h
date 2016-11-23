@@ -81,7 +81,8 @@ public:
         static const char * TYPE;
         static const int REINVERSION_FREQUENCY;
         static const double PIVOT_THRESHOLD;
-        static const bool ADAPTIVE_INVERSION;
+        static const int ADAPTIVE_REINVERSION;
+        static const int ADAPTIVE_MULTIPLIER;
 
         class PFI {
         public:

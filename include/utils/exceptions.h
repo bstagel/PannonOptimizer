@@ -376,6 +376,21 @@ public:
 };
 
 /**
+ * This exception should be thrown if inaccuracy of the basis inverse is detected.
+ * @class InaccurateBasisException
+ */
+class InaccurateBasisException: public PanOptException{
+public:
+
+    /**
+     * Constructor of the InaccurateBasisException class.
+     *
+     * @param message Custom message describing the circumstances of the exception.
+     */
+    InaccurateBasisException(const std::string &message): PanOptException(message){}
+};
+
+/**
  * This exception should be thrown when there is a syntax error in an input file.
  *
  * @class SyntaxErrorException

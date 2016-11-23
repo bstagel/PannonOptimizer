@@ -264,6 +264,46 @@ const DenseVector SimplexController::getReducedCosts() const
                                                    m_dualSimplex->getReducedCosts();
 }
 
+unsigned SimplexController::adaptiveReinversionFrequency()
+{
+    std::vector<Numerical::Double> iterations = m_currentSimplex->getIterationTimes();
+    if (m_predictedTimes.size() > 0) {
+        if (Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]) > 0.01 ) {
+            LPWARNING("Inaccurate predicted time, diff: "<<Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]));
+        }
+    }
+    m_predictedTimes.clear();
+    int reinversionFrequency = SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency");
+    int multiplier = SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.adaptive_multiplier");
+    int minFrequency = reinversionFrequency / multiplier;
+    int maxFrequency = reinversionFrequency * multiplier;
+    m_predictedTimes.resize(maxFrequency);
+    m_minIndex = minFrequency;
+    int minOfBiggers = reinversionFrequency;
+    Numerical::Double lastNonzero = 0.001;
+    for(int i = minFrequency; i < maxFrequency; ++i) {
+        if (i < reinversionFrequency) {//decreasing reinv. freq.
+            lastNonzero = iterations[i] > 0 ? iterations[i] : lastNonzero;
+            m_predictedTimes[i] = (reinversionFrequency / (i+1)) * (m_currentSimplex->getLastInversionTime() + lastNonzero);
+            if (m_predictedTimes[i] <= m_predictedTimes[m_minIndex]) {
+                m_minIndex = i;
+            }
+        } else {//increasing reinv. freq.
+            lastNonzero = iterations[i-reinversionFrequency] > 0 ? iterations[i-reinversionFrequency] : lastNonzero;
+            Numerical::Double t_lastIteration = iterations[reinversionFrequency-1] > 0 ? iterations[reinversionFrequency-1] : lastNonzero;
+            Numerical::Double inversion = (double)reinversionFrequency / (double)(i+1);
+            m_predictedTimes[i] = std::floor(inversion * (m_currentSimplex->getLastInversionTime() + t_lastIteration + lastNonzero) * 1000)/1000;
+            if (m_predictedTimes[i] <= m_predictedTimes[minOfBiggers]) {
+                minOfBiggers = i;
+            }
+        }
+    }
+    Numerical::Double timeTolerance = 1.0;
+    m_minIndex = m_predictedTimes[m_minIndex] * timeTolerance < m_predictedTimes[minOfBiggers] ? m_minIndex : minOfBiggers;
+//    LPINFO("Choosen inversion frequency: "<<reinversionFrequency);
+    return 1 + m_minIndex;
+}
+
 void SimplexController::solve(const Model &model)
 {
     if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
@@ -331,8 +371,6 @@ void SimplexController::sequentialSolve(const Model &model)
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
     const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const std::string & switching = simplexParameters.getStringParameterValue("Global.switch_algorithm");
-
-    const bool & adaptiveInversion = simplexParameters.getBoolParameterValue("Factorization.adaptive_inversion");
     int reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
     unsigned int reinversionCounter = reinversionFrequency;
 
@@ -377,47 +415,10 @@ void SimplexController::sequentialSolve(const Model &model)
                  (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != NULL) ?
                     (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
 
-                int checkFrequency = 1;//check at every checkFrequency^th inversion
-                if (adaptiveInversion && m_iterationIndex >= reinversionFrequency &&
-                        checkCounter >= checkFrequency) {
-                    std::vector<Numerical::Double> iterations = m_currentSimplex->getIterationTimes();
-                    if (m_predictedTimes.size() > 0) {
-//                        LPINFO("Actual time: "<<m_currentSimplex->getLastIterationTime());
-                        if (Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]) > 0.01 ) {
-                            LPWARNING("Inaccurate predicted time, diff: "<<Numerical::fabs(m_currentSimplex->getLastIterationTime() - m_predictedTimes[m_minIndex]));
-                        }
-                    }
-                    m_predictedTimes.clear();
-                    int minFrequency = reinversionFrequency / 2;
-                    int maxFrequency = reinversionFrequency * 2;
-                    m_predictedTimes.resize(maxFrequency);
-                    m_minIndex = minFrequency;
-                    int minOfBiggers = reinversionFrequency;
-                    Numerical::Double lastNonzero = 0.001;
-                    for(int i = minFrequency; i < maxFrequency; ++i) {
-                        if (i < reinversionFrequency) {//decreasing reinv. freq.
-                            lastNonzero = iterations[i] > 0 ? iterations[i] : lastNonzero;
-                            m_predictedTimes[i] = (reinversionFrequency / (i+1)) * (m_currentSimplex->getLastInversionTime() + lastNonzero);
-                            if (m_predictedTimes[i] <= m_predictedTimes[m_minIndex]) {
-                                m_minIndex = i;
-                            }
-                        } else {//increasing reinv. freq.
-                            lastNonzero = iterations[i-reinversionFrequency] > 0 ? iterations[i-reinversionFrequency] : lastNonzero;
-                            Numerical::Double t_lastIteration = iterations[reinversionFrequency-1] > 0 ? iterations[reinversionFrequency-1] : lastNonzero;
-                            Numerical::Double inversion = (double)reinversionFrequency / (double)(i+1);
-                            m_predictedTimes[i] = std::floor(inversion * (m_currentSimplex->getLastInversionTime() + t_lastIteration + lastNonzero) * 1000)/1000;
-                            if (m_predictedTimes[i] <= m_predictedTimes[minOfBiggers]) {
-                                minOfBiggers = i;
-                            }
-                        }
-//                        if(i == reinversionFrequency-1) LPINFO("*");
-//                        LPINFO(m_predictedTimes[i]);
-                    }
-//                    LPINFO("diff "<<m_predictedTimes[minOfBiggers] - m_predictedTimes[m_minIndex]);
-                    Numerical::Double timeTolerance = 1.0;
-                    m_minIndex = m_predictedTimes[m_minIndex] * timeTolerance < m_predictedTimes[minOfBiggers] ? m_minIndex : minOfBiggers;
-                    reinversionFrequency = 1 + m_minIndex;
-//                    LPINFO("Choosen inversion frequency: "<<reinversionFrequency<<" predicted time: "<<m_predictedTimes[m_minIndex]);
+                //check at every checkFrequency^th inversion
+                int checkFrequency = simplexParameters.getIntegerParameterValue("Factorization.adaptive_reinversion");
+                if (checkFrequency > 0 && m_iterationIndex >= reinversionFrequency && checkCounter >= checkFrequency) {
+                    reinversionFrequency = adaptiveReinversionFrequency();
                 }
                 if (checkCounter == 10) {
                     checkCounter = 0;
@@ -487,6 +488,10 @@ void SimplexController::sequentialSolve(const Model &model)
                     LPINFO("Numerical error: "<<exception.getMessage());
                     reinversionCounter = reinversionFrequency;
                 }
+            } catch (const InaccurateBasisException& excepiton) {
+                //If the inverse of the basis is inaccurate half the reinversion freq.
+                reinversionFrequency /= SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.adaptive_multiplier");
+                reinversionCounter = reinversionFrequency;
             }
         }
     } catch ( const ParameterException & exception ) {

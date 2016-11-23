@@ -439,6 +439,33 @@ void Simplex::iterate(int iterationIndex)
     selectPivot();
     m_selectPivotTimer.stop();
 
+    //check the d_j of incoming variable with FTRAN
+    if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.adaptive_reinversion") > 0
+            && m_incomingIndex >= 0) {
+        DenseVector c_B(m_simplexModel->getRowCount());
+        for(unsigned i = 0; i < m_basisHead.size(); i++){
+            if(m_simplexModel->getCostVector().at(m_basisHead[i]) != 0.0){
+                c_B.set(i, m_simplexModel->getCostVector().at(m_basisHead[i]));
+            }
+        }
+        SparseVector alpha(m_simplexModel->getRowCount());
+        Numerical::Double reducedCost = 0.0;
+        if (m_incomingIndex < (int)m_simplexModel->getColumnCount()) {
+            alpha = m_simplexModel->getMatrix().column(m_incomingIndex);
+            m_basis->Ftran(alpha);
+            reducedCost = Numerical::stableAdd(m_simplexModel->getCostVector().at(m_incomingIndex), - c_B.dotProduct(alpha));
+        } else {
+            alpha.clear();
+            alpha.set(m_incomingIndex - m_simplexModel->getColumnCount(), 1.0);
+            m_basis->Ftran(alpha);
+            reducedCost = - c_B.dotProduct(alpha);
+        }
+
+        if (Numerical::fabs(reducedCost - m_reducedCosts[m_incomingIndex]) >= alpha.euclidNorm()) {
+            throw InaccurateBasisException("The basis inverse is inaccurate.");
+        }
+    }
+
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
@@ -820,46 +847,6 @@ void Simplex::computeReducedCosts() {
         }
         if(reducedCost != 0.0){
             m_reducedCosts.set(i, reducedCost);
-        }
-    }
-
-    bool checkWithFtran = false;
-    if (checkWithFtran) {
-        DenseVector d(rowCount + columnCount);
-        DenseVector c_B(rowCount);
-        for(unsigned i = 0; i < m_basisHead.size(); i++){
-            if(costVector.at(m_basisHead[i]) != 0.0){
-                c_B.set(i, costVector.at(m_basisHead[i]));
-            }
-        }
-
-        for(unsigned int i = 0; i < rowCount + columnCount; i++) {
-            if(m_variableStates.where(i) == (int)Simplex::BASIC){
-                continue;
-            }
-            SparseVector alpha(rowCount);
-            Numerical::Double reducedCost = 0.0;
-            if (i < columnCount) {
-                alpha = m_simplexModel->getMatrix().column(i);
-                m_basis->Ftran(alpha);
-                reducedCost = Numerical::stableAdd(costVector.at(i), - c_B.dotProduct(alpha));
-            } else {
-                alpha.clear();
-                alpha.set(i - columnCount, 1.0);
-                m_basis->Ftran(alpha);
-                reducedCost = - c_B.dotProduct(alpha);
-            }
-            if(reducedCost != 0.0){
-                d.set(i, reducedCost);
-            }
-        }
-
-        Numerical::Double sumAbsoluteError = 0.0;
-        for(unsigned i = 0; i < m_reducedCosts.length(); ++i){
-            sumAbsoluteError += Numerical::fabs(d[i] - m_reducedCosts[i]);
-        }
-        if (sumAbsoluteError >= 1e-008) {
-            LPERROR("Inaccurate d, sum of absolute errors: "<<sumAbsoluteError);
         }
     }
 }

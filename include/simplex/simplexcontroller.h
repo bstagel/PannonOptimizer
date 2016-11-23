@@ -292,6 +292,8 @@ private:
 
     unsigned m_minIndex;
 
+    unsigned adaptiveReinversionFrequency();
+
     /**
      * Function that solves the LP problem given by the parameter using a main thread.
      *

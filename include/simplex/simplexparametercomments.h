@@ -39,7 +39,8 @@
 
 #define FACTORIZATION_REINVERSION_FREQUENCY_COMMENT "# Frequency of reinversions in number of iterations"
 #define FACTORIZATION_PIVOT_THRESHOLD_COMMENT "# Constant value used for threshold pivoting"
-#define ADAPTIVE_INVERSION_COMMENT "# Adaptive procedure for reinversion frequency (time based)"
+#define FACTORIZATION_ADAPTIVE_REINVERSION_COMMENT "# Adaptive procedure for reinversion frequency at every n^th reinversion (0 = turn off)"
+#define FACTORIZATION_ADAPTIVE_MULTIPLIER_COMMENT "# Choose reinversion frequency from (reinversion_frequency / n, reinversion_frequency * n)"
 
 #define FACTORIZATION_PFI_NONTRIANGULAR_METHOD_COMMENT R"(# The method used to process the non-triangular kernel \
 # SIMPLE_KERNEL: Simple search for potential pivot positions  \

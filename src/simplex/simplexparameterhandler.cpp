@@ -191,11 +191,17 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Factorization.reinversion_frequency",
                       DefaultParameters::Factorization::REINVERSION_FREQUENCY);
 
-    createParameter("Factorization.adaptive_inversion",
-                    Entry::BOOL,
-                    ADAPTIVE_INVERSION_COMMENT);
-    setParameterValue("Factorization.adaptive_inversion",
-                      DefaultParameters::Factorization::ADAPTIVE_INVERSION);
+    createParameter("Factorization.adaptive_reinversion",
+                    Entry::INTEGER,
+                    FACTORIZATION_ADAPTIVE_REINVERSION_COMMENT);
+    setParameterValue("Factorization.adaptive_reinversion",
+                      DefaultParameters::Factorization::ADAPTIVE_REINVERSION);
+
+    createParameter("Factorization.adaptive_multiplier",
+                    Entry::INTEGER,
+                    FACTORIZATION_ADAPTIVE_MULTIPLIER_COMMENT);
+    setParameterValue("Factorization.adaptive_multiplier",
+                      DefaultParameters::Factorization::ADAPTIVE_MULTIPLIER);
 
     createParameter("Factorization.pivot_threshold",
                     Entry::DOUBLE,
