@@ -138,6 +138,14 @@ public:
      */
     void solveWithWarmStart(const Model& model, SimplexState* simplexState = NULL);
 
+
+    /**
+     * This function gives back pieces number of alternative optima.
+     * @param pieces how many optima to look for
+     * @return vector of AlternateOptima structures
+     */
+    const std::vector<AlternateOptima> &getAlternativeOptima(unsigned pieces);
+
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.

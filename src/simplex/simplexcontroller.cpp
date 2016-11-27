@@ -446,6 +446,13 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
+        //TEST for alternative optima
+//        auto optima = getAlternativeOptima(5);
+//        for(unsigned i=0; i<optima.size(); ++i) {
+//            LPINFO("-------------------- "<<i<<" --------------------");
+//            LPINFO("inc (index, value): ("<<optima[i].incoming<<", "<<optima[i].incomingValue<<")");
+//            LPINFO("out (index, value): ("<<optima[i].outgoing<<", "<<optima[i].outgoingValue<<")");
+//        }
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
     } catch ( const PrimalInfeasibleException & exception ) {
@@ -1004,12 +1011,6 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
-//        cout<<"Optimal basis: ";
-//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_basis->m_basisHead->at(k) << " ";
-//        cout<<endl;
-//        cout<<"Optimal solution: ";
-//        for(int k = 0; k < m_basis->m_basisHead->size(); k++) cout<<m_currentSimplex->m_basicVariableValues.at(k) << " ";
-//        cout<<endl;
 #ifndef NDEBUG
         double objVal = - model.getCostConstant();
         for(unsigned i = 0; i < model.getCostVector().length(); i++) {
@@ -1095,6 +1096,13 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
     }
 
     m_basis->releaseModel();
+}
+
+const std::vector<AlternateOptima>& SimplexController::getAlternativeOptima(unsigned pieces){
+    for(unsigned i = 0; i < pieces; ++i){
+        m_currentSimplex->searchNextAlternativeOptimum();
+    }
+    return m_currentSimplex->alternativeOptima();
 }
 
 void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)

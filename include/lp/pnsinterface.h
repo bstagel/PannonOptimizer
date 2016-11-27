@@ -23,12 +23,14 @@
 #define PNSINTERFACE_H
 
 #include <string>
+#include <vector>
 
 class SimplexController;
 class ManualModelBuilder;
 class Model;
 class SimplexState;
 class Timer;
+struct AlternateOptima;
 
 /**
  * This class provides an interface to the PNS Solver allowing efficient usage of the Pannon Optimizer.
@@ -124,6 +126,13 @@ public:
      * Dual solve with warm start from the given state.
      */
     int dual(SimplexState * startingState);
+
+    /**
+     * Returns pieces number of alternate optima (if possible)
+     * @param pieces number of optima to search for
+     * @return vector of AlternateOptima structures
+     */
+    const std::vector<AlternateOptima> &getAlternativeOptima(int pieces) const;
 
 private:
     SimplexController* m_simplex;

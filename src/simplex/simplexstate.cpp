@@ -140,7 +140,7 @@ DenseVector SimplexState::getBasicVariableValues() const
     return DenseVector();
 }
 
-void SimplexState::print() const
+void SimplexState::print(bool parent) const
 {
     LPINFO("SimplexState object (" << this << ")");
     if(m_type == SIMPLEXSTATE_NULL) {
@@ -157,24 +157,26 @@ void SimplexState::print() const
         LPINFO("Basic variable values: " << (*m_basicVariableValues));
     } else if(m_type == SIMPLEXSTATE_DIFF) {
         LPINFO("Simplex state difference.");
-        LPINFO("Parent is " << m_parent << ".");
-        LPINFO("Parent values:");
-        LPINFO("Basis head: ");
-        auto head = m_parent->getBasisHead();
-        for(auto it = head.begin(); it!=head.end(); ++it) LPINFO((*it) << "; ");
-        LPINFO("Variable states: ");
-        auto ilist = m_parent->getVariableStates();
-        IndexList<const Numerical::Double*>::Iterator it, itEnd;
-        ilist.getIterators(&it, &itEnd, 0, 5);
-        for(; it != itEnd; ++it) LPINFO(it.getData() << ": " << it.getPartitionIndex());
-        LPINFO("Basic variable values: " << m_parent->getBasicVariableValues());
+        if (parent) {
+            LPINFO("Parent is " << m_parent << ".");
+            LPINFO("Parent values:");
+            LPINFO("Basis head: ");
+            auto head = m_parent->getBasisHead();
+            for(auto it = head.begin(); it!=head.end(); ++it) LPINFO((*it) << "; ");
+            LPINFO("Variable states: ");
+            auto ilist = m_parent->getVariableStates();
+            IndexList<const Numerical::Double*>::Iterator it, itEnd;
+            ilist.getIterators(&it, &itEnd, 0, 5);
+            for(; it != itEnd; ++it) LPINFO(it.getData() << ": " << it.getPartitionIndex());
+            LPINFO("Basic variable values: " << m_parent->getBasicVariableValues());
+        }
         LPINFO("Difference vectors:");
         LPINFO("Basis head: ");
-        for(auto it = m_basisHeadDiff->beginNonzero(); it!=m_basisHeadDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+        for(auto it = m_basisHeadDiff->beginNonzero(); it!=m_basisHeadDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it == PLACEHOLDER_VAL ? 0 : *it) << "; ");
         LPINFO("Variable states: ");
-        for(auto it = m_variableStatesDiff->beginNonzero(); it!=m_variableStatesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+        for(auto it = m_variableStatesDiff->beginNonzero(); it!=m_variableStatesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it == PLACEHOLDER_VAL ? 0 : *it) << "; ");
         LPINFO("Basic variable values: ");
-        for(auto it = m_basicVariableValuesDiff->beginNonzero(); it!=m_basicVariableValuesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it) << "; ");
+        for(auto it = m_basicVariableValuesDiff->beginNonzero(); it!=m_basicVariableValuesDiff->endNonzero(); ++it) LPINFO(it.getIndex() << ": " << (*it == PLACEHOLDER_VAL ? 0 : *it) << "; ");
     }
 }
 

@@ -151,8 +151,9 @@ public:
 
     /**
      * Prints the object data to the output.
+     * @param parent print the parent date too
      */
-    void print() const;
+    void print(bool parent) const;
 
 public:
 

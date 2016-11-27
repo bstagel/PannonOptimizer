@@ -39,6 +39,13 @@ class StartingBasisFinder;
 class Basis;
 class BasisHeadIO;
 
+typedef struct AlternateOptima{
+    int incoming;
+    int outgoing;
+    Numerical::Double incomingValue;
+    Numerical::Double outgoingValue;
+}AlternateOptima;
+
 /**
  * This class describes a general simplex object. It has all elements of the simplex algorithm:
  * the pricing, ratiotest and other abstract members.
@@ -110,6 +117,18 @@ public:
      * @return Simplex::m_phase1Iteration
      */
     int getPhase1Iteration()const{return m_phase1Iteration;}
+
+    /**
+     * Searches for alternate optima in increasing variable index order.
+     * Vector of alternative optima is available as Simplex::m_alternativeOptima
+     */
+    void searchNextAlternativeOptimum();
+
+    /**
+     * Returns the vector of alternative optima
+     * @return Simplex::m_alternativeOptima
+     */
+    const vector<AlternateOptima>& alternativeOptima() const{return m_alternativeOptima;}
 protected:
 
     /**
@@ -223,6 +242,11 @@ protected:
     int m_outgoingIndex;
 
     /**
+     * The primal theta (steplength) is needed to update the objective function value.
+     */
+    Numerical::Double m_primalTheta;
+
+    /**
      * A simple boolean variable describing the feasibility of the problem.
      */
     bool m_feasible;
@@ -266,6 +290,21 @@ protected:
      * Measures the time that the updating takes.
      */
     Timer m_updateTimer;
+
+    /**
+     * Indices of reduced costs of non-basic, non-fixed variables, that in absolute value are below the optimality tolerance at the optimum.
+     */
+    std::vector<unsigned> m_zeroReducedCosts;
+
+    /**
+     * How many alternate optima has already been found.
+     */
+    int m_optimumCounter;
+
+    /**
+     * Vector of the alternate optima.
+     */
+    std::vector<AlternateOptima> m_alternativeOptima;
 
     //Parameter variables
     /**
@@ -648,6 +687,12 @@ protected:
     void reset();
 
     virtual void resetTolerances() = 0;
+
+    /**
+     * Performs primal ph-2 ratiotest needed for searching alternative optima.
+     * @return pair of bools: boundflip, outgoingAtUpperbound
+     */
+    std::pair<bool, bool> ratioTest();
 };
 
 #endif /* SIMPLEX_H */

@@ -80,12 +80,6 @@ private:
     Numerical::Double m_primalReducedCost;
 
     /**
-     * The primal theta (steplength) is needed to update the basic variable values.
-     * It is needed along with the primal reduced cost.
-     */
-    Numerical::Double m_primalTheta;
-
-    /**
      * The dual theta (steplength) is used in updating the solution, and updating the reduced costs.
      */
     Numerical::Double m_dualTheta;

@@ -336,7 +336,7 @@ void DualSimplex::price() {
         if(m_outgoingIndex == -1){
             if(m_pricing->hasLockedVariable()){
                 throw DualUnboundedException("The problem is DUAL UNBOUNDED!");
-            }else{
+            }else{                
                 throw OptimalException("OPTIMAL SOLUTION found!");
             }
         }

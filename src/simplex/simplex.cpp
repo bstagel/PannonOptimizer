@@ -76,6 +76,7 @@ Simplex::Simplex(Basis* basis):
     m_outgoingIndex(-1),
     m_feasible(false),
     m_feasibleIteration(false),
+    m_optimumCounter(-1),
     //Parameter references
     m_reinversionFrequency(SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency")),
     m_enableExport(SimplexParameterHandler::getInstance().getBoolParameterValue("Global.Export.enable")),
@@ -115,6 +116,80 @@ Simplex::~Simplex() {
     if(m_startingBasisFinder){
         delete m_startingBasisFinder;
         m_startingBasisFinder = 0;
+    }
+}
+
+void Simplex::searchNextAlternativeOptimum()
+{
+    //check at first call the number of alternate candidates
+    if (m_optimumCounter == -1) {
+        Numerical::Double e_opt = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+        for(unsigned i = 0; i < m_reducedCosts.length(); ++i){
+            if (Numerical::fabs(m_reducedCosts[i]) < e_opt && m_variableStates.where(i) != Simplex::BASIC &&
+                                                              m_variableStates.where(i) != Simplex::NONBASIC_FIXED ) {
+                m_zeroReducedCosts.push_back(i);
+            }
+        }
+        LPINFO("Number of nonbasic variables with |d_j| < e_opt: "<<m_zeroReducedCosts.size());
+    }
+    ++m_optimumCounter;
+    if (m_optimumCounter >= (int)m_zeroReducedCosts.size()) {
+        return;
+    }
+
+    //phantom pricing
+    m_incomingIndex = m_zeroReducedCosts[m_optimumCounter];
+
+    //ratiotest
+    auto res = ratioTest();
+
+    //ask for another row
+    if (m_outgoingIndex == -1 && !res.first) {
+        searchNextAlternativeOptimum();
+    //update
+    } else {
+        Numerical::Double outgoingVal = 0.0;
+        Numerical::Double incomingVal = 0.0;
+        //boundflip
+        if (res.first) {
+            if(m_variableStates.where(m_incomingIndex) == (int)Simplex::NONBASIC_AT_LB) {
+                incomingVal = m_simplexModel->getVariable(m_incomingIndex).getUpperBound();
+            } else if(m_variableStates.where(m_incomingIndex) == (int)Simplex::NONBASIC_AT_UB){
+                incomingVal = m_simplexModel->getVariable(m_incomingIndex).getLowerBound();
+            } else {
+                throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
+            }
+        //basis change
+        } else {
+            const Numerical::Double& ub = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getUpperBound();
+            const Numerical::Double& lb = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getLowerBound();
+            Variable::VARIABLE_TYPE outgoingType = m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getType();
+            if (outgoingType == Variable::FIXED) {
+                outgoingVal = lb;
+            } else if (outgoingType == Variable::BOUNDED) {
+                if(res.second){
+                    outgoingVal = ub;
+                } else {
+                    outgoingVal = lb;
+                }
+            } else if (outgoingType == Variable::PLUS) {
+                outgoingVal = lb;
+            } else if (outgoingType == Variable::FREE) {
+                outgoingVal = 0.0;
+            } else if (outgoingType == Variable::MINUS) {
+                outgoingVal = ub;
+            } else {
+                throw PanOptException("Invalid variable type");
+            }
+            incomingVal = *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta;
+        }
+        //TODO: check obj, dj for optimality
+        AlternateOptima a;
+        a.incoming = m_incomingIndex;
+        a.outgoing = m_outgoingIndex;
+        a.incomingValue = incomingVal;
+        a.outgoingValue = outgoingVal;
+        m_alternativeOptima.push_back(a);
     }
 }
 
@@ -951,4 +1026,86 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
 void Simplex::reset() {
     m_simplexModel->resetModel();
     resetTolerances();
+}
+
+std::pair<bool, bool> Simplex::ratioTest()
+{
+    std::pair<bool, bool> res;
+    m_outgoingIndex = -1;
+    m_primalTheta = 0.0;
+    int sigma = 0;
+    if (m_reducedCosts[m_incomingIndex] > 0) {
+        sigma = -1;
+    } else {
+        sigma = 1;
+    }
+
+    //compute a_j
+    m_pivotColumn.reInit(m_simplexModel->getRowCount());
+    if(m_incomingIndex < (int)m_simplexModel->getColumnCount()){
+        m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
+    } else {
+        m_pivotColumn.set(m_incomingIndex - m_simplexModel->getColumnCount(), 1);
+    }
+    m_basis->Ftran(m_pivotColumn);
+
+    //prefer removal of fixed variables
+    for (unsigned basisIndex = 0; basisIndex < m_basicVariableValues.length(); basisIndex++) {
+        const Variable& variable = m_simplexModel->getVariable(m_basisHead[basisIndex]);
+        if (variable.getType() == Variable::FIXED) {
+            Numerical::Double steplength = m_basicVariableValues.at(basisIndex) / m_pivotColumn.at(basisIndex);
+            if (sigma * steplength >= 0 && Numerical::fabs(m_pivotColumn.at(basisIndex)) > m_pivotTolerance) {
+                m_outgoingIndex = basisIndex;
+                m_primalTheta = steplength;
+                res.first = false;
+                res.second = false;
+                return res;
+            }
+        }
+    }
+
+    //compute ratios
+    std::vector<std::pair<int, Numerical::Double>> ratios;
+    for (unsigned basisIndex = 0; basisIndex < m_basicVariableValues.length(); basisIndex++) {
+        const Variable& variable = m_simplexModel->getVariable(m_basisHead[basisIndex]);
+        Numerical::Double signedAlpha = sigma * m_pivotColumn.at(basisIndex);
+
+        if ( signedAlpha > m_pivotTolerance && (variable.getLowerBound() != - Numerical::Infinity)) {
+            ratios.push_back(std::pair<int, Numerical::Double>(basisIndex,
+                                                           (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha));
+        } else if (signedAlpha < -m_pivotTolerance && (variable.getUpperBound() != Numerical::Infinity)) {
+            ratios.push_back(std::pair<int, Numerical::Double>(basisIndex,
+                                                           (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha));
+        }
+    }
+    //ask for another column
+    if (ratios.empty()) {
+        res.first = false;
+        res.second = false;
+        return res;
+    }
+
+    //compute theta, outgoing, boundflip
+    const Variable & incomingVariable = m_simplexModel->getVariable(m_incomingIndex);
+    Numerical::Double boundOfIncoming = incomingVariable.getUpperBound() - incomingVariable.getLowerBound();
+    int min = 0;
+    for(unsigned i = 1; i < ratios.size(); ++i){
+        if (ratios[i].second < ratios[min].second) {
+            min = i;
+        }
+    }
+    m_outgoingIndex = ratios[min].first;
+    m_primalTheta = ratios[min].second;
+    if (ratios[min].second < boundOfIncoming) {
+        Numerical::Double ref = ((m_basicVariableValues.at(m_outgoingIndex) - m_simplexModel->getVariable(m_basisHead[m_outgoingIndex]).getUpperBound())
+                      / m_pivotColumn.at(m_outgoingIndex));
+        res.first = false;
+        res.second = Numerical::equals(m_primalTheta, ref);
+    } else {
+        m_outgoingIndex = -1;
+        m_primalTheta = 0.0;
+        res.first = true;
+        res.second = false;
+    }
+    return res;
 }

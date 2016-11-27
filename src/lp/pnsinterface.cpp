@@ -170,3 +170,8 @@ int PnsInterface::dual(SimplexState *startingState)
     __UNUSED(startingState);
     return 0;
 }
+
+const std::vector<AlternateOptima>& PnsInterface::getAlternativeOptima(int pieces) const
+{
+    return m_simplex->getAlternativeOptima(pieces);
+}
