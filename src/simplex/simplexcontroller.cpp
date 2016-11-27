@@ -755,12 +755,6 @@ void SimplexController::parallelSolve(const Model &model)
     } catch ( const ParameterException & exception ) {
         LPERROR("Parameter error: "<<exception.getMessage());
     } catch ( const OptimalException & exception ) {
-        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.switch_algorithm") == "SWITCH_BEFORE_INV_PH2") {
-            LPINFO("Saving optimal simplex state!");
-            m_simplexState = new SimplexState(m_currentSimplex->m_basisHead,
-                                              m_currentSimplex->m_variableStates,
-                                              m_currentSimplex->m_basicVariableValues);
-        }
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found! ");
         // TODO: postsovle, post scaling
