@@ -447,11 +447,11 @@ void SimplexController::sequentialSolve(const Model &model)
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
         //TEST for alternative optima
-//        auto optima = getAlternativeOptima(5);
+//        auto optima = getAlternativeOptima(10);
 //        for(unsigned i=0; i<optima.size(); ++i) {
 //            LPINFO("-------------------- "<<i<<" --------------------");
-//            LPINFO("inc (index, value): ("<<optima[i].incoming<<", "<<optima[i].incomingValue<<")");
-//            LPINFO("out (index, value): ("<<optima[i].outgoing<<", "<<optima[i].outgoingValue<<")");
+//            LPINFO("incoming (index, value): ("<<optima[i].incoming<<", "<<optima[i].incomingValue<<")");
+//            LPINFO("outgoing (index, value): ("<<optima[i].outgoing<<", "<<optima[i].outgoingValue<<")");
 //        }
         // TODO: postsovle, post scaling
         // TODO: Save optimal basis if necessary
@@ -1094,7 +1094,8 @@ void SimplexController::solveWithWarmStart(const Model &model, SimplexState *sim
 
 const std::vector<AlternateOptima>& SimplexController::getAlternativeOptima(unsigned pieces){
     for(unsigned i = 0; i < pieces; ++i){
-        m_currentSimplex->searchNextAlternativeOptimum();
+        bool go = m_currentSimplex->searchNextAlternativeOptimum();
+        if (!go) break;
     }
     return m_currentSimplex->alternativeOptima();
 }

@@ -119,11 +119,11 @@ Simplex::~Simplex() {
     }
 }
 
-void Simplex::searchNextAlternativeOptimum()
+bool Simplex::searchNextAlternativeOptimum()
 {
     //check at first call the number of alternate candidates
+    Numerical::Double e_opt = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
     if (m_optimumCounter == -1) {
-        Numerical::Double e_opt = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
         for(unsigned i = 0; i < m_reducedCosts.length(); ++i){
             if (Numerical::fabs(m_reducedCosts[i]) < e_opt && m_variableStates.where(i) != Simplex::BASIC &&
                                                               m_variableStates.where(i) != Simplex::NONBASIC_FIXED ) {
@@ -134,7 +134,7 @@ void Simplex::searchNextAlternativeOptimum()
     }
     ++m_optimumCounter;
     if (m_optimumCounter >= (int)m_zeroReducedCosts.size()) {
-        return;
+        return false;
     }
 
     //phantom pricing
@@ -145,7 +145,7 @@ void Simplex::searchNextAlternativeOptimum()
 
     //ask for another row
     if (m_outgoingIndex == -1 && !res.first) {
-        searchNextAlternativeOptimum();
+        return searchNextAlternativeOptimum();
     //update
     } else {
         Numerical::Double outgoingVal = 0.0;
@@ -183,7 +183,11 @@ void Simplex::searchNextAlternativeOptimum()
             }
             incomingVal = *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta;
         }
-        //TODO: check obj, dj for optimality
+        //check obj
+        if (m_outgoingIndex != -1 &&
+                Numerical::fabs(m_reducedCosts[m_incomingIndex] * m_primalTheta) > Numerical::fabs(m_primalTheta * e_opt)) {
+            LPWARNING("Big change in the objective "<<Numerical::fabs(m_reducedCosts[m_incomingIndex] * m_primalTheta));
+        }
         AlternateOptima a;
         a.incoming = m_incomingIndex;
         a.outgoing = m_outgoingIndex;
@@ -191,6 +195,7 @@ void Simplex::searchNextAlternativeOptimum()
         a.outgoingValue = outgoingVal;
         m_alternativeOptima.push_back(a);
     }
+    return true;
 }
 
 std::vector<IterationReportField> Simplex::getIterationReportFields(

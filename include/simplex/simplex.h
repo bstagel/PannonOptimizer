@@ -39,12 +39,12 @@ class StartingBasisFinder;
 class Basis;
 class BasisHeadIO;
 
-typedef struct AlternateOptima{
+struct AlternateOptima{
     int incoming;
     int outgoing;
     Numerical::Double incomingValue;
     Numerical::Double outgoingValue;
-}AlternateOptima;
+};
 
 /**
  * This class describes a general simplex object. It has all elements of the simplex algorithm:
@@ -121,8 +121,9 @@ public:
     /**
      * Searches for alternate optima in increasing variable index order.
      * Vector of alternative optima is available as Simplex::m_alternativeOptima
+     * @return true if there are possible alternate candidates
      */
-    void searchNextAlternativeOptimum();
+    bool searchNextAlternativeOptimum();
 
     /**
      * Returns the vector of alternative optima
