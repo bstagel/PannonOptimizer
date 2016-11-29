@@ -193,6 +193,8 @@ bool Simplex::searchNextAlternativeOptimum()
         a.outgoing = m_outgoingIndex;
         a.incomingValue = incomingVal;
         a.outgoingValue = outgoingVal;
+        a.solution = m_basicVariableValues;
+        a.solution.addVector(-m_primalTheta, m_pivotColumn);
         m_alternativeOptima.push_back(a);
     }
     return true;
@@ -1108,7 +1110,8 @@ std::pair<bool, bool> Simplex::ratioTest()
         res.second = Numerical::equals(m_primalTheta, ref);
     } else {
         m_outgoingIndex = -1;
-        m_primalTheta = 0.0;
+        if (m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_LB) m_primalTheta = boundOfIncoming;
+        else m_primalTheta = -boundOfIncoming;
         res.first = true;
         res.second = false;
     }

@@ -447,7 +447,7 @@ void SimplexController::sequentialSolve(const Model &model)
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
         //TEST for alternative optima
-//        auto optima = getAlternativeOptima(10);
+//        auto optima = getAlternativeOptima(1);
 //        for(unsigned i=0; i<optima.size(); ++i) {
 //            LPINFO("-------------------- "<<i<<" --------------------");
 //            LPINFO("incoming (index, value): ("<<optima[i].incoming<<", "<<optima[i].incomingValue<<")");

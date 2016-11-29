@@ -44,6 +44,7 @@ struct AlternateOptima{
     int outgoing;
     Numerical::Double incomingValue;
     Numerical::Double outgoingValue;
+    DenseVector solution;
 };
 
 /**
