@@ -331,6 +331,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Ratiotest.Expand.avoidthetamin",
                       DefaultParameters::Ratiotest::Expand::AVOIDTHETAMIN);
 
+    createParameter("Ratiotest.Expand.adaptive",
+                    Entry::BOOL,
+                    RATIOTEST_EXPAND_ADAPTIVE_COMMENT);
+    setParameterValue("Ratiotest.Expand.adaptive",
+                      DefaultParameters::Ratiotest::Expand::ADAPTIVE);
+
     createParameter("Ratiotest.Expand.type",
                     Entry::STRING,
                     RATIOTEST_EXPAND_TYPE_COMMENT);

@@ -1173,3 +1173,8 @@ void DualRatiotest::wolfeAdHocMethod(int outgoingVariableIndex, const DenseVecto
     //    LPINFO("Wolfe: stop");
         performRatiotestPhase2(outgoingVariableIndex,alpha,workingTolerance);
 }
+
+void DualRatiotest::setToleranceStep(Numerical::Double step)
+{
+    m_toleranceStep = step;
+}

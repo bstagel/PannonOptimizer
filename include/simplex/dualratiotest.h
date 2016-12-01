@@ -241,6 +241,11 @@ public:
      */
     inline int isDegenerate() const {return m_degenerate;}
 
+    /**
+     * Setter of the m_toleranceStep member.
+     */
+    void setToleranceStep(Numerical::Double step);
+
 private:
     /**
      * The simplex model of the LP problem.

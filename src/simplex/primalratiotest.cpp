@@ -396,6 +396,7 @@ void PrimalRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 //                LPINFO("Fixed variable is chosen to leave the basis with theta: "<<steplength);
                 m_outgoingVariableIndex = basisIndex;
                 m_primalSteplength = steplength;
+                m_degenerate = true;
                 return;
             }
         }
@@ -429,6 +430,7 @@ void PrimalRatiotest::generateExpandedBreakpointsPhase2(const DenseVector &alpha
 //                LPINFO("Fixed variable is chosen to leave the basis with theta: "<<steplength);
                 m_outgoingVariableIndex = basisIndex;
                 m_primalSteplength = steplength;
+                m_degenerate = true;
                 break;
             }
         }
@@ -478,7 +480,6 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
         }else{
             generateSignedBreakpointsPhase2(alpha);
         }
-
         //fixed variables are removed from the basis
         if (m_outgoingVariableIndex == -1) {
             if ( m_breakpointHandler.getNumberOfBreakpoints() > 0 ) {
@@ -561,7 +562,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                                 return;
                             }
                         }
-        //                   LPINFO("ThetaMin selected: "<<m_thetaMin);
+//                            LPINFO("ThetaMin selected: "<<thetaMin);
                             m_degenerate = true;
                             m_primalSteplength = m_sigma * thetaMin;
                         } else {
@@ -847,4 +848,9 @@ void PrimalRatiotest::wolfeAdHocMethod(int incomingVariableIndex, const DenseVec
     m_degenerateAtUB.clearAllPartitions();
 //    LPINFO("Wolfe: stop");
     performRatiotestPhase2(incomingVariableIndex,alpha,reducedCost,workingTolerance);
+}
+
+void PrimalRatiotest::setToleranceStep(Numerical::Double step)
+{
+    m_toleranceStep = step;
 }

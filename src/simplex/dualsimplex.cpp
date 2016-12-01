@@ -263,9 +263,6 @@ void DualSimplex::computeFeasibility() {
                                                           m_reducedCosts,
                                                           *m_basis);
         m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
-        m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
-        m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
-
         initWorkingTolerance();
     }
 
@@ -381,6 +378,8 @@ void DualSimplex::selectPivot() {
     }
     if(m_ratiotest->isDegenerate()){
         m_degenerateIterations++;
+    } else {
+        m_allDegenerate = false;
     }
 
     if(m_incomingIndex != -1){
@@ -643,32 +642,16 @@ void DualSimplex::checkReferenceObjective(bool secondPhase) {
     }
 }
 
-void DualSimplex::initWorkingTolerance() {
-    //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") != "INACTIVE" ) {
-        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
-        m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
-    } else {
-        m_workingTolerance = m_masterTolerance;
-        m_toleranceStep = 0;
-    }
-}
-
-void DualSimplex::computeWorkingTolerance() {
-    //increment the EXPAND tolerance
-    if (m_toleranceStep != 0) {
-        m_workingTolerance += m_toleranceStep;
-        if (m_workingTolerance >= m_masterTolerance) {
-            resetTolerances();
-        }
-    }
-}
-
-
 void DualSimplex::releaseLocks(){
     if(m_pricing != nullptr){
         m_pricing->releaseUsed();
     }
+}
+
+void DualSimplex::increaseToleranceStep()
+{
+    Simplex::increaseToleranceStep();
+    m_ratiotest->setToleranceStep(m_toleranceStep);
 }
 
 void DualSimplex::computeTransformedRow() {
@@ -775,15 +758,6 @@ void DualSimplex::updateReducedCosts() {
     m_reducedCosts.addVector( -m_dualTheta, m_pivotRow);
     m_reducedCosts.set( m_basisHead[ m_outgoingIndex ], -m_dualTheta );
     m_reducedCosts.set( m_incomingIndex, 0.0 );
-}
-
-void DualSimplex::resetTolerances() {
-    //reset the EXPAND tolerance
-    m_recomputeReducedCosts = true;
-    if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-        //        LPINFO("Resetting EXPAND tolerance!");
-        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
-    }
 }
 
 void DualSimplex::detectExcessivelyInstability()

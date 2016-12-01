@@ -98,6 +98,7 @@
 #define RATIOTEST_EXPAND_MULTIPLIER_COMMENT "# EXPAND multiplier initializing value"
 #define RATIOTEST_EXPAND_DIVIDER_COMMENT "# EXPAND divider initializing value"
 #define RATIOTEST_EXPAND_AVOIDTHETAMIN_COMMENT "# Choosing alternative pivot to avoid the selection of thetamin"
+#define RATIOTEST_EXPAND_ADAPTIVE_COMMENT "# Increase toleranceStep if the objective does not change between two inversions"
 #define RATIOTEST_EXPAND_TYPE_COMMENT R"(		# EXPAND procedure \
 # INACTIVE: Inactive \
 # HARRIS: Harris ratiotest \

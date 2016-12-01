@@ -177,9 +177,6 @@ void PrimalSimplex::computeFeasibility() {
                                                             &m_basicVariableFeasibilities,
                                                             m_basisHead);
         m_masterTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
-        m_toleranceMultiplier = SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier");
-        m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider");
-
         initWorkingTolerance();
     }
     m_lastFeasible = m_feasible;
@@ -188,10 +185,10 @@ void PrimalSimplex::computeFeasibility() {
     m_phaseIObjectiveValue = m_feasibilityChecker->getPhaseIObjectiveValue();
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
-        if (m_pricing) {
-            LPINFO("Entering ph-2 at "<<m_iterationIndex<<" m_obj "<<m_objectiveValue<<
-                   " alternate candidates "<<m_pricing->getAlternateCandidateCounter());
-        }
+//        if (m_pricing) {
+//            LPINFO("Entering ph-2 at "<<m_iterationIndex<<" m_obj "<<m_objectiveValue<<
+//                   " alternate candidates "<<m_pricing->getAlternateCandidateCounter());
+//        }
         m_referenceObjective = m_objectiveValue;
         m_phase1Time = SimplexController::getSolveTimer().getCPURunningTime();
     } else if(m_lastFeasible == true && m_feasible == false){
@@ -311,6 +308,8 @@ void PrimalSimplex::selectPivot() {
     }
     if(m_ratiotest->isDegenerate()){
         m_degenerateIterations++;
+    } else {
+        m_allDegenerate = false;
     }
 }
 
@@ -489,31 +488,16 @@ void PrimalSimplex::checkReferenceObjective(bool secondPhase) {
     }
 }
 
-void PrimalSimplex::initWorkingTolerance() {
-    //initializing EXPAND tolerance
-    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") != "INACTIVE" ) {
-        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
-        m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
-    } else {
-        m_workingTolerance = m_masterTolerance;
-        m_toleranceStep = 0;
-    }
-}
-
-void PrimalSimplex::computeWorkingTolerance() {
-    //increment the EXPAND tolerance
-    if (m_toleranceStep != 0) {
-        m_workingTolerance += m_toleranceStep;
-        if (m_workingTolerance >= m_masterTolerance) {
-            resetTolerances();
-        }
-    }
-}
-
 void PrimalSimplex::releaseLocks() {
     if(m_pricing != nullptr){
         m_pricing->releaseUsed();
     }
+}
+
+void PrimalSimplex::increaseToleranceStep()
+{
+    Simplex::increaseToleranceStep();
+    m_ratiotest->setToleranceStep(m_toleranceStep);
 }
 
 void PrimalSimplex::updateReducedCosts() {
@@ -542,14 +526,5 @@ void PrimalSimplex::updateReducedCosts() {
         const unsigned int index = roIter.getIndex() + structuralVariableCount;;
 
         m_reducedCosts.set( index, Numerical::stableAdd( m_reducedCosts.at(index), - lambda) );
-    }
-}
-
-void PrimalSimplex::resetTolerances() {
-    //reset the EXPAND tolerance
-    m_recomputeReducedCosts = true;
-    if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
-        //        LPINFO("Resetting EXPAND tolerance!");
-        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
 }

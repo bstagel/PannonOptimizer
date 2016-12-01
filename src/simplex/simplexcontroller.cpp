@@ -411,7 +411,8 @@ void SimplexController::sequentialSolve(const Model &model)
         iterationReport->writeStartReport();
 
         Numerical::Double lastObjective = 0;
-        int checkCounter = 10;
+        int checkFrequency = simplexParameters.getIntegerParameterValue("Factorization.adaptive_reinversion");
+        int checkCounter = checkFrequency+1;
         //Simplex iterations
         for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
@@ -428,14 +429,17 @@ void SimplexController::sequentialSolve(const Model &model)
                     (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
 
                 //check at every checkFrequency^th inversion
-                int checkFrequency = simplexParameters.getIntegerParameterValue("Factorization.adaptive_reinversion");
                 if (checkFrequency > 0 && m_iterationIndex >= m_reinversionFrequency && checkCounter >= checkFrequency) {
                     adaptiveReinversionFrequency();
                 }
-                if (checkCounter == 10) {
+                if (checkCounter >= checkFrequency) {
                     checkCounter = 0;
                 } else {
                     ++checkCounter;
+                }
+                if (SimplexParameterHandler::getInstance().getBoolParameterValue("Ratiotest.Expand.adaptive")
+                        && m_iterationIndex > 0 && m_currentSimplex->m_allDegenerate) {
+                    m_currentSimplex->increaseToleranceStep();
                 }
 
                 m_currentSimplex->reinvert();
@@ -451,7 +455,7 @@ void SimplexController::sequentialSolve(const Model &model)
                         switchAlgorithm(model, iterationReport);
                     }
                 } else if (switching == "SWITCH_WHEN_NO_IMPR") {
-                    if(m_iterationIndex > 1){
+                    if(m_iterationIndex > 1) {
                         if(!m_currentSimplex->m_feasible && m_currentSimplex->getPhaseIObjectiveValue() == lastObjective){
                             switchAlgorithm(model, iterationReport);
                         }else if(m_currentSimplex->m_feasible && m_currentSimplex->getObjectiveValue() == lastObjective){

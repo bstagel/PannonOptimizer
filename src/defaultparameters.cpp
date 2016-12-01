@@ -73,6 +73,7 @@ const double DefaultParameters::Ratiotest::Expand::MULTIPLIER = 0.01;
 const int DefaultParameters::Ratiotest::Expand::DIVIDER = 10000;
 const char * DefaultParameters::Ratiotest::Expand::TYPE = "EXPANDING";
 const bool DefaultParameters::Ratiotest::Expand::AVOIDTHETAMIN = false;
+const bool DefaultParameters::Ratiotest::Expand::ADAPTIVE = false;
 //Perturbation
 const char * DefaultParameters::Perturbation::PERTURB_COST_VECTOR = "INACTIVE";
 const char * DefaultParameters::Perturbation::PERTURB_TARGET = "ALL";

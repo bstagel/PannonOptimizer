@@ -151,19 +151,14 @@ private:
     virtual void checkReferenceObjective(bool secondPhase);
 
     /**
-     * Initializes the expand working tolerance.
-     */
-    virtual void initWorkingTolerance();
-
-    /**
-     * Computes the expand working tolerance in the next iteration.
-     */
-    virtual void computeWorkingTolerance();
-
-    /**
      * Releases the locked variables in the pricing.
      */
     virtual void releaseLocks();
+
+    /**
+     * Inherited from Simplex class.
+     */
+    virtual void increaseToleranceStep();
 
     /**
      * Computes the transformed alpha row.
@@ -187,8 +182,6 @@ private:
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    void resetTolerances();
 
     void detectExcessivelyInstability();
 };

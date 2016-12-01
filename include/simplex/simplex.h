@@ -375,13 +375,13 @@ protected:
      * The tolerance multiplier is needed in the expand procedure.
      * Its value is given in the simplex parameter file.
      */
-    Numerical::Double m_toleranceMultiplier; //Initialized in child classes
+    Numerical::Double m_toleranceMultiplier;
 
     /**
      * The tolerance divider is needed in the expand procedure.
      * Its value is given in the simplex parameter file.
      */
-    Numerical::Double m_toleranceDivider; //Initialized in child classes
+    Numerical::Double m_toleranceDivider;
 
     /**
      * The tolerance step is the measure of the tolerance increment in every iteration in the expand procedure.
@@ -398,9 +398,14 @@ protected:
     //Measure variables
     /**
      * Reference objective value to be compared with the computed objective value.
-     * Degenerate iterations, bad iterations can be discovered thi way.
+     * Degenerate iterations, bad iterations can be discovered this way.
      */
     Numerical::Double m_referenceObjective;
+
+    /**
+     * True if all iterations between two reinversions were degenerate.
+     */
+    bool m_allDegenerate;
 
     /**
      * Number of fallbacks to phase 1.
@@ -623,18 +628,28 @@ protected:
     virtual void checkReferenceObjective(bool secondPhase) = 0;
 
     /**
-     * Pure virtual function for initializing the working tolerance.
+     * Function for initializing the working tolerance.
      *
      * @see Simplex::m_workingTolerance
      */
-    virtual void initWorkingTolerance() = 0;
+    void initWorkingTolerance();
 
     /**
-     * Pure virtual function for computing the working tolerance in every iteration.
+     * Function for computing the working tolerance in every iteration.
      *
      * @see Simplex::m_workingTolerance
      */
-    virtual void computeWorkingTolerance() = 0;
+    void computeWorkingTolerance();
+
+    /**
+     * Increases the effect of EXPAND if in deep degenerarcy.
+     */
+    virtual void increaseToleranceStep();
+
+    /**
+     * Resets expanding tolerance.
+     */
+    void resetTolerances();
 
     /**
      * Pure virtual function for releasing the locked variables (eg. because numerical issues).
@@ -662,7 +677,6 @@ protected:
 
     void reset();
 
-    virtual void resetTolerances() = 0;
 };
 
 #endif /* SIMPLEX_H */

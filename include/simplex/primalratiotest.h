@@ -171,6 +171,11 @@ public:
      */
     inline bool isWolfeActive() const {return m_wolfeActive;}
 
+    /**
+     * Setter of the m_toleranceStep member.
+     */
+    void setToleranceStep(Numerical::Double step);
+
 private:
 
     /**

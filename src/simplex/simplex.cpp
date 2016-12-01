@@ -92,10 +92,13 @@ Simplex::Simplex(Basis* basis):
     m_loadFormat(SimplexParameterHandler::getInstance().getStringParameterValue("Global.LoadBasis.format")),
     m_pivotTolerance(SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_pivot")),
     m_masterTolerance(0),
+    m_toleranceMultiplier(SimplexParameterHandler::getInstance().getDoubleParameterValue("Ratiotest.Expand.multiplier")),
+    m_toleranceDivider(SimplexParameterHandler::getInstance().getIntegerParameterValue("Ratiotest.Expand.divider")),
     m_toleranceStep(0),
     m_workingTolerance(0),
     //Measures
     m_referenceObjective(0),
+    m_allDegenerate(true),
     m_fallbacks(0),
     m_badIterations(0),
     m_degenerateIterations(0),
@@ -751,6 +754,7 @@ void Simplex::reinvert() {
 
     ++m_inversionCounter;
     m_lastInversion = m_iterationIndex;
+    m_allDegenerate = true;
 
     if (m_iterationIndex > 0) m_timeValues.push_back(std::pair<Numerical::Double, Numerical::Double>(m_inversionTimer.getCPULastElapsed(), m_iterationTime));
     m_iterationTime = 0.0;
@@ -852,6 +856,39 @@ void Simplex::computeReducedCosts() {
     }
 }
 
+void Simplex::initWorkingTolerance()
+{
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") == "EXPANDING" ) {
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+        m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
+    } else {
+        m_workingTolerance = m_masterTolerance;
+        m_toleranceStep = 0;
+    }
+}
+
+void Simplex::computeWorkingTolerance()
+{
+    if (m_toleranceStep != 0) {
+        m_workingTolerance += m_toleranceStep;
+        if (m_workingTolerance >= m_masterTolerance) {
+            resetTolerances();
+        }
+    }
+}
+
+void Simplex::increaseToleranceStep()
+{
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type") == "EXPANDING" &&
+            SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency") < m_toleranceDivider) {
+        m_recomputeReducedCosts = true;
+        m_toleranceDivider = SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.reinversion_frequency");
+        LPINFO("Increasing EXPAND step, divider = "<<m_toleranceDivider);
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+        m_toleranceStep = (m_masterTolerance - m_workingTolerance) / m_toleranceDivider;
+    }
+}
+
 Numerical::Double Simplex::sensitivityAnalysisRhs() const
 {
     LPINFO("SENSITIVITY ANALYSIS");
@@ -948,4 +985,12 @@ Numerical::Double Simplex::sensitivityAnalysisRhs() const
 void Simplex::reset() {
     m_simplexModel->resetModel();
     resetTolerances();
+}
+
+void Simplex::resetTolerances()
+{
+    m_recomputeReducedCosts = true;
+    if(m_toleranceStep > 0 && m_workingTolerance - m_masterTolerance * m_toleranceMultiplier > m_toleranceStep){
+        m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
+    }
 }

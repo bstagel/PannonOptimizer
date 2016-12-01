@@ -125,6 +125,7 @@ public:
             static const double MULTIPLIER;
             static const int DIVIDER;
             static const bool AVOIDTHETAMIN;
+            static const bool ADAPTIVE;
         };
     };
 

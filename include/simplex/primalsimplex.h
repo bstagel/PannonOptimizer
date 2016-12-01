@@ -141,19 +141,14 @@ private:
     virtual void checkReferenceObjective(bool secondPhase);
 
     /**
-     * Inherited from the parent Simplex class, initializes the expand working tolerance.
-     */
-    virtual void initWorkingTolerance();
-
-    /**
-     * Inherited from the parent Simplex class, copmutes the expand working tolerance in every iteration.
-     */
-    virtual void computeWorkingTolerance();
-
-    /**
      * Inherited from the parent Simplex class, releases the locked variables by the pricing.
      */
     virtual void releaseLocks();
+
+    /**
+     * Inherited from Simplex class.
+     */
+    virtual void increaseToleranceStep();
 
     // Interface of the iteration report provider:
     /**
@@ -166,8 +161,6 @@ private:
      */
     Entry getIterationEntry(const std::string & name,
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
-
-    void resetTolerances();
 };
 
 #endif /* PRIMALSIMPLEX_H */
