@@ -461,7 +461,8 @@ void Simplex::iterate(int iterationIndex)
             reducedCost = - c_B.dotProduct(alpha);
         }
 
-        if (Numerical::fabs(reducedCost - m_reducedCosts[m_incomingIndex]) >= alpha.euclidNorm()) {
+        Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.e_accuracy");
+        if (Numerical::fabs( (reducedCost - m_reducedCosts[m_incomingIndex]) / alpha.euclidNorm()) > epsilon) {
             throw InaccurateBasisException("The basis inverse is inaccurate.");
         }
     }

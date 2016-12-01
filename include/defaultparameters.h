@@ -83,6 +83,7 @@ public:
         static const double PIVOT_THRESHOLD;
         static const int ADAPTIVE_REINVERSION;
         static const int ADAPTIVE_MULTIPLIER;
+        static const double E_ACCURACY;
 
         class PFI {
         public:

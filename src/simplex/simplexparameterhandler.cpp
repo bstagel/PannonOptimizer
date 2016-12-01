@@ -203,6 +203,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Factorization.adaptive_multiplier",
                       DefaultParameters::Factorization::ADAPTIVE_MULTIPLIER);
 
+    createParameter("Factorization.e_accuracy",
+                    Entry::DOUBLE,
+                    FACTORIZATION_E_ACCURACY_COMMENT);
+    setParameterValue("Factorization.e_accuracy",
+                      DefaultParameters::Factorization::E_ACCURACY);
+
     createParameter("Factorization.pivot_threshold",
                     Entry::DOUBLE,
                     FACTORIZATION_PIVOT_THRESHOLD_COMMENT);

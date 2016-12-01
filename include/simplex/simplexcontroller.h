@@ -288,11 +288,14 @@ private:
 
     bool m_isOptimal;
 
-    std::vector<Numerical::Double> m_predictedTimes;
+    int m_reinversionFrequency;
 
     unsigned m_minIndex;
 
-    unsigned adaptiveReinversionFrequency();
+    std::vector<Numerical::Double> m_predictedTimes;
+
+
+    void adaptiveReinversionFrequency();
 
     /**
      * Function that solves the LP problem given by the parameter using a main thread.
