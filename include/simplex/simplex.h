@@ -127,6 +127,14 @@ public:
     bool searchNextAlternativeOptimum();
 
     /**
+     * Searches for alternate optima according to a secondary objective function.
+     *
+     * @return the primal solution of the found alternative optimum.
+     */
+    // TODO implement this
+    DenseVector searchBestAlternativeOptimum(DenseVector alternativeObjective);
+
+    /**
      * Returns the vector of alternative optima
      * @return Simplex::m_alternativeOptima
      */

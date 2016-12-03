@@ -200,6 +200,20 @@ bool Simplex::searchNextAlternativeOptimum()
     return true;
 }
 
+DenseVector Simplex::searchBestAlternativeOptimum(DenseVector alternativeObjective)
+{
+    (void)alternativeObjective;
+    std::vector<unsigned> improvingIndices;
+    for(unsigned i = 0; i < m_reducedCosts.length(); ++i){
+//        if (Numerical::fabs(m_reducedCosts[i]) < e_opt && m_variableStates.where(i) != Simplex::BASIC &&
+//                                                          m_variableStates.where(i) != Simplex::NONBASIC_FIXED ) {
+//            improvingIndices.push_back(i);
+//        }
+    }
+    LPINFO("Number of nonbasic variables improving secondary objective with |d_j| < e_opt: "<< improvingIndices.size());
+    return DenseVector();
+}
+
 std::vector<IterationReportField> Simplex::getIterationReportFields(
         enum ITERATION_REPORT_FIELD_TYPE & type) const {
     std::vector<IterationReportField> result;
