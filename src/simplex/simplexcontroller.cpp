@@ -515,8 +515,8 @@ void SimplexController::sequentialSolve(const Model &model)
     } catch ( const OptimalException & exception ) {
         m_isOptimal = true;
         LPINFO("OPTIMAL SOLUTION found for "<<m_currentSimplex->getModel().getName()<<"!");
-        LPINFO("Total inv time: "<<m_currentSimplex->totalInversionTime());
-        LPINFO("Total iter time: "<<m_currentSimplex->totalIterationTime());
+//        LPINFO("Total inv time: "<<m_currentSimplex->totalInversionTime());
+//        LPINFO("Total iter time: "<<m_currentSimplex->totalIterationTime());
 //        Numerical::Double avgInv = m_currentSimplex->totalInversionTime() / m_currentSimplex->getInversionCounter();
 //        Numerical::Double avgIter = m_currentSimplex->totalIterationTime() / m_iterations;
 //        LPWARNING("AVG inv time: "<<avgInv);

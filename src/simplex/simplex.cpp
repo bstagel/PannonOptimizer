@@ -465,7 +465,9 @@ void Simplex::iterate(int iterationIndex)
         }
 
         Numerical::Double epsilon = SimplexParameterHandler::getInstance().getDoubleParameterValue("Factorization.e_accuracy");
-        if (Numerical::fabs( (reducedCost - m_reducedCosts[m_incomingIndex]) / alpha.euclidNorm()) > epsilon) {
+        if (SimplexParameterHandler::getInstance().getIntegerParameterValue("Factorization.adaptive_reinversion") > 0 &&
+                Numerical::fabs( (reducedCost - m_reducedCosts[m_incomingIndex]) / alpha.euclidNorm()) > epsilon) {
+            LPWARNING("Inaccurate basis!");
             throw InaccurateBasisException("The basis inverse is inaccurate.");
         }
     }

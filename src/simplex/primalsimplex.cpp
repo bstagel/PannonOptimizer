@@ -186,8 +186,7 @@ void PrimalSimplex::computeFeasibility() {
     //Becomes feasible
     if(m_lastFeasible == false && m_feasible == true){
 //        if (m_pricing) {
-//            LPINFO("Entering ph-2 at "<<m_iterationIndex<<" m_obj "<<m_objectiveValue<<
-//                   " alternate candidates "<<m_pricing->getAlternateCandidateCounter());
+//            LPINFO("Entering ph-2 at iteration "<<m_iterationIndex<<", objective: "<<m_objectiveValue);
 //        }
         m_referenceObjective = m_objectiveValue;
         m_phase1Time = SimplexController::getSolveTimer().getCPURunningTime();
