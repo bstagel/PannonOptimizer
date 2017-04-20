@@ -428,6 +428,13 @@ protected:
      */
     static int sm_repeatSolution;
 
+    bool checkEliminatedBounds() const;
+    void resetInfeasibleBounds(bool resetMarks);
+    void removeFeasibleMarkedBounds();
+    void setBoundElimination(bool value) { m_boundElimination = value; }
+    bool m_boundElimination;
+    int m_resettedBounds;
+
     /**
      * Performs the starting basis finding according to the strategy given in the simplex parameter file.
      */

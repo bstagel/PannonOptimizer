@@ -33,6 +33,7 @@
  */
 class SimplexModel
 {
+    friend class SimplexController;
 public:
 
     /**
@@ -177,6 +178,17 @@ public:
      */
     void resetModel();
 
+    /**
+     * Helper functions for bound elimination.
+     * Bound elimination reduces problem size during solution by removing left behind bounds.
+     * These bounds play no further role in determining the optimal solution.
+     */
+    void markBound(unsigned variableIndex, bool upper);
+    void removeBound(unsigned variableIndex, bool upper);
+    void removeMarkedBounds();
+    void resetBound(unsigned variableIndex, bool upper);
+    void resetBounds();
+
 private:
 
     /**
@@ -223,6 +235,19 @@ private:
      * True if the bounds of the structural variables were perturbed.
      */
     bool m_perturbedBounds;
+
+    /**
+     * Helper variables for bound elimination.
+     * Bound elimination reduces problem size during solution by removing left behind bounds.
+     * These bounds play no further role in determining the optimal solution.
+     * Index 2 * i marks the lower bound of variable i while index 2 * i + 1 marks the upper bound.
+     */
+public:
+    DenseVector m_removableBounds;
+    SparseVector m_removedBounds;
+    unsigned m_resettedBounds;
+    unsigned m_totalRemovedCount;
+private:
 
     /**
      * Starts the computational form maker algorithm.

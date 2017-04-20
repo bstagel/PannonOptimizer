@@ -101,7 +101,8 @@ Simplex::Simplex(Basis* basis):
     m_basis(basis),
     m_pricing(NULL),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
-    m_recomputeReducedCosts(true)
+    m_recomputeReducedCosts(true),
+    m_resettedBounds(0)
 {
 
 }
@@ -548,6 +549,74 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
     m_variableStates.getIterators(&iter, &iterEnd, NONBASIC_FREE);
     for (; iter != iterEnd; ++iter) {
         iter.setAttached( &ZERO );
+    }
+}
+
+bool Simplex::checkEliminatedBounds() const {
+    Numerical::Double feasibilityTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility") * 1000;
+    for(auto it = m_simplexModel->m_removedBounds.beginNonzero(); it != m_simplexModel->m_removedBounds.endNonzero(); ++it) {
+        if(it.getIndex() % 2) {
+            if(m_variableStates.where((it.getIndex() - 1) / 2) == Simplex::BASIC) {
+                int upperBound = *it == Numerical::Infinity ? 0 : *it;
+                if(*m_variableStates.getAttachedData((it.getIndex() - 1) /  2) > upperBound + feasibilityTolerance) {
+//                    std::cout << "Eliminated bound of variable " << ((it.getIndex() - 1) / 2) << " is infeasible (" << (*m_variableStates.getAttachedData((it.getIndex() - 1) / 2)) << " > " << upperBound << ")" << std::endl;
+                    return false;
+                }
+            }
+        } else {
+            if(m_variableStates.where(it.getIndex() / 2) == Simplex::BASIC) {
+                int lowerBound = *it == -Numerical::Infinity ? 0 : *it;
+                if(*m_variableStates.getAttachedData(it.getIndex() / 2) < lowerBound - feasibilityTolerance) {
+//                    std::cout << "Eliminated bound of variable " << (it.getIndex() / 2) << " is infeasible (" << (*m_variableStates.getAttachedData(it.getIndex() / 2)) << " > " << lowerBound << ")" << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+//    std::cout << "Eliminated bounds remain feasible." << std::endl;
+    return true;
+}
+
+void Simplex::resetInfeasibleBounds(bool resetMarks)
+{
+    Numerical::Double feasibilityTolerance = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility") * 1000;
+    for(auto it = m_simplexModel->m_removedBounds.beginNonzero(); it != m_simplexModel->m_removedBounds.endNonzero(); ++it) {
+        if(it.getIndex() % 2) {
+            if(m_variableStates.where((it.getIndex() - 1) / 2) == Simplex::BASIC) {
+                int upperBound = *it == Numerical::Infinity ? 0 : *it;
+                if(*m_variableStates.getAttachedData((it.getIndex() - 1) /  2) > upperBound + feasibilityTolerance) {
+//                    std::cout << "Reset bound of variable " << ((it.getIndex() - 1) / 2) << " is infeasible (" << (*m_variableStates.getAttachedData((it.getIndex() - 1) / 2)) << " > " << upperBound << ")" << std::endl;
+                    m_simplexModel->resetBound((it.getIndex() - 1) / 2, true);
+                }
+            }
+        } else {
+            if(m_variableStates.where(it.getIndex() / 2) == Simplex::BASIC) {
+                int lowerBound = *it == -Numerical::Infinity ? 0 : *it;
+                if(*m_variableStates.getAttachedData(it.getIndex() / 2) < lowerBound - feasibilityTolerance) {
+//                    std::cout << "Reset bound of variable " << (it.getIndex() / 2) << " is infeasible (" << (*m_variableStates.getAttachedData(it.getIndex() / 2)) << " > " << lowerBound << ")" << std::endl;
+                    m_simplexModel->resetBound(it.getIndex() / 2, false);
+                }
+            }
+        }
+    }
+    if(resetMarks) m_simplexModel->m_removableBounds.clear();
+}
+
+void Simplex::removeFeasibleMarkedBounds()
+{
+    for(auto it = m_simplexModel->m_removableBounds.beginNonzero(); it != m_simplexModel->m_removableBounds.endNonzero(); ++it) {
+//        std::cout << "Eliminating marked bound "  << it.getIndex() << std::endl;
+        if(it.getIndex() % 2) {
+            if(m_variableStates.where((it.getIndex() - 1) / 2) != Simplex::NONBASIC_AT_UB) {
+                m_simplexModel->removeBound((it.getIndex() - 1) / 2, true);
+//                it = m_simplexModel->m_removableBounds.beginNonzero();
+            }
+        } else {
+            if(m_variableStates.where(it.getIndex() / 2) != Simplex::NONBASIC_AT_LB) {
+                m_simplexModel->removeBound(it.getIndex() / 2, false);
+//                it = m_simplexModel->m_removableBounds.beginNonzero();
+            }
+        }
     }
 }
 

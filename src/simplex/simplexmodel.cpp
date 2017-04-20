@@ -59,6 +59,11 @@ void SimplexModel::makeComputationalForm()
 
     m_rhs.reInit(rowCount);
 
+    m_removableBounds.reInit(variablesSize * 2);
+    m_removedBounds.reInit(variablesSize * 2);
+    m_totalRemovedCount = 0;
+    m_resettedBounds = 0;
+
 
     //Set the structural variables
     for (i=0; i < columnCount; i++) {
@@ -488,4 +493,105 @@ void SimplexModel::resetModel()
         }
         m_perturbedBounds = false;
     }
+}
+
+void SimplexModel::markBound(unsigned variableIndex, bool upper)
+{
+//    if((variableIndex - m_model.getMatrix().columnCount()) != 31) return;
+//    std::cout << "stepping on constraint " << (variableIndex - m_model.getMatrix().columnCount()) << std::endl;
+    if(upper && m_variables[variableIndex].getUpperBound() == Numerical::Infinity) return;
+    if(!upper && m_variables[variableIndex].getLowerBound() == -Numerical::Infinity) return;
+//    if(upper) {
+//        std::cout << "marking upper bound of variable " << variableIndex << " (" << m_variables[variableIndex].getUpperBound() << ")" << std::endl;
+//    } else {
+//        std::cout << "marking lower bound of variable " << variableIndex << " (" << m_variables[variableIndex].getLowerBound() << ")" << std::endl;
+//    }
+    m_removableBounds.set(variableIndex * 2 + (int)upper, 1);
+}
+
+void SimplexModel::removeBound(unsigned variableIndex, bool upper)
+{
+//    if(variableIndex != 682) return;
+//    std::cout << "stepping from constraint " << (variableIndex - m_model.getMatrix().columnCount()) << std::endl;
+//    return;
+//    if(m_removableBounds.at(variableIndex * 2 + (int)upper)) {
+        if(upper) {
+//            std::cout << "removing upper bound from variable " << variableIndex << " (" << m_variables[variableIndex].getUpperBound() << ")" << std::endl;
+            m_removableBounds.set(variableIndex * 2 + 1, 0);
+            if(m_variables[variableIndex].getUpperBound() == 0) {
+                m_removedBounds.set(variableIndex * 2 + 1, Numerical::Infinity);
+            } else {
+                m_removedBounds.set(variableIndex * 2 + 1, m_variables[variableIndex].getUpperBound());
+            }
+            m_variables[variableIndex].setUpperBound(Numerical::Infinity);
+            m_totalRemovedCount++;
+        } else {
+//            std::cout << "removing lower bound from variable " << variableIndex << " (" << m_variables[variableIndex].getLowerBound() << ")" << std::endl;
+            m_removableBounds.set(variableIndex * 2, 0);
+            if(m_variables[variableIndex].getLowerBound() == 0) {
+                m_removedBounds.set(variableIndex * 2, -Numerical::Infinity);
+            } else {
+                m_removedBounds.set(variableIndex * 2, m_variables[variableIndex].getLowerBound());
+            }
+            m_variables[variableIndex].setLowerBound(-Numerical::Infinity);
+            m_totalRemovedCount++;
+        }
+
+//    }
+}
+
+void SimplexModel::removeMarkedBounds()
+{
+    for(auto it = m_removableBounds.beginNonzero(); it != m_removableBounds.endNonzero(); ++it) {
+        if(it.getIndex() % 2) {
+            removeBound((it.getIndex() - 1) / 2, true);
+            it = m_removableBounds.beginNonzero();
+        } else {
+            removeBound((it.getIndex() - 1) / 2, false);
+            it = m_removableBounds.beginNonzero();
+        }
+    }
+}
+
+void SimplexModel::resetBound(unsigned variableIndex, bool upper)
+{
+    if(m_removedBounds.at(variableIndex * 2 + upper) == 0) return;
+    m_resettedBounds++;
+    if(upper) {
+        if(m_removedBounds.at(variableIndex * 2 + 1) == Numerical::Infinity) {
+            m_variables[variableIndex].setUpperBound(0);
+        } else {
+            m_variables[variableIndex].setUpperBound(m_removedBounds.at(variableIndex * 2 + 1));
+        }
+    } else {
+        if(m_removedBounds.at(variableIndex * 2) == -Numerical::Infinity) {
+            m_variables[variableIndex].setLowerBound(0);
+        } else {
+            m_variables[variableIndex].setLowerBound(m_removedBounds.at(variableIndex * 2));
+        }
+    }
+}
+
+
+
+void SimplexModel::resetBounds()
+{
+    std::cout << "resetting " << m_removedBounds.nonZeros() << " removed bounds.." << std::endl;
+    for(auto it = m_removedBounds.beginNonzero(); it != m_removedBounds.endNonzero(); ++it) {
+        if(it.getIndex() % 2) {
+            if(*it == Numerical::Infinity) {
+                m_variables[(it.getIndex() - 1) / 2].setUpperBound(0);
+            } else {
+                m_variables[(it.getIndex() - 1) / 2].setUpperBound(*it);
+            }
+        } else {
+            if(*it == -Numerical::Infinity) {
+                m_variables[it.getIndex() / 2].setLowerBound(0);
+            } else {
+                m_variables[it.getIndex() / 2].setLowerBound(*it);
+            }
+        }
+    }
+    m_removedBounds.clear();
+    m_removableBounds.clear();
 }

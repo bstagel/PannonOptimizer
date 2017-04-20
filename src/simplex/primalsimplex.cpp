@@ -42,7 +42,7 @@ PrimalSimplex::PrimalSimplex(Basis *basis):
     m_pricing(0),
     m_feasibilityChecker(0),
     m_ratiotest(0)
-{}
+{ }
 
 PrimalSimplex::~PrimalSimplex()
 {
@@ -324,11 +324,24 @@ void PrimalSimplex::update() {
                 m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
                 m_variableStates.move(*it, Simplex::NONBASIC_AT_UB, &(variable.getUpperBound()));
 
+                // Bound elimination
+                if(m_feasible && m_boundElimination) {
+                    m_simplexModel->removeBound(*it, false);
+                    m_simplexModel->markBound(*it, true);
+                }
+
             } else if(m_variableStates.where(*it) == (int)Simplex::NONBASIC_AT_UB){
                 //            LPINFO("UB->LB");
                 Numerical::Double boundDistance = variable.getLowerBound() - variable.getUpperBound();
                 m_basicVariableValues.addVector(-1 * boundDistance, m_pivotColumn);
                 m_variableStates.move(*it, Simplex::NONBASIC_AT_LB, &(variable.getLowerBound()));
+
+                // Bound elimination
+                if(m_feasible && m_boundElimination) {
+                    m_simplexModel->removeBound(*it, true);
+                    m_simplexModel->markBound(*it, false);
+                }
+
             } else {
                 throw PanOptException("Boundflipping variable in the basis (or superbasic)!");
             }
@@ -377,8 +390,14 @@ void PrimalSimplex::update() {
         //The incoming variable is NONBASIC thus the attached data gives the appropriate bound or zero
         SparseVector gathered;
         gathered = m_pivotColumn;
-        m_basis->append(gathered, m_outgoingIndex, m_incomingIndex, outgoingState);
+        m_basis->append(gathered, m_outgoingIndex, m_incomingIndex, outgoingState, m_feasible);
         m_basicVariableValues.set(m_outgoingIndex, *(m_variableStates.getAttachedData(m_incomingIndex)) + m_primalTheta);
+
+        // Bound elimination
+        if(m_feasible && m_boundElimination && m_variableStates.where(m_incomingIndex) != Simplex::NONBASIC_FREE) {
+            m_simplexModel->removeBound(m_incomingIndex, m_variableStates.where(m_incomingIndex) == Simplex::NONBASIC_AT_UB);
+        }
+
         m_variableStates.move(m_incomingIndex, Simplex::BASIC, &(m_basicVariableValues.at(m_outgoingIndex)));
     }
 

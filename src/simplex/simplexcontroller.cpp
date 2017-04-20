@@ -359,6 +359,10 @@ void SimplexController::sequentialSolve(const Model &model)
         iterationReport->writeStartReport();
 
         Numerical::Double lastObjective = 0;
+
+        m_primalSimplex->m_boundElimination = simplexParameters.getBoolParameterValue("Global.bound_elimination");
+        int boundElimBan = 0;
+
         //Simplex iterations
         for (m_iterationIndex = 0; m_iterationIndex <= iterationLimit &&
              (sm_solveTimer.getCPURunningTime()) < timeLimit;) {
@@ -375,8 +379,34 @@ void SimplexController::sequentialSolve(const Model &model)
                     (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
 
                 m_currentSimplex->reinvert();
+
                 reinversionCounter = 0;
                 m_freshBasis = true;
+
+                if(m_primalSimplex->m_feasible && m_primalSimplex->m_boundElimination && !m_primalSimplex->checkEliminatedBounds()) {
+                    std::cout << "resetting eliminated bounds on iteration " << m_iterationIndex << std::endl;
+                    m_primalSimplex->resetInfeasibleBounds(true);
+                    m_primalSimplex->m_simplexModel->resetBounds();
+                    m_freshBasis = false;
+                    m_primalSimplex->m_boundElimination = false;
+                    m_primalSimplex->m_feasible = false;
+                    boundElimBan = 500000;
+                } else if(simplexParameters.getBoolParameterValue("Global.bound_elimination")) {
+                    if(m_primalSimplex->m_simplexModel->m_totalRemovedCount > 0 && ((double)m_primalSimplex->m_simplexModel->m_resettedBounds / (double)m_primalSimplex->m_simplexModel->m_totalRemovedCount) <= 0.1) {
+                        if(boundElimBan == 0) {
+                            std::cout << "BOUNDS RESET: " << m_primalSimplex->m_simplexModel->m_resettedBounds << " / " << m_primalSimplex->m_simplexModel->m_totalRemovedCount << std::endl;
+                            m_primalSimplex->m_boundElimination = true;
+                        } else boundElimBan--;
+                    }
+                }
+
+//                if(m_primalSimplex->m_boundElimination && !m_primalSimplex->checkEliminatedBounds()) {
+//                    std::cout << "resetting eliminated bounds on iteration " << m_iterationIndex << std::endl;
+//                    m_primalSimplex->m_simplexModel->resetBounds();
+//                    m_primalSimplex->m_boundElimination = false;
+//                    m_freshBasis = false;
+//                }
+
 
                 if (switching == "SWITCH_BEFORE_INV") {
                     if (m_iterationIndex > 1){
@@ -400,6 +430,11 @@ void SimplexController::sequentialSolve(const Model &model)
             try{
                 //iterate
                 m_currentSimplex->iterate(m_iterationIndex);
+//                m_primalSimplex->resetInfeasibleBounds(false); //LOL
+
+//                if(m_primalSimplex->m_boundElimination) {
+//                    m_primalSimplex->m_boundElimination = false;
+//                }
 
                 m_iterations++;
 
@@ -422,11 +457,23 @@ void SimplexController::sequentialSolve(const Model &model)
                 reinversionCounter = reinversionFrequency;
             } catch ( const OptimizationResultException & exception ) {
                 m_currentSimplex->reset();
-                //Check the result with triggering reinversion
-                if(m_freshBasis){
-                    throw;
-                } else {
+
+                if(!m_primalSimplex->checkEliminatedBounds()) {
+                    std::cout << "resetting eliminated bounds on iteration " << m_iterationIndex << std::endl;
+                    m_primalSimplex->resetInfeasibleBounds(true);
+                    m_primalSimplex->m_boundElimination = false;
                     reinversionCounter = reinversionFrequency;
+                } else {
+
+                    //Check the result with triggering reinversion
+                    if(m_freshBasis){
+                        m_primalSimplex->m_simplexModel->resetBounds();
+                        m_primalSimplex->resetInfeasibleBounds(true);
+                        std::cout << "BOUNDS RESET: " << m_primalSimplex->m_simplexModel->m_resettedBounds << " / " << m_primalSimplex->m_simplexModel->m_totalRemovedCount << std::endl;
+                        throw;
+                    } else {
+                        reinversionCounter = reinversionFrequency;
+                    }
                 }
             } catch ( const NumericalException & exception ) {
                 //Check the result with triggering reinversion

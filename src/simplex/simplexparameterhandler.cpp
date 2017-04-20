@@ -381,6 +381,12 @@ void SimplexParameterHandler::initParameters()
                       DefaultParameters::Perturbation::E_BOUNDS);
 
     //Global
+    createParameter("Global.bound_elimination",
+                    Entry::BOOL,
+                    GLOBAL_BOUND_ELIMINATION_COMMENT);
+    setParameterValue("Global.bound_elimination",
+                      DefaultParameters::Global::BOUND_ELIMINATION);
+
     createParameter("Global.starting_algorithm",
                     Entry::STRING,
                     GLOBAL_STARTING_ALGORITHM_COMMENT);

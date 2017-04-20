@@ -127,6 +127,8 @@
 #define PERTURBATION_SHIFT_BOUNDS_COMMENT "# Bound shifting in primal"
 #define PERTURBATION_E_BOUNDS_COMMENT "# Measure of shifting"
 
+#define GLOBAL_BOUND_ELIMINATION_COMMENT "# Bound elimination"
+
 #define GLOBAL_STARTING_ALGORITHM_COMMENT R"(	# Starting algorithm of the simplex method \
 # PRIMAL: primal simplex \
 # DUAL: dual simplex)"    \

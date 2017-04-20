@@ -82,6 +82,7 @@ const double DefaultParameters::Perturbation::E_RHS = 1.e-6;
 const bool DefaultParameters::Perturbation::SHIFT_BOUNDS = false;
 const double DefaultParameters::Perturbation::E_BOUNDS = 1.e-6;
 //Global
+const bool DefaultParameters::Global::BOUND_ELIMINATION = false;
 const char * DefaultParameters::Global::STARTING_ALGORITHM = "DUAL";
 const char * DefaultParameters::Global::SWITCH_ALGORITHM = "INACTIVE";
 const int DefaultParameters::Global::REPEAT_SOLUTION = 0;

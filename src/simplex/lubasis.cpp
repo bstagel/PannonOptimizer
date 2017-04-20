@@ -710,7 +710,7 @@ void LuBasis::findPivot(int & rowindex, int & columnindex,
     throw PanOptException("No acceptable pivot element found during inversion!");
 }
 
-void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState)
+void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState, bool feasible)
 {
     int outgoing = (*m_basisHead)[pivotRow];
     const Variable & outgoingVariable = m_model->getVariable(outgoing);
@@ -728,6 +728,12 @@ void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Sim
         m_updateETMs->emplace_back(createEta(vector, pivotRow), pivotRow);
         m_inverseNonzeros += m_updateETMs->back().eta->nonZeros();
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, false);
+        }
+
     } else if (outgoingState == Simplex::NONBASIC_AT_UB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound(),1.0e-4)){
 #ifndef NDEBUG
@@ -741,6 +747,12 @@ void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Sim
         m_updateETMs->emplace_back(createEta(vector, pivotRow), pivotRow);
         m_inverseNonzeros += m_updateETMs->back().eta->nonZeros();
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, true);
+        }
+
     } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
 #ifndef NDEBUG
@@ -753,6 +765,13 @@ void LuBasis::append(const SparseVector &vector, int pivotRow, int incoming, Sim
         m_updateETMs->emplace_back(createEta(vector, pivotRow), pivotRow);
         m_inverseNonzeros += m_updateETMs->back().eta->nonZeros();
         m_variableStates->move(outgoing,Simplex::NONBASIC_FIXED, &(outgoingVariable.getLowerBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, true);
+            ((SimplexModel*)m_model)->markBound(outgoing, false);
+        }
+
     } else {
 #ifndef NDEBUG
         LPERROR("Invalid outgoing variable state!");

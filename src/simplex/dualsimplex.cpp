@@ -539,7 +539,7 @@ void DualSimplex::update() {
         SparseVector scattered;
         scattered = m_pivotColumn;
 
-        m_basis->append(scattered, m_outgoingIndex, m_incomingIndex, outgoingState);
+        m_basis->append(scattered, m_outgoingIndex, m_incomingIndex, outgoingState, m_feasible);
 
         detectExcessivelyInstability();
 

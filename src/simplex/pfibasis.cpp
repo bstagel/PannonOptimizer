@@ -418,7 +418,7 @@ void PfiBasis::invert() {
     m_transformationAverage += (m_transformationCount - m_transformationAverage) / m_inversionCount;
 }
 
-void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState) {
+void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState, bool feasible) {
     //If the alpha vector comes in, then ftran is done already
 
     if(m_updates == nullptr){
@@ -439,6 +439,12 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_LB, &(outgoingVariable.getLowerBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, false);
+        }
+
     } else if (outgoingState == Simplex::NONBASIC_AT_UB) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getUpperBound(),1.0e-4)){
 #ifndef NDEBUG
@@ -451,6 +457,12 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_AT_UB, &(outgoingVariable.getUpperBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, true);
+        }
+
     } else if ( outgoingState == Simplex::NONBASIC_FIXED) {
         if(!Numerical::equal(*(m_variableStates->getAttachedData(outgoing)), outgoingVariable.getLowerBound(),1.0e-4)){
 #ifndef NDEBUG
@@ -462,6 +474,13 @@ void PfiBasis::append(const SparseVector &vector, int pivotRow, int incoming, Si
         }
         pivot(vector, pivotRow, m_updates);
         m_variableStates->move(outgoing,Simplex::NONBASIC_FIXED, &(outgoingVariable.getLowerBound()));
+
+        // Bound elimination
+        if(feasible) {
+            ((SimplexModel*)m_model)->markBound(outgoing, true);
+            ((SimplexModel*)m_model)->markBound(outgoing, false);
+        }
+
     } else {
 #ifndef NDEBUG
         LPERROR("Invalid outgoing variable state!");

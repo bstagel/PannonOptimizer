@@ -113,7 +113,7 @@ public:
      * @throws NumericalException if the outgoing variable trys to leave the basis
      * with a value different from LB or UB.
      */
-    void append(const SparseVector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState);
+    void append(const SparseVector & vector, int pivotRow, int incoming, Simplex::VARIABLE_STATE outgoingState, bool feasible);
 
     /**
      * Does the FTRAN operation on a vector.

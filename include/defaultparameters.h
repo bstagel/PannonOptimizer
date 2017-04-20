@@ -144,6 +144,7 @@ public:
     class Global {
     public:
         //Switch algorithm
+        static const bool BOUND_ELIMINATION;
         static const char* STARTING_ALGORITHM;
         static const char* SWITCH_ALGORITHM;
         static const int REPEAT_SOLUTION;
