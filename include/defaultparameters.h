@@ -57,6 +57,9 @@ public:
     //Starting procedures
     class Starting {
     public:
+
+        static const bool AUTO_PARAM;
+
         class Presolve {
         public:
             static const bool ENABLE;

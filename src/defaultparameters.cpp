@@ -38,6 +38,7 @@ const double DefaultParameters::Tolerances::E_PIVOT = 1.0E-06;
 const double DefaultParameters::Tolerances::E_FEASIBILITY = 1.0E-08;
 const double DefaultParameters::Tolerances::E_OPTIMALITY = 1.0E-08;
 //Starting procedures
+const bool DefaultParameters::Starting::AUTO_PARAM = false;
 const bool DefaultParameters::Starting::Presolve::ENABLE = false;
 const bool DefaultParameters::Starting::Scaling::ENABLE = false;
 const char * DefaultParameters::Starting::Scaling::TYPE = "BENICHOU";

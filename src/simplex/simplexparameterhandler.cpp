@@ -150,6 +150,11 @@ void SimplexParameterHandler::initParameters()
                       DefaultParameters::Tolerances::E_OPTIMALITY);
 
     //Starting procedures
+    createParameter("Starting.auto_param",
+                    Entry::BOOL, STARTING_AUTO_PARAM_COMMENT);
+    setParameterValue("Starting.auto_param",
+                      DefaultParameters::Starting::AUTO_PARAM);
+
     createParameter("Starting.Presolve.enable",
                     Entry::BOOL, STARTING_PRESOLVE_ENABLE_COMMENT);
     setParameterValue("Starting.Presolve.enable",

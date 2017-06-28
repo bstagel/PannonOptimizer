@@ -204,7 +204,8 @@ HEADERS += include/debug.h \
     include/lp/pnsinterface.h \
     include/lp/lpproblem.h \
     include/simplex/numericalmonitor.h \
-    include/utils/erroranalyzerdouble.h
+    include/utils/erroranalyzerdouble.h \
+    include/utils/autoparameterizer.h
 
 #Sources
 SOURCES += src/linalg/matrix.cpp \
@@ -287,7 +288,8 @@ SOURCES += src/linalg/matrix.cpp \
     src/lp/pnsinterface.cpp \
     src/lp/lpproblem.cpp \
     src/simplex/numericalmonitor.cpp \
-    src/utils/erroranalyzerdouble.cpp
+    src/utils/erroranalyzerdouble.cpp \
+    src/utils/autoparameterizer.cpp
 
 #OBJECTS_DIR = .o
 

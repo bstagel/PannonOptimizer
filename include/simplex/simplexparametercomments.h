@@ -21,6 +21,7 @@
 #define TOLERANCES_E_FEASIBILITY_COMMENT "# Feasibility tolerance"
 #define TOLERANCES_E_OPTIMALITY_COMMENT "# Optimality tolerance"
 
+#define STARTING_AUTO_PARAM_COMMENT "# Automatic self-parameterization"
 #define STARTING_PRESOLVE_ENABLE_COMMENT ""
 #define STARTING_SCALING_ENABLE_COMMENT ""
 #define STARTING_SCALING_TYPE_COMMENT "# BENICHOU: Benichou scaling with powers of 2 "

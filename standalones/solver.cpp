@@ -27,6 +27,7 @@
 #include <lp/mpsproblem.h>
 #include <lp/lpproblem.h>
 #include <lp/presolver.h>
+#include <utils/autoparameterizer.h>
 #include <simplex/dualsimplex.h>
 #include <simplex/primalsimplex.h>
 #include <simplex/simplexparameterhandler.h>
@@ -58,23 +59,29 @@ void solve(std::string filename, ofstream & out, bool dump_vars = false) {
         LPINFO("Density: "<<model.getMatrix().density());
     }
 
-    if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
-        Presolver presolver(&model);
-        try {
-            presolver.presolve();
+    //self parameterization
+    if (SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.auto_param")) {
+        AutoParameterizer parameterizer(model);
+        parameterizer.printStatistics();
+//        parameterizer.selfParameterize();
+    } else {
+        if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
+            Presolver presolver(&model);
+            try {
+                presolver.presolve();
 #ifndef NDEBUG
-            presolver.printStatistics();
+                presolver.printStatistics();
 #endif
-//            exit(-1);
-        } catch(Presolver::PresolverException e) {
-            LPERROR("[Presolver] " << e.getMessage());
-            exit(-1);
+            } catch(Presolver::PresolverException e) {
+                LPERROR("[Presolver] " << e.getMessage());
+                exit(-1);
+            }
+        }
+        if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Scaling.enable") == true){
+            model.scale();
         }
     }
 
-    if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Scaling.enable") == true){
-        model.scale();
-    }
 
     //init simplexController
     SimplexController simplexController;
