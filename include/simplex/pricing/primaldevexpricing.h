@@ -39,6 +39,7 @@ public:
 
     int performPricingPhase1();
     int performPricingPhase2();
+    void invalidateWeights();
 
     void update(int incomingIndex,
                 int outgoingIndex,

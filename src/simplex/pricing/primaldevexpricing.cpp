@@ -204,6 +204,10 @@ int PrimalDevexPricing::performPricingPhase2()
     return maxIndex;
 }
 
+void PrimalDevexPricing::invalidateWeights() {
+    m_weightsReady = false;
+}
+
 void PrimalDevexPricing::update(int incomingIndex,
                                 int outgoingIndex,
                                 const DenseVector * incomingAlpha,

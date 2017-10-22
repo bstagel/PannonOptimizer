@@ -24,6 +24,7 @@
 #include <utils/thread.h>
 #include <thread>
 #include <simplex/simplexthread.h>
+#include <simplex/pricing/primaldevexpricing.h>
 
 const static char * ITERATION_TIME_NAME = "Time";
 const static char * ITERATION_INVERSION_NAME = "Inv";
@@ -575,6 +576,7 @@ void SimplexController::parallelSolve(const Model &model)
     const int & iterationLimit = simplexParameters.getIntegerParameterValue("Global.iteration_limit");
     const double & timeLimit = simplexParameters.getDoubleParameterValue("Global.time_limit");
     const int & reinversionFrequency = simplexParameters.getIntegerParameterValue("Factorization.reinversion_frequency");
+    const double & boundElimination = simplexParameters.getBoolParameterValue("Global.bound_elimination");
 
     if (simplexParameters.getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
         m_currentAlgorithm = Simplex::PRIMAL;
@@ -614,7 +616,11 @@ void SimplexController::parallelSolve(const Model &model)
                 iterationReports[i]->addProviderForExport(*this);
             }
 
+            Model* m_2 = new Model();
             simplexes[i]->setModel(model);
+            if(m_currentAlgorithm == Simplex::PRIMAL){
+                ((PrimalSimplex*)simplexes[i])->m_boundElimination = boundElimination;
+            }
 
             simplexes[i]->setIterationReport(iterationReports[i]);
 
@@ -643,6 +649,7 @@ void SimplexController::parallelSolve(const Model &model)
             for(int i=0; i<m_numberOfThreads; i++){
                 if(i != masterIndex){
                     simplexes[i]->setSimplexState(*(simplexes[masterIndex]));
+                    if(PrimalDevexPricing* pdp = dynamic_cast<PrimalDevexPricing*>(simplexes[i]->m_pricing)) pdp->invalidateWeights();
                 }
             }
 

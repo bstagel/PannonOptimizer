@@ -102,6 +102,7 @@ Simplex::Simplex(Basis* basis):
     m_pricing(NULL),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true),
+    m_boundElimination(false),
     m_resettedBounds(0)
 {
 
@@ -441,6 +442,7 @@ void Simplex::iterate(int iterationIndex)
     m_updateTimer.start();
     update();
     m_updateTimer.stop();
+
     computeWorkingTolerance();
 
     if(!m_feasible){
