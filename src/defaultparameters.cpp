@@ -50,7 +50,7 @@ const int DefaultParameters::Factorization::REINVERSION_FREQUENCY = 100;
 const double DefaultParameters::Factorization::PIVOT_THRESHOLD = 0.1;
 const int DefaultParameters::Factorization::ADAPTIVE_REINVERSION = 0;
 const int DefaultParameters::Factorization::ADAPTIVE_MULTIPLIER = 2;
-const double DefaultParameters::Factorization::E_ACCURACY = 1.0E-03;
+const double DefaultParameters::Factorization::E_ACCURACY = 1.0E-06;
 const char * DefaultParameters::Factorization::PFI::NONTRIANGULAR_METHOD = "BLOCK_ORDER";
 const char * DefaultParameters::Factorization::PFI::NONTRIANGULAR_PIVOT_RULE = "THRESHOLD_PIVOT";
 
