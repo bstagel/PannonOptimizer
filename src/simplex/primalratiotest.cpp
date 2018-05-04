@@ -392,7 +392,7 @@ void PrimalRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
 
         if (variable.getType() == Variable::FIXED) {
             Numerical::Double steplength = m_basicVariableValues.at(basisIndex) / alpha.at(basisIndex);
-            if (m_sigma * steplength >= 0 && Numerical::fabs(alpha.at(basisIndex)) > m_pivotTolerance) {
+            if (steplength == 0 && Numerical::fabs(alpha.at(basisIndex)) > m_pivotTolerance) {
 //                LPINFO("Fixed variable is chosen to leave the basis with theta: "<<steplength);
                 m_outgoingVariableIndex = basisIndex;
                 m_primalSteplength = steplength;
@@ -405,10 +405,30 @@ void PrimalRatiotest::generateSignedBreakpointsPhase2(const DenseVector &alpha)
         const Variable& variable = m_model.getVariable(m_basishead[basisIndex]);
         Numerical::Double signedAlpha = m_sigma * alpha.at(basisIndex);
 
-        if ( signedAlpha > epsilon && (variable.getLowerBound() != - Numerical::Infinity)) {
+        //define ratios for infeasible bounded variables at the oppostie bound
+        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.mbu_pivoting") == "ACTIVE" &&
+                variable.getType() == Variable::BOUNDED && variable.getType() == Variable::FIXED) {
+            if (m_basicVariableValues.at(basisIndex) < variable.getLowerBound()) {
+                LPINFO("ratio defined at "<<basisIndex<<" val "<<(m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
+            } else if (m_basicVariableValues.at(basisIndex) > variable.getUpperBound()) {
+                LPINFO("ratio defined at index "<<basisIndex<<" val "<<(m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
+                m_breakpointHandler.insertBreakpoint(basisIndex,
+                                                     (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
+            }
+        }
+
+        //fixed and bounded variables are handled separately
+        if (variable.getType() == Variable::FIXED || variable.getType() == Variable::BOUNDED ) {
+            continue;
+        }
+
+        //MBU fixes the infeasible variables, we do not define ratios with them
+        if ( signedAlpha > epsilon && (variable.getLowerBound() != - Numerical::Infinity) && (variable.getLowerBound() <= m_basicVariableValues.at(basisIndex)) ) {
             m_breakpointHandler.insertBreakpoint(basisIndex,
                                                  (m_basicVariableValues.at(basisIndex) - variable.getLowerBound()) / signedAlpha);
-        } else if (signedAlpha < -epsilon && (variable.getUpperBound() != Numerical::Infinity)) {
+        } else if (signedAlpha < -epsilon && (variable.getUpperBound() != Numerical::Infinity) && (variable.getUpperBound() >= m_basicVariableValues.at(basisIndex)) ) {
             m_breakpointHandler.insertBreakpoint(basisIndex,
                                                  (m_basicVariableValues.at(basisIndex) - variable.getUpperBound()) / signedAlpha);
         }
@@ -463,6 +483,8 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
     m_outgoingVariableIndex = -1;
     m_primalSteplength = 0;
 
+    bool mbuIsActive = SimplexParameterHandler::getInstance().getStringParameterValue("Global.mbu_pivoting") == "ACTIVE";
+
     //determining t<=0 ot t>=0 cases
     if (reducedCost > 0) {
         m_sigma = -1;
@@ -473,7 +495,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
     if (m_wolfeActive) {
         wolfeAdHocMethod(incomingVariableIndex,alpha,reducedCost,workingTolerance);
     } else {
-        if(m_expand != "INACTIVE"){
+        if(m_expand != "INACTIVE" && !mbuIsActive){
             generateExpandedBreakpointsPhase2(alpha,workingTolerance);
         }else{
             generateSignedBreakpointsPhase2(alpha);
@@ -510,7 +532,7 @@ void PrimalRatiotest::performRatiotestPhase2(int incomingVariableIndex,
                 }
 
                 //Harris, expand
-                if(m_expand != "INACTIVE" && m_boundflips.empty()){
+                if(m_expand != "INACTIVE" && m_boundflips.empty() && !mbuIsActive){
                     const std::vector<const BreakpointHandler::BreakPoint*>& secondPassRatios = m_breakpointHandler.getExpandSecondPass();
         #ifndef NDEBUG
                     if(secondPassRatios.size() == 0){

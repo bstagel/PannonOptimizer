@@ -269,7 +269,11 @@ void SimplexController::solve(const Model &model)
         m_currentAlgorithm = Simplex::PRIMAL;
         m_primalSimplex = new PrimalSimplex(m_basis);
         m_currentSimplex = m_primalSimplex;
-        LPINFO("Solving problem with primal simplex method...");
+        if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.mbu_pivoting") == "ACTIVE") {
+            LPINFO("Solving problem with primal MBU simplex method...");
+        } else {
+            LPINFO("Solving problem with primal simplex method...");
+        }
     } else if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "DUAL") {
         m_currentAlgorithm = Simplex::DUAL;
         m_dualSimplex = new DualSimplex(m_basis);
@@ -415,6 +419,8 @@ void SimplexController::sequentialSolve(const Model &model)
                     iterationReport->writeIterationReport();
                 }
                 m_freshBasis = false;
+            } catch (const NeedReinversionException & e) {
+                reinversionCounter = reinversionFrequency;
             } catch ( const FallbackException & exception ) {
 #ifndef NDEBUG
                 LPINFO("Fallback detected in the ratio test: " << exception.getMessage());

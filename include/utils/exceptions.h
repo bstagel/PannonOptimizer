@@ -376,6 +376,22 @@ public:
 };
 
 /**
+ * This exception should be thrown when a reinversion is needed during the simplex iterations of the solver.
+ *
+ * @class NeedReinversionException
+ */
+class NeedReinversionException: public PanOptException{
+public:
+
+    /**
+     * Constructor of the NeedReinversionException class.
+     *
+     * @param message Custom message describing the circumstances of the exception.
+     */
+    NeedReinversionException(const std::string &message): PanOptException(message){}
+};
+
+/**
  * This exception should be thrown when there is a syntax error in an input file.
  *
  * @class SyntaxErrorException

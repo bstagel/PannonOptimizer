@@ -64,7 +64,10 @@ unsigned BreakpointHandler::getNumberOfBreakpoints() const
 
 void BreakpointHandler::printBreakpoints() const
 {
-    LPINFO("m_breakpoints");
+    LPINFO("i (variableIndex; value; additionalValue)");
+    for (unsigned i = 0; i < m_breakpoints.size(); ++i) {
+        LPINFO(i << " " << m_breakpoints.at(i));
+    }
 }
 
 void BreakpointHandler::finalizeBreakpoints()

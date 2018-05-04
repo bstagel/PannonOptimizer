@@ -147,6 +147,7 @@ public:
         static const char* STARTING_ALGORITHM;
         static const char* SWITCH_ALGORITHM;
         static const int REPEAT_SOLUTION;
+        static const char* MBU_PIVOTING;
 
         static const int DEBUG_LEVEL;
         static const int ITERATION_LIMIT;

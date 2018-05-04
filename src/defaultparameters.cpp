@@ -85,6 +85,7 @@ const double DefaultParameters::Perturbation::E_BOUNDS = 1.e-6;
 const char * DefaultParameters::Global::STARTING_ALGORITHM = "DUAL";
 const char * DefaultParameters::Global::SWITCH_ALGORITHM = "INACTIVE";
 const int DefaultParameters::Global::REPEAT_SOLUTION = 0;
+const char * DefaultParameters::Global::MBU_PIVOTING = "INACTIVE";
 const int DefaultParameters::Global::DEBUG_LEVEL = 1;
 const int DefaultParameters::Global::ITERATION_LIMIT = 200000;
 const double DefaultParameters::Global::TIME_LIMIT = 3600.0;

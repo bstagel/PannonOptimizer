@@ -47,8 +47,10 @@ PrimalSimplex::PrimalSimplex(Basis *basis):
 
 PrimalSimplex::~PrimalSimplex()
 {
-    LPINFO("MBU takes over "<<MBUtakes<<" times");
-    MBUtakes = 0;
+//    if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.mbu_pivoting") == "ACTIVE") {
+//        LPINFO("MBU takes over "<<MBUtakes<<" times");
+//        MBUtakes = 0;
+//    }
     if (m_pricing) {
         delete m_pricing;
         m_pricing = 0;
@@ -266,14 +268,17 @@ void PrimalSimplex::selectPivot() {
                                           m_basicVariableFeasibilities,
                                           m_variableStates);
     }
+    const std::string& mbu = SimplexParameterHandler::getInstance().getStringParameterValue("Global.mbu_pivoting");
+    bool blockingVariable = false;
     m_outgoingIndex = -1;
 
     unsigned int columnCount = m_simplexModel->getColumnCount();
     unsigned int rowCount = m_simplexModel->getRowCount();
 
-    while(m_outgoingIndex == -1){
-        m_pivotColumn.reInit(rowCount);
 
+    while(m_outgoingIndex == -1 || (mbu == "ACTIVE" && blockingVariable)) {
+        //compute pivot column
+        m_pivotColumn.reInit(rowCount);
         if(m_incomingIndex < (int)columnCount){
             m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
         } else {
@@ -288,55 +293,21 @@ void PrimalSimplex::selectPivot() {
         }
         m_outgoingIndex = m_ratiotest->getOutgoingVariableIndex();
 
-        //MBU study
-        if (m_feasible && m_incomingIndex >= 0 && m_outgoingIndex >= 0) {
-            //DualSimplex::computeTransformedRow()
-            m_pivotRow.reInit(rowCount + columnCount);
-            DenseVector pivotRowOfBasisInverse(rowCount);
-            pivotRowOfBasisInverse.set(m_outgoingIndex, 1);
-            m_basis->Btran(pivotRowOfBasisInverse);
-            std::vector<Numerical::Summarizer> results( rowCount + columnCount );
-            DenseVector::NonzeroIterator pivotRowIter = pivotRowOfBasisInverse.beginNonzero();
-            DenseVector::NonzeroIterator pivotRowIterEnd = pivotRowOfBasisInverse.endNonzero();
-            for (; pivotRowIter != pivotRowIterEnd; ++pivotRowIter) {
-                const Numerical::Double lambda = *pivotRowIter;
-                const SparseVector & row = m_simplexModel->getMatrix().row( pivotRowIter.getIndex() );
-                SparseVector::NonzeroIterator rowIter = row.beginNonzero();
-                SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
-                for (; rowIter != rowIterEnd; ++rowIter) {
-                    const unsigned int index = rowIter.getIndex();
-                    if ( m_variableStates.where(index) == (int)Simplex::BASIC ) {
-                        continue;
-                    }
-                    results[ index ].add( lambda * *rowIter );
-                }
-                const unsigned int index = pivotRowIter.getIndex() + columnCount;
-                results[ index ].add( *pivotRowIter );
-            }
-            for (unsigned index = 0; index < results.size(); index++) {
-                Numerical::Double result = results[index].getResult();
-                if (result != 0.0) {
-                    m_pivotRow.set(index, result);
-                }
-            }
-            //compute theta values
-            short sigma = 1;
-            const Variable& outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex));
-            if ( m_basicVariableValues.at(m_outgoingIndex) < outgoingVariable.getLowerBound()) {
-                sigma = -1;
-            }
-            Numerical::Double dualTheta = Numerical::fabs(m_reducedCosts[m_incomingIndex] / m_pivotColumn[m_outgoingIndex]);
-            int min = 0;
-            for(unsigned i = 1; i < m_reducedCosts.length(); ++i){
-                Numerical::Double a = m_pivotRow.at(i);
-                if (sigma * a > 0 && Numerical::fabs(m_reducedCosts[i] / a) < dualTheta) {
-                    min = i;
-                }
-            }
-            if (min != m_incomingIndex && m_pivotRow.at(min) != 0) {
-                ++MBUtakes;
-//                LPINFO("DualTheta: "<<dualTheta<<" vs "<<Numerical::fabs(m_reducedCosts[min] / m_pivotRow.at(min)));
-            }
+        //MBU
+        if (mbu == "ACTIVE" && m_feasible && m_incomingIndex >= 0 && m_outgoingIndex >= 0) {
+           blockingVariable = performMBUIteration();
+//           if (!blockingVariable) {
+//               for (unsigned i=0; i < m_basisHead.size(); ++i) {
+//                   const Variable& var = m_simplexModel->getVariable(m_basisHead[i]);
+//                   if (var.getLowerBound() > m_basicVariableValues.at(i) ||
+//                       var.getUpperBound() < m_basicVariableValues.at(i)) {
+//                        LPWARNING("infeasible variable, index "<<i<<", value "<<m_basicVariableValues.at(i));
+//                   }
+//               }
+//               exit(0);
+//               throw NeedReinversionException("MBU minor iterations finished");
+//           }
+
         }
 
         //If a boundflip is found, perform it
@@ -602,4 +573,117 @@ void PrimalSimplex::resetTolerances() {
         //        LPINFO("Resetting EXPAND tolerance!");
         m_workingTolerance = m_masterTolerance * m_toleranceMultiplier;
     }
+}
+
+bool PrimalSimplex::performMBUIteration()
+{
+    //DualSimplex::computeTransformedRow()
+    unsigned int columnCount = m_simplexModel->getColumnCount();
+    unsigned int rowCount = m_simplexModel->getRowCount();
+    m_pivotRow.reInit(rowCount + columnCount);
+    DenseVector pivotRowOfBasisInverse(rowCount);
+    pivotRowOfBasisInverse.set(m_outgoingIndex, 1);
+    m_basis->Btran(pivotRowOfBasisInverse);
+    std::vector<Numerical::Summarizer> results( rowCount + columnCount );
+    DenseVector::NonzeroIterator pivotRowIter = pivotRowOfBasisInverse.beginNonzero();
+    DenseVector::NonzeroIterator pivotRowIterEnd = pivotRowOfBasisInverse.endNonzero();
+    for (; pivotRowIter != pivotRowIterEnd; ++pivotRowIter) {
+        const Numerical::Double lambda = *pivotRowIter;
+        const SparseVector & row = m_simplexModel->getMatrix().row( pivotRowIter.getIndex() );
+        SparseVector::NonzeroIterator rowIter = row.beginNonzero();
+        SparseVector::NonzeroIterator rowIterEnd = row.endNonzero();
+        for (; rowIter != rowIterEnd; ++rowIter) {
+            const unsigned int index = rowIter.getIndex();
+            if ( m_variableStates.where(index) == (int)Simplex::BASIC ) {
+                continue;
+            }
+            results[ index ].add( lambda * *rowIter );
+        }
+        const unsigned int index = pivotRowIter.getIndex() + columnCount;
+        results[ index ].add( *pivotRowIter );
+    }
+    for (unsigned index = 0; index < results.size(); index++) {
+        Numerical::Double result = results[index].getResult();
+        if (result != 0.0) {
+            m_pivotRow.set(index, result);
+        }
+    }
+
+    //dual theta of the pivot chosen in the ratiotest
+    Numerical::Double theta_1 = Numerical::fabs(m_reducedCosts[m_incomingIndex] / m_pivotColumn[m_outgoingIndex]);
+
+    //search for variable with minimal dualTheta in the row, only among non-improving candidates
+    //Nonbasic fixed should not re-enter the basis
+    short sigma = 1;
+    const Variable& outgoingVariable = m_simplexModel->getVariable(m_basisHead.at(m_outgoingIndex));
+    if ( m_basicVariableValues.at(m_outgoingIndex) < outgoingVariable.getLowerBound()) {
+        sigma = -1;
+    }
+    int min = m_incomingIndex;
+    Numerical::Double minVal = Numerical::Infinity;
+    IndexList<const Numerical::Double*>::PartitionIterator it;
+    IndexList<const Numerical::Double*>::PartitionIterator endit;
+
+    //Nonbasic at LB
+    m_variableStates.getIterators(&it, &endit, Simplex::NONBASIC_AT_LB);
+    for (; it != endit; ++it) {
+        unsigned i = it.getData();
+        Numerical::Double a = m_pivotRow.at(i);
+        if (m_reducedCosts[i] >= m_masterTolerance && sigma * a > m_pivotTolerance && Numerical::fabs(m_reducedCosts[i] / a) < minVal) {
+            min = i;
+            minVal = Numerical::fabs(m_reducedCosts[min] / m_pivotRow.at(min));
+        }
+    }
+
+    //Nonbasic at UB
+    m_variableStates.getIterators(&it, &endit, Simplex::NONBASIC_AT_UB);
+    for (; it != endit; ++it) {
+        unsigned i = it.getData();
+        Numerical::Double a = m_pivotRow.at(i);
+        if (m_reducedCosts[i] <= m_masterTolerance && sigma * a > m_pivotTolerance && Numerical::fabs(m_reducedCosts[i] / a) < minVal) {
+            min = i;
+            minVal = Numerical::fabs(m_reducedCosts[min] / m_pivotRow.at(min));
+        }
+    }
+
+    //Nonbasic free
+    m_variableStates.getIterators(&it, &endit, Simplex::NONBASIC_FREE);
+    for (; it != endit; ++it) {
+        unsigned i = it.getData();
+        Numerical::Double a = m_pivotRow.at(i);
+        if (m_reducedCosts[i] == 0 && sigma * a > m_pivotTolerance && Numerical::fabs(m_reducedCosts[i] / a) < minVal) {
+            min = i;
+            minVal = Numerical::fabs(m_reducedCosts[min] / m_pivotRow.at(min));
+        }
+    }
+
+    Numerical::Double theta_2 = Numerical::fabs(m_reducedCosts[min] / m_pivotRow.at(min));
+
+    //check if theta_2 < theta_1
+    if (min != m_incomingIndex && Numerical::less(theta_2, theta_1) ) {
+        ++MBUtakes;
+//        LPINFO("IncomingIndex "<<m_incomingIndex << " vs " << min <<
+//               " Theta_D: "<<theta_1<<" vs "<<theta_2 <<
+//               " Theta_P: "<<m_primalTheta<<" vs "<<(sigma * m_basicVariableValues.at(m_outgoingIndex) / m_pivotColumn[m_outgoingIndex]));
+
+        //compute pivotColumn, primalTheta according to the new min
+        int drivingVariable = m_incomingIndex;
+        m_incomingIndex = min;
+        m_pivotColumn.reInit(rowCount);
+        if(m_incomingIndex < (int)columnCount){
+            m_pivotColumn = m_simplexModel->getMatrix().column(m_incomingIndex);
+        } else {
+            m_pivotColumn.set(m_incomingIndex - columnCount, 1);
+        }
+        m_basis->Ftran(m_pivotColumn);
+
+        m_primalTheta = sigma * (m_basicVariableValues.at(m_outgoingIndex) / m_pivotColumn[m_outgoingIndex]);
+        m_primalReducedCost = m_reducedCosts.at(m_incomingIndex);
+
+        //pivoting
+        update();
+        m_incomingIndex = drivingVariable;
+        return true;
+    }
+    return false;
 }

@@ -139,6 +139,8 @@
 
 #define GLOBAL_REPEAT_SOLUTION_COMMENT "# Repeating solution the given times. This is used to initialize the random seeds differently. "
 
+#define GLOBAL_MBU_PIVOTING_COMMENT "# Set to ACTIVE to enable MBU pivoting algorithm (this will turn of EXPAND)."
+
 #define GLOBAL_DEBUG_LEVEL_COMMENT R"(	# Level of output \
 # 0 = brief problem report    & solution only                   & only solution time \
 # 1 = brief problem report    & one line per inversion          & detailed time report\

@@ -399,6 +399,12 @@ void SimplexParameterHandler::initParameters()
     setParameterValue("Global.repeat_solution",
                       DefaultParameters::Global::REPEAT_SOLUTION);
 
+    createParameter("Global.mbu_pivoting",
+                    Entry::STRING,
+                    GLOBAL_MBU_PIVOTING_COMMENT);
+    setParameterValue("Global.mbu_pivoting",
+                      DefaultParameters::Global::MBU_PIVOTING);
+
     createParameter("Global.debug_level",
                     Entry::INTEGER,
                     GLOBAL_DEBUG_LEVEL_COMMENT);

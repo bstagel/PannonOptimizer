@@ -168,6 +168,12 @@ private:
                             enum ITERATION_REPORT_FIELD_TYPE & type) const;
 
     void resetTolerances();
+
+    /**
+     * It performs primal phase-2 pivoting according to the MBU rule.
+     * @return true if it performed MBU special pivoting (blocking variable).
+     */
+    bool performMBUIteration();
 };
 
 #endif /* PRIMALSIMPLEX_H */
