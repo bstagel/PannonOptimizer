@@ -36,9 +36,11 @@ PnsInterface::~PnsInterface()
 {
     if(m_simplex){
         delete m_simplex;
+        m_simplex = nullptr;
     }
     if(m_model){
         delete m_model;
+        m_model = nullptr;
     }
 }
 
@@ -66,6 +68,7 @@ void PnsInterface::loadProblem (  const int numcols, const int numrows,
     }
     m_model->build(*m_builder);
     delete m_builder;
+    m_builder = nullptr;
 }
 
 void PnsInterface::setLogLevel(int value)

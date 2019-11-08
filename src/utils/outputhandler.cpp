@@ -249,15 +249,15 @@ OutputHandler::OutputHandler():
 
 OutputHandler::~OutputHandler() {
     delete m_reportHandler;
-    m_reportHandler = 0;
+    m_reportHandler = nullptr;
     delete m_messageHandler;
-    m_messageHandler = 0;
+    m_messageHandler = nullptr;
     delete m_warningHandler;
-    m_warningHandler = 0;
+    m_warningHandler = nullptr;
     delete m_errorHandler;
-    m_errorHandler = 0;
+    m_errorHandler = nullptr;
     delete m_debugHandler;
-    m_debugHandler = 0;
+    m_debugHandler = nullptr;
 }
 
 void OutputHandler::setReportHandler(ReportHandler * handler) {

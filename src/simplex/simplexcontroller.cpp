@@ -40,9 +40,9 @@ const static char * EXPORT_TRIGGERED_REINVERSION = "export_triggered_reinversion
 
 Timer SimplexController::sm_solveTimer;
 SimplexController::SimplexController():
-    m_primalSimplex(NULL),
-    m_dualSimplex(NULL),
-    m_currentSimplex(NULL),
+    m_primalSimplex(nullptr),
+    m_dualSimplex(nullptr),
+    m_currentSimplex(nullptr),
     m_iterationIndex(0),
     m_phase1Iteration(-1),
     m_phase1Time(0.0),
@@ -80,18 +80,18 @@ SimplexController::~SimplexController()
 {
     if (m_primalSimplex){
         delete m_primalSimplex;
-        m_primalSimplex = NULL;
+        m_primalSimplex = nullptr;
     }
     if (m_dualSimplex){
         delete m_dualSimplex;
-        m_dualSimplex = NULL;
+        m_dualSimplex = nullptr;
     }
     if (m_currentSimplex){
-        m_currentSimplex = NULL;
+        m_currentSimplex = nullptr;
     }
     if(m_basis){
         delete m_basis;
-        m_basis = 0;
+        m_basis = nullptr;
     }
 }
 
@@ -302,6 +302,7 @@ void SimplexController::solve(const Model &model)
 //            LPINFO("Threads finished!");
             for(int i=0; i < m_numberOfThreads; ++i){
                 delete threads[i];
+                threads[i] = nullptr;
             }
             ThreadSupervisor::unregisterMyThread();
         }
@@ -369,9 +370,9 @@ void SimplexController::sequentialSolve(const Model &model)
 
             //if wolfe is active no inversion should be done (reordering the basishead causes undefined behaviour in the procedure)
             if((int)reinversionCounter >= reinversionFrequency && !((m_currentAlgorithm == Simplex::PRIMAL &&
-                                                                   m_primalSimplex->m_ratiotest != NULL) ?
+                                                                   m_primalSimplex->m_ratiotest != nullptr) ?
                     m_primalSimplex->m_ratiotest->isWolfeActive() :
-                 (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != NULL) ?
+                 (m_currentAlgorithm == Simplex::DUAL && m_dualSimplex->m_ratiotest != nullptr) ?
                     (m_dualSimplex->m_ratiotest->isWolfeActive()) : false) ){
 
                 m_currentSimplex->reinvert();
@@ -512,7 +513,7 @@ void SimplexController::sequentialSolve(const Model &model)
 
     if(iterationReport){
         delete iterationReport;
-        iterationReport = NULL;
+        iterationReport = nullptr;
     }
 }
 
@@ -613,6 +614,7 @@ void SimplexController::parallelSolve(const Model &model)
             }
 //            LPINFO("Threads finished!");
             delete [] threads;
+            threads = nullptr;
 
             //Select the master simplex
             //If all simplexes are iterated normally, choose the best one
@@ -839,6 +841,7 @@ void SimplexController::parallelSequentialSolve(const Model *model) {
     InitPanOpt::threadRelease();
     ThreadSupervisor::unregisterMyThread();
     delete wrapper;
+    wrapper = nullptr;
 }
 
 void SimplexController::switchAlgorithm(const Model &model, IterationReport* iterationReport)
@@ -846,12 +849,12 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
     LPWARNING("Switching algorithm during the solution is not supported yet!");
     return;
     //init algorithms to be able to switch
-    if (m_primalSimplex == NULL){
+    if (m_primalSimplex == nullptr){
         m_primalSimplex = new PrimalSimplex(m_basis);
         m_primalSimplex->setModel(model);
         m_primalSimplex->setIterationReport(iterationReport);
     }
-    if (m_dualSimplex == NULL){
+    if (m_dualSimplex == nullptr){
         m_dualSimplex = new DualSimplex(m_basis);
         m_dualSimplex->setModel(model);
         m_dualSimplex->setIterationReport(iterationReport);

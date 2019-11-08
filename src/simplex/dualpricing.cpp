@@ -74,8 +74,8 @@ DualPricing::DualPricing(const DenseVector &basicVariableValues,
 DualPricing::~DualPricing() {
     delete [] m_phase1ReducedCosts;
     delete [] m_phase1ReducedCostSummarizers;
-    m_phase1ReducedCosts = 0;
-    m_phase1ReducedCostSummarizers = 0;
+    m_phase1ReducedCosts = nullptr;
+    m_phase1ReducedCostSummarizers = nullptr;
 }
 
 bool DualPricing::hasLockedVariable() const

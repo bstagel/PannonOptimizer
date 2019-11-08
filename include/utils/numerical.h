@@ -118,6 +118,7 @@ inline static Double * allocDouble(int size) {
 
 void static freeDouble(const Numerical::Double * ptr) {
     delete [] ptr;
+    ptr = nullptr;
 }
 #endif
 

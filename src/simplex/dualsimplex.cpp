@@ -66,17 +66,17 @@ DualSimplex::~DualSimplex()
 {
     if(m_pricing){
         delete m_pricing;
-        m_pricing = 0;
+        m_pricing = nullptr;
     }
 
     if(m_feasibilityChecker){
         delete m_feasibilityChecker;
-        m_feasibilityChecker = 0;
+        m_feasibilityChecker = nullptr;
     }
 
     if(m_ratiotest){
         delete m_ratiotest;
-        m_ratiotest = 0;
+        m_ratiotest = nullptr;
     }
 }
 
@@ -510,6 +510,7 @@ void DualSimplex::update() {
         case NONBASIC_FREE:
             LPWARNING("FREE variable is going to leave the basis!");
             beta = outgoingVariableValue;
+            break;
         default:
             throw PanOptException("Invalid outgoing state!");
         }

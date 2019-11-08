@@ -32,7 +32,7 @@
 
 struct DoubleETM
 {
-    DoubleETM(): row(NULL), column(NULL) {}
+    DoubleETM(): row(nullptr), column(nullptr) {}
     DoubleETM(SparseVector* row, SparseVector* column): row(row), column(column){}
     SparseVector* row;
     SparseVector* column;

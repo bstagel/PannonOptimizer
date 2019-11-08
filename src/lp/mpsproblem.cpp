@@ -25,7 +25,7 @@ using namespace std;
 
 MpsModelBuilder::MpsModelBuilder() {
     m_bufferSize = 20 * 1024;
-    m_buffer = 0;
+    m_buffer = nullptr;
     m_errorPrintLimit = DEFAULT_MPS_ERROR_PRINT_LIMIT;
     m_costConstant = 0;
     m_costVectorName.m_bits = 0;
@@ -41,6 +41,7 @@ void MpsModelBuilder::clear(){
     std::list<std::vector<Row>* >::iterator rowListIterEnd = m_rows.m_rows.end();
     for (; rowListIter != rowListIterEnd; rowListIter++) {
         delete *rowListIter;
+        *rowListIter = nullptr;
     }
 
     m_rows.m_rows.clear();
@@ -49,6 +50,7 @@ void MpsModelBuilder::clear(){
     std::list<std::vector<Column>* >::iterator columnListIterEnd = m_columns.m_columns.end();
     for (; columnListIter != columnListIterEnd; columnListIter++) {
         delete *columnListIter;
+        *columnListIter = nullptr;
     }
 
     m_columns.m_columns.clear();
@@ -1047,6 +1049,7 @@ void MpsModelBuilder::readColumns() {
 
     saveColumn(&actualColumn, &lastVector, columnPattern);
     delete [] columnPattern;
+    columnPattern = nullptr;
 }
 
 void MpsModelBuilder::finishColumns() {
@@ -1208,6 +1211,7 @@ void MpsModelBuilder::readRhsOrRanges(double Row::*range) {
     } while (*m_buffer == ' ');
 
     delete [] columnPattern;
+    columnPattern = nullptr;
 }
 
 void MpsModelBuilder::readBounds() {
@@ -1242,7 +1246,7 @@ void MpsModelBuilder::readBounds() {
                 const char * originalBuffer = m_buffer;
 
                 wrong = false;
-                columnIndexPtr = 0;
+                columnIndexPtr = nullptr;
 
                 if (likely(parseBoundRecord(&value, &currentBoundName, &columnIndex.m_name, &startSection) == true)) {
 
@@ -1269,7 +1273,7 @@ void MpsModelBuilder::readBounds() {
                         }
                     }
                     columnIndexPtr = m_columnsTable.get( columnIndex );
-                    if (unlikely(columnIndexPtr == 0)) {
+                    if (unlikely(columnIndexPtr == nullptr)) {
                         LPERROR("Column not exists: " << getName(columnIndex.m_name));
                         // TODO: error
                     }
@@ -1368,6 +1372,7 @@ void MpsModelBuilder::readBounds() {
         }
     } while (*m_buffer == ' ');
     delete [] boundsPattern;
+    boundsPattern = nullptr;
 }
 
 void MpsModelBuilder::skipSection() {

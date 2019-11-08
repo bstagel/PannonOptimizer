@@ -118,7 +118,7 @@ Constraint::ConstraintException::ConstraintException(const Constraint & constrai
 Constraint::ConstraintException::~ConstraintException()
 {
     delete m_constraint;
-    m_constraint = 0;
+    m_constraint = nullptr;
 }
 
 const Constraint * Constraint::ConstraintException::getConstraint() const

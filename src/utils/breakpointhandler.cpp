@@ -101,7 +101,7 @@ const std::vector<const BreakpointHandler::BreakPoint*> &BreakpointHandler::getE
     //reserve the maximal possible number: total number of breakpoints
     m_secondPassRatios.clear();
     m_secondPassRatios.reserve(m_size);
-    const BreakPoint * breakpoint = NULL;
+    const BreakPoint * breakpoint = nullptr;
 
     Numerical::Double theta_1 = Numerical::Infinity;
 

@@ -63,7 +63,7 @@ int Simplex::sm_repeatSolution = 0;
 Simplex::Simplex(Basis* basis):
     m_iterationIndex(0),
     m_phase1Iteration(-1),
-    m_simplexModel(NULL),
+    m_simplexModel(nullptr),
     m_degenerate(false),
     m_variableStates(0,0),
     m_basicVariableFeasibilities(0,0),
@@ -97,9 +97,9 @@ Simplex::Simplex(Basis* basis):
     m_badIterations(0),
     m_degenerateIterations(0),
     //Modules
-    m_startingBasisFinder(NULL),
+    m_startingBasisFinder(nullptr),
     m_basis(basis),
-    m_pricing(NULL),
+    m_pricing(nullptr),
     m_expand(SimplexParameterHandler::getInstance().getStringParameterValue("Ratiotest.Expand.type")),
     m_recomputeReducedCosts(true)
 {
@@ -109,12 +109,12 @@ Simplex::Simplex(Basis* basis):
 Simplex::~Simplex() {
     if(m_simplexModel){
         delete m_simplexModel;
-        m_simplexModel = 0;
+        m_simplexModel = nullptr;
     }
 
     if(m_startingBasisFinder){
         delete m_startingBasisFinder;
-        m_startingBasisFinder = 0;
+        m_startingBasisFinder = nullptr;
     }
 }
 
@@ -313,6 +313,7 @@ Entry Simplex::getIterationEntry(const string &name, ITERATION_REPORT_FIELD_TYPE
 void Simplex::setModel(const Model &model) {
     if(m_simplexModel){
         delete m_simplexModel;
+        m_simplexModel = nullptr;
     }
 
     unregisterMethodWithModel(this, model);
@@ -497,6 +498,7 @@ void Simplex::saveBasisToFile(const char * fileName, BasisHeadIO * basisWriter, 
 
     if (releaseWriter == true) {
         delete basisWriter;
+        basisWriter = nullptr;
     }
 }
 
@@ -513,6 +515,7 @@ void Simplex::loadBasisFromFile(const char * fileName, BasisHeadIO * basisReader
 
     if (releaseReader) {
         delete basisReader;
+        basisReader = nullptr;
     }
 
     m_variableStates.reversePartition(BASIC);

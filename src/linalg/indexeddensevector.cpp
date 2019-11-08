@@ -544,11 +544,11 @@ void IndexedDenseVector::copy(const IndexedDenseVector &orig)
 void IndexedDenseVector::release()
 {
     Numerical::freeDouble(m_data);
-    m_data = 0;
+    m_data = nullptr;
     ::release(m_nonzeroIndices);
-    m_nonzeroIndices = 0;
+    m_nonzeroIndices = nullptr;
     ::release(m_indexIndices);
-    m_indexIndices = 0;
+    m_indexIndices = nullptr;
     m_nonZeros = 0;
     m_length = 0;
 }

@@ -138,7 +138,7 @@ void PrimalRatiotest::computeFunctionPhase1(const DenseVector &alpha,
 {
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
-    const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
+    const BreakpointHandler::BreakPoint * actualBreakpoint = nullptr;
 
     while (functionSlope > 0 && iterationCounter < m_breakpointHandler.getNumberOfBreakpoints()) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
@@ -164,7 +164,7 @@ void PrimalRatiotest::computeFunctionPhase1(const DenseVector &alpha,
             functionSlope -= Numerical::fabs(alpha.at(actualBreakpoint->variableIndex));
         }
     }
-    if (actualBreakpoint != NULL){
+    if (actualBreakpoint != nullptr){
         m_primalSteplength = m_sigma * actualBreakpoint->value;
         m_outgoingVariableIndex = actualBreakpoint->variableIndex;
     } else {

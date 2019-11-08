@@ -26,14 +26,14 @@
 
 File::File()
 {
-    m_fd = 0;
-    m_buffer = 0;
+    m_fd = nullptr;
+    m_buffer = nullptr;
     m_bufferSize = 0;
     m_recordSize = 0;
     m_size = 0;
     m_last_block = false;
-    m_ptr = 0;
-    m_end = 0;
+    m_ptr = nullptr;
+    m_end = nullptr;
 }
 
 File::~File()
@@ -122,5 +122,5 @@ void File::close()
 {
     fclose(m_fd);
     delete [] m_buffer;
-    m_buffer = 0;
+    m_buffer = nullptr;
 }

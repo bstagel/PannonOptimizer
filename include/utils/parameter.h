@@ -79,6 +79,7 @@ public:
         }
         if(m_type == Entry::STRING){
             delete m_entry.m_string;
+            m_entry.m_string = nullptr;
         }
         m_name = other.m_name;
         m_comment = other.m_comment;
@@ -99,6 +100,7 @@ public:
     ~Parameter() {
         if(m_type == Entry::STRING){
             delete m_entry.m_string;
+            m_entry.m_string = nullptr;
         }
     }
 

@@ -47,6 +47,7 @@ void release(void * ptr) {
 
 #ifndef CACHE_LINE_ALIGNMENT
     delete [] ptr;
+    ptr = nullptr;
     return;
 #endif
 

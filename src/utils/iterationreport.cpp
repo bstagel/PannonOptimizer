@@ -94,6 +94,7 @@ void IterationReport::clear() {
     STL_FOREACH(std::vector<IterationReportField>, m_startFields, startIter) {
         if (startIter->getType() == IterationReportField::IRF_STRING) {
             delete m_startTable[columnIndex].m_string;
+            m_startTable[columnIndex].m_string = nullptr;
         }
         columnIndex++;
     }
@@ -102,6 +103,7 @@ void IterationReport::clear() {
     STL_FOREACH(std::vector<IterationReportField>, m_solutionFields, solutionIter) {
         if (solutionIter->getType() == IterationReportField::IRF_STRING) {
             delete m_solutionTable[columnIndex].m_string;
+            m_solutionTable[columnIndex].m_string = nullptr;
         }
         columnIndex++;
     }
@@ -346,6 +348,7 @@ void IterationReport::writeIterationReport() {
         //Free the string entries
         if (field.getType() == IterationReportField::IRF_STRING){
             delete newRow[index].m_string;
+            newRow[index].m_string = nullptr;
         }
     }
     if (fieldCounter > 0) {

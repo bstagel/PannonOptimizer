@@ -33,8 +33,8 @@ Matrix::Matrix(unsigned int rowCount, unsigned int columnCount)
         m_isDiagonal = false;
         m_rowCount = 0;
         m_columnCount = 0;
-        m_rowWise = 0;
-        m_columnWise = 0;
+        m_rowWise = nullptr;
+        m_columnWise = nullptr;
         m_fastColumnScaling = false;
         return;
     }
@@ -59,14 +59,14 @@ void Matrix::clear()
             delete m_rowWise[index];
         }
         delete [] m_rowWise;
-        m_rowWise = 0;
+        m_rowWise = nullptr;
     }
     if (m_columnWise) {
         for (index = 0; index < m_columnCount; index++) {
             delete m_columnWise[index];
         }
         delete [] m_columnWise;
-        m_columnWise = 0;
+        m_columnWise = nullptr;
     }
     m_rowCount = 0;
     m_columnCount = 0;
@@ -266,7 +266,7 @@ void Matrix::removeVector(SparseVector ** & columnWise, unsigned int & columnCou
         vector1++;
     }
     delete rowWise[index];
-    rowWise[index] = 0;
+    rowWise[index] = nullptr;
 
     // el kell tavolitani az index-edik sort
     // majd ezt lehet gyorsitani itt is egy elbowroom-ozassal, de egyelore marad igy
@@ -723,33 +723,33 @@ void Matrix::init(unsigned int rowCount, unsigned int columnCount)
     m_isDiagonal = false;
     m_rowCount = rowCount;
     m_columnCount = columnCount;
-    m_rowWise = 0;
-    m_columnWise = 0;
+    m_rowWise = nullptr;
+    m_columnWise = nullptr;
     m_fastRowScaling = false;
     m_fastColumnScaling = false;
     if (rowCount > 0) {
         m_rowWise = new SparseVector*[ rowCount ];
     } else {
-        m_rowWise = 0;
+        m_rowWise = nullptr;
     }
     for (index = 0; index < m_rowCount; index++) {
 //        if (initVectors) {
             m_rowWise[index] = new SparseVector(m_columnCount);
 //        } else {
-//            m_rowWise[index] = new SparseVector(NULL, NULL, NULL);
+//            m_rowWise[index] = new SparseVector(nullptr, nullptr, nullptr);
 //        }
     }
     if (m_columnCount > 0) {
         m_columnWise = new SparseVector*[ m_columnCount ];
     } else {
-        m_columnWise = 0;
+        m_columnWise = nullptr;
     }
 
     for (index = 0; index < m_columnCount; index++) {
 //        if (initVectors) {
             m_columnWise[index] = new SparseVector(m_rowCount);
 //        } else {
-//            m_columnWise[index] = new SparseVector(NULL, NULL, NULL);
+//            m_columnWise[index] = new SparseVector(nullptr, nullptr, nullptr);
 //        }
     }
 

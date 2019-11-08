@@ -85,7 +85,7 @@ void Timer::start()
 #ifdef WIN32
     QueryPerformanceCounter(&m_start);
 #else
-    gettimeofday(&m_start, NULL);
+    gettimeofday(&m_start, nullptr);
 #endif
 }
 
@@ -109,7 +109,7 @@ void Timer::stop()
     m_totalElapsed.QuadPart += m_lastElapsed.QuadPart;
     m_averageElapsed.QuadPart = m_totalElapsed.QuadPart / m_startCount;
 #else
-    gettimeofday(&m_end, NULL);
+    gettimeofday(&m_end, nullptr);
 
     unsigned long long int startTime = m_start.tv_sec * 1000000 + m_start.tv_usec;
     unsigned long long int endTime = m_end.tv_sec * 1000000 + m_end.tv_usec;
@@ -162,7 +162,7 @@ double Timer::getRunningTime() const
     return (actual.QuadPart-m_start.QuadPart) * (1000000.0 / m_frequency.QuadPart);
 #else
     timeval actual;
-    gettimeofday(&actual, NULL);
+    gettimeofday(&actual, nullptr);
 
     unsigned long long int startTime = m_start.tv_sec * 1000000 + m_start.tv_usec;
     unsigned long long int endTime = actual.tv_sec * 1000000 + actual.tv_usec;

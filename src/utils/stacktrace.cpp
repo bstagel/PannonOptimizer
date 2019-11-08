@@ -49,9 +49,9 @@ void printStackTrace( std::ostream & out, unsigned int max_frames )
     for ( unsigned int i = 0; i < addrlen; i++ )
     {
 
-        char* begin_name   = NULL;
-        char* begin_offset = NULL;
-        char* end_offset   = NULL;
+        char* begin_name   = nullptr;
+        char* begin_offset = nullptr;
+        char* end_offset   = nullptr;
 
         // find parentheses and +address offset surrounding the mangled name
 #ifdef DARWIN

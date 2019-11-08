@@ -666,8 +666,8 @@ private:
     void clear()
     {
         delete [] m_data;
-        m_data = 0;
-        m_actual = 0;
+        m_data = nullptr;
+        m_actual = nullptr;
         m_size = 0;
         m_capacity = 0;
     }

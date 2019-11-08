@@ -39,26 +39,26 @@ const static char * PRIMAL_THETA_STRING = "Theta";
 
 PrimalSimplex::PrimalSimplex(Basis *basis):
     Simplex(basis),
-    m_pricing(0),
-    m_feasibilityChecker(0),
-    m_ratiotest(0)
+    m_pricing(nullptr),
+    m_feasibilityChecker(nullptr),
+    m_ratiotest(nullptr)
 {}
 
 PrimalSimplex::~PrimalSimplex()
 {
     if (m_pricing) {
         delete m_pricing;
-        m_pricing = 0;
+        m_pricing = nullptr;
     }
 
     if (m_feasibilityChecker){
         delete m_feasibilityChecker;
-        m_feasibilityChecker = 0;
+        m_feasibilityChecker = nullptr;
     }
 
     if (m_ratiotest) {
         delete m_ratiotest;
-        m_ratiotest = 0;
+        m_ratiotest = nullptr;
     }
 }
 

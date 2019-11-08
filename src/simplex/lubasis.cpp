@@ -46,31 +46,39 @@ LuBasis::LuBasis() :
 LuBasis::~LuBasis()
 {
     for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); ++it) {
-        if(it->row != NULL){
+        if(it->row != nullptr){
             delete it->row;
+            it->row = nullptr;
         }
-        if(it->column != NULL){
+        if(it->column != nullptr){
             delete it->column;
+            it->column = nullptr;
         }
 
     }
     delete m_lower;
+    m_lower = nullptr;
 
     for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); ++it) {
-        if(it->row != NULL){
+        if(it->row != nullptr){
             delete it->row;
+            it->row = nullptr;
         }
-        if(it->column != NULL){
+        if(it->column != nullptr){
             delete it->column;
+            it->column = nullptr;
         }
 
     }
     delete m_upper;
+    m_upper = nullptr;
 
     for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); ++it) {
         delete it->eta;
+        it->eta = nullptr;
     }
     delete m_updateETMs;
+    m_updateETMs = nullptr;
 }
 
 void LuBasis::registerThread() {
@@ -102,21 +110,22 @@ void LuBasis::invert()
     } else {
         for (std::vector<DoubleETM>::iterator it = m_lower->begin(); it < m_lower->end(); ++it) {
             delete it->row;
-            it->row = NULL;
+            it->row = nullptr;
             delete it->column;
-            it->column = NULL;
+            it->column = nullptr;
         }
 
         for (std::vector<DoubleETM>::iterator it = m_upper->begin(); it < m_upper->end(); ++it) {
             delete it->row;
-            it->row = NULL;
+            it->row = nullptr;
             delete it->column;
-            it->column = NULL;
+            it->column = nullptr;
         }
     }
 
     for (std::vector<ETM>::iterator it = m_updateETMs->begin(); it < m_updateETMs->end(); ++it) {
         delete it->eta;
+        it->eta = nullptr;
     }
 
     m_updateETMs->clear();
@@ -148,17 +157,17 @@ void LuBasis::invert()
 
     //Free the copied columns
     for(unsigned int i=0; i<m_basicColumnCopies.size(); i++){
-        if(m_basicColumnCopies[i] != NULL){
+        if(m_basicColumnCopies[i] != nullptr){
             delete m_basicColumnCopies[i];
-            m_basicColumnCopies[i] = NULL;
+            m_basicColumnCopies[i] = nullptr;
         }
     }
 
     //Free the basic rows
     for(unsigned int i=0; i<m_basicRows.size(); i++){
-        if(m_basicRows[i] != NULL){
+        if(m_basicRows[i] != nullptr){
             delete m_basicRows[i];
-            m_basicRows[i] = NULL;
+            m_basicRows[i] = nullptr;
         }
     }
 
@@ -204,8 +213,8 @@ void LuBasis::copyBasis()
     //Containers to be resized directly
     m_basicColumns.clear();
     m_basicColumns.reserve(rowCount);
-    m_basicColumnCopies.resize(rowCount, NULL);
-    m_basicRows.resize(rowCount, NULL);
+    m_basicColumnCopies.resize(rowCount, nullptr);
+    m_basicRows.resize(rowCount, nullptr);
 
     m_basisNewHead.resize(rowCount, -1);
 

@@ -52,7 +52,7 @@ struct ETM
      *
      * @constructor
      */
-    ETM(): eta(NULL), index(0) {}
+    ETM(): eta(nullptr), index(0) {}
 
     /**
      * Initializing constructor.

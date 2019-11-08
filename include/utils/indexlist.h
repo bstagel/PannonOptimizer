@@ -1076,8 +1076,8 @@ private:
         delete [] m_dataArray;
         m_partitionCount = 0;
         m_count = 0;
-        m_heads = 0;
-        m_dataArray = 0;
+        m_heads = nullptr;
+        m_dataArray = nullptr;
     }
 
     /**

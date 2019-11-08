@@ -58,7 +58,7 @@ class RefObject {
          * @constructor
          * @param ptr The object to be represented.
          */
-        AuxRefObject(T * ptr = 0) {
+        AuxRefObject(T * ptr = nullptr) {
             object = ptr;
             if (ptr)
                 counter = 1;
@@ -79,7 +79,7 @@ class RefObject {
             counter--;
             if (counter == 0) {
                 delete object;
-                object = 0;
+                object = nullptr;
             }
         }
 
@@ -133,7 +133,7 @@ public:
      * @constructor
      * @param ptr Pointer to the represented object.
      */
-    RefObject(T * ptr = 0);
+    RefObject(T * ptr = nullptr);
 
     /**
      * Constructor of the RefObject class.
@@ -256,7 +256,7 @@ RefObject<T>::RefObject(T * ptr) {
     if (ptr)
         object = new AuxRefObject(ptr);
     else
-        object = 0;
+        object = nullptr;
 }
 
 template <class T>
@@ -265,7 +265,7 @@ RefObject<T>::RefObject(const int ptr) {
     if (_ptr)
         object = new AuxRefObject((T*)_ptr);
     else
-        object = 0;
+        object = nullptr;
 }
 
 template <class T>
@@ -273,7 +273,7 @@ RefObject<T>::RefObject(const void * & ptr) {
     if (ptr)
         object = new AuxRefObject( (T*)ptr );
     else
-        object = 0;
+        object = nullptr;
 }
 
 template <class T>
@@ -282,7 +282,7 @@ RefObject<T>::RefObject(const RefObject<T> & orig) {
         object = orig.object;
         object->inc();
     } else {
-        object = 0;
+        object = nullptr;
     }
 }
 
@@ -296,7 +296,7 @@ template<class T> void RefObject<T>::dec() const {
     object->dec();
     if (object->getCounter() == 0) {
         delete object;
-        object = 0;
+        object = nullptr;
     }
 
 }
@@ -304,9 +304,9 @@ template<class T> void RefObject<T>::dec() const {
 template <class T>
 template <class T2>
 RefObject<T> & RefObject<T>::operator=(const RefObject<T2> & obj) {
-    if (obj.object == 0) {
+    if (obj.object == nullptr) {
         dec();
-        object = 0;
+        object = nullptr;
     } else {
         dec();
         obj.object->inc();
@@ -316,9 +316,9 @@ RefObject<T> & RefObject<T>::operator=(const RefObject<T2> & obj) {
 
 template <class T>
 RefObject<T> & RefObject<T>::operator=(const RefObject<T> & obj) {
-    if (obj.object == 0) {
+    if (obj.object == nullptr) {
         dec();
-        object = 0;
+        object = nullptr;
     } else {
         dec();
         obj.object->inc();
@@ -329,9 +329,9 @@ RefObject<T> & RefObject<T>::operator=(const RefObject<T> & obj) {
 
 template <class T>
 RefObject<T> & RefObject<T>::operator=(void * obj) {
-    if (obj == 0) {
+    if (obj == nullptr) {
         dec();
-        object = 0;
+        object = nullptr;
     } else {
         dec();
         object = new AuxRefObject((T*)obj);
@@ -342,9 +342,9 @@ RefObject<T> & RefObject<T>::operator=(void * obj) {
 template <class T>
 template <class T2>
 RefObject<T> & RefObject<T>::operator=(T2 * obj) {
-    if (obj == 0) {
+    if (obj == nullptr) {
         dec();
-        object = 0;
+        object = nullptr;
     } else {
         dec();
         object = new AuxRefObject(obj);

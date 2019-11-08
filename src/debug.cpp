@@ -104,6 +104,7 @@ void D::init() {
 
 void D::release() {
     delete m_registeredModules;
+    m_registeredModules = nullptr;
 }
 
 
@@ -115,7 +116,7 @@ unsigned int _debug_strlen_(const std::string strr)
     const char* str = strr.data();
     if (!str) return 0;
 
-    int len = 0;
+    unsigned int len = 0;
     bool skip = false;
     while( *str )
     {

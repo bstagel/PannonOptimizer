@@ -375,7 +375,7 @@ void DenseVector::move(DenseVector &orig)
     m_length = orig.m_length;
     orig.m_length = 0;
     m_data = orig.m_data;
-    orig.m_data = 0;
+    orig.m_data = nullptr;
 }
 
 void DenseVector::release()

@@ -148,7 +148,7 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
     unsigned int numberOfBreakpoints = m_breakpointHandler.getNumberOfBreakpoints();
     Numerical::Double t_prev = 0;
     Numerical::Double t_actual = 0;
-    const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
+    const BreakpointHandler::BreakPoint * actualBreakpoint = nullptr;
 
     bool original = true;
     if(!original){
@@ -208,7 +208,7 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
             actualBreakpoint = m_breakpointHandler.getBreakpoint(firstCandidate);
         }
 
-        if (actualBreakpoint != NULL){
+        if (actualBreakpoint != nullptr){
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * actualBreakpoint->value;
             //adding variables to the update vector if their feasibility states are changed
@@ -244,7 +244,7 @@ void DualRatiotest::computeFunctionPhase1(const DenseVector& alpha,
             t_prev = t_actual;
         }
 
-        if (actualBreakpoint != NULL){
+        if (actualBreakpoint != nullptr){
             m_incomingVariableIndex = actualBreakpoint->variableIndex;
             m_dualSteplength = m_sigma * actualBreakpoint->value;
         } else{
@@ -597,7 +597,7 @@ void DualRatiotest::computeFunctionPhase2(const DenseVector &alpha,
     Numerical::Double t_actual = 0;
     Numerical::Double absPrimalSteplength = 0;
 
-    const BreakpointHandler::BreakPoint * actualBreakpoint = NULL;
+    const BreakpointHandler::BreakPoint * actualBreakpoint = nullptr;
     while (iterationCounter < length) {
         actualBreakpoint = m_breakpointHandler.getBreakpoint(iterationCounter);
         t_actual = actualBreakpoint->value;
@@ -655,7 +655,7 @@ void DualRatiotest::useNumericalThresholdPhase2(unsigned int iterationCounter,
     int maxAlphaId = iterationCounter;
     Numerical::Double maxAlphaAbs = 0;
     Numerical::Double t_actual = 0;
-    const BreakpointHandler::BreakPoint * breakpoint = NULL;
+    const BreakpointHandler::BreakPoint * breakpoint = nullptr;
 
     if(iterationCounter < length){
         breakpoint = m_breakpointHandler.getBreakpoint(maxAlphaId);

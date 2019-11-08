@@ -52,11 +52,13 @@ void solve(std::string filename, ofstream & out, bool dump_vars = false, bool pr
         builder->loadFromFile(filename);
         model.build(*builder);
         delete builder;
+        builder = nullptr;
     } else {
         MpsModelBuilder* builder = new MpsModelBuilder();
         builder->loadFromFile(filename.c_str());
         model.build(*builder);
         delete builder;
+        builder = nullptr;
     }
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 1) {
         LPINFO("Number of nonzeros: "<<model.getMatrix().nonZeros());
@@ -168,8 +170,8 @@ void printMissingOperandError(char** argv) {
 void generateParameterFiles() {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir (".")) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
+    if ((dir = opendir (".")) != nullptr) {
+        while ((ent = readdir (dir)) != nullptr) {
             std::string entry(ent->d_name);
             if(entry.size()>=4 && entry.substr(entry.size()-4 , 4).compare(".PAR") == 0){
                 remove(entry.c_str());
@@ -191,8 +193,8 @@ void generateParameterFiles() {
 void solveDir(std::string dirPath, ofstream & out, bool dump_vars = false) {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir (dirPath.c_str())) != NULL) {
-        while ((ent = readdir (dir)) != NULL) {
+    if ((dir = opendir (dirPath.c_str())) != nullptr) {
+        while ((ent = readdir (dir)) != nullptr) {
             std::string entry(ent->d_name);
             if(entry.size()>=4){
                 std::cout << "ENTRY: " << entry << "\n";

@@ -212,7 +212,7 @@ private:
             m_counter++;
         }
 
-        void getCount() {
+        unsigned int getCount() {
             return m_counter;
         }
 

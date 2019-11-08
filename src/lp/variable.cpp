@@ -119,7 +119,7 @@ Variable::VariableException::VariableException(const Variable & variable,
 Variable::VariableException::~VariableException()
 {
     delete m_variable;
-    m_variable = 0;
+    m_variable = nullptr;
 }
 
 const Variable * Variable::VariableException::getVariable() const

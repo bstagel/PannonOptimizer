@@ -46,16 +46,16 @@ StartingBasisFinder::StartingBasisFinder(const SimplexModel& model,
     m_model(model),
     m_basisHead(basisHead),
     m_variableStates(variableStates),
-    m_algorithm(NULL)
+    m_algorithm(nullptr)
 {
 
 }
 
 StartingBasisFinder::~StartingBasisFinder()
 {
-    if(m_algorithm != NULL){
+    if(m_algorithm != nullptr){
         delete m_algorithm;
-        m_algorithm = 0;
+        m_algorithm = nullptr;
     }
 }
 
@@ -95,9 +95,9 @@ void StartingBasisFinder::print (int printLevel)
 
 void StartingBasisFinder::findStartingBasis(STARTING_BASIS_STRATEGY strategy, STARTING_NONBASIC_STATES nonbasicStates)
 {
-    if(m_algorithm != NULL){
+    if(m_algorithm != nullptr){
         delete m_algorithm;
-        m_algorithm = 0;
+        m_algorithm = nullptr;
     }
     DEVINFO(D::STARTINGBASISFINDER, "Find starting basis: " << strategy);
 

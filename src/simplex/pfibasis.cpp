@@ -126,6 +126,7 @@ void PfiBasis::registerThread() {
 void PfiBasis::releaseThread() {
     for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
         delete iter->eta;
+        iter->eta = nullptr;
     }
     m_updates->clear();
     m_updateLock.lock();
@@ -142,6 +143,7 @@ void PfiBasis::clearUpdates() {
     }
     for (std::vector<ETM>::iterator iter = m_updates->begin(); iter < m_updates->end(); ++iter) {
         delete iter->eta;
+        iter->eta = nullptr;
     }
     m_updates->clear();
 }
@@ -181,9 +183,9 @@ void PfiBasis::prepareForModel(const Model &model)
 
 void PfiBasis::releaseModel()
 {
-    //TODO set nullptr to deleted pointers (also initialization)
     for(unsigned int i=0; i<m_mmRows->size(); i++){
         delete (*m_mmRows)[i];
+        (*m_mmRows)[i] = nullptr;
     }
     delete m_mmRows;
     m_mmRows = nullptr;
@@ -191,6 +193,7 @@ void PfiBasis::releaseModel()
     m_mmRowIndices = nullptr;
     for(unsigned int i=0; i<m_mmColumns->size(); i++){
         delete (*m_mmColumns)[i];
+        (*m_mmColumns)[i] = nullptr;
     }
     delete m_mmColumns;
     m_mmColumns = nullptr;
@@ -216,6 +219,7 @@ void PfiBasis::releaseModel()
     m_cPivotIndexes = nullptr;
     for (std::vector<ETM>::iterator iter = m_basis->begin(); iter < m_basis->end(); ++iter) {
         delete iter->eta;
+        iter->eta = nullptr;
     }
     delete m_basis;
     m_basis = nullptr;
@@ -277,7 +281,7 @@ void PfiBasis::copyBasis(bool buildIndexLists) {
     //NEW//
     m_basicColumns.clear();
     m_basicColumns.reserve(rowCount);
-    m_basicColumnCopies.resize(rowCount, NULL);
+    m_basicColumnCopies.resize(rowCount, nullptr);
     m_rowNonzeroIndices.clear();
     m_rowNonzeroIndices.resize(rowCount);
     m_basicColumnIndices.clear();
@@ -401,9 +405,9 @@ void PfiBasis::invert() {
 
     //Free the copied columns
     for(unsigned int i=0; i<m_basicColumnCopies.size(); i++){
-        if(m_basicColumnCopies[i] != NULL){
+        if(m_basicColumnCopies[i] != nullptr){
             delete m_basicColumnCopies[i];
-            m_basicColumnCopies[i] = NULL;
+            m_basicColumnCopies[i] = nullptr;
         }
     }
 
@@ -1033,7 +1037,7 @@ void PfiBasis::updateColumns(unsigned int rowindex, unsigned int columnindex) {
     for (; it != itend; ++it) {
         if (*it != (int) columnindex && m_columnCounts[*it] > -1) {
 
-            if(m_basicColumnCopies[*it]==NULL){
+            if(m_basicColumnCopies[*it]==nullptr){
                 m_basicColumnCopies[*it] = new SparseVector(*(m_basicColumns[*it]));
                 m_basicColumns[*it] = m_basicColumnCopies[*it];
             }
@@ -1441,7 +1445,9 @@ void PfiBasis::buildMM() {
     //TODO: Maybe we can use previously allocated MM blocks if they are big enough.
     for(unsigned int i=0; i<m_mmRows->size(); i++){
         delete (*m_mmRows)[i];
+        (*m_mmRows)[i] = nullptr;
         delete (*m_mmColumns)[i];
+        (*m_mmColumns)[i] = nullptr;
     }
 
     m_mmRowIndices->clear();
