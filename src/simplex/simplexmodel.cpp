@@ -470,6 +470,7 @@ void SimplexModel::shiftBounds()
 void SimplexModel::resetModel()
 {
     if (m_perturbedCostVector){
+        LPINFO("Resetting perturbation.");
         m_costVector = m_originalCostVector;
         m_perturbedCostVector = false;
     }

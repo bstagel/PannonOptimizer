@@ -880,3 +880,85 @@ void SimplexController::switchAlgorithm(const Model &model, IterationReport* ite
     LPINFO("Algorithm switched!");
 #endif
 }
+
+void SimplexController::printStatistics(const Model& _model)
+{
+    //initialize dataStructures
+    if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "PRIMAL") {
+        m_currentAlgorithm = Simplex::PRIMAL;
+        m_primalSimplex = new PrimalSimplex(m_basis);
+        m_currentSimplex = m_primalSimplex;
+    } else if (SimplexParameterHandler::getInstance().getStringParameterValue("Global.starting_algorithm") == "DUAL") {
+        m_currentAlgorithm = Simplex::DUAL;
+        m_dualSimplex = new DualSimplex(m_basis);
+        m_currentSimplex = m_dualSimplex;
+    }
+    m_currentSimplex->setModel(_model);
+    const SimplexModel& model = m_currentSimplex->getModel();
+    unsigned rows    =  model.getRowCount();
+    unsigned columns =  model.getColumnCount();
+
+    //type of variables
+    unsigned varTypes = Variable::VARIABLE_TYPE_ENUM_LENGTH;
+    unsigned variables[varTypes];
+    for (unsigned i = 0; i < varTypes; ++i){
+       variables[i] = 0;
+    }
+    for (unsigned i = 0; i < rows + columns; ++i){
+       Variable::VARIABLE_TYPE type = model.getVariable(i).getType();
+       ++variables[type];
+    }
+    LPINFO("Variables:");
+    for (unsigned i = 0; i < varTypes; ++i) {
+       LPINFO("type " << i << ": " << variables[i]);
+    }
+
+    //primal infeasibility (considers lower logical starting basis)
+    Numerical::Double e_feas = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_feasibility");
+    Numerical::Double primalInfeasibility = 0.0;
+    unsigned primalInfeasibleVariables = 0;
+    unsigned primalDegenerateVariables = 0;
+    const DenseVector& rhs = model.getRhs();
+    for(unsigned i = 0; i < rows; ++i) {
+       Numerical::Double lb = model.getVariable(columns + i).getLowerBound();
+       Numerical::Double ub = model.getVariable(columns + i).getUpperBound();
+       Numerical::Double xb = rhs.at(i);
+       if (Numerical::equal(xb, lb, e_feas) || Numerical::equal(xb, ub, e_feas)) {
+           ++primalDegenerateVariables;
+       } else if (xb + e_feas < lb){
+           primalInfeasibility += xb - lb;
+       } else if (xb - e_feas > ub) {
+           ++primalInfeasibleVariables;
+           primalInfeasibility -= xb - ub;
+       }
+    }
+    LPINFO("Primal infeasibility: " << primalInfeasibility);
+    LPINFO("Infeasible variables: " << primalInfeasibleVariables);
+    LPINFO("Degenerate variables: " << primalDegenerateVariables);
+
+    //dual infeasibility (considers lower logical starting basis)
+    Numerical::Double e_opt = SimplexParameterHandler::getInstance().getDoubleParameterValue("Tolerances.e_optimality");
+    Numerical::Double dualInfeasibility = 0.0;
+    unsigned dualInfeasibleVariables = 0;
+    unsigned dualDegenerateVariables = 0;
+    Variable::VARIABLE_TYPE typeOfIthVariable;
+    DenseVector cost = model.getCostVector();
+    for(unsigned variableIndex = 0; variableIndex < cost.length(); variableIndex++){
+       Numerical::Double c_j = cost.at(variableIndex);
+       typeOfIthVariable = model.getVariable(variableIndex).getType();
+       //M type infeasibility
+       if (Numerical::fabs(c_j) < e_opt) {
+           ++dualDegenerateVariables;
+       } else if (c_j < -e_opt && (typeOfIthVariable == Variable::PLUS || typeOfIthVariable == Variable::FREE)) {
+           ++dualInfeasibleVariables;
+           dualInfeasibility += c_j;
+       //P type infeasibility
+       } else if (c_j > e_opt && (typeOfIthVariable == Variable::MINUS || typeOfIthVariable == Variable::FREE)) {
+           ++dualInfeasibleVariables;
+           dualInfeasibility -= c_j;
+       }
+    }
+    LPINFO("Dual infeasibility: " << dualInfeasibility);
+    LPINFO("Infeasible variables: " << dualInfeasibleVariables);
+    LPINFO("Degenerate variables: " << dualDegenerateVariables);
+}

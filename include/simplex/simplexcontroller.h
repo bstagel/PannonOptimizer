@@ -127,6 +127,11 @@ public:
      */
     inline bool isOptimal() const { return m_isOptimal; }
 
+    /**
+     * Displays statistics about the input problem: types of variables, number of degenerate and infeasible variables.
+     */
+    void printStatistics(const Model&);
+
 private:
     /**
      * This shows the current solver algorithm it can be either primal or dual simplex.

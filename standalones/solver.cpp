@@ -38,7 +38,12 @@
 
 #include <linalg/indexeddensevector.h>
 
-void solve(std::string filename, ofstream & out, bool dump_vars = false) {
+void printStatistics(const Model& model) {
+    SimplexController simplexController;
+    simplexController.printStatistics(model);
+}
+
+void solve(std::string filename, ofstream & out, bool dump_vars = false, bool printStat = false) {
 
     Model model;
 
@@ -56,6 +61,10 @@ void solve(std::string filename, ofstream & out, bool dump_vars = false) {
     if(SimplexParameterHandler::getInstance().getIntegerParameterValue("Global.debug_level") > 1) {
         LPINFO("Number of nonzeros: "<<model.getMatrix().nonZeros());
         LPINFO("Density: "<<model.getMatrix().density());
+    }
+    if (printStat) {
+        printStatistics(model);
+        exit(0);
     }
 
     if(SimplexParameterHandler::getInstance().getBoolParameterValue("Starting.Presolve.enable") == true){
@@ -108,6 +117,7 @@ void printHelp() {
                  "   -d, --directory \t Solve every MPS file listed in the FILE directory.\n"<<
                  "   -f, --file      \t Solve an MPS file.\n"<<
                  "   -fl, --file-list \t Solve all the MPS files listed in text file.\n"<<
+                 "   -ps, --print-statistics \t Show statistics about the input file.\n" <<
                  "   -p, --parameter-file \t Generate the default parameter files.\n"<<
                  "   -s, --solution \t Prints the primal solution to the output file.\n"
                  "   -o, --output    \t Redirect the solver output to a file.\n"<<
@@ -252,11 +262,12 @@ bool setParameter(ParameterHandler& handler, const std::string& arg, const char 
 }
 
 int main(int argc, char** argv) {
-    std::cout << "Welcome to Pannon Optimizer v1.0!\n";
+    std::cout << "Welcome to Pannon Optimizer v1.1!\n";
     //setbuf(stdout, 0);
     std::vector<std::pair<std::string, std::string> > solvables;
     bool outputRedirected = false;
     bool dump_vars = false;
+    bool printStat = false;
     ofstream out;
 
     ParameterHandler& linalgHandler = LinalgParameterHandler::getInstance();
@@ -335,6 +346,8 @@ int main(int argc, char** argv) {
                     outputRedirected = true;
                     i++;
                 }
+            } else if (arg.compare("-ps") == 0 || arg.compare("--print-statistics") == 0) {
+                printStat = true;
             } else if(arg.compare(0,1,"-") == 0) {
                 arg.erase(arg.begin());
                 //Check if the given value is a linalg parameter
@@ -366,7 +379,7 @@ int main(int argc, char** argv) {
         if(solvables[i].first.compare("d") == 0){
             solveDir(solvables[i].second, out, dump_vars);
         } else if(solvables[i].first.compare("f") == 0){
-            solve(solvables[i].second, out, dump_vars);
+            solve(solvables[i].second, out, dump_vars, printStat);
         } else if(solvables[i].first.compare("fl") == 0){
             solveFileList(solvables[i].second, out, dump_vars);
         }
